@@ -95,6 +95,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (typeof body.longitude === "number") data.longitude = body.longitude;
   if (body.isFeatured === true || body.isFeatured === false) data.isFeatured = body.isFeatured;
 
+  if (typeof body.bookingDepositBps === "number" && Number.isFinite(body.bookingDepositBps)) {
+    const bps = Math.floor(body.bookingDepositBps);
+    if (bps >= 0 && bps <= 10_000) data.bookingDepositBps = bps;
+  }
+  if (body.bookingApprovalRequired === true || body.bookingApprovalRequired === false) {
+    data.bookingApprovalRequired = body.bookingApprovalRequired;
+  }
+  if (body.waitlistEnabled === true || body.waitlistEnabled === false) {
+    data.waitlistEnabled = body.waitlistEnabled;
+  }
+
   const allowedStatus: ExperienceStatus[] = ["draft", "active", "inactive", "archived"];
   if (typeof body.status === "string" && allowedStatus.includes(body.status as ExperienceStatus)) {
     data.status = body.status as ExperienceStatus;

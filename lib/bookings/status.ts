@@ -1,7 +1,7 @@
 import type { BookingStatus } from "@prisma/client";
 
-const CANCELLABLE: BookingStatus[] = ["pending", "confirmed"];
-const RESCHEDULABLE: BookingStatus[] = ["confirmed"];
+const CANCELLABLE: BookingStatus[] = ["pending", "awaiting_vendor_approval", "confirmed"];
+const RESCHEDULABLE: BookingStatus[] = ["confirmed", "awaiting_vendor_approval"];
 const COMPLETABLE: BookingStatus[] = ["confirmed"];
 const CANCELLED: BookingStatus[] = [
   "cancelled_by_customer",

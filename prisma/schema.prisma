@@ -33,6 +33,7 @@ model User {
   bookingCancellations BookingCancellation[]
   bookingReschedules   BookingReschedule[]
   bookingAuditLogs     BookingAuditLog[]
+  waitlistEntries      BookingWaitlistEntry[] @relation("WaitlistCustomer")
 
   @@map("users")
 }
@@ -104,6 +105,7 @@ model Studio {
   vendorDomains        VendorDomain[]
   analyticsSnapshots   AnalyticsSnapshot[]
   dateBlocks           StudioDateBlock[]
+  waitlistEntries      BookingWaitlistEntry[]
 
   @@index([status])
   @@index([country, city])
@@ -247,6 +249,12 @@ model Experience {
   longitude            Float?
   cancellationPolicyId String?              @map("cancellation_policy_id") @db.Uuid
   isFeatured           Boolean              @default(false) @map("is_featured")
+  /// 0 = customer pays full price at checkout; 1–10000 = deposit as basis points of the booking line (e.g. 2500 = 25%).
+  bookingDepositBps    Int                  @default(0) @map("booking_deposit_bps")
+  /// If true, payment succeeds but booking stays awaiting vendor approval until approved (slot is still reserved).
+  bookingApprovalRequired Boolean           @default(false) @map("booking_approval_required")
+  /// If true, customers can join a waitlist when the slot is full (no capacity held).
+  waitlistEnabled      Boolean              @default(false) @map("waitlist_enabled")
   status               ExperienceStatus
   visibility           ExperienceVisibility @default(public)
   createdAt            DateTime             @default(now()) @map("created_at")
@@ -259,6 +267,7 @@ model Experience {
   bookingSlots         BookingSlot[]
   bookings             Booking[]
   cartItems            CartItem[]
+  waitlistEntries      BookingWaitlistEntry[]
 
   @@unique([studioId, slug])
   @@index([studioId])
@@ -360,13 +369,47 @@ model BookingSlot {
   cartItems       CartItem[]
   reschedulesFrom BookingReschedule[] @relation("RescheduleFromSlot")
   reschedulesTo   BookingReschedule[] @relation("RescheduleToSlot")
+  waitlistEntries BookingWaitlistEntry[]
 
   @@index([experienceId, slotDate])
   @@map("booking_slots")
 }
 
+enum WaitlistEntryStatus {
+  active
+  notified
+  converted
+  cancelled
+}
+
+model BookingWaitlistEntry {
+  id               String                @id @default(uuid()) @db.Uuid
+  studioId         String                @map("studio_id") @db.Uuid
+  experienceId     String                @map("experience_id") @db.Uuid
+  slotId           String                @map("slot_id") @db.Uuid
+  customerUserId   String?               @map("customer_user_id") @db.Uuid
+  customerName     String                @map("customer_name")
+  customerEmail    String                @map("customer_email")
+  participantCount Int                   @map("participant_count")
+  seatType         String?               @map("seat_type")
+  status           WaitlistEntryStatus   @default(active)
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  studio     Studio      @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  experience Experience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  slot       BookingSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  customerUser User?     @relation("WaitlistCustomer", fields: [customerUserId], references: [id], onDelete: SetNull)
+
+  @@index([studioId])
+  @@index([slotId])
+  @@index([experienceId])
+  @@map("booking_waitlist_entries")
+}
+
 enum BookingStatus {
   pending
+  awaiting_vendor_approval
   confirmed
   cancellation_requested
   cancelled_by_customer
@@ -380,6 +423,7 @@ enum BookingStatus {
 
 enum BookingPaymentStatus {
   pending
+  partial
   paid
   failed
   refunded
@@ -397,9 +441,16 @@ model Booking {
   customerPhone              String?              @map("customer_phone")
   participantCount           Int                  @map("participant_count")
   seatType                   String?              @map("seat_type")
+  /// Human-readable ticket / reference (e.g. PM-A1B2C3D4), set when the booking row is created.
+  ticketRef                  String?              @unique @map("ticket_ref")
   bookingStatus              BookingStatus        @map("booking_status")
   paymentStatus              BookingPaymentStatus @map("payment_status")
+  /// Full booking line total (all participants × price) before any balance collection.
   totalAmountCents           Int                  @map("total_amount_cents")
+  /// Amount collected in the checkout session tied to this booking (deposit or full).
+  depositAmountCents         Int                  @default(0) @map("deposit_amount_cents")
+  /// totalAmountCents − depositAmountCents (balance still due in person / future flow).
+  remainingBalanceCents      Int                  @default(0) @map("remaining_balance_cents")
   commissionAmountCents      Int                  @default(0) @map("commission_amount_cents")
   vendorAmountCents          Int                  @default(0) @map("vendor_amount_cents")
   cancellationPolicySnapshot Json?                @map("cancellation_policy_snapshot")
@@ -485,6 +536,7 @@ model CartItem {
   vendorId           String       @map("vendor_id") @db.Uuid
   quantity           Int          @default(1)
   participantCount   Int?         @map("participant_count")
+  seatType           String?      @map("seat_type")
   priceSnapshotCents Int          @map("price_snapshot_cents")
   policySnapshot     Json?        @map("policy_snapshot")
   createdAt          DateTime     @default(now()) @map("created_at")

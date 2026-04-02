@@ -3,6 +3,9 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { resolveCommissionBps, commissionCentsFromLine } from "@/lib/commission";
 import { getStripe } from "@/lib/stripe";
+import { depositChargedCents } from "@/lib/bookings/deposit";
+import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
+import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
 import type { CancellationPolicy } from "@prisma/client";
 
 function baseUrl() {
@@ -31,6 +34,7 @@ export async function POST(req: Request) {
     customerEmail?: string;
     customerPhone?: string;
     notes?: string;
+    seatType?: string | null;
   };
   try {
     body = await req.json();
@@ -43,6 +47,7 @@ export async function POST(req: Request) {
     typeof body.participantCount === "number" ? Math.floor(body.participantCount) : 0;
   const customerName = typeof body.customerName === "string" ? body.customerName.trim() : "";
   const customerEmail = typeof body.customerEmail === "string" ? body.customerEmail.trim().toLowerCase() : "";
+  const seatType = typeof body.seatType === "string" && body.seatType.trim() ? body.seatType.trim() : null;
 
   if (!slotId || participantCount < 1 || !customerName || !customerEmail) {
     return NextResponse.json(
@@ -79,6 +84,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid participant count for this experience" }, { status: 400 });
   }
 
+  const stErr = validateSeatTypeRequired(slot.seatCapacities, seatType);
+  if (stErr) return NextResponse.json({ error: stErr }, { status: 400 });
+  const seatErr = seatTypeCapacityError(slot.seatCapacities, seatType, participantCount, 0);
+  if (seatErr) return NextResponse.json({ error: seatErr }, { status: 400 });
+
   const remaining = slot.capacityTotal - slot.capacityReserved;
   if (participantCount > remaining) {
     return NextResponse.json({ error: "Not enough capacity" }, { status: 400 });
@@ -89,16 +99,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Studio has not completed Stripe Connect" }, { status: 400 });
   }
 
-  const lineTotal = experience.priceCents * participantCount;
+  const fullLine = experience.priceCents * participantCount;
+  const charged = depositChargedCents(fullLine, experience.bookingDepositBps);
   const bps = await resolveCommissionBps(studio.id, "booking");
-  const commissionTotal = commissionCentsFromLine(lineTotal, bps);
-  const vendorCents = lineTotal - commissionTotal;
+  const commissionTotal = commissionCentsFromLine(charged, bps);
+  const vendorCents = charged - commissionTotal;
 
   const snap = policySnapshot(experience.cancellationPolicy);
 
   const { booking, order } = await prisma.$transaction(async (tx) => {
-    // Pending bookings are cleaned up by Stripe success or manual review today.
-    // Add a scheduled expiry job before relying on this route at high volume.
+    const ticketRef = await allocateTicketRef(tx);
     const booking = await tx.booking.create({
       data: {
         studioId: studio.id,
@@ -109,9 +119,13 @@ export async function POST(req: Request) {
         customerEmail,
         customerPhone: body.customerPhone?.trim() || null,
         participantCount,
+        seatType,
+        ticketRef,
         bookingStatus: "pending",
         paymentStatus: "pending",
-        totalAmountCents: lineTotal,
+        totalAmountCents: fullLine,
+        depositAmountCents: charged,
+        remainingBalanceCents: fullLine - charged,
         commissionAmountCents: commissionTotal,
         vendorAmountCents: vendorCents,
         cancellationPolicySnapshot: snap === null ? undefined : snap,
@@ -128,8 +142,8 @@ export async function POST(req: Request) {
         notes: body.notes?.trim() || null,
         orderStatus: "pending",
         paymentStatus: "pending",
-        subtotalCents: lineTotal,
-        totalCents: lineTotal,
+        subtotalCents: charged,
+        totalCents: charged,
         currency: "EUR",
         items: {
           create: {
@@ -138,7 +152,7 @@ export async function POST(req: Request) {
             vendorId: studio.id,
             quantity: 1,
             participantCount,
-            priceSnapshotCents: lineTotal,
+            priceSnapshotCents: charged,
             commissionSnapshotCents: commissionTotal,
             vendorAmountSnapshotCents: vendorCents,
           },
@@ -150,16 +164,21 @@ export async function POST(req: Request) {
   });
 
   const stripe = getStripe();
+  const isDeposit = charged < fullLine;
+  const stripeName = isDeposit
+    ? `${experience.title} — deposit (${participantCount} pax)`
+    : `${experience.title} (per person)`;
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: customerEmail,
     line_items: [
       {
-        quantity: participantCount,
+        quantity: isDeposit ? 1 : participantCount,
         price_data: {
           currency: "eur",
-          unit_amount: experience.priceCents,
-          product_data: { name: `${experience.title} (per person)` },
+          unit_amount: isDeposit ? charged : experience.priceCents,
+          product_data: { name: stripeName },
         },
       },
     ],

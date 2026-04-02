@@ -151,6 +151,12 @@ export async function POST(req: Request, ctx: Ctx) {
       longitude: typeof body.longitude === "number" ? body.longitude : null,
       cancellationPolicyId,
       isFeatured: body.isFeatured === true,
+      bookingDepositBps:
+        typeof body.bookingDepositBps === "number" && Number.isFinite(body.bookingDepositBps)
+          ? Math.min(10_000, Math.max(0, Math.floor(body.bookingDepositBps)))
+          : 0,
+      bookingApprovalRequired: body.bookingApprovalRequired === true,
+      waitlistEnabled: body.waitlistEnabled === true,
       status: safeStatus,
       visibility: v,
     },

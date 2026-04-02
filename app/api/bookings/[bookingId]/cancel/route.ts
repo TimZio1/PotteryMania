@@ -55,15 +55,13 @@ export async function POST(req: Request, ctx: Ctx) {
       <p>Date: ${slotDate} at ${booking.slot.startTime}</p>
       <p>Cancelled by: ${role}</p>
       <p>Refund outcome: ${result.refundOutcome}</p>`;
-    if (booking.studio.email) {
-      await sendBookingEmails({
-        customerEmail: booking.customerEmail,
-        studioEmail: booking.studio.email,
-        subject,
-        customerHtml: `<h1>Booking cancelled</h1>${info}`,
-        studioHtml: `<h1>Booking cancelled</h1>${info}`,
-      });
-    }
+    await sendBookingEmails({
+      customerEmail: booking.customerEmail,
+      studioEmail: booking.studio.email || undefined,
+      subject,
+      customerHtml: `<h1>Booking cancelled</h1>${info}`,
+      studioHtml: booking.studio.email ? `<h1>Booking cancelled</h1>${info}` : undefined,
+    });
   } catch (e) {
     console.error("[cancel-email]", e);
   }

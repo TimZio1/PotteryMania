@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/db";
 import { isCancellable, cancelStatusForRole, isCancelled } from "./status";
 import { safeReleaseCapacity } from "./slot-lock";
-import type { Prisma } from "@prisma/client";
+import type { Booking, Prisma } from "@prisma/client";
+
+function amountCollectedCents(booking: Pick<Booking, "paymentStatus" | "totalAmountCents" | "depositAmountCents">): number {
+  if (booking.paymentStatus === "paid") return booking.totalAmountCents;
+  if (booking.paymentStatus === "partial") return booking.depositAmountCents;
+  return 0;
+}
 
 export type CancelResult =
   | { ok: true; bookingId: string; newStatus: string; refundOutcome: string; refundAmountCents: number }
@@ -28,8 +34,9 @@ export async function cancelBooking(opts: {
 
     let refundOutcome = "none";
     let refundAmountCents = 0;
+    const paid = amountCollectedCents(booking);
 
-    if (booking.paymentStatus === "paid") {
+    if (paid > 0) {
       const snap = booking.cancellationPolicySnapshot as Record<string, unknown> | null;
       if (snap) {
         const policyType = snap.policyType as string | undefined;
@@ -47,7 +54,7 @@ export async function cancelBooking(opts: {
         } else if (policyType === "refundable_until_hours") {
           if (hoursUntil >= hoursBeforeStart) {
             refundOutcome = "full_refund_eligible";
-            refundAmountCents = booking.totalAmountCents;
+            refundAmountCents = paid;
           } else {
             refundOutcome = "past_deadline";
             refundAmountCents = 0;
@@ -55,7 +62,8 @@ export async function cancelBooking(opts: {
         } else if (policyType === "partial_refund_until_hours") {
           if (hoursUntil >= hoursBeforeStart) {
             refundOutcome = "partial_refund_eligible";
-            refundAmountCents = Math.floor((booking.totalAmountCents * refundPercentage) / 100);
+            const fromPolicy = Math.floor((booking.totalAmountCents * refundPercentage) / 100);
+            refundAmountCents = Math.min(paid, fromPolicy);
           } else {
             refundOutcome = "past_deadline";
             refundAmountCents = 0;
@@ -66,12 +74,12 @@ export async function cancelBooking(opts: {
         }
       } else {
         refundOutcome = "no_policy_full_refund";
-        refundAmountCents = booking.totalAmountCents;
+        refundAmountCents = paid;
       }
 
       if (opts.role === "vendor" || opts.role === "admin") {
-        refundOutcome = `${opts.role}_initiated_full_refund`;
-        refundAmountCents = booking.totalAmountCents;
+        refundOutcome = `${opts.role}_initiated_refund`;
+        refundAmountCents = paid;
       }
     }
 
@@ -101,7 +109,7 @@ export async function cancelBooking(opts: {
       },
     });
 
-    if (booking.bookingStatus === "confirmed") {
+    if (booking.bookingStatus === "confirmed" || booking.bookingStatus === "awaiting_vendor_approval") {
       await safeReleaseCapacity(tx, booking.slotId, booking.participantCount, booking.seatType);
     }
 

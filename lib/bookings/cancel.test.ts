@@ -44,6 +44,7 @@ describe("cancelBooking", () => {
       participantCount: 2,
       seatType: "wheel",
       totalAmountCents: 2000,
+      depositAmountCents: 2000,
       notes: null,
       cancellationPolicySnapshot: null,
       slot: {
@@ -71,6 +72,7 @@ describe("cancelBooking", () => {
       participantCount: 1,
       seatType: null,
       totalAmountCents: 1000,
+      depositAmountCents: 0,
       notes: null,
       cancellationPolicySnapshot: null,
       slot: {

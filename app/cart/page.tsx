@@ -2,16 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { depositChargedCents } from "@/lib/bookings/deposit";
+import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
 
 type Item = {
   id: string;
   itemType: "product" | "booking";
   quantity: number;
   participantCount?: number | null;
+  seatType?: string | null;
   priceSnapshotCents: number;
   product?: { title: string; images: { imageUrl: string }[] } | null;
-  experience?: { title: string } | null;
-  slot?: { slotDate: string; startTime: string; endTime: string } | null;
+  experience?: { title: string; bookingDepositBps: number } | null;
+  slot?: {
+    slotDate: string;
+    startTime: string;
+    endTime: string;
+    seatCapacities?: unknown;
+  } | null;
 };
 
 export default function CartPage() {
@@ -72,9 +80,29 @@ export default function CartPage() {
     load();
   }
 
-  const sub =
-    items.reduce((s, i) => s + i.priceSnapshotCents * (i.itemType === "booking" ? i.participantCount ?? 0 : i.quantity), 0) /
-    100;
+  async function updateSeatType(itemId: string, seatType: string) {
+    await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId, seatType }),
+    });
+    load();
+  }
+
+  function lineDueCents(i: Item): number {
+    if (i.itemType === "product") return i.priceSnapshotCents * i.quantity;
+    const p = i.participantCount ?? 0;
+    const full = i.priceSnapshotCents * p;
+    const bps = i.experience?.bookingDepositBps ?? 0;
+    return depositChargedCents(full, bps);
+  }
+
+  function lineDisplayFullCents(i: Item): number {
+    if (i.itemType === "product") return i.priceSnapshotCents * i.quantity;
+    return i.priceSnapshotCents * (i.participantCount ?? 0);
+  }
+
+  const sub = items.reduce((s, i) => s + lineDueCents(i), 0) / 100;
   const hasProducts = items.some((i) => i.itemType === "product");
 
   if (loading) return <div className="p-8">Loading cart…</div>;
@@ -95,46 +123,78 @@ export default function CartPage() {
       ) : (
         <>
           <ul className="mt-6 space-y-4">
-            {items.map((i) => (
-              <li key={i.id} className="flex justify-between border-b border-stone-200 py-3">
-                <span>
-                  {i.itemType === "product" ? i.product?.title : i.experience?.title}
-                  {i.itemType === "booking" && i.slot ? (
-                    <span className="block text-xs text-stone-500">
-                      {i.slot.slotDate.slice(0, 10)} {i.slot.startTime}–{i.slot.endTime}
+            {items.map((i) => {
+              const seatKeys = i.itemType === "booking" ? seatTypeKeysFromSlot(i.slot?.seatCapacities) : [];
+              const fullEur = (lineDisplayFullCents(i) / 100).toFixed(2);
+              const dueEur = (lineDueCents(i) / 100).toFixed(2);
+              const hasDeposit =
+                i.itemType === "booking" && (i.experience?.bookingDepositBps ?? 0) > 0 && lineDueCents(i) < lineDisplayFullCents(i);
+
+              return (
+                <li key={i.id} className="border-b border-stone-200 py-3">
+                  <div className="flex justify-between gap-2">
+                    <span>
+                      {i.itemType === "product" ? i.product?.title : i.experience?.title}
+                      {i.itemType === "booking" && i.slot ? (
+                        <span className="block text-xs text-stone-500">
+                          {i.slot.slotDate.slice(0, 10)} {i.slot.startTime}–{i.slot.endTime}
+                        </span>
+                      ) : null}
                     </span>
-                  ) : null}
-                </span>
-                <span className="flex items-center gap-2">
-                  {i.itemType === "product" ? (
-                    <input
-                      type="number"
-                      min={1}
-                      className="w-16 rounded border px-1"
-                      value={i.quantity}
-                      onChange={(e) => updateQty(i.id, parseInt(e.target.value, 10) || 1)}
-                    />
-                  ) : (
-                    <input
-                      type="number"
-                      min={1}
-                      className="w-16 rounded border px-1"
-                      value={i.participantCount ?? 1}
-                      onChange={(e) => updateParticipants(i.id, parseInt(e.target.value, 10) || 1)}
-                    />
+                    <span className="flex shrink-0 flex-col items-end gap-1 text-right">
+                      {i.itemType === "product" ? (
+                        <input
+                          type="number"
+                          min={1}
+                          className="w-16 rounded border px-1"
+                          value={i.quantity}
+                          onChange={(e) => updateQty(i.id, parseInt(e.target.value, 10) || 1)}
+                        />
+                      ) : (
+                        <input
+                          type="number"
+                          min={1}
+                          className="w-16 rounded border px-1"
+                          value={i.participantCount ?? 1}
+                          onChange={(e) => updateParticipants(i.id, parseInt(e.target.value, 10) || 1)}
+                        />
+                      )}
+                      <span className="text-sm">
+                        {i.itemType === "booking" && hasDeposit ? (
+                          <>
+                            Total €{fullEur}
+                            <span className="block text-xs text-stone-500">Due now €{dueEur}</span>
+                          </>
+                        ) : (
+                          <>€{dueEur}</>
+                        )}
+                      </span>
+                    </span>
+                  </div>
+                  {seatKeys.length > 0 && (
+                    <label className="mt-2 block text-xs text-stone-600">
+                      Seat type
+                      <select
+                        className="mt-1 w-full max-w-xs rounded border px-2 py-1"
+                        value={i.seatType ?? ""}
+                        onChange={(e) => updateSeatType(i.id, e.target.value)}
+                      >
+                        <option value="">Select…</option>
+                        {seatKeys.map((k) => (
+                          <option key={k} value={k}>
+                            {k}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   )}
-                  <span>
-                    €
-                    {(
-                      (i.priceSnapshotCents * (i.itemType === "booking" ? i.participantCount ?? 0 : i.quantity)) /
-                      100
-                    ).toFixed(2)}
-                  </span>
-                </span>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
-          <p className="mt-4 text-right font-medium">Subtotal €{sub.toFixed(2)}</p>
+          <p className="mt-4 text-right text-sm text-stone-600">
+            Charged at checkout (Stripe) <span className="font-medium text-stone-900">€{sub.toFixed(2)}</span>
+          </p>
 
           <div className="mt-10 space-y-3 border-t border-stone-200 pt-8">
             <h2 className="font-medium">Checkout</h2>

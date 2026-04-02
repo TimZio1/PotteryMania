@@ -123,6 +123,12 @@ export default function EditStudioPage() {
         >
           Bookings
         </Link>
+        <Link
+          href={`/dashboard/waitlist/${studioId}`}
+          className="rounded border border-stone-300 py-2 text-center text-amber-900"
+        >
+          Class waitlist
+        </Link>
         <button type="button" onClick={submitReview} className="rounded border border-amber-800 py-2 text-amber-900">
           Submit for review
         </button>

@@ -4,11 +4,34 @@ import { getSessionUser } from "@/lib/auth-session";
 import { getCartForRequest, cartItemInclude } from "@/lib/cart-server";
 import { resolveCommissionBps, commissionCentsFromLine } from "@/lib/commission";
 import { getStripe } from "@/lib/stripe";
+import { depositChargedCents } from "@/lib/bookings/deposit";
+import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
+import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
 import type { Prisma } from "@prisma/client";
+import type Stripe from "stripe";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 }
+
+type LineRow = {
+  itemType: "product" | "booking";
+  title: string;
+  stripeName: string;
+  quantity: number;
+  stripeQuantity: number;
+  stripeUnitCents: number;
+  productId?: string;
+  experienceId?: string;
+  slotId?: string;
+  participantCount?: number;
+  seatType?: string | null;
+  policySnapshot?: Prisma.InputJsonValue;
+  fullLineCents: number;
+  chargedLineCents: number;
+  commissionCents: number;
+  vendorCents: number;
+};
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -57,20 +80,7 @@ export async function POST(req: Request) {
 
   let subtotal = 0;
   let commissionTotal = 0;
-  const lineRows: {
-    itemType: "product" | "booking";
-    title: string;
-    quantity: number;
-    productId?: string;
-    experienceId?: string;
-    slotId?: string;
-    participantCount?: number;
-    policySnapshot?: Prisma.InputJsonValue;
-    unitCents: number;
-    lineCents: number;
-    commissionCents: number;
-    vendorCents: number;
-  }[] = [];
+  const lineRows: LineRow[] = [];
 
   for (const item of cart.items) {
     if (item.itemType === "product") {
@@ -88,11 +98,14 @@ export async function POST(req: Request) {
       commissionTotal += com;
       lineRows.push({
         itemType: "product",
-        productId: p.id,
         title: p.title,
+        stripeName: p.title,
         quantity: item.quantity,
-        unitCents: unit,
-        lineCents,
+        stripeQuantity: item.quantity,
+        stripeUnitCents: unit,
+        productId: p.id,
+        fullLineCents: lineCents,
+        chargedLineCents: lineCents,
         commissionCents: com,
         vendorCents: lineCents - com,
       });
@@ -117,27 +130,53 @@ export async function POST(req: Request) {
     ) {
       return NextResponse.json({ error: `Invalid participant count: ${experience.title}` }, { status: 400 });
     }
-    if (item.participantCount > slot.capacityTotal - slot.capacityReserved) {
+
+    const stErr = validateSeatTypeRequired(slot.seatCapacities, item.seatType);
+    if (stErr) return NextResponse.json({ error: stErr }, { status: 400 });
+
+    // Cart line is not yet reflected in slot.capacityReserved; add it back like PATCH cart.
+    const reservedBySame = item.participantCount ?? 0;
+    const remaining = slot.capacityTotal - slot.capacityReserved + reservedBySame;
+    if (item.participantCount > remaining) {
       return NextResponse.json({ error: `Not enough capacity: ${experience.title}` }, { status: 400 });
     }
 
+    const seatErr = seatTypeCapacityError(
+      slot.seatCapacities,
+      item.seatType ?? null,
+      item.participantCount,
+      reservedBySame
+    );
+    if (seatErr) return NextResponse.json({ error: seatErr }, { status: 400 });
+
     const unit = item.priceSnapshotCents;
-    const lineCents = unit * item.participantCount;
-    const com = commissionCentsFromLine(lineCents, bookingBps);
-    subtotal += lineCents;
+    const fullLine = unit * item.participantCount;
+    const charged = depositChargedCents(fullLine, experience.bookingDepositBps);
+    const com = commissionCentsFromLine(charged, bookingBps);
+    subtotal += charged;
     commissionTotal += com;
+
+    const isDeposit = charged < fullLine;
+    const stripeName = isDeposit
+      ? `${experience.title} — deposit (${item.participantCount} pax)`
+      : `${experience.title} (per person)`;
+
     lineRows.push({
       itemType: "booking",
+      title: experience.title,
+      stripeName,
+      quantity: item.participantCount,
+      stripeQuantity: isDeposit ? 1 : item.participantCount,
+      stripeUnitCents: isDeposit ? charged : unit,
       experienceId: experience.id,
       slotId: slot.id,
-      title: `${experience.title} (per person)`,
-      quantity: item.participantCount,
       participantCount: item.participantCount,
-      unitCents: unit,
-      lineCents,
-      commissionCents: com,
-      vendorCents: lineCents - com,
+      seatType: item.seatType ?? null,
       policySnapshot: (item.policySnapshot as Prisma.InputJsonValue | null) ?? undefined,
+      fullLineCents: fullLine,
+      chargedLineCents: charged,
+      commissionCents: com,
+      vendorCents: charged - com,
     });
   }
 
@@ -177,7 +216,7 @@ export async function POST(req: Request) {
             productId: row.productId,
             vendorId: studioId,
             quantity: row.quantity,
-            priceSnapshotCents: row.lineCents,
+            priceSnapshotCents: row.chargedLineCents,
             commissionSnapshotCents: row.commissionCents,
             vendorAmountSnapshotCents: row.vendorCents,
           },
@@ -186,8 +225,7 @@ export async function POST(req: Request) {
       }
 
       if (row.itemType === "booking" && row.experienceId && row.slotId && row.participantCount) {
-        // Pending bookings are finalized by Stripe webhook confirmation.
-        // Add a scheduled expiry job before relying on long-lived pending rows.
+        const ticketRef = await allocateTicketRef(tx);
         const booking = await tx.booking.create({
           data: {
             studioId,
@@ -198,9 +236,13 @@ export async function POST(req: Request) {
             customerEmail,
             customerPhone: body.customerPhone?.trim() || null,
             participantCount: row.participantCount,
+            seatType: row.seatType ?? null,
+            ticketRef,
             bookingStatus: "pending",
             paymentStatus: "pending",
-            totalAmountCents: row.lineCents,
+            totalAmountCents: row.fullLineCents,
+            depositAmountCents: row.chargedLineCents,
+            remainingBalanceCents: row.fullLineCents - row.chargedLineCents,
             commissionAmountCents: row.commissionCents,
             vendorAmountCents: row.vendorCents,
             cancellationPolicySnapshot: row.policySnapshot,
@@ -216,7 +258,7 @@ export async function POST(req: Request) {
             vendorId: studioId,
             quantity: 1,
             participantCount: row.participantCount,
-            priceSnapshotCents: row.lineCents,
+            priceSnapshotCents: row.chargedLineCents,
             commissionSnapshotCents: row.commissionCents,
             vendorAmountSnapshotCents: row.vendorCents,
           },
@@ -228,30 +270,28 @@ export async function POST(req: Request) {
   });
 
   const stripe = getStripe();
-  const line_items = lineRows.map((r) => ({
-    quantity: r.quantity,
+  const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = lineRows.map((r) => ({
+    quantity: r.stripeQuantity,
     price_data: {
       currency: "eur",
-      unit_amount: r.unitCents,
-      product_data: { name: r.title },
+      unit_amount: r.stripeUnitCents,
+      product_data: { name: r.stripeName },
     },
   }));
 
-  const session = await stripe.checkout.sessions.create(
-    {
-      mode: "payment",
-      customer_email: customerEmail,
-      line_items,
-      success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl()}/cart?cancelled=1`,
-      payment_intent_data: {
-        application_fee_amount: commissionTotal,
-        transfer_data: { destination: stripeRow.stripeAccountId },
-        metadata: { orderId: order.id },
-      },
-      metadata: { orderId: order.id, cartId },
-    }
-  );
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: customerEmail,
+    line_items,
+    success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${baseUrl()}/cart?cancelled=1`,
+    payment_intent_data: {
+      application_fee_amount: commissionTotal,
+      transfer_data: { destination: stripeRow.stripeAccountId },
+      metadata: { orderId: order.id },
+    },
+    metadata: { orderId: order.id, cartId },
+  });
 
   return NextResponse.json({ url: session.url, orderId: order.id });
 }

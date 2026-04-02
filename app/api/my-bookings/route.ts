@@ -9,7 +9,16 @@ export async function GET() {
   const bookings = await prisma.booking.findMany({
     where: { customerUserId: user.id },
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      participantCount: true,
+      bookingStatus: true,
+      paymentStatus: true,
+      totalAmountCents: true,
+      depositAmountCents: true,
+      remainingBalanceCents: true,
+      ticketRef: true,
+      seatType: true,
       experience: { select: { id: true, title: true, coverImageUrl: true } },
       slot: { select: { slotDate: true, startTime: true, endTime: true, status: true } },
       studio: { select: { displayName: true } },

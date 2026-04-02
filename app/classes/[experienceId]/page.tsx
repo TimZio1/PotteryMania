@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { ClassBookingForm, type SlotOption } from "./booking-form";
+import { ClassBookingForm, type SlotOption, type WaitlistSlotOption } from "./booking-form";
+import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +34,16 @@ export default async function ClassDetailPage({ params }: PageProps) {
     where: {
       experienceId,
       slotDate: { gte: from, lte: to },
-      status: "open",
+      status: { in: ["open", "full"] },
     },
     orderBy: [{ slotDate: "asc" }, { startTime: "asc" }],
   });
 
   const slots: SlotOption[] = slotsRaw
-    .filter((s) => s.capacityTotal - s.capacityReserved >= experience.minimumParticipants)
+    .filter((s) => {
+      const rem = s.capacityTotal - s.capacityReserved;
+      return s.status === "open" && rem >= experience.minimumParticipants;
+    })
     .map((s) => ({
       id: s.id,
       slotDate: s.slotDate.toISOString(),
@@ -47,7 +51,26 @@ export default async function ClassDetailPage({ params }: PageProps) {
       endTime: s.endTime,
       capacityTotal: s.capacityTotal,
       capacityReserved: s.capacityReserved,
+      seatPoolKeys: seatTypeKeysFromSlot(s.seatCapacities),
     }));
+
+  const waitlistSlots: WaitlistSlotOption[] = experience.waitlistEnabled
+    ? slotsRaw
+        .filter((s) => {
+          const rem = s.capacityTotal - s.capacityReserved;
+          const canBookMinParty = s.status === "open" && rem >= experience.minimumParticipants;
+          return !canBookMinParty;
+        })
+        .map((s) => ({
+          id: s.id,
+          slotDate: s.slotDate.toISOString(),
+          startTime: s.startTime,
+          endTime: s.endTime,
+          capacityTotal: s.capacityTotal,
+          capacityReserved: s.capacityReserved,
+          seatPoolKeys: seatTypeKeysFromSlot(s.seatCapacities),
+        }))
+    : [];
 
   const price = experience.priceCents / 100;
   const primary = experience.images.find((i) => i.isPrimary) ?? experience.images[0];
@@ -72,6 +95,17 @@ export default async function ClassDetailPage({ params }: PageProps) {
         </p>
         <h1 className="mt-1 text-3xl font-semibold text-amber-950">{experience.title}</h1>
         <p className="mt-2 text-lg text-amber-900">€{price.toFixed(2)} per person</p>
+        {experience.bookingDepositBps > 0 && (
+          <p className="mt-1 text-sm text-stone-600">
+            This class may charge a deposit at checkout ({(experience.bookingDepositBps / 100).toFixed(1)}% of the
+            booking total); the rest is due later per studio policy.
+          </p>
+        )}
+        {experience.bookingApprovalRequired && (
+          <p className="mt-1 text-sm text-amber-900">
+            Bookings are confirmed by the studio after payment — you may see “pending approval” until they accept.
+          </p>
+        )}
         {primary?.imageUrl ? (
           <div className="mt-6 overflow-hidden rounded-lg bg-stone-200">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -93,7 +127,9 @@ export default async function ClassDetailPage({ params }: PageProps) {
           minP={experience.minimumParticipants}
           maxP={experience.maximumParticipants}
           priceCents={experience.priceCents}
+          bookingDepositBps={experience.bookingDepositBps}
           slots={slots}
+          waitlistSlots={waitlistSlots}
         />
       </main>
     </div>

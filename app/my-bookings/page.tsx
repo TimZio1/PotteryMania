@@ -9,6 +9,10 @@ type Booking = {
   bookingStatus: string;
   paymentStatus: string;
   totalAmountCents: number;
+  depositAmountCents: number;
+  remainingBalanceCents: number;
+  ticketRef: string | null;
+  seatType: string | null;
   experience: { id: string; title: string };
   slot: { slotDate: string; startTime: string; endTime: string; status: string };
   studio: { displayName: string };
@@ -48,15 +52,23 @@ export default function MyBookingsPage() {
     }
   }
 
-  const isCancellable = (status: string) => status === "pending" || status === "confirmed";
+  const isCancellable = (status: string) =>
+    status === "pending" || status === "confirmed" || status === "awaiting_vendor_approval";
 
   if (loading) return <p className="p-10 text-stone-500">Loading...</p>;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold text-amber-950">My Bookings</h1>
-        <Link href="/" className="text-sm text-amber-800">Home</Link>
+        <div className="flex gap-3 text-sm">
+          <Link href="/my-waitlist" className="text-amber-800">
+            My waitlist
+          </Link>
+          <Link href="/" className="text-stone-600">
+            Home
+          </Link>
+        </div>
       </div>
 
       {actionMsg && (
@@ -77,10 +89,20 @@ export default function MyBookingsPage() {
                   {b.slot.slotDate.slice(0, 10)} at {b.slot.startTime}-{b.slot.endTime}
                 </p>
                 <p className="text-sm text-stone-500">{b.participantCount} participants</p>
+                {b.seatType ? <p className="text-sm text-stone-500">Seat: {b.seatType}</p> : null}
+                {b.ticketRef ? (
+                  <p className="text-sm font-medium text-amber-900">Reference: {b.ticketRef}</p>
+                ) : null}
               </div>
               <div className="text-right">
                 <p className="font-medium text-stone-900">
                   &euro;{(b.totalAmountCents / 100).toFixed(2)}
+                  {b.remainingBalanceCents > 0 ? (
+                    <span className="block text-xs font-normal text-stone-500">
+                      Paid online: €{(b.depositAmountCents / 100).toFixed(2)} · Balance: €
+                      {(b.remainingBalanceCents / 100).toFixed(2)}
+                    </span>
+                  ) : null}
                 </p>
                 <p className="text-xs text-stone-500">{b.bookingStatus} / {b.paymentStatus}</p>
                 {b.cancellations.length > 0 && (

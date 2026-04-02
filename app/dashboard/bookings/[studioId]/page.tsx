@@ -31,15 +31,29 @@ export default async function StudioBookingsPage({ params }: Props) {
     take: 100,
   });
 
+  const pendingApproval = bookings.filter((b) => b.bookingStatus === "awaiting_vendor_approval");
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <Link href="/dashboard" className="text-sm text-amber-800">
         &larr; Dashboard
       </Link>
       <h1 className="mt-4 text-2xl font-semibold text-amber-950">{studio.displayName} bookings</h1>
+      {pendingApproval.length > 0 && (
+        <p className="mt-2 text-sm text-amber-900">
+          {pendingApproval.length} booking(s) awaiting your approval (payment already captured; slot reserved).
+        </p>
+      )}
       <div className="mt-6 space-y-3">
         {bookings.map((booking) => (
-          <div key={booking.id} className="rounded-lg border border-stone-200 bg-white p-4">
+          <div
+            key={booking.id}
+            className={`rounded-lg border bg-white p-4 ${
+              booking.bookingStatus === "awaiting_vendor_approval"
+                ? "border-amber-400 ring-1 ring-amber-200"
+                : "border-stone-200"
+            }`}
+          >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-medium text-stone-900">{booking.experience.title}</p>
@@ -49,10 +63,20 @@ export default async function StudioBookingsPage({ params }: Props) {
                 <p className="text-sm text-stone-500">
                   {booking.customerName} ({booking.customerEmail})
                 </p>
+                {booking.ticketRef ? (
+                  <p className="text-xs font-medium text-amber-900">Ref: {booking.ticketRef}</p>
+                ) : null}
               </div>
               <div className="text-right text-sm text-stone-500">
                 <p>{booking.participantCount} participants</p>
+                {booking.seatType ? <p>Seat: {booking.seatType}</p> : null}
                 <p>&euro;{(booking.totalAmountCents / 100).toFixed(2)}</p>
+                {booking.remainingBalanceCents > 0 ? (
+                  <p className="text-xs">
+                    Paid: €{(booking.depositAmountCents / 100).toFixed(2)} · Due: €
+                    {(booking.remainingBalanceCents / 100).toFixed(2)}
+                  </p>
+                ) : null}
                 <p>{booking.bookingStatus} / {booking.paymentStatus}</p>
                 {booking.cancellations.length > 0 && (
                   <p className="text-xs text-red-600">

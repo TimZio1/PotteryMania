@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { getCartForRequest, withCartCookie, cartItemInclude } from "@/lib/cart-server";
+import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
 
 async function loadCart(cartId: string) {
   return prisma.cart.findUnique({
@@ -29,7 +30,13 @@ export async function POST(req: Request) {
   const user = await getSessionUser();
   const { cartId, setCookie } = await getCartForRequest(user?.id ?? null);
 
-  let body: { productId?: string; quantity?: number; slotId?: string; participantCount?: number };
+  let body: {
+    productId?: string;
+    quantity?: number;
+    slotId?: string;
+    participantCount?: number;
+    seatType?: string | null;
+  };
   try {
     body = await req.json();
   } catch {
@@ -113,6 +120,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not enough capacity" }, { status: 400 });
     }
 
+    const seatType = typeof body.seatType === "string" && body.seatType.trim() ? body.seatType.trim() : null;
+    const stErr = validateSeatTypeRequired(slot.seatCapacities, seatType);
+    if (stErr) return NextResponse.json({ error: stErr }, { status: 400 });
+    const seatErr = seatTypeCapacityError(slot.seatCapacities, seatType, participantCount, reservedBySame);
+    if (seatErr) return NextResponse.json({ error: seatErr }, { status: 400 });
+
     const otherVendor = existingItems.find((i) => i.vendorId !== experience.studioId);
     if (otherVendor) {
       return NextResponse.json(
@@ -138,6 +151,7 @@ export async function POST(req: Request) {
         data: {
           quantity: 1,
           participantCount,
+          seatType,
           priceSnapshotCents: experience.priceCents,
           policySnapshot,
         },
@@ -152,6 +166,7 @@ export async function POST(req: Request) {
           vendorId: experience.studioId,
           quantity: 1,
           participantCount,
+          seatType,
           priceSnapshotCents: experience.priceCents,
           policySnapshot,
         },
@@ -168,7 +183,7 @@ export async function PATCH(req: Request) {
   const user = await getSessionUser();
   const { cartId, setCookie } = await getCartForRequest(user?.id ?? null);
 
-  let body: { itemId?: string; quantity?: number; participantCount?: number };
+  let body: { itemId?: string; quantity?: number; participantCount?: number; seatType?: string | null };
   try {
     body = await req.json();
   } catch {
@@ -176,7 +191,9 @@ export async function PATCH(req: Request) {
   }
   const itemId = typeof body.itemId === "string" ? body.itemId : "";
   const quantity = typeof body.quantity === "number" ? Math.floor(body.quantity) : 0;
-  const participantCount = typeof body.participantCount === "number" ? Math.floor(body.participantCount) : 0;
+  const hasParticipantCount = "participantCount" in body;
+  const participantCountRaw =
+    typeof body.participantCount === "number" ? Math.floor(body.participantCount) : 0;
   if (!itemId) return NextResponse.json({ error: "itemId required" }, { status: 400 });
 
   const item = await prisma.cartItem.findFirst({
@@ -186,12 +203,22 @@ export async function PATCH(req: Request) {
       slot: true,
     },
   });
+  const seatTypePatch =
+    body.seatType === null
+      ? null
+      : typeof body.seatType === "string" && body.seatType.trim()
+        ? body.seatType.trim()
+        : undefined;
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (item.itemType === "booking") {
-    if (participantCount <= 0) {
+    if (hasParticipantCount && participantCountRaw <= 0) {
       await prisma.cartItem.delete({ where: { id: itemId } });
     } else {
+      const participantCount =
+        hasParticipantCount && participantCountRaw > 0
+          ? participantCountRaw
+          : item.participantCount ?? 1;
       const slot = await prisma.bookingSlot.findUnique({
         where: { id: item.slotId ?? "" },
         include: { experience: true },
@@ -210,9 +237,15 @@ export async function PATCH(req: Request) {
       if (participantCount > remaining) {
         return NextResponse.json({ error: "Not enough capacity" }, { status: 400 });
       }
+      const nextSeat =
+        seatTypePatch !== undefined ? seatTypePatch : item.seatType ?? null;
+      const stErr = validateSeatTypeRequired(slot.seatCapacities, nextSeat);
+      if (stErr) return NextResponse.json({ error: stErr }, { status: 400 });
+      const seatErr = seatTypeCapacityError(slot.seatCapacities, nextSeat, participantCount, currentReserved);
+      if (seatErr) return NextResponse.json({ error: seatErr }, { status: 400 });
       await prisma.cartItem.update({
         where: { id: itemId },
-        data: { quantity: 1, participantCount },
+        data: { quantity: 1, participantCount, ...(seatTypePatch !== undefined ? { seatType: nextSeat } : {}) },
       });
     }
   } else if (quantity <= 0) {
