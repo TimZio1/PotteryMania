@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export type SlotOption = {
@@ -19,37 +20,30 @@ export function ClassBookingForm(props: {
 }) {
   const [slotId, setSlotId] = useState(props.slots[0]?.id ?? "");
   const [participantCount, setParticipantCount] = useState(props.minP);
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [notes, setNotes] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [added, setAdded] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    setAdded(false);
     setLoading(true);
     try {
-      const r = await fetch("/api/bookings/checkout", {
+      const r = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           slotId,
           participantCount,
-          customerName,
-          customerEmail,
-          customerPhone: customerPhone || undefined,
-          notes: notes || undefined,
         }),
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr(j.error || "Checkout failed");
+        setErr(j.error || "Could not add class");
         return;
       }
-      if (j.url) window.location.href = j.url;
-      else setErr("No checkout URL");
+      setAdded(true);
     } finally {
       setLoading(false);
     }
@@ -63,6 +57,14 @@ export function ClassBookingForm(props: {
     <form onSubmit={onSubmit} className="mt-6 space-y-4 rounded-lg border border-stone-200 bg-white p-4">
       <h2 className="text-lg font-medium text-amber-950">Book</h2>
       {err && <p className="text-sm text-red-600">{err}</p>}
+      {added && (
+        <p className="text-sm text-stone-600">
+          Class added to cart.{" "}
+          <Link href="/cart" className="text-amber-800 underline">
+            Go to checkout
+          </Link>
+        </p>
+      )}
       <label className="block text-sm">
         <span className="text-stone-600">Session</span>
         <select
@@ -95,48 +97,15 @@ export function ClassBookingForm(props: {
       <p className="text-sm text-stone-600">
         Total: €{((props.priceCents * participantCount) / 100).toFixed(2)}
       </p>
-      <label className="block text-sm">
-        <span className="text-stone-600">Your name</span>
-        <input
-          required
-          className="mt-1 w-full rounded border px-3 py-2"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-        />
-      </label>
-      <label className="block text-sm">
-        <span className="text-stone-600">Email</span>
-        <input
-          required
-          type="email"
-          className="mt-1 w-full rounded border px-3 py-2"
-          value={customerEmail}
-          onChange={(e) => setCustomerEmail(e.target.value)}
-        />
-      </label>
-      <label className="block text-sm">
-        <span className="text-stone-600">Phone (optional)</span>
-        <input
-          className="mt-1 w-full rounded border px-3 py-2"
-          value={customerPhone}
-          onChange={(e) => setCustomerPhone(e.target.value)}
-        />
-      </label>
-      <label className="block text-sm">
-        <span className="text-stone-600">Notes (optional)</span>
-        <textarea
-          className="mt-1 w-full rounded border px-3 py-2"
-          rows={2}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </label>
+      <p className="text-sm text-stone-500">
+        Add this class to your cart, then complete one checkout for products and bookings from the same studio.
+      </p>
       <button
         type="submit"
         disabled={loading || !slotId}
         className="w-full rounded bg-amber-800 py-2 text-white disabled:opacity-50"
       >
-        {loading ? "Redirecting…" : "Continue to payment"}
+        {loading ? "Adding…" : "Add class to cart"}
       </button>
     </form>
   );

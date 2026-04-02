@@ -27,6 +27,14 @@ function maxDate(a: Date, b: Date): Date {
   return a > b ? a : b;
 }
 
+async function getBlockedDates(studioId: string, from: Date, to: Date): Promise<Set<string>> {
+  const blocks = await prisma.studioDateBlock.findMany({
+    where: { studioId, blockDate: { gte: from, lte: to } },
+    select: { blockDate: true },
+  });
+  return new Set(blocks.map((b) => b.blockDate.toISOString().slice(0, 10)));
+}
+
 async function upsertSlot(
   experienceId: string,
   recurringRuleId: string | null,
@@ -76,11 +84,13 @@ export async function generateSlotsForRule(
   const endT = rule.endTime;
   if (!startT || !endT) return 0;
 
+  const blockedDates = await getBlockedDates(experience.studioId, from, to);
   let created = 0;
 
   if (rule.scheduleType === "one_time") {
     const d = rule.recurrenceStartDate ? stripTime(new Date(rule.recurrenceStartDate)) : null;
     if (!d || d < from || d > to) return 0;
+    if (blockedDates.has(d.toISOString().slice(0, 10))) return 0;
     return await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
   }
 
@@ -95,6 +105,7 @@ export async function generateSlotsForRule(
 
     for (let d = new Date(cursorStart); d <= cursorEnd; d = addDays(d, 1)) {
       if (wanted.size && !wanted.has(dayKey(d))) continue;
+      if (blockedDates.has(d.toISOString().slice(0, 10))) continue;
       created += await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
     }
     return created;

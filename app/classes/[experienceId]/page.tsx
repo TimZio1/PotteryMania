@@ -65,7 +65,11 @@ export default async function ClassDetailPage({ params }: PageProps) {
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-10">
-        <p className="text-sm text-stone-500">{experience.studio.displayName}</p>
+        <p className="text-sm text-stone-500">
+          <Link href={`/studios/${experience.studio.id}`} className="underline">
+            {experience.studio.displayName}
+          </Link>
+        </p>
         <h1 className="mt-1 text-3xl font-semibold text-amber-950">{experience.title}</h1>
         <p className="mt-2 text-lg text-amber-900">€{price.toFixed(2)} per person</p>
         {primary?.imageUrl ? (

@@ -48,7 +48,11 @@ export default async function ProductPage({ params }: Props) {
           </div>
         </div>
         <div>
-          <p className="text-sm text-stone-500">{product.studio.displayName}</p>
+          <p className="text-sm text-stone-500">
+            <Link href={`/studios/${product.studio.id}`} className="underline">
+              {product.studio.displayName}
+            </Link>
+          </p>
           <h1 className="mt-1 text-3xl font-light text-amber-950">{product.title}</h1>
           <p className="mt-4 text-2xl text-amber-900">€{price.toFixed(2)}</p>
           {product.shortDescription && <p className="mt-4 text-stone-600">{product.shortDescription}</p>}
@@ -59,6 +63,11 @@ export default async function ProductPage({ params }: Props) {
           <div className="mt-8 border-t border-stone-200 pt-6 text-sm text-stone-600">
             <p>
               <strong>Studio</strong> · {product.studio.city}, {product.studio.country}
+            </p>
+            <p className="mt-2">
+              <Link href={`/studios/${product.studio.id}`} className="text-amber-800 underline">
+                Visit studio page
+              </Link>
             </p>
             {product.shippingNotes && <p className="mt-2">Shipping: {product.shippingNotes}</p>}
             {product.returnNotes && <p className="mt-2">Returns: {product.returnNotes}</p>}

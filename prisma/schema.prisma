@@ -103,6 +103,7 @@ model Studio {
   calendarConnections  CalendarConnection[]
   vendorDomains        VendorDomain[]
   analyticsSnapshots   AnalyticsSnapshot[]
+  dateBlocks           StudioDateBlock[]
 
   @@index([status])
   @@index([country, city])
@@ -348,6 +349,7 @@ model BookingSlot {
   endTime          String            @map("end_time")
   capacityTotal    Int               @map("capacity_total")
   capacityReserved Int               @default(0) @map("capacity_reserved")
+  seatCapacities   Json?             @map("seat_capacities")
   status           BookingSlotStatus
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
@@ -394,6 +396,7 @@ model Booking {
   customerEmail              String               @map("customer_email")
   customerPhone              String?              @map("customer_phone")
   participantCount           Int                  @map("participant_count")
+  seatType                   String?              @map("seat_type")
   bookingStatus              BookingStatus        @map("booking_status")
   paymentStatus              BookingPaymentStatus @map("payment_status")
   totalAmountCents           Int                  @map("total_amount_cents")
@@ -780,4 +783,18 @@ model BookingAuditLog {
   actorUser User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
 
   @@map("booking_audit_log")
+}
+
+model StudioDateBlock {
+  id        String   @id @default(uuid()) @db.Uuid
+  studioId  String   @map("studio_id") @db.Uuid
+  blockDate DateTime @map("block_date") @db.Date
+  note      String?
+  createdBy String?  @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, blockDate])
+  @@map("studio_date_blocks")
 }

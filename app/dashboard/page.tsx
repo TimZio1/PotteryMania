@@ -61,6 +61,12 @@ export default async function DashboardPage() {
                   <Link href={`/dashboard/products/${s.id}`} className="text-amber-800 underline">
                     Products
                   </Link>
+                  <Link href={`/dashboard/experiences/${s.id}`} className="text-amber-800 underline">
+                    Experiences
+                  </Link>
+                  <Link href={`/dashboard/bookings/${s.id}`} className="text-amber-800 underline">
+                    Bookings
+                  </Link>
                 </div>
               </div>
               <p className="mt-2 text-xs text-stone-500">

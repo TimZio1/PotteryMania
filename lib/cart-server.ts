@@ -51,4 +51,13 @@ export const cartItemInclude = {
       images: { orderBy: { sortOrder: "asc" as const } },
     },
   },
+  experience: {
+    include: {
+      studio: { select: { id: true, displayName: true, status: true } },
+      images: { orderBy: { sortOrder: "asc" as const } },
+      cancellationPolicy: true,
+    },
+  },
+  slot: true,
+  vendor: { select: { id: true, displayName: true, status: true } },
 } satisfies Prisma.CartItemInclude;

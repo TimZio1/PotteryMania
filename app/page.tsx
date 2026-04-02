@@ -15,6 +15,9 @@ export default function Home() {
             <Link href="/classes" className="text-stone-700 hover:text-amber-900">
               Classes
             </Link>
+            <Link href="/studios" className="text-stone-700 hover:text-amber-900">
+              Studios
+            </Link>
             <Link href="/cart" className="text-stone-700 hover:text-amber-900">
               Cart
             </Link>

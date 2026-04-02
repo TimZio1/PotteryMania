@@ -110,14 +110,19 @@ export default function EditStudioPage() {
           Save
         </button>
       </form>
-            <div className="mt-6 flex flex-col gap-2">
+      <div className="mt-6 flex flex-col gap-2">
         <Link
           href={`/dashboard/experiences/${studioId}`}
           className="rounded border border-stone-300 py-2 text-center text-amber-900"
         >
           Classes &amp; experiences
         </Link>
-
+        <Link
+          href={`/dashboard/bookings/${studioId}`}
+          className="rounded border border-stone-300 py-2 text-center text-amber-900"
+        >
+          Bookings
+        </Link>
         <button type="button" onClick={submitReview} className="rounded border border-amber-800 py-2 text-amber-900">
           Submit for review
         </button>

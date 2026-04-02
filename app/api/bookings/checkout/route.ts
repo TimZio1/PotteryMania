@@ -96,51 +96,57 @@ export async function POST(req: Request) {
 
   const snap = policySnapshot(experience.cancellationPolicy);
 
-  const booking = await prisma.booking.create({
-    data: {
-      studioId: studio.id,
-      experienceId: experience.id,
-      slotId: slot.id,
-      customerUserId: user?.id ?? null,
-      customerName,
-      customerEmail,
-      customerPhone: body.customerPhone?.trim() || null,
-      participantCount,
-      bookingStatus: "pending",
-      paymentStatus: "pending",
-      totalAmountCents: lineTotal,
-      commissionAmountCents: commissionTotal,
-      vendorAmountCents: vendorCents,
-      cancellationPolicySnapshot: snap === null ? undefined : snap,
-      notes: body.notes?.trim() || null,
-    },
-  });
+  const { booking, order } = await prisma.$transaction(async (tx) => {
+    // Pending bookings are cleaned up by Stripe success or manual review today.
+    // Add a scheduled expiry job before relying on this route at high volume.
+    const booking = await tx.booking.create({
+      data: {
+        studioId: studio.id,
+        experienceId: experience.id,
+        slotId: slot.id,
+        customerUserId: user?.id ?? null,
+        customerName,
+        customerEmail,
+        customerPhone: body.customerPhone?.trim() || null,
+        participantCount,
+        bookingStatus: "pending",
+        paymentStatus: "pending",
+        totalAmountCents: lineTotal,
+        commissionAmountCents: commissionTotal,
+        vendorAmountCents: vendorCents,
+        cancellationPolicySnapshot: snap === null ? undefined : snap,
+        notes: body.notes?.trim() || null,
+      },
+    });
 
-  const order = await prisma.order.create({
-    data: {
-      customerUserId: user?.id ?? null,
-      customerName,
-      customerEmail,
-      customerPhone: body.customerPhone?.trim() || null,
-      notes: body.notes?.trim() || null,
-      orderStatus: "pending",
-      paymentStatus: "pending",
-      subtotalCents: lineTotal,
-      totalCents: lineTotal,
-      currency: "EUR",
-      items: {
-        create: {
-          itemType: "booking",
-          bookingId: booking.id,
-          vendorId: studio.id,
-          quantity: 1,
-          participantCount,
-          priceSnapshotCents: lineTotal,
-          commissionSnapshotCents: commissionTotal,
-          vendorAmountSnapshotCents: vendorCents,
+    const order = await tx.order.create({
+      data: {
+        customerUserId: user?.id ?? null,
+        customerName,
+        customerEmail,
+        customerPhone: body.customerPhone?.trim() || null,
+        notes: body.notes?.trim() || null,
+        orderStatus: "pending",
+        paymentStatus: "pending",
+        subtotalCents: lineTotal,
+        totalCents: lineTotal,
+        currency: "EUR",
+        items: {
+          create: {
+            itemType: "booking",
+            bookingId: booking.id,
+            vendorId: studio.id,
+            quantity: 1,
+            participantCount,
+            priceSnapshotCents: lineTotal,
+            commissionSnapshotCents: commissionTotal,
+            vendorAmountSnapshotCents: vendorCents,
+          },
         },
       },
-    },
+    });
+
+    return { booking, order };
   });
 
   const stripe = getStripe();

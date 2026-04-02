@@ -4,6 +4,8 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { sendBookingEmails, bookingConfirmationCopy } from "@/lib/email/booking-notify";
+import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
+import type { Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -26,24 +28,28 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.orderId;
     if (!orderId) return NextResponse.json({ received: true });
-
-    const existing = await prisma.order.findUnique({ where: { id: orderId } });
-    if (!existing || existing.orderStatus === "paid") {
-      return NextResponse.json({ received: true });
-    }
-
     const pi = session.payment_intent;
     const piId = typeof pi === "string" ? pi : pi?.id ?? null;
-    const amount = session.amount_total ?? existing.totalCents;
+    const processed = await prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRawUnsafe<
+        { id: string; order_status: string; total_cents: number }[]
+      >(
+        `SELECT id, order_status::text, total_cents
+         FROM orders
+         WHERE id = $1::uuid
+         FOR UPDATE`,
+        orderId
+      );
+      if (!rows.length || rows[0].order_status === "paid") {
+        return { skip: true, confirmedBookingIds: [] as string[] };
+      }
+      const amount = session.amount_total ?? rows[0].total_cents;
 
-    await prisma.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: orderId },
-        data: {
-          orderStatus: "paid",
-          paymentStatus: "paid",
-        },
+        data: { orderStatus: "paid", paymentStatus: "paid" },
       });
+
       const existingPay = await tx.payment.findFirst({ where: { orderId } });
       if (!existingPay) {
         await tx.payment.create({
@@ -57,7 +63,9 @@ export async function POST(req: Request) {
           },
         });
       }
+
       const items = await tx.orderItem.findMany({ where: { orderId } });
+      const confirmedBookingIds: string[] = [];
       for (const it of items) {
         if (it.itemType === "product" && it.productId) {
           await tx.product.update({
@@ -68,31 +76,75 @@ export async function POST(req: Request) {
         if (it.itemType === "booking" && it.bookingId) {
           const b = await tx.booking.findUnique({ where: { id: it.bookingId } });
           if (!b || b.paymentStatus !== "pending") continue;
-          await tx.booking.update({
-            where: { id: b.id },
-            data: { bookingStatus: "confirmed", paymentStatus: "paid" },
-          });
-          await tx.bookingSlot.update({
-            where: { id: b.slotId },
-            data: { capacityReserved: { increment: b.participantCount } },
-          });
-          const slot = await tx.bookingSlot.findUnique({ where: { id: b.slotId } });
-          if (slot && slot.capacityReserved >= slot.capacityTotal) {
-            await tx.bookingSlot.update({
-              where: { id: b.slotId },
-              data: { status: "full" },
+          try {
+            await safeReserveCapacity(tx, b.slotId, b.participantCount, b.seatType);
+
+            await tx.booking.update({
+              where: { id: b.id },
+              data: { bookingStatus: "confirmed", paymentStatus: "paid" },
+            });
+
+            await tx.bookingAuditLog.create({
+              data: {
+                bookingId: b.id,
+                actionType: "confirmed",
+                actorRole: "system",
+                payload: { trigger: "stripe_webhook", sessionId: session.id } as Prisma.InputJsonValue,
+              },
+            });
+            confirmedBookingIds.push(b.id);
+          } catch (error) {
+            const reason =
+              error instanceof Error ? error.message : "Capacity exceeded at confirmation time";
+            await tx.booking.update({
+              where: { id: b.id },
+              data: {
+                bookingStatus: "cancelled_by_admin",
+                paymentStatus: "paid",
+                notes: [b.notes, `AUTO-CANCELLED AFTER PAYMENT: ${reason}`].filter(Boolean).join("\n"),
+              },
+            });
+            await tx.bookingCancellation.create({
+              data: {
+                bookingId: b.id,
+                cancelledByRole: "admin",
+                cancellationReason: "capacity_exceeded_after_payment",
+                refundOutcome: "manual_refund_review_required",
+                refundAmountCents: b.totalAmountCents,
+              },
+            });
+            await tx.bookingAuditLog.create({
+              data: {
+                bookingId: b.id,
+                actionType: "confirmation_failed",
+                actorRole: "system",
+                payload: {
+                  trigger: "stripe_webhook",
+                  sessionId: session.id,
+                  reason,
+                } as Prisma.InputJsonValue,
+              },
             });
           }
         }
       }
+
       const cartId = session.metadata?.cartId;
       if (cartId) {
         await tx.cartItem.deleteMany({ where: { cartId } });
       }
+      return { skip: false, confirmedBookingIds };
     });
+    if (processed.skip) {
+      return NextResponse.json({ received: true });
+    }
 
     const bookingRows = await prisma.orderItem.findMany({
-      where: { orderId, itemType: "booking", bookingId: { not: null } },
+      where: {
+        orderId,
+        itemType: "booking",
+        bookingId: { in: processed.confirmedBookingIds },
+      },
       include: {
         booking: { include: { experience: true, slot: true } },
         vendor: true,
