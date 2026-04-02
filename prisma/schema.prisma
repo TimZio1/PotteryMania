@@ -1,0 +1,783 @@
+// PotteryMania — aligned with DATABASE_SCHEMA.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  customer
+  vendor
+  admin
+  hyper_admin
+}
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  passwordHash    String?   @map("password_hash")
+  role            UserRole  @default(customer)
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  ownedStudios         Studio[]              @relation("StudioOwner")
+  customerProfile      CustomerProfile?
+  carts                Cart[]
+  orders               Order[]
+  bookingsAsCustomer   Booking[]             @relation("BookingCustomer")
+  bookingCancellations BookingCancellation[]
+  bookingReschedules   BookingReschedule[]
+  bookingAuditLogs     BookingAuditLog[]
+
+  @@map("users")
+}
+
+model CustomerProfile {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @unique @map("user_id") @db.Uuid
+  fullName          String?  @map("full_name")
+  phone             String?
+  preferredLanguage String?  @map("preferred_language")
+  preferredCurrency String?  @map("preferred_currency")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("customer_profiles")
+}
+
+enum StudioStatus {
+  draft
+  pending_review
+  approved
+  rejected
+  suspended
+}
+
+model Studio {
+  id                    String       @id @default(uuid()) @db.Uuid
+  ownerUserId           String       @map("owner_user_id") @db.Uuid
+  displayName           String       @map("display_name")
+  legalBusinessName     String       @map("legal_business_name")
+  vatNumber             String       @map("vat_number")
+  responsiblePersonName String       @map("responsible_person_name")
+  email                 String
+  phone                 String?
+  country               String
+  city                  String
+  addressLine1          String       @map("address_line_1")
+  addressLine2          String?      @map("address_line_2")
+  postalCode            String?      @map("postal_code")
+  latitude              Float?
+  longitude             Float?
+  shortDescription      String?      @map("short_description")
+  longDescription       String?      @map("long_description")
+  logoUrl               String?      @map("logo_url")
+  coverImageUrl         String?      @map("cover_image_url")
+  instagramUrl          String?      @map("instagram_url")
+  facebookUrl           String?      @map("facebook_url")
+  websiteUrl            String?      @map("website_url")
+  preferredLanguage     String?      @map("preferred_language")
+  preferredCurrency     String?      @map("preferred_currency")
+  status                StudioStatus
+  rejectionReason       String?      @map("rejection_reason")
+  approvedAt            DateTime?    @map("approved_at")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+
+  owner                User                  @relation("StudioOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  products             Product[]
+  experiences          Experience[]
+  cancellationPolicies CancellationPolicy[]
+  bookings             Booking[]
+  cartItems            CartItem[]
+  orderItems           OrderItem[]
+  stripeAccount        StripeAccount?
+  commissionRules      CommissionRule[]
+  calendarConnections  CalendarConnection[]
+  vendorDomains        VendorDomain[]
+  analyticsSnapshots   AnalyticsSnapshot[]
+
+  @@index([status])
+  @@index([country, city])
+  @@map("studios")
+}
+
+model ProductCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  products Product[]
+
+  @@map("product_categories")
+}
+
+enum ProductStockStatus {
+  in_stock
+  out_of_stock
+  backorder
+}
+
+enum ProductStatus {
+  draft
+  active
+  inactive
+  archived
+}
+
+model Product {
+  id               String             @id @default(uuid()) @db.Uuid
+  studioId         String             @map("studio_id") @db.Uuid
+  categoryId       String?            @map("category_id") @db.Uuid
+  title            String
+  slug             String
+  shortDescription String?            @map("short_description")
+  fullDescription  String?            @map("full_description")
+  priceCents       Int                @map("price_cents")
+  salePriceCents   Int?               @map("sale_price_cents")
+  currency         String             @default("EUR")
+  sku              String?
+  stockQuantity    Int                @default(0) @map("stock_quantity")
+  stockStatus      ProductStockStatus @map("stock_status")
+  materials        String?
+  careInstructions String?            @map("care_instructions")
+  weightGrams      Int?               @map("weight_grams")
+  dimensionsText   String?            @map("dimensions_text")
+  shippingNotes    String?            @map("shipping_notes")
+  returnNotes      String?            @map("return_notes")
+  isFeatured       Boolean            @default(false) @map("is_featured")
+  status           ProductStatus
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  studio     Studio           @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  category   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images     ProductImage[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@unique([studioId, slug])
+  @@index([studioId])
+  @@index([status])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  imageUrl  String   @map("image_url")
+  altText   String?  @map("alt_text")
+  sortOrder Int      @default(0) @map("sort_order")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+enum ExperienceType {
+  one_time_event
+  workshop
+  masterclass
+  recurring_class
+  open_session
+  private_session
+}
+
+enum LocationType {
+  studio_address
+  custom_address
+  online_future
+}
+
+enum ExperienceStatus {
+  draft
+  active
+  inactive
+  archived
+}
+
+enum ExperienceVisibility {
+  public
+  private
+}
+
+model Experience {
+  id                   String               @id @default(uuid()) @db.Uuid
+  studioId             String               @map("studio_id") @db.Uuid
+  title                String
+  slug                 String
+  shortDescription     String?              @map("short_description")
+  fullDescription      String?              @map("full_description")
+  experienceType       ExperienceType       @map("experience_type")
+  category             String?
+  skillLevel           String?              @map("skill_level")
+  durationMinutes      Int                  @map("duration_minutes")
+  capacity             Int
+  minimumParticipants  Int                  @map("minimum_participants")
+  maximumParticipants  Int                  @map("maximum_participants")
+  priceCents           Int                  @map("price_cents")
+  compareAtPriceCents  Int?                 @map("compare_at_price_cents")
+  currency             String               @default("EUR")
+  whatIsIncluded       String?              @map("what_is_included")
+  whatToBring          String?              @map("what_to_bring")
+  requirements         String?
+  restrictions         String?
+  ageRestrictionNote   String?              @map("age_restriction_note")
+  accessibilityNote    String?              @map("accessibility_note")
+  coverImageUrl        String?              @map("cover_image_url")
+  locationType         LocationType         @map("location_type")
+  venueName            String?              @map("venue_name")
+  addressLine1         String?              @map("address_line_1")
+  addressLine2         String?              @map("address_line_2")
+  city                 String?
+  country              String?
+  latitude             Float?
+  longitude            Float?
+  cancellationPolicyId String?              @map("cancellation_policy_id") @db.Uuid
+  isFeatured           Boolean              @default(false) @map("is_featured")
+  status               ExperienceStatus
+  visibility           ExperienceVisibility @default(public)
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  studio               Studio              @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  cancellationPolicy   CancellationPolicy? @relation(fields: [cancellationPolicyId], references: [id], onDelete: SetNull)
+  images               ExperienceImage[]
+  recurringRules       RecurringRule[]
+  bookingSlots         BookingSlot[]
+  bookings             Booking[]
+  cartItems            CartItem[]
+
+  @@unique([studioId, slug])
+  @@index([studioId])
+  @@index([status])
+  @@map("experiences")
+}
+
+model ExperienceImage {
+  id           String   @id @default(uuid()) @db.Uuid
+  experienceId String   @map("experience_id") @db.Uuid
+  imageUrl     String   @map("image_url")
+  altText      String?  @map("alt_text")
+  sortOrder    Int      @default(0) @map("sort_order")
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@map("experience_images")
+}
+
+enum CancellationPolicyType {
+  non_refundable
+  refundable_until_hours
+  partial_refund_until_hours
+  custom
+}
+
+model CancellationPolicy {
+  id               String                 @id @default(uuid()) @db.Uuid
+  studioId         String?                @map("studio_id") @db.Uuid
+  name             String
+  policyType       CancellationPolicyType @map("policy_type")
+  hoursBeforeStart Int?                   @map("hours_before_start")
+  refundPercentage Int?                   @map("refund_percentage")
+  customPolicyText String?                @map("custom_policy_text")
+  isActive         Boolean                @default(true) @map("is_active")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  studio      Studio?      @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  experiences Experience[]
+
+  @@map("cancellation_policies")
+}
+
+enum ScheduleType {
+  one_time
+  recurring_weekly
+  recurring_custom_days
+  manually_added_dates
+  flexible_window
+}
+
+model RecurringRule {
+  id                  String       @id @default(uuid()) @db.Uuid
+  experienceId        String       @map("experience_id") @db.Uuid
+  scheduleType        ScheduleType @map("schedule_type")
+  recurrenceStartDate DateTime?    @map("recurrence_start_date") @db.Date
+  recurrenceEndDate   DateTime?    @map("recurrence_end_date") @db.Date
+  weekdays            String[]     @default([])
+  startTime           String?      @map("start_time")
+  endTime             String?      @map("end_time")
+  capacityPerSlot     Int?         @map("capacity_per_slot")
+  isActive            Boolean      @default(true) @map("is_active")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  experience   Experience    @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  bookingSlots BookingSlot[]
+
+  @@map("recurring_rules")
+}
+
+enum BookingSlotStatus {
+  open
+  full
+  blocked
+  cancelled
+}
+
+model BookingSlot {
+  id               String            @id @default(uuid()) @db.Uuid
+  experienceId     String            @map("experience_id") @db.Uuid
+  recurringRuleId  String?           @map("recurring_rule_id") @db.Uuid
+  slotDate         DateTime          @map("slot_date") @db.Date
+  startTime        String            @map("start_time")
+  endTime          String            @map("end_time")
+  capacityTotal    Int               @map("capacity_total")
+  capacityReserved Int               @default(0) @map("capacity_reserved")
+  status           BookingSlotStatus
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  experience      Experience          @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  recurringRule   RecurringRule?      @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
+  bookings        Booking[]
+  cartItems       CartItem[]
+  reschedulesFrom BookingReschedule[] @relation("RescheduleFromSlot")
+  reschedulesTo   BookingReschedule[] @relation("RescheduleToSlot")
+
+  @@index([experienceId, slotDate])
+  @@map("booking_slots")
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancellation_requested
+  cancelled_by_customer
+  cancelled_by_vendor
+  cancelled_by_admin
+  completed
+  refunded
+  partially_refunded
+  no_show
+}
+
+enum BookingPaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+  partially_refunded
+}
+
+model Booking {
+  id                         String               @id @default(uuid()) @db.Uuid
+  studioId                   String               @map("studio_id") @db.Uuid
+  experienceId               String               @map("experience_id") @db.Uuid
+  slotId                     String               @map("slot_id") @db.Uuid
+  customerUserId             String?              @map("customer_user_id") @db.Uuid
+  customerName               String               @map("customer_name")
+  customerEmail              String               @map("customer_email")
+  customerPhone              String?              @map("customer_phone")
+  participantCount           Int                  @map("participant_count")
+  bookingStatus              BookingStatus        @map("booking_status")
+  paymentStatus              BookingPaymentStatus @map("payment_status")
+  totalAmountCents           Int                  @map("total_amount_cents")
+  commissionAmountCents      Int                  @default(0) @map("commission_amount_cents")
+  vendorAmountCents          Int                  @default(0) @map("vendor_amount_cents")
+  cancellationPolicySnapshot Json?                @map("cancellation_policy_snapshot")
+  notes                      String?
+  createdAt                  DateTime             @default(now()) @map("created_at")
+  updatedAt                  DateTime             @updatedAt @map("updated_at")
+
+  studio           Studio                 @relation(fields: [studioId], references: [id], onDelete: Restrict)
+  experience       Experience             @relation(fields: [experienceId], references: [id], onDelete: Restrict)
+  slot             BookingSlot            @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  customerUser     User?                  @relation("BookingCustomer", fields: [customerUserId], references: [id], onDelete: SetNull)
+  cancellations    BookingCancellation[]
+  reschedules      BookingReschedule[]
+  orderItems       OrderItem[]
+  calendarSyncLogs CalendarSyncLog[]
+  auditLogs        BookingAuditLog[]
+
+  @@index([studioId])
+  @@map("bookings")
+}
+
+model BookingCancellation {
+  id                 String   @id @default(uuid()) @db.Uuid
+  bookingId          String   @map("booking_id") @db.Uuid
+  cancelledByRole    String   @map("cancelled_by_role")
+  cancelledByUserId  String?  @map("cancelled_by_user_id") @db.Uuid
+  cancellationReason String?  @map("cancellation_reason")
+  refundOutcome      String?  @map("refund_outcome")
+  refundAmountCents  Int      @default(0) @map("refund_amount_cents")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  booking         Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  cancelledByUser User?   @relation(fields: [cancelledByUserId], references: [id], onDelete: SetNull)
+
+  @@map("booking_cancellations")
+}
+
+model BookingReschedule {
+  id                  String   @id @default(uuid()) @db.Uuid
+  bookingId           String   @map("booking_id") @db.Uuid
+  originalSlotId      String   @map("original_slot_id") @db.Uuid
+  newSlotId           String   @map("new_slot_id") @db.Uuid
+  rescheduledByRole   String   @map("rescheduled_by_role")
+  rescheduledByUserId String?  @map("rescheduled_by_user_id") @db.Uuid
+  rescheduleReason    String?  @map("reschedule_reason")
+  changeFeeCents      Int      @default(0) @map("change_fee_cents")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  booking           Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  originalSlot      BookingSlot @relation("RescheduleFromSlot", fields: [originalSlotId], references: [id], onDelete: Restrict)
+  newSlot           BookingSlot @relation("RescheduleToSlot", fields: [newSlotId], references: [id], onDelete: Restrict)
+  rescheduledByUser User?       @relation(fields: [rescheduledByUserId], references: [id], onDelete: SetNull)
+
+  @@map("booking_reschedules")
+}
+
+model Cart {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String?   @map("user_id") @db.Uuid
+  sessionToken String?   @map("session_token")
+  expiresAt    DateTime? @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+enum CartItemType {
+  product
+  booking
+}
+
+model CartItem {
+  id                 String       @id @default(uuid()) @db.Uuid
+  cartId             String       @map("cart_id") @db.Uuid
+  itemType           CartItemType @map("item_type")
+  productId          String?      @map("product_id") @db.Uuid
+  experienceId       String?      @map("experience_id") @db.Uuid
+  slotId             String?      @map("slot_id") @db.Uuid
+  vendorId           String       @map("vendor_id") @db.Uuid
+  quantity           Int          @default(1)
+  participantCount   Int?         @map("participant_count")
+  priceSnapshotCents Int          @map("price_snapshot_cents")
+  policySnapshot     Json?        @map("policy_snapshot")
+  createdAt          DateTime     @default(now()) @map("created_at")
+
+  cart       Cart         @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product    Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  experience Experience?  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  slot       BookingSlot? @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  vendor     Studio       @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+
+  @@map("cart_items")
+}
+
+enum OrderStatus {
+  pending
+  paid
+  processing
+  fulfilled
+  cancelled
+  refunded
+  partially_refunded
+}
+
+enum OrderPaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+  partially_refunded
+}
+
+model Order {
+  id                  String             @id @default(uuid()) @db.Uuid
+  customerUserId      String?            @map("customer_user_id") @db.Uuid
+  customerName        String             @map("customer_name")
+  customerEmail       String             @map("customer_email")
+  customerPhone       String?            @map("customer_phone")
+  shippingAddressJson Json?              @map("shipping_address_json")
+  billingAddressJson  Json?              @map("billing_address_json")
+  notes               String?
+  orderStatus         OrderStatus        @map("order_status")
+  paymentStatus       OrderPaymentStatus @map("payment_status")
+  subtotalCents       Int                @default(0) @map("subtotal_cents")
+  totalCents          Int                @default(0) @map("total_cents")
+  currency            String             @default("EUR")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+
+  customerUser User?       @relation(fields: [customerUserId], references: [id], onDelete: SetNull)
+  items        OrderItem[]
+  payments     Payment[]
+
+  @@index([customerUserId])
+  @@map("orders")
+}
+
+enum OrderItemType {
+  product
+  booking
+}
+
+model OrderItem {
+  id                        String        @id @default(uuid()) @db.Uuid
+  orderId                   String        @map("order_id") @db.Uuid
+  itemType                  OrderItemType @map("item_type")
+  productId                 String?       @map("product_id") @db.Uuid
+  bookingId                 String?       @map("booking_id") @db.Uuid
+  vendorId                  String        @map("vendor_id") @db.Uuid
+  quantity                  Int           @default(1)
+  participantCount          Int?          @map("participant_count")
+  priceSnapshotCents        Int           @map("price_snapshot_cents")
+  commissionSnapshotCents   Int           @default(0) @map("commission_snapshot_cents")
+  vendorAmountSnapshotCents Int           @default(0) @map("vendor_amount_snapshot_cents")
+  createdAt                 DateTime      @default(now()) @map("created_at")
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  vendor  Studio   @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+
+  @@index([vendorId])
+  @@map("order_items")
+}
+
+enum PaymentRecordStatus {
+  pending
+  succeeded
+  failed
+  refunded
+  partially_refunded
+}
+
+model Payment {
+  id                String              @id @default(uuid()) @db.Uuid
+  orderId           String              @map("order_id") @db.Uuid
+  provider          String
+  providerPaymentId String?             @map("provider_payment_id")
+  paymentStatus     PaymentRecordStatus @map("payment_status")
+  amountCents       Int                 @map("amount_cents")
+  currency          String              @default("EUR")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum StripeOnboardingStatus {
+  pending
+  connected
+  restricted
+  disconnected
+}
+
+model StripeAccount {
+  id               String                 @id @default(uuid()) @db.Uuid
+  studioId         String                 @unique @map("studio_id") @db.Uuid
+  stripeAccountId  String                 @unique @map("stripe_account_id")
+  onboardingStatus StripeOnboardingStatus @map("onboarding_status")
+  chargesEnabled   Boolean                @default(false) @map("charges_enabled")
+  payoutsEnabled   Boolean                @default(false) @map("payouts_enabled")
+  detailsSubmitted Boolean                @default(false) @map("details_submitted")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@map("stripe_accounts")
+}
+
+enum CommissionRuleScope {
+  global
+  vendor
+}
+
+enum CommissionItemType {
+  product
+  booking
+}
+
+model CommissionRule {
+  id                    String              @id @default(uuid()) @db.Uuid
+  studioId              String?             @map("studio_id") @db.Uuid
+  ruleScope             CommissionRuleScope @map("rule_scope")
+  itemType              CommissionItemType  @map("item_type")
+  percentageBasisPoints Int                 @map("percentage_basis_points")
+  isActive              Boolean             @default(true) @map("is_active")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  studio Studio? @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@map("commission_rules")
+}
+
+model AdminConfig {
+  id          String   @id @default(uuid()) @db.Uuid
+  configKey   String   @unique @map("config_key")
+  configValue Json     @map("config_value")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_configs")
+}
+
+enum CalendarProvider {
+  google
+  apple_ics
+}
+
+enum CalendarConnectionStatus {
+  pending
+  connected
+  error
+  disconnected
+}
+
+model CalendarConnection {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  studioId           String                   @map("studio_id") @db.Uuid
+  provider           CalendarProvider
+  connectionStatus   CalendarConnectionStatus @map("connection_status")
+  externalCalendarId String?                  @map("external_calendar_id")
+  syncEnabled        Boolean                  @default(true) @map("sync_enabled")
+  lastSyncAt         DateTime?                @map("last_sync_at")
+  syncErrorState     String?                  @map("sync_error_state")
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+
+  studio   Studio              @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  syncLogs CalendarSyncLog[]
+
+  @@map("calendar_connections")
+}
+
+enum CalendarSyncAction {
+  create
+  update
+  delete
+}
+
+enum CalendarSyncResult {
+  success
+  error
+}
+
+model CalendarSyncLog {
+  id                   String               @id @default(uuid()) @db.Uuid
+  calendarConnectionId String               @map("calendar_connection_id") @db.Uuid
+  bookingId            String?              @map("booking_id") @db.Uuid
+  actionType           CalendarSyncAction   @map("action_type")
+  status               CalendarSyncResult
+  message              String?
+  createdAt            DateTime             @default(now()) @map("created_at")
+
+  connection CalendarConnection @relation(fields: [calendarConnectionId], references: [id], onDelete: Cascade)
+  booking    Booking?           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_sync_logs")
+}
+
+enum VendorDomainType {
+  subdomain
+  custom
+}
+
+enum DomainVerificationStatus {
+  pending
+  verified
+  failed
+}
+
+enum SslStatus {
+  pending
+  active
+  failed
+}
+
+model VendorDomain {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  studioId           String                   @map("studio_id") @db.Uuid
+  domainType         VendorDomainType         @map("domain_type")
+  domainName         String                   @unique @map("domain_name")
+  verificationStatus DomainVerificationStatus @map("verification_status")
+  sslStatus          SslStatus                @map("ssl_status")
+  isActive           Boolean                  @default(false) @map("is_active")
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([studioId])
+  @@map("vendor_domains")
+}
+
+model FeatureFlag {
+  id        String   @id @default(uuid()) @db.Uuid
+  flagKey   String   @unique @map("flag_key")
+  flagValue Json     @map("flag_value")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("feature_flags")
+}
+
+enum AnalyticsSnapshotScope {
+  platform
+  studio
+}
+
+model AnalyticsSnapshot {
+  id            String                 @id @default(uuid()) @db.Uuid
+  snapshotScope AnalyticsSnapshotScope @map("snapshot_scope")
+  studioId      String?                @map("studio_id") @db.Uuid
+  snapshotDate  DateTime               @map("snapshot_date") @db.Date
+  metrics       Json
+  createdAt     DateTime               @default(now()) @map("created_at")
+
+  studio Studio? @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@map("analytics_snapshots")
+}
+
+model BookingAuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  bookingId   String   @map("booking_id") @db.Uuid
+  actionType  String   @map("action_type")
+  actorRole   String?  @map("actor_role")
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  payload     Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  actorUser User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@map("booking_audit_log")
+}
