@@ -1,12 +1,24 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import {
+  canBrowseDuringPreregistration,
+  isPreregistrationClosedPath,
+  isPreregistrationOnly,
+} from "@/lib/preregistration";
 
 const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart"];
-const PUBLIC_ALLOWLIST = ["/", "/early-access", "/login", "/register", "/checkout/success"];
+const BASE_PUBLIC = ["/", "/early-access", "/login", "/register", "/checkout/success"];
+const BROWSING_PUBLIC = ["/marketplace", "/classes", "/studios"];
+
+function publicAllowlist(): string[] {
+  if (isPreregistrationOnly()) return BASE_PUBLIC;
+  return [...BASE_PUBLIC, ...BROWSING_PUBLIC];
+}
 
 export default auth((req) => {
   const path = req.nextUrl.pathname;
-  const isPublic = PUBLIC_ALLOWLIST.some((p) => path === p || (p !== "/" && path.startsWith(p + "/")));
+  const allow = publicAllowlist();
+  const isPublic = allow.some((p) => path === p || (p !== "/" && path.startsWith(p + "/")));
   const needsLogin = LOGIN_REQUIRED.some((p) => path === p || path.startsWith(p + "/"));
 
   if (needsLogin && !req.auth) {
@@ -15,7 +27,15 @@ export default auth((req) => {
     return NextResponse.redirect(u);
   }
 
-  // Stealth mode: keep the public surface very small until launch.
+  if (
+    isPreregistrationOnly() &&
+    isPreregistrationClosedPath(path) &&
+    !canBrowseDuringPreregistration(req.auth?.user?.role)
+  ) {
+    const dest = req.auth ? "/" : "/early-access";
+    return NextResponse.redirect(new URL(dest, req.url));
+  }
+
   if (!isPublic && !needsLogin && !req.auth) {
     return NextResponse.redirect(new URL("/early-access", req.url));
   }

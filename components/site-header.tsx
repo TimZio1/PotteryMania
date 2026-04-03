@@ -47,32 +47,34 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
         <div className="flex min-w-0 items-center gap-2">
-          <button
-            type="button"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 text-stone-700 md:hidden"
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            aria-label={open ? "Close menu" : "Open menu"}
-            onClick={() => setOpen((o) => !o)}
-          >
-            <span className="sr-only">Menu</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              {open ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              )}
-            </svg>
-          </button>
+          {authed ? (
+            <button
+              type="button"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 text-stone-700 md:hidden"
+              aria-expanded={open}
+              aria-controls="mobile-nav"
+              aria-label={open ? "Close menu" : "Open menu"}
+              onClick={() => setOpen((o) => !o)}
+            >
+              <span className="sr-only">Menu</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                {open ? (
+                  <path d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                )}
+              </svg>
+            </button>
+          ) : null}
           <Link href="/" className="truncate text-base font-semibold tracking-tight text-amber-950 sm:text-lg">
             PotteryMania
           </Link>
           <span className="hidden sm:inline-flex"><PromoCountdownCompact /></span>
         </div>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+        <nav className="flex shrink-0 items-center gap-1 sm:gap-2" aria-label="Primary">
           {authed ? (
-            <>
+            <div className="hidden items-center gap-1 md:flex">
               <Link href="/cart" className={linkClass("/cart")}>
                 Cart
               </Link>
@@ -97,17 +99,17 @@ export function SiteHeader() {
               >
                 Sign out
               </button>
-            </>
+            </div>
           ) : (
             <>
+              <Link
+                href="/early-access"
+                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-amber-950 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-amber-900 sm:max-w-none sm:px-4 sm:text-sm"
+              >
+                Register your studio
+              </Link>
               <Link href="/login" className={linkClass("/login")}>
                 Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="ml-1 inline-flex min-h-11 items-center justify-center rounded-full bg-amber-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-950"
-              >
-                Join
               </Link>
             </>
           )}
@@ -125,8 +127,8 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile sheet */}
-      {open ? (
+      {/* Mobile sheet (signed-in only) */}
+      {authed && open ? (
         <div className="fixed inset-0 z-50 md:hidden" id="mobile-nav">
           <button
             type="button"
@@ -142,46 +144,30 @@ export function SiteHeader() {
               </button>
             </div>
             <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
-              {authed ? (
-                <>
-                  <Link href="/cart" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                    Cart
-                  </Link>
-                  <Link href="/dashboard" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                    Dashboard
-                  </Link>
-                  <Link href="/my-bookings" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                    My bookings
-                  </Link>
-                  <Link href="/my-waitlist" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                    My waitlist
-                  </Link>
-                  {adminVisible(role) ? (
-                    <Link href="/admin" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                      Admin
-                    </Link>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-stone-600")}
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                  >
-                    Sign out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                    Sign in
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="mx-2 mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-amber-950 text-sm font-medium text-white"
-                  >
-                    Create account
-                  </Link>
-                </>
-              )}
+              <Link href="/cart" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                Cart
+              </Link>
+              <Link href="/dashboard" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                Dashboard
+              </Link>
+              <Link href="/my-bookings" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                My bookings
+              </Link>
+              <Link href="/my-waitlist" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                My waitlist
+              </Link>
+              {adminVisible(role) ? (
+                <Link href="/admin" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                  Admin
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-stone-600")}
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                Sign out
+              </button>
             </nav>
           </div>
         </div>

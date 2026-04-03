@@ -1,10 +1,10 @@
 import { Resend } from "resend";
 
 type SendOpts = {
-  customerEmail: string;
+  customerEmail?: string;
   vendorEmail?: string | null;
   subject: string;
-  customerHtml: string;
+  customerHtml?: string;
   vendorHtml?: string;
 };
 
@@ -21,7 +21,9 @@ export async function sendOrderEmails(opts: SendOpts) {
     return;
   }
   const from = process.env.RESEND_FROM || "PotteryMania <onboarding@resend.dev>";
-  await resend.emails.send({ from, to: opts.customerEmail, subject: opts.subject, html: opts.customerHtml });
+  if (opts.customerEmail && opts.customerHtml) {
+    await resend.emails.send({ from, to: opts.customerEmail, subject: opts.subject, html: opts.customerHtml });
+  }
   if (opts.vendorEmail && opts.vendorHtml) {
     await resend.emails.send({
       from,

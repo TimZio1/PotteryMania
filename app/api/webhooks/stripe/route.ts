@@ -8,6 +8,7 @@ import {
   bookingConfirmationCopy,
   bookingPendingApprovalCopy,
 } from "@/lib/email/booking-notify";
+import { orderConfirmationCopy, sendOrderEmails } from "@/lib/email/order-notify";
 import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import type { Prisma } from "@prisma/client";
@@ -285,6 +286,82 @@ export async function POST(req: Request) {
         });
       } catch (e) {
         console.error("[booking-email-cancel]", e);
+      }
+    }
+
+    const productEmailItems = await prisma.orderItem.findMany({
+      where: { orderId, itemType: "product" },
+      include: {
+        product: { select: { title: true } },
+        vendor: { select: { id: true, displayName: true, email: true } },
+      },
+    });
+
+    if (productEmailItems.length > 0) {
+      const order = await prisma.order.findUnique({ where: { id: orderId } });
+      if (order && !order.orderConfirmationSentAt) {
+        const studioNames = [...new Set(productEmailItems.map((i) => i.vendor.displayName))];
+        const studioLabel = studioNames.length === 1 ? studioNames[0]! : `${studioNames.length} partner studios`;
+
+        const customerLines = productEmailItems.map(
+          (it) => `${it.vendor.displayName}: ${it.product?.title ?? "Product"} × ${it.quantity}`,
+        );
+        const totalEur = (order.totalCents / 100).toFixed(2);
+        const { customer } = orderConfirmationCopy({
+          customerName: order.customerName,
+          studioName: studioLabel,
+          items: customerLines,
+          totalEur,
+          shippingMethod: order.shippingMethod,
+          trackingNumber: null,
+        });
+
+        try {
+          await sendOrderEmails({
+            customerEmail: order.customerEmail,
+            subject: `Order confirmed — PotteryMania`,
+            customerHtml: customer,
+          });
+        } catch (e) {
+          console.error("[order-email]", e);
+        }
+
+        const byVendor = new Map<string, typeof productEmailItems>();
+        for (const it of productEmailItems) {
+          const list = byVendor.get(it.vendorId) ?? [];
+          list.push(it);
+          byVendor.set(it.vendorId, list);
+        }
+
+        for (const lines of byVendor.values()) {
+          const v = lines[0]!.vendor;
+          if (!v.email) continue;
+          const vendorLineItems = lines.map((it) => `${it.product?.title ?? "Product"} × ${it.quantity}`);
+          const vendorSubtotalCents = lines.reduce((sum, it) => sum + it.priceSnapshotCents * it.quantity, 0);
+          const vendorTotalEur = (vendorSubtotalCents / 100).toFixed(2);
+          const { vendor: vendorHtml } = orderConfirmationCopy({
+            customerName: order.customerName,
+            studioName: v.displayName,
+            items: vendorLineItems,
+            totalEur: vendorTotalEur,
+            shippingMethod: null,
+            trackingNumber: null,
+          });
+          try {
+            await sendOrderEmails({
+              vendorEmail: v.email,
+              subject: `New order — ${order.customerName}`,
+              vendorHtml,
+            });
+          } catch (e) {
+            console.error("[order-email-vendor]", e);
+          }
+        }
+
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { orderConfirmationSentAt: new Date(), vendorNotificationSentAt: new Date() },
+        });
       }
     }
 

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser, isAdminRole } from "@/lib/auth-session";
 import { AdminStudios } from "./admin-studios";
 import { AdminBookings } from "./admin-bookings";
+import { AdminEarlyAccessList } from "./admin-early-access";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,10 @@ export default async function AdminPage() {
     where: { ruleScope: "global", studioId: null, itemType: "product", isActive: true },
     orderBy: { createdAt: "desc" },
   });
+  const earlyAccessRows = await prisma.earlyAccessSignup.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -28,6 +33,7 @@ export default async function AdminPage() {
         Global product commission: {commission ? `${commission.percentageBasisPoints / 100}%` : "default 10% (1000 bps)"}
       </p>
       <AdminStudios initialStudios={pending} />
+      <AdminEarlyAccessList rows={earlyAccessRows} />
       <AdminBookings />
     </div>
   );
