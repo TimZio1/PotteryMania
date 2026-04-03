@@ -2,6 +2,7 @@ type Row = {
   id: string;
   email: string;
   studioName: string;
+  country: string;
   websiteOrIg: string | null;
   photoUrls: string[];
   wantBooking: boolean;
@@ -38,6 +39,7 @@ export function AdminEarlyAccessList({ rows }: { rows: Row[] }) {
                   {r.email}
                 </a>
               </p>
+              <p className="mt-1 text-stone-600">Country: {r.country}</p>
               {r.websiteOrIg && <p className="mt-1 text-stone-600">Web / IG: {r.websiteOrIg}</p>}
               <p className="mt-2 text-xs text-stone-500">Interested in: {interestFlags(r)}</p>
               <p className="mt-1 text-xs text-stone-400">{new Date(r.createdAt).toLocaleString()}</p>

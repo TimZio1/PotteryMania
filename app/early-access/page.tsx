@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { EarlyAccessForm } from "./early-access-form";
 
 export const metadata: Metadata = {
@@ -36,6 +37,10 @@ export default function EarlyAccessPage() {
           <p className="mx-auto mt-6 max-w-lg text-lg text-stone-600">
             The first platform built by potters, for potters. Sell your work. Fill your classes. Grow your studio — all
             from one place.
+          </p>
+          <p className="mx-auto mt-4 max-w-lg text-sm font-medium text-stone-700">{EUROPEAN_PREREGISTRATION_NOTE}</p>
+          <p className="mx-auto mt-5 max-w-md rounded-2xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-center text-base font-semibold text-emerald-950 sm:px-5">
+            Pre-register and earn 3 months FREE, then €5/month.
           </p>
         </div>
       </section>
@@ -87,7 +92,7 @@ export default function EarlyAccessPage() {
               Register your studio
             </h2>
             <p className="mt-2 text-center text-sm text-stone-500">
-              Free. No commitment. We&apos;ll reach out when we launch.
+              Europe only for now, including the UK and the Balkans. Free. No commitment.
             </p>
             <div className="mt-8">
               <EarlyAccessForm />

@@ -969,6 +969,7 @@ model EarlyAccessSignup {
   id            String   @id @default(uuid()) @db.Uuid
   email         String   @unique
   studioName    String   @map("studio_name")
+  country       String
   websiteOrIg   String?  @map("website_or_ig")
   photoUrls     String[] @default([]) @map("photo_urls")
   wantBooking   Boolean  @default(false) @map("want_booking")

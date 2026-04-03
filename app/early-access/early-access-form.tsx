@@ -3,6 +3,10 @@
 import { useState, useCallback } from "react";
 import { ui } from "@/lib/ui-styles";
 import { uploadImage } from "@/lib/client-upload";
+import {
+  EUROPEAN_PREREGISTRATION_COUNTRIES,
+  EUROPEAN_PREREGISTRATION_NOTE,
+} from "@/lib/european-preregistration";
 
 const MAX_PHOTOS = 3;
 const MAX_FILE_MB = 5;
@@ -10,6 +14,7 @@ const MAX_FILE_MB = 5;
 export function EarlyAccessForm() {
   const [email, setEmail] = useState("");
   const [studioName, setStudioName] = useState("");
+  const [country, setCountry] = useState("");
   const [websiteOrIg, setWebsiteOrIg] = useState("");
   const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [wantBooking, setWantBooking] = useState(false);
@@ -60,6 +65,7 @@ export function EarlyAccessForm() {
         body: JSON.stringify({
           email,
           studioName,
+          country,
           websiteOrIg: websiteOrIg || undefined,
           photoUrls,
           wantBooking,
@@ -133,6 +139,29 @@ export function EarlyAccessForm() {
           onChange={(e) => setStudioName(e.target.value)}
           placeholder="Clay & Co"
         />
+      </div>
+
+      {/* Country */}
+      <div>
+        <label className={ui.label} htmlFor="ea-country">
+          Country <span className="text-red-500">*</span>
+        </label>
+        <select
+          id="ea-country"
+          required
+          disabled={pending}
+          className={`${ui.input} mt-1`}
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+        >
+          <option value="">Select your country</option>
+          {EUROPEAN_PREREGISTRATION_COUNTRIES.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+        <p className="mt-2 text-xs text-stone-500">{EUROPEAN_PREREGISTRATION_NOTE}</p>
       </div>
 
       {/* Website / Instagram */}

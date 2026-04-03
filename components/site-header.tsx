@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
-import { PromoCountdownCompact } from "@/components/promo-countdown";
-
 function adminVisible(role: string | undefined) {
   return role === "admin" || role === "hyper_admin";
 }
@@ -44,9 +42,9 @@ export function SiteHeader() {
     );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-white/95 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
-        <div className="flex min-w-0 items-center gap-2">
+    <header className="sticky top-0 z-40 border-b border-(--brand-line) bg-[rgba(250,248,245,0.88)] backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
           {authed ? (
             <button
               type="button"
@@ -66,10 +64,10 @@ export function SiteHeader() {
               </svg>
             </button>
           ) : null}
-          <Link href="/" className="truncate text-base font-semibold tracking-tight text-amber-950 sm:text-lg">
-            PotteryMania
+          <Link href="/" className="truncate text-base font-semibold tracking-[0.01em] text-(--brand-ink) sm:text-lg">
+            <span className="font-serif text-[1.08em] font-normal tracking-tight">Pottery</span>
+            <span>Mania</span>
           </Link>
-          <span className="hidden sm:inline-flex"><PromoCountdownCompact /></span>
         </div>
 
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2" aria-label="Primary">
@@ -104,7 +102,7 @@ export function SiteHeader() {
             <>
               <Link
                 href="/early-access"
-                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-amber-950 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-amber-900 sm:max-w-none sm:px-4 sm:text-sm"
+                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm"
               >
                 Register your studio
               </Link>

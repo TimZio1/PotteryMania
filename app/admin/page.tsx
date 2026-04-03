@@ -22,6 +22,18 @@ export default async function AdminPage() {
     orderBy: { createdAt: "desc" },
   });
   const earlyAccessRows = await prisma.earlyAccessSignup.findMany({
+    select: {
+      id: true,
+      email: true,
+      studioName: true,
+      country: true,
+      websiteOrIg: true,
+      photoUrls: true,
+      wantBooking: true,
+      wantMarket: true,
+      wantBoth: true,
+      createdAt: true,
+    },
     orderBy: { createdAt: "desc" },
     take: 200,
   });

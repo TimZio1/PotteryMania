@@ -2,11 +2,16 @@
 
 /* Light, warm ceramic palette — single theme for predictable production UI */
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
+  --background: #faf8f5;
+  --foreground: #241813;
   --surface: #ffffff;
-  --muted: #78716c;
-  --border: rgba(28, 25, 23, 0.08);
+  --muted: #7b6b60;
+  --border: rgba(36, 24, 19, 0.1);
+  --warm-surface: #f3ece4;
+  --warm-surface-strong: #e9ddd0;
+  --brand-ink: #2c1810;
+  --brand-soft: #f7f1ea;
+  --brand-line: rgba(79, 52, 37, 0.16);
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -18,6 +23,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
@@ -25,6 +31,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+::selection {
+  background: rgba(120, 77, 42, 0.18);
+  color: var(--foreground);
 }
 
 /* Respect reduced motion */

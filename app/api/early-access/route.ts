@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { assertRateLimit } from "@/lib/rate-limit";
+import {
+  EUROPEAN_PREREGISTRATION_NOTE,
+  isAllowedPreregistrationCountry,
+  normalizePreregistrationCountry,
+} from "@/lib/european-preregistration";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_PHOTOS = 3;
@@ -20,6 +25,7 @@ export async function POST(req: Request) {
 
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const studioName = typeof body.studioName === "string" ? body.studioName.trim() : "";
+  const country = typeof body.country === "string" ? normalizePreregistrationCountry(body.country) : "";
   const websiteOrIg = typeof body.websiteOrIg === "string" ? body.websiteOrIg.trim() : "";
   const photoUrls = Array.isArray(body.photoUrls)
     ? body.photoUrls.filter((u): u is string => typeof u === "string" && u.length <= MAX_URL_LEN).slice(0, MAX_PHOTOS)
@@ -34,6 +40,12 @@ export async function POST(req: Request) {
   if (!studioName) {
     return NextResponse.json({ error: "Studio name is required" }, { status: 400 });
   }
+  if (!country) {
+    return NextResponse.json({ error: "Country is required" }, { status: 400 });
+  }
+  if (!isAllowedPreregistrationCountry(country)) {
+    return NextResponse.json({ error: EUROPEAN_PREREGISTRATION_NOTE }, { status: 400 });
+  }
 
   const existing = await prisma.earlyAccessSignup.findUnique({ where: { email } });
   if (existing) {
@@ -44,6 +56,7 @@ export async function POST(req: Request) {
     data: {
       email,
       studioName,
+      country,
       websiteOrIg: websiteOrIg || null,
       photoUrls,
       wantBooking,
