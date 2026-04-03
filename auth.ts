@@ -3,8 +3,18 @@ import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
 
+/**
+ * Auth.js rejects empty/whitespace secrets (`!secret?.length` → 500 on /api/auth/session).
+ * Use `||` so `AUTH_SECRET=""` still falls through to `NEXTAUTH_SECRET`; trim stray spaces from hosting UIs.
+ */
+const authSecret =
+  process.env.AUTH_SECRET?.trim() ||
+  process.env.NEXTAUTH_SECRET?.trim() ||
+  undefined;
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
+  ...(authSecret ? { secret: authSecret } : {}),
   providers: [
     Credentials({
       name: "credentials",
