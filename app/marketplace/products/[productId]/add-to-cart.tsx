@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ui } from "@/lib/ui-styles";
 
 export function AddToCart({ productId }: { productId: string }) {
   const [qty, setQty] = useState(1);
@@ -22,22 +23,26 @@ export function AddToCart({ productId }: { productId: string }) {
   }
 
   return (
-    <div className="mt-6 flex flex-wrap items-center gap-3">
-      <input
-        type="number"
-        min={1}
-        value={qty}
-        onChange={(e) => setQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
-        className="w-20 rounded border border-stone-300 px-2 py-2"
-      />
-      <button
-        type="button"
-        onClick={add}
-        className="rounded bg-amber-800 px-6 py-2 text-white hover:bg-amber-900"
-      >
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+      <div>
+        <label className={ui.label} htmlFor="qty">
+          Quantity
+        </label>
+        <input
+          id="qty"
+          type="number"
+          min={1}
+          value={qty}
+          onChange={(e) => setQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+          className={`${ui.input} mt-1 w-24 text-center sm:text-left`}
+        />
+      </div>
+      <button type="button" onClick={add} className={ui.buttonPrimary}>
         Add to cart
       </button>
-      {msg && <span className="text-sm text-stone-600">{msg}</span>}
+      {msg ? (
+        <p className={`text-sm ${msg === "Added to cart" ? ui.successText : ui.errorText}`}>{msg}</p>
+      ) : null}
     </div>
   );
 }

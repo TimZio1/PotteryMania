@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { ClassBookingForm, type SlotOption, type WaitlistSlotOption } from "./booking-form";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
+import { MarketingLayout } from "@/components/marketing-layout";
+import { ui } from "@/lib/ui-styles";
 
 export const dynamic = "force-dynamic";
 
@@ -75,63 +77,61 @@ export default async function ClassDetailPage({ params }: PageProps) {
   const price = experience.priceCents / 100;
   const primary = experience.images.find((i) => i.isPrimary) ?? experience.images[0];
 
+  const toolbar = (
+    <Link href="/classes" className="text-sm font-medium text-amber-900 hover:text-amber-950">
+      ← All classes
+    </Link>
+  );
+
   return (
-    <div className="min-h-screen bg-stone-50">
-      <header className="border-b border-stone-200 bg-white px-4 py-4">
-        <div className="mx-auto flex max-w-4xl justify-between text-sm">
-          <Link href="/classes" className="text-amber-800">
-            ← All classes
-          </Link>
-          <Link href="/" className="text-stone-600">
-            Home
-          </Link>
-        </div>
-      </header>
-      <main className="mx-auto max-w-4xl px-4 py-10">
+    <MarketingLayout toolbar={toolbar}>
+      <main className={`${ui.pageContainer} max-w-4xl py-8 sm:py-12`}>
         <p className="text-sm text-stone-500">
-          <Link href={`/studios/${experience.studio.id}`} className="underline">
+          <Link href={`/studios/${experience.studio.id}`} className="font-medium text-amber-900 hover:underline">
             {experience.studio.displayName}
           </Link>
         </p>
-        <h1 className="mt-1 text-3xl font-semibold text-amber-950">{experience.title}</h1>
-        <p className="mt-2 text-lg text-amber-900">€{price.toFixed(2)} per person</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">{experience.title}</h1>
+        <p className="mt-3 text-xl font-medium text-amber-950">€{price.toFixed(2)} per person</p>
         {experience.bookingDepositBps > 0 && (
-          <p className="mt-1 text-sm text-stone-600">
-            This class may charge a deposit at checkout ({(experience.bookingDepositBps / 100).toFixed(1)}% of the
-            booking total); the rest is due later per studio policy.
+          <p className="mt-2 max-w-2xl text-sm text-stone-600">
+            A deposit may be charged at checkout ({(experience.bookingDepositBps / 100).toFixed(1)}% of the booking
+            total). The remainder follows the studio&apos;s policy.
           </p>
         )}
         {experience.bookingApprovalRequired && (
-          <p className="mt-1 text-sm text-amber-900">
-            Bookings are confirmed by the studio after payment — you may see “pending approval” until they accept.
+          <p className="mt-2 max-w-2xl rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+            This studio confirms bookings after payment — you may see &quot;pending approval&quot; until they accept.
           </p>
         )}
         {primary?.imageUrl ? (
-          <div className="mt-6 overflow-hidden rounded-lg bg-stone-200">
+          <div className="mt-8 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={primary.imageUrl} alt="" className="max-h-96 w-full object-cover" />
+            <img src={primary.imageUrl} alt="" className="max-h-[22rem] w-full object-cover sm:max-h-96" />
           </div>
         ) : null}
-        {experience.shortDescription && (
-          <p className="mt-6 text-stone-700">{experience.shortDescription}</p>
-        )}
+        {experience.shortDescription && <p className="mt-8 text-base text-stone-700">{experience.shortDescription}</p>}
         {experience.fullDescription && (
-          <div className="mt-4 whitespace-pre-wrap text-sm text-stone-600">{experience.fullDescription}</div>
+          <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-stone-600">{experience.fullDescription}</div>
         )}
         {experience.cancellationPolicy && (
           <p className="mt-6 text-xs text-stone-500">
             Cancellation: {experience.cancellationPolicy.name} ({experience.cancellationPolicy.policyType})
           </p>
         )}
-        <ClassBookingForm
-          minP={experience.minimumParticipants}
-          maxP={experience.maximumParticipants}
-          priceCents={experience.priceCents}
-          bookingDepositBps={experience.bookingDepositBps}
-          slots={slots}
-          waitlistSlots={waitlistSlots}
-        />
+        <div className="mt-10 border-t border-stone-200 pt-10">
+          <h2 className="text-lg font-semibold text-amber-950">Book a session</h2>
+          <p className="mt-1 text-sm text-stone-600">Choose a time, party size, and seat type when offered.</p>
+          <ClassBookingForm
+            minP={experience.minimumParticipants}
+            maxP={experience.maximumParticipants}
+            priceCents={experience.priceCents}
+            bookingDepositBps={experience.bookingDepositBps}
+            slots={slots}
+            waitlistSlots={waitlistSlots}
+          />
+        </div>
       </main>
-    </div>
+    </MarketingLayout>
   );
 }

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser, isAdminRole } from "@/lib/auth-session";
@@ -23,11 +22,8 @@ export default async function AdminPage() {
   });
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <Link href="/" className="text-sm text-amber-800">
-        ← Home
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold">Admin</h1>
+    <div className="mx-auto max-w-3xl">
+      <h1 className="text-2xl font-semibold tracking-tight text-amber-950">Operations</h1>
       <p className="mt-2 text-sm text-stone-600">
         Global product commission: {commission ? `${commission.percentageBasisPoints / 100}%` : "default 10% (1000 bps)"}
       </p>

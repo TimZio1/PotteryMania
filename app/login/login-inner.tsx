@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { ui } from "@/lib/ui-styles";
 
 export default function LoginInner() {
   const sp = useSearchParams();
@@ -17,40 +18,54 @@ export default function LoginInner() {
     setErr("");
     const r = await signIn("credentials", { email, password, redirect: false });
     if (r?.error) {
-      setErr("Invalid email or password");
+      setErr("Invalid email or password.");
       return;
     }
     window.location.href = callbackUrl;
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-16">
-      <h1 className="text-2xl font-semibold text-amber-900">Sign in</h1>
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
-        {err && <p className="text-sm text-red-600">{err}</p>}
+    <form onSubmit={onSubmit} className="space-y-5">
+      {err ? <p className={ui.errorText}>{err}</p> : null}
+      <div>
+        <label className={ui.label} htmlFor="login-email">
+          Email
+        </label>
         <input
-          className="w-full rounded border border-stone-300 px-3 py-2"
+          id="login-email"
+          className={`${ui.input} mt-1`}
           type="email"
-          placeholder="Email"
+          autoComplete="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+      </div>
+      <div>
+        <label className={ui.label} htmlFor="login-password">
+          Password
+        </label>
         <input
-          className="w-full rounded border border-stone-300 px-3 py-2"
+          id="login-password"
+          className={`${ui.input} mt-1`}
           type="password"
-          placeholder="Password"
+          autoComplete="current-password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit" className="w-full rounded bg-amber-800 py-2 text-white hover:bg-amber-900">
-          Sign in
-        </button>
-      </form>
-      <p className="mt-4 text-sm text-stone-600">
-        No account? <Link href="/register" className="text-amber-800 underline">Register</Link>
+      </div>
+      <button type="submit" className={`${ui.buttonPrimary} w-full`}>
+        Sign in
+      </button>
+      <p className="text-center text-sm text-stone-600">
+        New here?{" "}
+        <Link href="/register" className="font-medium text-amber-900 hover:underline">
+          Create an account
+        </Link>
       </p>
-    </div>
+    </form>
   );
 }
