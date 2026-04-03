@@ -35,6 +35,9 @@ export async function POST(req: Request, ctx: Ctx) {
   if (studio.status !== "approved") {
     return NextResponse.json({ error: "Studio must be approved to add products" }, { status: 403 });
   }
+  if (!studio.activationPaidAt) {
+    return NextResponse.json({ error: "Studio activation fee required before listing products" }, { status: 403 });
+  }
 
   let body: {
     title?: string;

@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { siteMetadata } from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,11 +14,36 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#fafaf9",
+};
+
 export const metadata: Metadata = {
-  title: "PotteryMania",
-  description: "Global pottery marketplace and class booking",
+  metadataBase: new URL(siteMetadata.url),
+  title: {
+    default: "PotteryMania",
+    template: "%s | PotteryMania",
+  },
+  description: siteMetadata.description,
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "PotteryMania" },
+  openGraph: {
+    title: "PotteryMania",
+    description: siteMetadata.description,
+    siteName: siteMetadata.name,
+    url: siteMetadata.url,
+    images: [{ url: siteMetadata.ogImage }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PotteryMania",
+    description: siteMetadata.description,
+    images: [siteMetadata.ogImage],
+  },
 };
 
 export default function RootLayout({

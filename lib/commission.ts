@@ -36,7 +36,7 @@ export async function resolveCommissionBps(
     const bps = (fallback.configValue as { bps: number }).bps;
     if (typeof bps === "number" && bps >= 0) return bps;
   }
-  return 1000;
+  return 500;
 }
 
 export function commissionCentsFromLine(lineTotalCents: number, basisPoints: number): number {

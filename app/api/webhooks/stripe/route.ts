@@ -37,6 +37,20 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+
+    // --- Studio activation (platform-level, no Connect) ---
+    if (session.metadata?.type === "studio_activation") {
+      const studioId = session.metadata.studioId;
+      if (studioId) {
+        await prisma.studio.updateMany({
+          where: { id: studioId, activationPaidAt: null },
+          data: { activationPaidAt: new Date(), activationSessionId: session.id },
+        });
+      }
+      return NextResponse.json({ received: true });
+    }
+
+    // --- Order / booking checkout (via Connect) ---
     const orderId = session.metadata?.orderId;
     if (!orderId) return NextResponse.json({ received: true });
     const pi = session.payment_intent;
@@ -52,7 +66,7 @@ export async function POST(req: Request) {
         orderId
       );
       if (!rows.length || rows[0].order_status === "paid") {
-        return { skip: true, confirmedBookingIds: [] as string[], pendingApprovalIds: [] as string[] };
+        return { skip: true, confirmedBookingIds: [] as string[], pendingApprovalIds: [] as string[], autoCancelledIds: [] as string[] };
       }
       const amount = session.amount_total ?? rows[0].total_cents;
 
@@ -78,6 +92,7 @@ export async function POST(req: Request) {
       const items = await tx.orderItem.findMany({ where: { orderId } });
       const confirmedBookingIds: string[] = [];
       const pendingApprovalIds: string[] = [];
+      const autoCancelledIds: string[] = [];
 
       for (const it of items) {
         if (it.itemType === "product" && it.productId) {
@@ -165,6 +180,7 @@ export async function POST(req: Request) {
                 } as Prisma.InputJsonValue,
               },
             });
+            autoCancelledIds.push(b.id);
           }
         }
       }
@@ -173,7 +189,7 @@ export async function POST(req: Request) {
       if (cartId) {
         await tx.cartItem.deleteMany({ where: { cartId } });
       }
-      return { skip: false, confirmedBookingIds, pendingApprovalIds };
+      return { skip: false, confirmedBookingIds, pendingApprovalIds, autoCancelledIds };
     });
     if (processed.skip) {
       return NextResponse.json({ received: true });
@@ -251,6 +267,24 @@ export async function POST(req: Request) {
         });
       } catch (e) {
         console.error("[booking-email]", e);
+      }
+    }
+
+    // Notify customers whose bookings were auto-cancelled due to capacity
+    const cancelledRows = await loadBookingEmailContext(processed.autoCancelledIds);
+    for (const it of cancelledRows) {
+      const b = it.booking;
+      if (!b) continue;
+      try {
+        await sendBookingEmails({
+          customerEmail: b.customerEmail,
+          studioEmail: it.vendor?.email ?? "",
+          subject: `Booking cancelled — ${b.experience.title}`,
+          customerHtml: `<p>Hi ${b.customerName},</p><p>Unfortunately your booking for <strong>${b.experience.title}</strong> was automatically cancelled because the session reached capacity before your payment could be confirmed.</p><p>A refund of €${((b.depositAmountCents || b.totalAmountCents) / 100).toFixed(2)} will be processed. If you have questions, contact the studio directly.</p>`,
+          studioHtml: `<p>Booking for <strong>${b.customerName}</strong> (${b.customerEmail}) was auto-cancelled for <strong>${b.experience.title}</strong> due to capacity. A refund review is required.</p>`,
+        });
+      } catch (e) {
+        console.error("[booking-email-cancel]", e);
       }
     }
 

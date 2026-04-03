@@ -15,7 +15,9 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@playwright/test": "^1.59.1",
     "@prisma/client": "6.19.0",
+    "@sentry/nextjs": "^10.47.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.0",
     "next": "15.5.14",
@@ -24,8 +26,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "resend": "^6.10.0",
-    "stripe": "^21.0.1",
-    "zod": "^4.3.6"
+    "stripe": "^21.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -194,7 +194,7 @@ export function ClassBookingForm(props: {
           <button
             type="submit"
             disabled={loading || !slotId || (seatKeys.length > 0 && !seatType)}
-            className="w-full rounded bg-amber-800 py-2 text-white disabled:opacity-50"
+            className="min-h-11 w-full rounded-full bg-amber-950 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 disabled:pointer-events-none disabled:opacity-45"
           >
             {loading ? "Adding…" : "Add class to cart"}
           </button>

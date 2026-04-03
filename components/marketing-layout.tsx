@@ -24,18 +24,12 @@ export function MarketingLayout({ children, toolbar }: Props) {
           <div>
             <p className="text-sm font-semibold text-amber-950">PotteryMania</p>
             <p className="mt-1 max-w-sm text-sm text-stone-500">
-              Ceramics from independent studios — shop pieces or book a class.
+              Ceramics platform for independent studios.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-600">
-            <Link href="/marketplace" className="hover:text-amber-950">
-              Shop
-            </Link>
-            <Link href="/classes" className="hover:text-amber-950">
-              Classes
-            </Link>
-            <Link href="/studios" className="hover:text-amber-950">
-              Studios
+            <Link href="/early-access" className="hover:text-amber-950">
+              Early access
             </Link>
             <Link href="/login" className="hover:text-amber-950">
               Sign in

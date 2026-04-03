@@ -34,6 +34,7 @@ model User {
   bookingReschedules   BookingReschedule[]
   bookingAuditLogs     BookingAuditLog[]
   waitlistEntries      BookingWaitlistEntry[] @relation("WaitlistCustomer")
+  reviews              Review[]
 
   @@map("users")
 }
@@ -89,6 +90,9 @@ model Studio {
   status                StudioStatus
   rejectionReason       String?      @map("rejection_reason")
   approvedAt            DateTime?    @map("approved_at")
+  /// Set when the vendor pays the one-time €5 activation fee via Stripe Checkout.
+  activationPaidAt      DateTime?    @map("activation_paid_at")
+  activationSessionId   String?      @map("activation_session_id")
   createdAt             DateTime     @default(now()) @map("created_at")
   updatedAt             DateTime     @updatedAt @map("updated_at")
 
@@ -106,6 +110,10 @@ model Studio {
   analyticsSnapshots   AnalyticsSnapshot[]
   dateBlocks           StudioDateBlock[]
   waitlistEntries      BookingWaitlistEntry[]
+  reviews              Review[]
+  referralInvites      ReferralInvite[]        @relation("ReferralInviter")
+  referredStudios      ReferralInvite[]        @relation("ReferralAcceptedStudio")
+  shippingRateQuotes   ShippingRateQuote[]
 
   @@index([status])
   @@index([country, city])
@@ -167,6 +175,7 @@ model Product {
   images     ProductImage[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+  reviews    Review[]
 
   @@unique([studioId, slug])
   @@index([studioId])
@@ -268,6 +277,7 @@ model Experience {
   bookings             Booking[]
   cartItems            CartItem[]
   waitlistEntries      BookingWaitlistEntry[]
+  reviews              Review[]
 
   @@unique([studioId, slug])
   @@index([studioId])
@@ -455,6 +465,8 @@ model Booking {
   vendorAmountCents          Int                  @default(0) @map("vendor_amount_cents")
   cancellationPolicySnapshot Json?                @map("cancellation_policy_snapshot")
   notes                      String?
+  reminderScheduledAt        DateTime?             @map("reminder_scheduled_at")
+  reminderSentAt             DateTime?             @map("reminder_sent_at")
   createdAt                  DateTime             @default(now()) @map("created_at")
   updatedAt                  DateTime             @updatedAt @map("updated_at")
 
@@ -467,6 +479,7 @@ model Booking {
   orderItems       OrderItem[]
   calendarSyncLogs CalendarSyncLog[]
   auditLogs        BookingAuditLog[]
+  reviews          Review[]
 
   @@index([studioId])
   @@map("bookings")
@@ -512,6 +525,7 @@ model Cart {
   userId       String?   @map("user_id") @db.Uuid
   sessionToken String?   @map("session_token")
   expiresAt    DateTime? @map("expires_at")
+  lastRecoveryEmailSentAt DateTime? @map("last_recovery_email_sent_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
@@ -568,6 +582,15 @@ enum OrderPaymentStatus {
   partially_refunded
 }
 
+enum FulfillmentStatus {
+  pending
+  processing
+  shipped
+  delivered
+  ready_for_pickup
+  cancelled
+}
+
 model Order {
   id                  String             @id @default(uuid()) @db.Uuid
   customerUserId      String?            @map("customer_user_id") @db.Uuid
@@ -579,6 +602,16 @@ model Order {
   notes               String?
   orderStatus         OrderStatus        @map("order_status")
   paymentStatus       OrderPaymentStatus @map("payment_status")
+  fulfillmentStatus   FulfillmentStatus  @default(pending) @map("fulfillment_status")
+  trackingCarrier     String?            @map("tracking_carrier")
+  trackingNumber      String?            @map("tracking_number")
+  trackingUrl         String?            @map("tracking_url")
+  shippingMethod      String?            @map("shipping_method")
+  shippingRateCents   Int                @default(0) @map("shipping_rate_cents")
+  taxCents            Int                @default(0) @map("tax_cents")
+  stripeCheckoutSessionId String?        @map("stripe_checkout_session_id")
+  orderConfirmationSentAt DateTime?      @map("order_confirmation_sent_at")
+  vendorNotificationSentAt DateTime?     @map("vendor_notification_sent_at")
   subtotalCents       Int                @default(0) @map("subtotal_cents")
   totalCents          Int                @default(0) @map("total_cents")
   currency            String             @default("EUR")
@@ -588,6 +621,7 @@ model Order {
   customerUser User?       @relation(fields: [customerUserId], references: [id], onDelete: SetNull)
   items        OrderItem[]
   payments     Payment[]
+  shippingRateQuotes ShippingRateQuote[]
 
   @@index([customerUserId])
   @@map("orders")
@@ -616,6 +650,7 @@ model OrderItem {
   product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   vendor  Studio   @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  reviews Review[]
 
   @@index([vendorId])
   @@map("order_items")
@@ -721,6 +756,9 @@ model CalendarConnection {
   provider           CalendarProvider
   connectionStatus   CalendarConnectionStatus @map("connection_status")
   externalCalendarId String?                  @map("external_calendar_id")
+  accessToken        String?                  @map("access_token")
+  refreshToken       String?                  @map("refresh_token")
+  tokenExpiresAt     DateTime?                @map("token_expires_at")
   syncEnabled        Boolean                  @default(true) @map("sync_enabled")
   lastSyncAt         DateTime?                @map("last_sync_at")
   syncErrorState     String?                  @map("sync_error_state")
@@ -804,6 +842,82 @@ model FeatureFlag {
   @@map("feature_flags")
 }
 
+enum ReviewTargetType {
+  product
+  studio
+  experience
+}
+
+model Review {
+  id             String           @id @default(uuid()) @db.Uuid
+  authorUserId   String           @map("author_user_id") @db.Uuid
+  studioId       String           @map("studio_id") @db.Uuid
+  productId      String?          @map("product_id") @db.Uuid
+  experienceId   String?          @map("experience_id") @db.Uuid
+  bookingId      String?          @map("booking_id") @db.Uuid
+  orderItemId    String?          @map("order_item_id") @db.Uuid
+  targetType     ReviewTargetType @map("target_type")
+  rating         Int
+  title          String?
+  body           String?
+  isVerified     Boolean          @default(true) @map("is_verified")
+  isVisible      Boolean          @default(true) @map("is_visible")
+  isFeatured     Boolean          @default(false) @map("is_featured")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  author     User       @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  studio     Studio     @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  product    Product?   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  experience Experience? @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  booking    Booking?   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  orderItem  OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([studioId, createdAt])
+  @@index([productId, createdAt])
+  @@index([experienceId, createdAt])
+  @@map("reviews")
+}
+
+model ReferralInvite {
+  id               String    @id @default(uuid()) @db.Uuid
+  inviterStudioId  String    @map("inviter_studio_id") @db.Uuid
+  acceptedStudioId String?   @map("accepted_studio_id") @db.Uuid
+  inviteCode       String    @unique @map("invite_code")
+  inviteEmail      String?   @map("invite_email")
+  inviteUrl        String?   @map("invite_url")
+  inviteStatus     String    @default("pending") @map("invite_status")
+  rewardNote       String?   @map("reward_note")
+  invitedAt        DateTime? @map("invited_at")
+  acceptedAt       DateTime? @map("accepted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  inviterStudio  Studio  @relation("ReferralInviter", fields: [inviterStudioId], references: [id], onDelete: Cascade)
+  acceptedStudio Studio? @relation("ReferralAcceptedStudio", fields: [acceptedStudioId], references: [id], onDelete: SetNull)
+
+  @@index([inviterStudioId, createdAt])
+  @@map("referral_invites")
+}
+
+model ShippingRateQuote {
+  id             String   @id @default(uuid()) @db.Uuid
+  orderId        String   @map("order_id") @db.Uuid
+  studioId       String   @map("studio_id") @db.Uuid
+  destinationCountry String @map("destination_country")
+  destinationCity String? @map("destination_city")
+  subtotalCents  Int      @map("subtotal_cents")
+  shippingCents  Int      @map("shipping_cents")
+  methodLabel    String   @map("method_label")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([studioId, createdAt])
+  @@map("shipping_rate_quotes")
+}
+
 enum AnalyticsSnapshotScope {
   platform
   studio
@@ -849,4 +963,18 @@ model StudioDateBlock {
 
   @@unique([studioId, blockDate])
   @@map("studio_date_blocks")
+}
+
+model EarlyAccessSignup {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  studioName    String   @map("studio_name")
+  websiteOrIg   String?  @map("website_or_ig")
+  photoUrls     String[] @default([]) @map("photo_urls")
+  wantBooking   Boolean  @default(false) @map("want_booking")
+  wantMarket    Boolean  @default(false) @map("want_market")
+  wantBoth      Boolean  @default(false) @map("want_both")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("early_access_signups")
 }

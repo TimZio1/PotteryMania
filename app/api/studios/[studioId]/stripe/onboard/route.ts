@@ -24,9 +24,10 @@ export async function POST(_req: Request, ctx: Ctx) {
   const stripe = getStripe();
   let row = await prisma.stripeAccount.findUnique({ where: { studioId } });
   if (!row) {
+    const countryCode = (studio.country || "GR").substring(0, 2).toUpperCase();
     const acct = await stripe.accounts.create({
       type: "express",
-      country: "GR",
+      country: countryCode,
       email: studio.email,
       capabilities: {
         card_payments: { requested: true },

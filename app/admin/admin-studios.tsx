@@ -42,12 +42,12 @@ export function AdminStudios({ initialStudios }: { initialStudios: S[] }) {
             <p className="text-sm text-stone-500">{s.email}</p>
             <p className="text-xs text-stone-400">Owner: {s.owner.email}</p>
             <div className="mt-3 flex gap-2">
-              <button type="button" className="rounded bg-green-700 px-3 py-1 text-sm text-white" onClick={() => act(s.id, "approved")}>
+              <button type="button" className="min-h-11 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-800" onClick={() => act(s.id, "approved")}>
                 Approve
               </button>
               <button
                 type="button"
-                className="rounded bg-red-700 px-3 py-1 text-sm text-white"
+                className="min-h-11 rounded-lg bg-red-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-800"
                 onClick={() => act(s.id, "rejected", "Please update your profile")}
               >
                 Reject

@@ -55,6 +55,9 @@ export async function POST(req: Request, ctx: Ctx) {
   if (studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
   }
+  if (!studio.activationPaidAt) {
+    return NextResponse.json({ error: "Studio activation fee required before listing experiences" }, { status: 403 });
+  }
 
   let body: Record<string, unknown>;
   try {

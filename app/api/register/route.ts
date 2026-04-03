@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import type { UserRole } from "@prisma/client";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
+  const rate = assertRateLimit(req, "register", 10, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many registration attempts" }, { status: 429 });
+  }
   let body: { email?: string; password?: string; role?: string };
   try {
     body = await req.json();

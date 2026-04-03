@@ -9,9 +9,6 @@ export default async function StudiosPage() {
   const studios = await prisma.studio.findMany({
     where: { status: "approved" },
     orderBy: { displayName: "asc" },
-    include: {
-      _count: { select: { products: true, experiences: true } },
-    },
   });
 
   return (
@@ -50,9 +47,6 @@ export default async function StudiosPage() {
                 {studio.shortDescription ? (
                   <p className="mt-4 line-clamp-3 text-sm text-stone-600">{studio.shortDescription}</p>
                 ) : null}
-                <p className="mt-4 text-xs font-medium text-stone-500">
-                  {studio._count.experiences} classes · {studio._count.products} products
-                </p>
               </Link>
             ))}
           </div>

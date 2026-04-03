@@ -6,12 +6,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
-
-const browse = [
-  { href: "/marketplace", label: "Shop" },
-  { href: "/classes", label: "Classes" },
-  { href: "/studios", label: "Studios" },
-] as const;
+import { PromoCountdownCompact } from "@/components/promo-countdown";
 
 function adminVisible(role: string | undefined) {
   return role === "admin" || role === "hyper_admin";
@@ -72,19 +67,15 @@ export function SiteHeader() {
           <Link href="/" className="truncate text-base font-semibold tracking-tight text-amber-950 sm:text-lg">
             PotteryMania
           </Link>
+          <span className="hidden sm:inline-flex"><PromoCountdownCompact /></span>
         </div>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
-          {browse.map(({ href, label }) => (
-            <Link key={href} href={href} className={linkClass(href)}>
-              {label}
-            </Link>
-          ))}
-          <Link href="/cart" className={linkClass("/cart")}>
-            Cart
-          </Link>
           {authed ? (
             <>
+              <Link href="/cart" className={linkClass("/cart")}>
+                Cart
+              </Link>
               <Link href="/dashboard" className={linkClass("/dashboard")}>
                 Dashboard
               </Link>
@@ -123,12 +114,14 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Link
-            href="/cart"
-            className="flex h-11 min-w-11 items-center justify-center rounded-xl border border-stone-200 text-sm font-medium text-stone-800"
-          >
-            Cart
-          </Link>
+          {authed ? (
+            <Link
+              href="/cart"
+              className="flex h-11 min-w-11 items-center justify-center rounded-xl border border-stone-200 text-sm font-medium text-stone-800"
+            >
+              Cart
+            </Link>
+          ) : null}
         </div>
       </div>
 
@@ -149,16 +142,11 @@ export function SiteHeader() {
               </button>
             </div>
             <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
-              {browse.map(({ href, label }) => (
-                <Link key={href} href={href} className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                  {label}
-                </Link>
-              ))}
-              <Link href="/cart" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                Cart
-              </Link>
               {authed ? (
                 <>
+                  <Link href="/cart" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                    Cart
+                  </Link>
                   <Link href="/dashboard" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
                     Dashboard
                   </Link>

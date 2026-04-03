@@ -1,9 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = buildMetadata({
+  title: "Classes and experiences",
+  description: "Book pottery classes, workshops, and ceramic studio experiences.",
+  path: "/classes",
+});
 
 export default async function ClassesPage() {
   const experiences = await prisma.experience.findMany({

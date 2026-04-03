@@ -6,6 +6,7 @@ import { getStripe } from "@/lib/stripe";
 import { depositChargedCents } from "@/lib/bookings/deposit";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
+import { assertRateLimit } from "@/lib/rate-limit";
 import type { CancellationPolicy } from "@prisma/client";
 
 function baseUrl() {
@@ -25,6 +26,10 @@ function policySnapshot(pol: CancellationPolicy | null) {
 }
 
 export async function POST(req: Request) {
+  const rate = assertRateLimit(req, "booking-checkout", 20, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many booking attempts" }, { status: 429 });
+  }
   const user = await getSessionUser();
 
   let body: {
@@ -75,6 +80,9 @@ export async function POST(req: Request) {
   }
   if (studio.status !== "approved") {
     return NextResponse.json({ error: "Studio not available" }, { status: 400 });
+  }
+  if (!studio.activationPaidAt) {
+    return NextResponse.json({ error: "Studio has not been activated" }, { status: 400 });
   }
   if (slot.status !== "open") {
     return NextResponse.json({ error: "Slot not bookable" }, { status: 400 });

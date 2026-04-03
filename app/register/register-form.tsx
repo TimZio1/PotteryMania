@@ -10,28 +10,44 @@ export function RegisterForm() {
   const [role, setRole] = useState<"customer" | "vendor">("customer");
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
+  const [pending, setPending] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
     setOk("");
-    const r = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, role }),
-    });
-    const j = await r.json();
-    if (!r.ok) {
-      setErr(j.error || "Registration failed");
-      return;
+    setPending(true);
+    try {
+      const r = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, role }),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        setErr(j.error || "Registration failed");
+        setPending(false);
+        return;
+      }
+      setOk("Account created. You can now sign in.");
+      setPending(false);
+    } catch {
+      setErr("Something went wrong. Please try again.");
+      setPending(false);
     }
-    setOk("Account created. You can sign in.");
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       {err ? <p className={ui.errorText}>{err}</p> : null}
-      {ok ? <p className={ui.successText}>{ok}</p> : null}
+      {ok ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <p className={ui.successText}>{ok}</p>
+          <Link href="/login" className="mt-2 inline-block text-sm font-medium text-amber-900 hover:underline">
+            Go to sign in →
+          </Link>
+        </div>
+      ) : null}
       <div>
         <span className={ui.label}>Account type</span>
         <p className="mt-1 text-xs text-stone-500">Vendors manage a studio; customers shop and book classes.</p>
@@ -40,6 +56,7 @@ export function RegisterForm() {
           value={role}
           onChange={(e) => setRole(e.target.value as "customer" | "vendor")}
           aria-label="Account type"
+          disabled={pending}
         >
           <option value="customer">Customer — shop &amp; book</option>
           <option value="vendor">Studio / vendor — sell &amp; schedule</option>
@@ -58,6 +75,7 @@ export function RegisterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={pending}
         />
       </div>
       <div>
@@ -74,10 +92,11 @@ export function RegisterForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={8}
+          disabled={pending}
         />
       </div>
-      <button type="submit" className={`${ui.buttonPrimary} w-full`}>
-        Create account
+      <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
+        {pending ? "Creating account…" : "Create account"}
       </button>
       <p className="text-center text-sm text-stone-600">
         Already have an account?{" "}

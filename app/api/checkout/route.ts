@@ -7,6 +7,9 @@ import { getStripe } from "@/lib/stripe";
 import { depositChargedCents } from "@/lib/bookings/deposit";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
+import { assertRateLimit } from "@/lib/rate-limit";
+import { calculateShippingRate } from "@/lib/shipping";
+import { calculateEstimatedTaxCents, stripeTaxEnabled } from "@/lib/tax";
 import type { Prisma } from "@prisma/client";
 import type Stripe from "stripe";
 
@@ -34,6 +37,10 @@ type LineRow = {
 };
 
 export async function POST(req: Request) {
+  const rate = assertRateLimit(req, "checkout", 20, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many checkout attempts" }, { status: 429 });
+  }
   const user = await getSessionUser();
   const { cartId } = await getCartForRequest(user?.id ?? null);
 
@@ -70,6 +77,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Mixed vendors" }, { status: 400 });
   }
 
+  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
+  if (!studio?.activationPaidAt) {
+    return NextResponse.json({ error: "Studio has not been activated" }, { status: 400 });
+  }
+
   const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
   if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
     return NextResponse.json({ error: "Studio has not completed Stripe Connect" }, { status: 400 });
@@ -80,6 +92,7 @@ export async function POST(req: Request) {
 
   let subtotal = 0;
   let commissionTotal = 0;
+  let totalWeightGrams = 0;
   const lineRows: LineRow[] = [];
 
   for (const item of cart.items) {
@@ -91,11 +104,18 @@ export async function POST(req: Request) {
       if (p.status !== "active" || p.studio.status !== "approved") {
         return NextResponse.json({ error: `Product unavailable: ${p.title}` }, { status: 400 });
       }
+      if (p.stockStatus === "out_of_stock" || p.stockQuantity < item.quantity) {
+        return NextResponse.json(
+          { error: `Not enough stock for "${p.title}" (available: ${Math.max(0, p.stockQuantity)})` },
+          { status: 400 },
+        );
+      }
       const unit = item.priceSnapshotCents;
       const lineCents = unit * item.quantity;
       const com = commissionCentsFromLine(lineCents, productBps);
       subtotal += lineCents;
       commissionTotal += com;
+      totalWeightGrams += (p.weightGrams ?? 0) * item.quantity;
       lineRows.push({
         itemType: "product",
         title: p.title,
@@ -188,6 +208,22 @@ export async function POST(req: Request) {
     country: shipping.country || "",
     postal: shipping.postal || "",
   };
+  const hasProducts = lineRows.some((row) => row.itemType === "product");
+  const shippingQuote = hasProducts
+    ? calculateShippingRate({
+        subtotalCents: subtotal,
+        destinationCountry: shippingAddressJson.country,
+        totalWeightGrams,
+      })
+    : { shippingCents: 0, methodLabel: "No shipping required" };
+  const estimatedTaxCents = hasProducts
+    ? calculateEstimatedTaxCents({
+        subtotalCents: subtotal,
+        shippingCents: shippingQuote.shippingCents,
+        destinationCountry: shippingAddressJson.country,
+      })
+    : 0;
+  const grandTotal = subtotal + shippingQuote.shippingCents + estimatedTaxCents;
 
   const order = await prisma.$transaction(async (tx) => {
     const createdOrder = await tx.order.create({
@@ -201,8 +237,12 @@ export async function POST(req: Request) {
         notes: body.notes?.trim() || null,
         orderStatus: "pending",
         paymentStatus: "pending",
+        fulfillmentStatus: hasProducts ? "pending" : "processing",
+        shippingMethod: shippingQuote.methodLabel,
+        shippingRateCents: shippingQuote.shippingCents,
+        taxCents: estimatedTaxCents,
         subtotalCents: subtotal,
-        totalCents: subtotal,
+        totalCents: grandTotal,
         currency: "EUR",
       },
     });
@@ -266,6 +306,20 @@ export async function POST(req: Request) {
       }
     }
 
+    if (hasProducts) {
+      await tx.shippingRateQuote.create({
+        data: {
+          orderId: createdOrder.id,
+          studioId,
+          destinationCountry: shippingAddressJson.country || "GR",
+          destinationCity: shippingAddressJson.city || null,
+          subtotalCents: subtotal,
+          shippingCents: shippingQuote.shippingCents,
+          methodLabel: shippingQuote.methodLabel,
+        },
+      });
+    }
+
     return createdOrder;
   });
 
@@ -285,6 +339,7 @@ export async function POST(req: Request) {
     line_items,
     success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl()}/cart?cancelled=1`,
+    automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
     payment_intent_data: {
       application_fee_amount: commissionTotal,
       transfer_data: { destination: stripeRow.stripeAccountId },
@@ -293,5 +348,10 @@ export async function POST(req: Request) {
     metadata: { orderId: order.id, cartId },
   });
 
-  return NextResponse.json({ url: session.url, orderId: order.id });
+  await prisma.order.update({
+    where: { id: order.id },
+    data: { stripeCheckoutSessionId: session.id },
+  });
+
+  return NextResponse.json({ url: session.url, orderId: order.id, totals: { subtotal, shipping: shippingQuote.shippingCents, tax: estimatedTaxCents, total: grandTotal } });
 }

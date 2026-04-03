@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
+import { ReviewSummary } from "@/components/review-summary";
 import { ui } from "@/lib/ui-styles";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export default async function StudioPage({ params }: Props) {
   });
   if (!studio) notFound();
 
-  const [products, experiences] = await Promise.all([
+  const [products, experiences, reviews] = await Promise.all([
     prisma.product.findMany({
       where: { studioId, status: "active" },
       orderBy: { createdAt: "desc" },
@@ -28,7 +29,14 @@ export default async function StudioPage({ params }: Props) {
       take: 8,
       include: { images: { where: { isPrimary: true }, take: 1 } },
     }),
+    prisma.review.findMany({
+      where: { studioId, isVisible: true },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      include: { author: { select: { email: true } }, product: { select: { title: true } }, experience: { select: { title: true } } },
+      take: 8,
+    }),
   ]);
+  const avgRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
 
   const toolbar = (
     <Link href="/studios" className="text-sm font-medium text-amber-900 hover:text-amber-950">
@@ -111,6 +119,8 @@ export default async function StudioPage({ params }: Props) {
           </div>
           {products.length === 0 ? <p className="mt-4 text-sm text-stone-500">No active products yet.</p> : null}
         </section>
+
+        <ReviewSummary title="Studio reviews" avgRating={avgRating} count={reviews.length} reviews={reviews} />
       </main>
     </MarketingLayout>
   );

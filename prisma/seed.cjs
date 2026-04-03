@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
@@ -32,8 +33,8 @@ async function main() {
 
   await prisma.adminConfig.upsert({
     where: { configKey: "default_product_commission_bps" },
-    create: { configKey: "default_product_commission_bps", configValue: { bps: 1000 } },
-    update: { configValue: { bps: 1000 } },
+    create: { configKey: "default_product_commission_bps", configValue: { bps: 500 } },
+    update: { configValue: { bps: 500 } },
   });
 
   await prisma.commissionRule.updateMany({
@@ -45,11 +46,11 @@ async function main() {
       ruleScope: "global",
       studioId: null,
       itemType: "product",
-      percentageBasisPoints: 1000,
+      percentageBasisPoints: 500,
       isActive: true,
     },
   });
-  console.log("Seeded global product commission 10% (1000 bps)");
+  console.log("Seeded global product commission 5% (500 bps)");
   await prisma.commissionRule.updateMany({
     where: { ruleScope: "global", studioId: null, itemType: "booking" },
     data: { isActive: false },
@@ -59,11 +60,11 @@ async function main() {
       ruleScope: "global",
       studioId: null,
       itemType: "booking",
-      percentageBasisPoints: 1000,
+      percentageBasisPoints: 500,
       isActive: true,
     },
   });
-  console.log("Seeded global booking commission 10% (1000 bps)");
+  console.log("Seeded global booking commission 5% (500 bps)");
 }
 
 main()

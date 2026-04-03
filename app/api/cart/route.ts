@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { getCartForRequest, withCartCookie, cartItemInclude } from "@/lib/cart-server";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 async function loadCart(cartId: string) {
   return prisma.cart.findUnique({
@@ -27,6 +28,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const rate = assertRateLimit(req, "cart:mutate", 50, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many cart updates" }, { status: 429 });
+  }
   const user = await getSessionUser();
   const { cartId, setCookie } = await getCartForRequest(user?.id ?? null);
 
@@ -180,6 +185,10 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
+  const rate = assertRateLimit(req, "cart:mutate", 50, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many cart updates" }, { status: 429 });
+  }
   const user = await getSessionUser();
   const { cartId, setCookie } = await getCartForRequest(user?.id ?? null);
 
@@ -262,7 +271,11 @@ export async function PATCH(req: Request) {
   return withCartCookie(res, setCookie);
 }
 
-export async function DELETE() {
+export async function DELETE(req: Request) {
+  const rate = assertRateLimit(req, "cart:mutate", 50, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many cart updates" }, { status: 429 });
+  }
   const user = await getSessionUser();
   const { cartId, setCookie } = await getCartForRequest(user?.id ?? null);
   await prisma.cartItem.deleteMany({ where: { cartId } });

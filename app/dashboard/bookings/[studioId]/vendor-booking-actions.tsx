@@ -76,14 +76,14 @@ export default function VendorBookingActions({
           <button
             type="button"
             onClick={handleApprove}
-            className="rounded bg-emerald-700 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-800"
+            className="min-h-11 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800"
           >
             Approve
           </button>
           <button
             type="button"
             onClick={handleReject}
-            className="rounded bg-stone-600 px-3 py-1 text-xs font-medium text-white hover:bg-stone-700"
+            className="min-h-11 rounded-lg bg-stone-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700"
           >
             Decline
           </button>
@@ -93,7 +93,7 @@ export default function VendorBookingActions({
         <button
           type="button"
           onClick={handleCancel}
-          className="rounded bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
+          className="min-h-11 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
         >
           Cancel booking
         </button>

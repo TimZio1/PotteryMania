@@ -12,16 +12,24 @@ export default function LoginInner() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
+  const [pending, setPending] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
-    const r = await signIn("credentials", { email, password, redirect: false });
-    if (r?.error) {
-      setErr("Invalid email or password.");
-      return;
+    setPending(true);
+    try {
+      const r = await signIn("credentials", { email, password, redirect: false });
+      if (r?.error) {
+        setErr("Invalid email or password.");
+        setPending(false);
+        return;
+      }
+      window.location.href = callbackUrl;
+    } catch {
+      setErr("Something went wrong. Please try again.");
+      setPending(false);
     }
-    window.location.href = callbackUrl;
   }
 
   return (
@@ -40,6 +48,7 @@ export default function LoginInner() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={pending}
         />
       </div>
       <div>
@@ -55,10 +64,11 @@ export default function LoginInner() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          disabled={pending}
         />
       </div>
-      <button type="submit" className={`${ui.buttonPrimary} w-full`}>
-        Sign in
+      <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
+        {pending ? "Signing in…" : "Sign in"}
       </button>
       <p className="text-center text-sm text-stone-600">
         New here?{" "}
