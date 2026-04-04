@@ -28,7 +28,13 @@ export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
 /** Sidebar items respecting platform feature gates (e.g. kiln add-on). */
 export async function getStudioPanelNavForStudio(studioId: string): Promise<StudioPanelNavItem[]> {
   const all = studioPanelNav(studioId);
-  const kilnOk = await hasStudioFeature(studioId, "kiln_tracking");
-  if (kilnOk) return all;
-  return all.filter((i) => !i.href.endsWith("/kiln"));
+  const [kilnOk, aiOk] = await Promise.all([
+    hasStudioFeature(studioId, "kiln_tracking"),
+    hasStudioFeature(studioId, "ai_advisor"),
+  ]);
+  return all.filter((i) => {
+    if (i.href.endsWith("/kiln") && !kilnOk) return false;
+    if (i.href.endsWith("/ai") && !aiOk) return false;
+    return true;
+  });
 }

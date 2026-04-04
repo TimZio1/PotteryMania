@@ -50,4 +50,10 @@ export const STUDIO_FEATURE_CATALOG: StudioFeatureCatalogEntry[] = [
     benefit: "Delegate access to instructors and assistants.",
     suggestedMonthlyEur: 5,
   },
+  {
+    key: "ai_advisor",
+    name: "AI Advisor",
+    benefit: "Ask pricing, scheduling, and growth questions using your studio stats.",
+    suggestedMonthlyEur: 7,
+  },
 ];

@@ -90,7 +90,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
       return;
     }
     await load();
-    if (slug === "kiln_tracking") router.refresh();
+    if (slug === "kiln_tracking" || slug === "ai_advisor") router.refresh();
   }
 
   if (loading) return <p className="text-sm text-stone-500">Loading…</p>;
