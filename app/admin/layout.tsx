@@ -13,6 +13,7 @@ const adminLinks = [
   { href: "/admin/operations", label: "Operations" },
   { href: "/admin/content", label: "Content" },
   { href: "/admin/platform-features", label: "Platform add-ons" },
+  { href: "/admin/marketplace-ranking", label: "Marketplace ranking" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/system", label: "System" },
   { href: "/admin/settings", label: "Settings" },

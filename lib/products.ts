@@ -1,7 +1,16 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
-export type ProductSort = "newest" | "price_asc" | "price_desc" | "featured";
+export type ProductSort = "recommended" | "newest" | "price_asc" | "price_desc" | "featured";
+
+export const PRODUCT_SORT_VALUES: ProductSort[] = ["recommended", "newest", "featured", "price_asc", "price_desc"];
+
+export function parseProductSort(value: string | undefined | null): ProductSort {
+  if (value && (PRODUCT_SORT_VALUES as readonly string[]).includes(value)) {
+    return value as ProductSort;
+  }
+  return "recommended";
+}
 
 export type ProductQueryInput = {
   q?: string;
@@ -91,11 +100,17 @@ export function buildProductWhere(input: ProductQueryInput): Prisma.ProductWhere
   return where;
 }
 
-export function buildProductOrderBy(sort: ProductSort = "newest"): Prisma.ProductOrderByWithRelationInput[] {
+export function buildProductOrderBy(sort: ProductSort = "recommended"): Prisma.ProductOrderByWithRelationInput[] {
   if (sort === "price_asc") return [{ salePriceCents: "asc" }, { priceCents: "asc" }, { createdAt: "desc" }];
   if (sort === "price_desc") return [{ salePriceCents: "desc" }, { priceCents: "desc" }, { createdAt: "desc" }];
   if (sort === "featured") return [{ isFeatured: "desc" }, { createdAt: "desc" }];
-  return [{ createdAt: "desc" }];
+  if (sort === "newest") return [{ createdAt: "desc" }];
+  // recommended: featured products, then studio boost, then freshness
+  return [
+    { isFeatured: "desc" },
+    { studio: { marketplaceRankWeight: "desc" } },
+    { createdAt: "desc" },
+  ];
 }
 
 export async function listMarketplaceProducts(input: ProductQueryInput) {

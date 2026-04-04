@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
-import { listMarketplaceProducts, type ProductSort } from "@/lib/products";
+import { listMarketplaceProducts, parseProductSort, type ProductSort } from "@/lib/products";
 import { prisma } from "@/lib/db";
 import { redirectEndUserIfNoMarketplaceListings } from "@/lib/public-catalog-guard";
 import { buildMetadata } from "@/lib/seo";
@@ -47,7 +47,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
       category: sp.category,
       country: sp.country,
       city: sp.city,
-      sort: (sp.sort || "newest") as ProductSort,
+      sort: parseProductSort(sp.sort),
       inStock: sp.inStock === "1",
       minPrice: sp.minPrice ? parseInt(sp.minPrice, 10) : undefined,
       maxPrice: sp.maxPrice ? parseInt(sp.maxPrice, 10) : undefined,
@@ -112,7 +112,8 @@ export default async function MarketplacePage({ searchParams }: Props) {
           </label>
           <label className="block">
             <span className={ui.label}>Sort</span>
-            <select className={`${ui.input} mt-1`} name="sort" defaultValue={sp.sort ?? "newest"}>
+            <select className={`${ui.input} mt-1`} name="sort" defaultValue={sp.sort ?? "recommended"}>
+              <option value="recommended">Recommended</option>
               <option value="newest">Newest</option>
               <option value="featured">Featured</option>
               <option value="price_asc">Price: low to high</option>

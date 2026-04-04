@@ -108,6 +108,8 @@ model Studio {
   activationSessionId   String?      @map("activation_session_id")
   /// Stripe Customer on the platform account (studio add-on subscriptions).
   stripePlatformCustomerId String?   @map("stripe_platform_customer_id")
+  /// Hyperadmin boost for marketplace / studio directory ordering (higher = earlier).
+  marketplaceRankWeight Int          @default(0) @map("marketplace_rank_weight")
   createdAt             DateTime     @default(now()) @map("created_at")
   updatedAt             DateTime     @updatedAt @map("updated_at")
 
@@ -137,6 +139,7 @@ model Studio {
 
   @@index([status])
   @@index([country, city])
+  @@index([marketplaceRankWeight])
   @@map("studios")
 }
 

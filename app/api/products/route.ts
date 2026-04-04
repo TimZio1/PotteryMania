@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listMarketplaceProducts, type ProductSort } from "@/lib/products";
+import { listMarketplaceProducts, parseProductSort } from "@/lib/products";
 import { assertRateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: Request) {
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     studioId: searchParams.get("studioId"),
     minPrice: searchParams.get("minPrice") ? parseInt(searchParams.get("minPrice")!, 10) : undefined,
     maxPrice: searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")!, 10) : undefined,
-    sort: (searchParams.get("sort") || "newest") as ProductSort,
+    sort: parseProductSort(searchParams.get("sort")),
     inStock: searchParams.get("inStock") === "1",
     page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
     pageSize: searchParams.get("pageSize") ? parseInt(searchParams.get("pageSize")!, 10) : 12,

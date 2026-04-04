@@ -8,6 +8,7 @@ export async function GET(req: Request) {
   const q = searchParams.get("q")?.trim();
   const city = searchParams.get("city")?.trim();
   const country = searchParams.get("country")?.trim();
+  const sort = searchParams.get("sort")?.trim();
 
   const studios = await prisma.studio.findMany({
     where: {
@@ -24,7 +25,10 @@ export async function GET(req: Request) {
       ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
       ...(country ? { country: { contains: country, mode: "insensitive" } } : {}),
     },
-    orderBy: { displayName: "asc" },
+    orderBy:
+      sort === "name"
+        ? { displayName: "asc" }
+        : [{ marketplaceRankWeight: "desc" }, { displayName: "asc" }],
     include: {
       _count: {
         select: {

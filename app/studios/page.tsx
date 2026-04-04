@@ -4,15 +4,20 @@ import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
 import { redirectEndUserIfNoApprovedStudios } from "@/lib/public-catalog-guard";
+import { cn } from "@/lib/cn";
 
 export const dynamic = "force-dynamic";
 
-export default async function StudiosPage() {
+type Props = { searchParams?: Promise<{ sort?: string }> };
+
+export default async function StudiosPage({ searchParams }: Props) {
   const session = await auth();
   await redirectEndUserIfNoApprovedStudios(session?.user?.role);
+  const sp = (await searchParams) ?? {};
+  const byName = sp.sort === "name";
   const studios = await prisma.studio.findMany({
     where: { status: "approved" },
-    orderBy: { displayName: "asc" },
+    orderBy: byName ? { displayName: "asc" } : [{ marketplaceRankWeight: "desc" }, { displayName: "asc" }],
   });
 
   return (
@@ -22,8 +27,33 @@ export default async function StudiosPage() {
           <p className={ui.overline}>Studios</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Independent makers</h1>
           <p className="mt-3 text-stone-600">
-            Every studio here is verified. Open a profile to see classes and products in one place.
+            Every studio here is verified. Open a profile to see classes and products in one place. Order defaults to
+            platform ranking; switch to A–Z if you prefer.
           </p>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <span className="text-xs font-medium uppercase tracking-wide text-stone-500">Sort</span>
+          <Link
+            href="/studios"
+            className={cn(
+              ui.buttonSecondary,
+              "min-h-9 px-3 py-1.5 text-xs",
+              !byName ? "border-amber-400/50 bg-amber-50" : "",
+            )}
+          >
+            Recommended
+          </Link>
+          <Link
+            href="/studios?sort=name"
+            className={cn(
+              ui.buttonSecondary,
+              "min-h-9 px-3 py-1.5 text-xs",
+              byName ? "border-amber-400/50 bg-amber-50" : "",
+            )}
+          >
+            Name A–Z
+          </Link>
         </div>
 
         {studios.length === 0 ? (
