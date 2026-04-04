@@ -24,19 +24,13 @@ export default async function EarlyAccessPage() {
     <div className="flex min-h-screen flex-col bg-stone-50">
       {/* Minimal header */}
       <header className="absolute inset-x-0 top-0 z-30">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:h-18 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-start px-5 sm:h-18 sm:px-6">
           <Link
             href="/"
             className="text-base font-semibold tracking-tight text-white/90 transition hover:text-white sm:text-lg"
           >
             <span className="font-serif text-[1.08em] font-normal tracking-tight">Pottery</span>
             <span>Mania</span>
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur-sm transition hover:bg-white/10 hover:text-white"
-          >
-            Sign in
           </Link>
         </div>
       </header>

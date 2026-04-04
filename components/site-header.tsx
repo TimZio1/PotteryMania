@@ -96,17 +96,12 @@ export function SiteHeader() {
               </button>
             </div>
           ) : (
-            <>
-              <Link
-                href="/early-access"
-                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm"
-              >
-                Register your studio
-              </Link>
-              <Link href="/login" className={linkClass("/login")}>
-                Sign in
-              </Link>
-            </>
+            <Link
+              href="/early-access"
+              className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm"
+            >
+              Register your studio
+            </Link>
           )}
         </nav>
 
