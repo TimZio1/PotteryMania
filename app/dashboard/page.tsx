@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
+import { getSessionUser, requireAdminUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
 import { PromoCountdownCompact } from "@/components/promo-countdown";
@@ -11,6 +11,27 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login?callbackUrl=/dashboard");
+
+  const adminSession = await requireAdminUser();
+  if (adminSession) {
+    return (
+      <div className="mx-auto max-w-lg">
+        <p className={ui.overline}>Admin</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Operations</h1>
+        <p className="mt-3 text-stone-600">
+          Open the hyperadmin panel to review studios, bookings, commissions, and finance tooling.
+        </p>
+        <div className={`${ui.card} mt-8 space-y-3`}>
+          <Link href="/admin" className={`${ui.buttonPrimary} block w-full text-center`}>
+            Open hyperadmin panel
+          </Link>
+          <Link href="/admin/finance" className={`${ui.buttonSecondary} block w-full text-center`}>
+            Financial engine
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (user.role === "customer") {
     return (

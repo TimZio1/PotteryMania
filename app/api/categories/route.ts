@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser, isAdminRole } from "@/lib/auth-session";
+import { requireAdminUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
 
 export async function GET() {
@@ -12,8 +12,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const user = await getSessionUser();
-  if (!user || !isAdminRole(user.role)) {
+  const user = await requireAdminUser();
+  if (!user) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   let body: { name?: string };

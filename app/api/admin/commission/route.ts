@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser, isAdminRole } from "@/lib/auth-session";
+import { requireAdminUser } from "@/lib/auth-session";
 import type { CommissionItemType } from "@prisma/client";
 
 const VALID_ITEM_TYPES: CommissionItemType[] = ["product", "booking"];
 
 export async function GET() {
-  const user = await getSessionUser();
-  if (!user || !isAdminRole(user.role)) {
+  const user = await requireAdminUser();
+  if (!user) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const productRule = await prisma.commissionRule.findFirst({
@@ -25,8 +25,8 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const user = await getSessionUser();
-  if (!user || !isAdminRole(user.role)) {
+  const user = await requireAdminUser();
+  if (!user) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   let body: { percentageBasisPoints?: number; itemType?: string };

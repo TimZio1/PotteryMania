@@ -6,7 +6,9 @@ export default function robots() {
   return {
     rules: {
       userAgent: "*",
-      allow: prereg ? ["/", "/early-access", "/login", "/register"] : ["/", "/marketplace", "/classes", "/studios", "/early-access"],
+      allow: prereg
+        ? ["/", "/early-access", "/login", "/register", "/unauthorized-admin"]
+        : ["/", "/marketplace", "/classes", "/studios", "/early-access", "/unauthorized-admin"],
       disallow: ["/dashboard", "/admin", "/api"],
     },
     sitemap: `${siteMetadata.url}/sitemap.xml`,

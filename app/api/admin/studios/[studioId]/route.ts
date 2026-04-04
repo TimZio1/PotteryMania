@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser, isAdminRole } from "@/lib/auth-session";
+import { requireAdminUser } from "@/lib/auth-session";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
 export async function PATCH(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user || !isAdminRole(user.role)) {
+  const user = await requireAdminUser();
+  if (!user) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { studioId } = await ctx.params;

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { getSessionUser, isAdminRole } from "@/lib/auth-session";
+import { requireAdminUser } from "@/lib/auth-session";
 import { AdminStudios } from "./admin-studios";
 import { AdminBookings } from "./admin-bookings";
 import { AdminEarlyAccessList } from "./admin-early-access";
@@ -10,9 +10,9 @@ import { HyperadminSections } from "./hyperadmin-sections";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const user = await getSessionUser();
-  if (!user || !isAdminRole(user.role)) {
-    redirect("/");
+  const user = await requireAdminUser();
+  if (!user) {
+    redirect("/unauthorized-admin");
   }
   const now = new Date();
   const todayStart = startOfDay(now);

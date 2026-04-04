@@ -7,7 +7,14 @@ import {
 } from "@/lib/preregistration";
 
 const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart"];
-const BASE_PUBLIC = ["/", "/early-access", "/login", "/register", "/checkout/success"];
+const BASE_PUBLIC = [
+  "/",
+  "/early-access",
+  "/login",
+  "/register",
+  "/checkout/success",
+  "/unauthorized-admin",
+];
 const BROWSING_PUBLIC = ["/marketplace", "/classes", "/studios"];
 
 function publicAllowlist(): string[] {
