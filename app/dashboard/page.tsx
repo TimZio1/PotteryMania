@@ -9,9 +9,6 @@ import { PromoCountdownCompact } from "@/components/promo-countdown";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const user = await getSessionUser();
-  if (!user) redirect("/login?callbackUrl=/dashboard");
-
   const adminSession = await requireAdminUser();
   if (adminSession) {
     return (
@@ -32,6 +29,9 @@ export default async function DashboardPage() {
       </div>
     );
   }
+
+  const user = await getSessionUser();
+  if (!user) redirect("/login?callbackUrl=/dashboard");
 
   if (user.role === "customer") {
     return (

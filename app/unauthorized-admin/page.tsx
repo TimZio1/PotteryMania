@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { isAdminRole } from "@/lib/auth-session";
 import type { UserRole } from "@prisma/client";
 import { ui } from "@/lib/ui-styles";
+import { SessionRefreshActions } from "./session-refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function UnauthorizedAdminPage() {
             with an admin-capable account.
           </p>
         )}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link href="/" className={`${ui.buttonSecondary} inline-flex justify-center`}>
             Back to home
           </Link>
@@ -62,6 +63,14 @@ export default async function UnauthorizedAdminPage() {
             </Link>
           ) : null}
         </div>
+        {id ? (
+          <div className="mt-4">
+            <p className="text-xs text-stone-500">
+              If your role was just updated in the database, sign out once so your session picks it up everywhere.
+            </p>
+            <SessionRefreshActions />
+          </div>
+        ) : null}
         <p className="mt-8 text-xs leading-6 text-stone-500">
           Local / self-hosted: run{" "}
           <code className="rounded bg-stone-100 px-1 text-[11px]">

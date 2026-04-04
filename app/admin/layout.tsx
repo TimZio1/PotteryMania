@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AdminSignOut } from "./admin-sign-out";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -24,6 +25,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/dashboard" className="hover:text-amber-950">
               Vendor dashboard
             </Link>
+            <AdminSignOut />
           </nav>
         </div>
       </header>
