@@ -1,1 +1,1 @@
-{"name":"PotteryMania","short_name":"PotteryMania","description":"Pottery marketplace and bookings","start_url":"/","display":"standalone","background_color":"#fafaf9","theme_color":"#78350f","icons":[]}
+{"name":"PotteryMania","short_name":"PotteryMania","description":"Pottery marketplace and bookings","start_url":"/","display":"standalone","background_color":"#fafaf9","theme_color":"#78350f","icons":[{"src":"/potterymania-logo.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}

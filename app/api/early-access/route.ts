@@ -7,6 +7,11 @@ import {
   isAllowedPreregistrationCountry,
   normalizePreregistrationCountry,
 } from "@/lib/european-preregistration";
+import {
+  clientIpFromRequest,
+  sanitizeMetaEventId,
+  sendMetaConversionsLead,
+} from "@/lib/meta-conversions-api";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_PHOTOS = 3;
@@ -34,6 +39,9 @@ export async function POST(req: Request) {
   const wantBooking = body.wantBooking === true;
   const wantMarket = body.wantMarket === true;
   const wantBoth = body.wantBoth === true;
+  const metaEventId = sanitizeMetaEventId(body.metaEventId);
+  const metaFbc = typeof body.metaFbc === "string" ? body.metaFbc.trim().slice(0, 256) : undefined;
+  const metaFbp = typeof body.metaFbp === "string" ? body.metaFbp.trim().slice(0, 256) : undefined;
 
   if (!email || !EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
@@ -79,6 +87,15 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("[early-access-email]", error);
   }
+
+  void sendMetaConversionsLead({
+    email: signup.email,
+    eventId: metaEventId,
+    clientIp: clientIpFromRequest(req),
+    userAgent: req.headers.get("user-agent") ?? undefined,
+    fbc: metaFbc || undefined,
+    fbp: metaFbp || undefined,
+  });
 
   return NextResponse.json({ ok: true });
 }

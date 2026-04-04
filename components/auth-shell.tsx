@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { ui } from "@/lib/ui-styles";
 
 type Props = {
@@ -12,11 +13,12 @@ export function AuthShell({ title, description, children }: Props) {
   return (
     <div className="min-h-screen bg-stone-50 px-4 py-10 sm:px-6 sm:py-16">
       <div className={ui.narrowContainer}>
+        <BrandLogo className="mb-6" size="sm" />
         <Link
           href="/"
           className="inline-flex text-sm font-medium text-amber-900 transition hover:text-amber-950"
         >
-          ← Back to PotteryMania
+          ← Back to home
         </Link>
         <div className={`${ui.card} mt-8`}>
           <h1 className="text-2xl font-semibold tracking-tight text-amber-950">{title}</h1>

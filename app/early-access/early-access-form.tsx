@@ -6,10 +6,22 @@ import { uploadImage } from "@/lib/client-upload";
 import {
   EUROPEAN_PREREGISTRATION_COUNTRIES,
 } from "@/lib/european-preregistration";
+import { trackMetaPixelEvent } from "@/lib/meta-pixel";
 
 const MAX_PHOTOS = 3;
 const MAX_FILE_MB = 5;
 const COUNTER_BASE = 123;
+
+function readMetaCookie(name: "_fbc" | "_fbp"): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  if (!match?.[1]) return undefined;
+  try {
+    return decodeURIComponent(match[1].trim()).slice(0, 256);
+  } catch {
+    return match[1].trim().slice(0, 256);
+  }
+}
 
 export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number }) {
   const [email, setEmail] = useState("");
@@ -91,6 +103,9 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
           wantBooking,
           wantMarket,
           wantBoth,
+          metaEventId,
+          metaFbc: readMetaCookie("_fbc"),
+          metaFbp: readMetaCookie("_fbp"),
         }),
       });
       const j = await r.json();
@@ -104,6 +119,7 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
       }
       setCount((c) => c + 1);
       setDone(true);
+      trackMetaPixelEvent("Lead", { content_name: "early_access" }, { eventID: metaEventId });
     } catch (error) {
       if (error instanceof Error && error.message === "Hosted uploads are not configured") {
         setErr("Photo uploads are temporarily unavailable. You can still register without photos.");

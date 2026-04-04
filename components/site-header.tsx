@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
 function adminVisible(role: string | undefined) {
@@ -69,10 +70,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </svg>
             </button>
           ) : null}
-          <Link href="/" className="truncate text-base font-semibold tracking-[0.01em] text-(--brand-ink) sm:text-lg">
-            <span className="font-serif text-[1.08em] font-normal tracking-tight">Pottery</span>
-            <span>Mania</span>
-          </Link>
+          <BrandLogo className="min-w-0 truncate text-(--brand-ink)" priority />
         </div>
 
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2" aria-label="Primary">

@@ -7,6 +7,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test tests/e2e/smoke",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { SiteHeader } from "@/components/site-header";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { ui } from "@/lib/ui-styles";
@@ -24,10 +25,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
         <div className={`${ui.pageContainer} py-12 sm:py-14`}>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-md">
-              <p className="text-base font-semibold tracking-[0.01em] text-(--brand-ink)">
-                <span className="font-serif text-[1.08em] font-normal tracking-tight">Pottery</span>
-                <span>Mania</span>
-              </p>
+              <BrandLogo size="md" className="text-(--brand-ink)" />
               <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">
                 The ceramics platform for independent studios and makers. Built to sell work beautifully, fill classes,
                 and help serious studios grow with more presence.

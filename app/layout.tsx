@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { MetaPixel } from "@/components/meta-pixel";
 import { siteMetadata } from "@/lib/seo";
 
 const geistSans = Geist({
@@ -36,6 +37,10 @@ export const metadata: Metadata = {
   },
   description: siteMetadata.description,
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/potterymania-logo.png", type: "image/png" }],
+    apple: [{ url: "/potterymania-logo.png" }],
+  },
   appleWebApp: { capable: true, title: "PotteryMania" },
   openGraph: {
     title: "PotteryMania",
@@ -53,6 +58,8 @@ export const metadata: Metadata = {
   },
 };
 
+const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -64,6 +71,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} bg-stone-50 font-sans text-stone-900 antialiased`}
       >
         <GoogleAnalytics />
+        <MetaPixel />
+        {metaPixelId ? (
+          <noscript>
+            <img
+              height={1}
+              width={1}
+              style={{ display: "none" }}
+              src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
+        ) : null}
         <Providers>{children}</Providers>
       </body>
     </html>

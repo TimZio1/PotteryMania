@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { BRAND_LOGO_PUBLIC_PATH } from "@/lib/brand";
 
 type EmailMessage = {
   to: string;
@@ -39,8 +40,18 @@ export async function sendEmailMessages(messages: EmailMessage[]) {
   }
 }
 
+function publicSiteOrigin() {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
+  return raw.replace(/\/+$/, "") || raw;
+}
+
+function brandLogoAbsoluteUrl() {
+  return `${publicSiteOrigin()}${BRAND_LOGO_PUBLIC_PATH}`;
+}
+
 export function renderEmailShell(input: EmailShellInput) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
+  const siteUrl = publicSiteOrigin();
+  const logoUrl = escapeHtml(brandLogoAbsoluteUrl());
   const cta =
     input.ctaLabel && input.ctaUrl
       ? `<p style="margin:32px 0 0"><a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;padding:14px 22px;border-radius:999px;background:#2c1810;color:#fff8f3;text-decoration:none;font-weight:600;">${escapeHtml(input.ctaLabel)}</a></p>`
@@ -56,9 +67,7 @@ export function renderEmailShell(input: EmailShellInput) {
     <div style="padding:32px 16px;">
       <div style="max-width:640px;margin:0 auto;background:#fffdf9;border:1px solid rgba(79,52,37,0.12);border-radius:28px;overflow:hidden;box-shadow:0 12px 40px rgba(61,36,23,0.08);">
         <div style="padding:22px 28px;background:linear-gradient(135deg,#f3e7da,#e3cfbc);border-bottom:1px solid rgba(79,52,37,0.12);">
-          <div style="font-size:26px;line-height:1.1;color:#2c1810;">
-            <span style="font-family:Georgia,serif;">Pottery</span><span style="font-weight:700;">Mania</span>
-          </div>
+          <img src="${logoUrl}" alt="PotteryMania" width="200" style="max-width:200px;height:auto;display:block;border:0;" />
         </div>
         <div style="padding:36px 28px;">
           ${eyebrow}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { prisma } from "@/lib/db";
 import { PromoCountdown } from "@/components/promo-countdown";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
@@ -25,13 +25,7 @@ export default async function EarlyAccessPage() {
       {/* Minimal header */}
       <header className="absolute inset-x-0 top-0 z-30">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-start px-5 sm:h-18 sm:px-6">
-          <Link
-            href="/"
-            className="text-base font-semibold tracking-tight text-white/90 transition hover:text-white sm:text-lg"
-          >
-            <span className="font-serif text-[1.08em] font-normal tracking-tight">Pottery</span>
-            <span>Mania</span>
-          </Link>
+          <BrandLogo href="/" variant="on-dark" priority />
         </div>
       </header>
 

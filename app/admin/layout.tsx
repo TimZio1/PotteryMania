@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { AdminSignOut } from "./admin-sign-out";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -8,9 +9,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-sm font-semibold text-amber-950">
-              PotteryMania
-            </Link>
+            <BrandLogo href="/" size="sm" className="text-amber-950" />
             <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-900">
               Hyperadmin
             </span>
