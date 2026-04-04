@@ -15,8 +15,15 @@ function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
 }
 
-function adminAlertEmail() {
-  return process.env.HYPERADMIN_ALERT_EMAIL || process.env.SEED_HYPER_ADMIN_EMAIL || "admin@potterymania.local";
+/** Where to send “new early access signup” alerts. Set on Railway, e.g. theorh72@gmail.com */
+function earlyAccessNotifyRecipient(): string | null {
+  const a = process.env.EARLY_ACCESS_NOTIFY_EMAIL?.trim();
+  if (a) return a;
+  const b = process.env.HYPERADMIN_ALERT_EMAIL?.trim();
+  if (b) return b;
+  const c = process.env.SEED_HYPER_ADMIN_EMAIL?.trim();
+  if (c) return c;
+  return null;
 }
 
 function interests(input: EarlyAccessMailInput) {
@@ -66,16 +73,22 @@ export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
     footerNote: "PotteryMania hyperadmin notification.",
   });
 
-  await sendEmailMessages([
+  const messages = [
     {
       to: input.email,
       subject: "You are on the PotteryMania early-access list",
       html: customerHtml,
     },
-    {
-      to: adminAlertEmail(),
+  ];
+
+  const notifyTo = earlyAccessNotifyRecipient();
+  if (notifyTo) {
+    messages.push({
+      to: notifyTo,
       subject: `New early-access studio: ${input.studioName}`,
       html: adminHtml,
-    },
-  ]);
+    });
+  }
+
+  await sendEmailMessages(messages);
 }
