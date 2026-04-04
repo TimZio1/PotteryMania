@@ -37,6 +37,7 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
   const [done, setDone] = useState(false);
   const [uploadNotice, setUploadNotice] = useState("");
   const [showOptional, setShowOptional] = useState(false);
+  const [metaEventId] = useState(() => crypto.randomUUID());
   const [count, setCount] = useState(COUNTER_BASE + initialCount);
 
   useEffect(() => {
