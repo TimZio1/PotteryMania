@@ -22,6 +22,14 @@ export default async function UnauthorizedAdminPage() {
     role = row?.role ?? null;
   }
 
+  const esc = (s: string) => s.replace(/'/g, "''");
+  const promoteSql = email
+    ? `UPDATE users SET role = 'hyper_admin' WHERE email = '${esc(email)}';`
+    : `UPDATE users SET role = 'hyper_admin' WHERE email = 'you@example.com';`;
+  const verifySql = email
+    ? `SELECT email, role FROM users WHERE email = '${esc(email)}';`
+    : `SELECT email, role FROM users WHERE email = 'you@example.com';`;
+
   return (
     <div className="min-h-screen bg-stone-50 px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-lg rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
@@ -65,19 +73,28 @@ export default async function UnauthorizedAdminPage() {
         </div>
         {id ? (
           <div className="mt-4">
-            <p className="text-xs text-stone-500">
-              If your role was just updated in the database, sign out once so your session picks it up everywhere.
+            <p className="text-sm text-stone-600">
+              After your role is fixed in the database, refresh <code className="rounded bg-stone-100 px-1 text-xs">/admin</code>.
+              Use sign out only if the site header still shows the wrong role.
             </p>
             <SessionRefreshActions />
           </div>
         ) : null}
-        <p className="mt-8 text-xs leading-6 text-stone-500">
-          Local / self-hosted: run{" "}
-          <code className="rounded bg-stone-100 px-1 text-[11px]">
-            UPDATE users SET role = &apos;hyper_admin&apos; WHERE email = &apos;you@example.com&apos;;
-          </code>{" "}
-          (Postgres), then open <code className="rounded bg-stone-100 px-1">/admin</code> again.
-        </p>
+        <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50 p-4">
+          <p className="text-sm font-semibold text-amber-950">Fix in production Postgres</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">
+            Run this in the <strong>same</strong> database your live app uses (the <code className="text-xs">DATABASE_URL</code> on
+            Vercel / Railway / Neon — not a local copy). The value must be exactly{" "}
+            <code className="rounded bg-white px-1 text-xs">hyper_admin</code> (underscore).
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-lg bg-white p-3 text-xs leading-relaxed text-stone-900 ring-1 ring-stone-200">
+            {promoteSql}
+          </pre>
+          <p className="mt-3 text-xs font-medium text-stone-600">Check current role first:</p>
+          <pre className="mt-1 overflow-x-auto rounded-lg bg-white p-3 text-xs leading-relaxed text-stone-900 ring-1 ring-stone-200">
+            {verifySql}
+          </pre>
+        </div>
       </div>
     </div>
   );
