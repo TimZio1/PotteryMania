@@ -35,6 +35,14 @@ model User {
   bookingAuditLogs     BookingAuditLog[]
   waitlistEntries      BookingWaitlistEntry[] @relation("WaitlistCustomer")
   reviews              Review[]
+  financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerUser")
+  subscriptions        Subscription[]
+  acquisitionAttributions AcquisitionAttribution[]
+  featureUsageFacts    FeatureUsageFact[]
+  discountRedemptions  DiscountRedemption[]
+  priceChangeHistory   PriceChangeHistory[]
+  adminAuditLogs       AdminAuditLog[]
+  pricingScenarios     PricingScenario[]
 
   @@map("users")
 }
@@ -114,6 +122,8 @@ model Studio {
   referralInvites      ReferralInvite[]        @relation("ReferralInviter")
   referredStudios      ReferralInvite[]        @relation("ReferralAcceptedStudio")
   shippingRateQuotes   ShippingRateQuote[]
+  financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerStudio")
+  featureUsageFacts    FeatureUsageFact[]
 
   @@index([status])
   @@index([country, city])
@@ -480,6 +490,7 @@ model Booking {
   calendarSyncLogs CalendarSyncLog[]
   auditLogs        BookingAuditLog[]
   reviews          Review[]
+  financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerBooking")
 
   @@index([studioId])
   @@map("bookings")
@@ -622,6 +633,8 @@ model Order {
   items        OrderItem[]
   payments     Payment[]
   shippingRateQuotes ShippingRateQuote[]
+  financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerOrder")
+  discountRedemptions  DiscountRedemption[]
 
   @@index([customerUserId])
   @@map("orders")
@@ -978,4 +991,413 @@ model EarlyAccessSignup {
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("early_access_signups")
+}
+
+// --- Financial Hyperadmin Engine ---
+
+enum FinanceLedgerEntryType {
+  gross_revenue
+  discount
+  refund
+  stripe_fee
+  tax
+  platform_commission
+  vendor_payout
+  activation_fee
+  infra_cost
+  email_cost
+  ai_cost
+  storage_cost
+  manual_adjustment
+}
+
+enum FinanceLedgerDirection {
+  credit
+  debit
+}
+
+model FinanceLedgerEntry {
+  id           String                 @id @default(uuid()) @db.Uuid
+  entryDate    DateTime               @map("entry_date") @db.Date
+  entryType    FinanceLedgerEntryType @map("entry_type")
+  amountCents  Int                    @map("amount_cents")
+  currency     String                 @default("EUR")
+  direction    FinanceLedgerDirection
+  sourceSystem String                 @map("source_system")
+  sourceType   String                 @map("source_type")
+  sourceId     String?                @map("source_id")
+  dedupeKey    String?                @unique @map("dedupe_key")
+  userId       String?                @map("user_id") @db.Uuid
+  studioId     String?                @map("studio_id") @db.Uuid
+  orderId      String?                @map("order_id") @db.Uuid
+  bookingId    String?                @map("booking_id") @db.Uuid
+  subscriptionId String?              @map("subscription_id") @db.Uuid
+  planId       String?                @map("plan_id") @db.Uuid
+  country      String?
+  featureKey   String?                @map("feature_key")
+  notes        String?
+  metadata     Json?                  @map("metadata")
+  createdAt    DateTime               @default(now()) @map("created_at")
+
+  user         User?         @relation("LedgerUser", fields: [userId], references: [id], onDelete: SetNull)
+  studio       Studio?       @relation("LedgerStudio", fields: [studioId], references: [id], onDelete: SetNull)
+  order        Order?        @relation("LedgerOrder", fields: [orderId], references: [id], onDelete: SetNull)
+  booking      Booking?      @relation("LedgerBooking", fields: [bookingId], references: [id], onDelete: SetNull)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  plan         BillingPlan?  @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([entryDate])
+  @@index([entryType, entryDate])
+  @@index([userId, entryDate])
+  @@index([studioId, entryDate])
+  @@index([orderId])
+  @@index([bookingId])
+  @@map("finance_ledger_entries")
+}
+
+enum FinancialSnapshotScopeType {
+  platform
+  user
+  studio
+  plan
+  feature
+  country
+  cohort
+}
+
+model FinancialSnapshotDaily {
+  id           String                     @id @default(uuid()) @db.Uuid
+  snapshotDate DateTime                   @map("snapshot_date") @db.Date
+  scopeType    FinancialSnapshotScopeType @map("scope_type")
+  /// Empty string for platform-wide scope.
+  scopeId      String                     @default("") @map("scope_id")
+  revenueCents Int                        @default(0) @map("revenue_cents")
+  costCents    Int                        @default(0) @map("cost_cents")
+  profitCents  Int                        @default(0) @map("profit_cents")
+  marginBps    Int?                       @map("margin_bps")
+  metrics      Json?
+  createdAt    DateTime                   @default(now()) @map("created_at")
+  updatedAt    DateTime                   @updatedAt @map("updated_at")
+
+  @@unique([snapshotDate, scopeType, scopeId])
+  @@index([scopeType, scopeId, snapshotDate])
+  @@map("financial_snapshot_daily")
+}
+
+model FeatureUsageFact {
+  id          String   @id @default(uuid()) @db.Uuid
+  eventDate   DateTime @map("event_date") @db.Date
+  featureKey  String   @map("feature_key")
+  eventName   String   @map("event_name")
+  userId      String?  @map("user_id") @db.Uuid
+  studioId    String?  @map("studio_id") @db.Uuid
+  usageCount  Int      @default(0) @map("usage_count")
+  costCents   Int      @default(0) @map("cost_cents")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  studio Studio? @relation(fields: [studioId], references: [id], onDelete: SetNull)
+
+  @@index([featureKey, eventDate])
+  @@index([eventDate, featureKey, eventName])
+  @@map("feature_usage_facts")
+}
+
+enum FinancialAlertSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum FinancialAlertStatus {
+  open
+  acknowledged
+  resolved
+  dismissed
+}
+
+model FinancialAlert {
+  id                 String                 @id @default(uuid()) @db.Uuid
+  alertType          String                 @map("alert_type")
+  severity           FinancialAlertSeverity
+  status             FinancialAlertStatus   @default(open)
+  detectedAt         DateTime               @default(now()) @map("detected_at")
+  scopeType          String?                @map("scope_type")
+  scopeId            String?                @map("scope_id")
+  title              String
+  summary            String
+  whyItMatters       String                 @map("why_it_matters")
+  likelyCause        String?                @map("likely_cause")
+  recommendedAction  String                 @map("recommended_action")
+  metrics            Json?
+  dedupeKey          String?                @unique @map("dedupe_key")
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  @@index([status, severity])
+  @@index([detectedAt])
+  @@map("financial_alerts")
+}
+
+enum FinancialRecommendationImpact {
+  low
+  medium
+  high
+}
+
+enum FinancialRecommendationDifficulty {
+  trivial
+  easy
+  medium
+  hard
+}
+
+enum FinancialRecommendationStatus {
+  suggested
+  accepted
+  rejected
+  implemented
+}
+
+model FinancialRecommendation {
+  id                 String                           @id @default(uuid()) @db.Uuid
+  recommendationType String                           @map("recommendation_type")
+  impactLevel        FinancialRecommendationImpact    @map("impact_level")
+  difficulty         FinancialRecommendationDifficulty
+  status             FinancialRecommendationStatus    @default(suggested)
+  scopeType          String?                          @map("scope_type")
+  scopeId            String?                          @map("scope_id")
+  title              String
+  problem            String
+  suggestedAction    String                           @map("suggested_action")
+  estimatedGainCents Int?                             @map("estimated_gain_cents")
+  confidenceScore    Int                              @default(50) @map("confidence_score")
+  metrics            Json?
+  dedupeKey          String?                          @unique @map("dedupe_key")
+  createdAt          DateTime                         @default(now()) @map("created_at")
+  updatedAt          DateTime                         @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("financial_recommendations")
+}
+
+model PricingScenario {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  inputs      Json
+  outputs     Json?
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@map("pricing_scenarios")
+}
+
+enum ProviderSyncRunStatus {
+  pending
+  running
+  succeeded
+  failed
+}
+
+model ProviderSyncRun {
+  id           String                 @id @default(uuid()) @db.Uuid
+  provider     String
+  runStartedAt DateTime               @default(now()) @map("run_started_at")
+  runEndedAt   DateTime?              @map("run_ended_at")
+  status       ProviderSyncRunStatus  @default(pending)
+  cursor       String?                @map("cursor")
+  rowsProcessed Int                   @default(0) @map("rows_processed")
+  errorMessage String?                @map("error_message")
+  metadata     Json?
+  createdAt    DateTime               @default(now()) @map("created_at")
+
+  @@index([provider, runStartedAt])
+  @@map("provider_sync_runs")
+}
+
+enum BillingPlanInterval {
+  month
+  year
+}
+
+model BillingPlan {
+  id                    String              @id @default(uuid()) @db.Uuid
+  slug                  String              @unique
+  name                  String
+  description           String?
+  priceCents            Int                 @map("price_cents")
+  currency              String              @default("EUR")
+  interval              BillingPlanInterval
+  isActive              Boolean             @default(true) @map("is_active")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+
+  entitlements PlanFeatureEntitlement[]
+  subscriptions Subscription[]
+  ledgerEntries FinanceLedgerEntry[]
+
+  @@map("billing_plans")
+}
+
+model PlanFeatureEntitlement {
+  id        String   @id @default(uuid()) @db.Uuid
+  planId    String   @map("plan_id") @db.Uuid
+  featureKey String  @map("feature_key")
+  limitJson Json?    @map("limit_json")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  plan BillingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, featureKey])
+  @@map("plan_feature_entitlements")
+}
+
+enum SubscriptionStatus {
+  active
+  past_due
+  canceled
+  trialing
+  incomplete
+}
+
+model Subscription {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @map("user_id") @db.Uuid
+  planId             String             @map("plan_id") @db.Uuid
+  status             SubscriptionStatus @default(active)
+  stripeSubscriptionId String?          @unique @map("stripe_subscription_id")
+  currentPeriodStart DateTime?          @map("current_period_start")
+  currentPeriodEnd   DateTime?          @map("current_period_end")
+  canceledAt         DateTime?          @map("canceled_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan   BillingPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  events SubscriptionEvent[]
+  ledgerEntries FinanceLedgerEntry[]
+
+  @@index([userId])
+  @@index([planId])
+  @@map("subscriptions")
+}
+
+enum SubscriptionEventType {
+  created
+  renewed
+  upgraded
+  downgraded
+  canceled
+  payment_failed
+  payment_succeeded
+}
+
+model SubscriptionEvent {
+  id             String                @id @default(uuid()) @db.Uuid
+  subscriptionId String                @map("subscription_id") @db.Uuid
+  eventType      SubscriptionEventType @map("event_type")
+  payload        Json?
+  createdAt      DateTime              @default(now()) @map("created_at")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, createdAt])
+  @@map("subscription_events")
+}
+
+model Coupon {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique
+  name        String?
+  percentOff  Int?     @map("percent_off")
+  amountOffCents Int?  @map("amount_off_cents")
+  currency    String?  @default("EUR")
+  maxRedemptions Int? @map("max_redemptions")
+  redeemedCount Int    @default(0) @map("redeemed_count")
+  validFrom   DateTime? @map("valid_from")
+  validUntil  DateTime? @map("valid_until")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  redemptions DiscountRedemption[]
+
+  @@map("coupons")
+}
+
+model DiscountRedemption {
+  id        String   @id @default(uuid()) @db.Uuid
+  couponId  String   @map("coupon_id") @db.Uuid
+  orderId   String?  @map("order_id") @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  amountCents Int    @map("amount_cents")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  order  Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([couponId])
+  @@map("discount_redemptions")
+}
+
+enum PriceChangeEntityType {
+  product
+  experience
+  billing_plan
+}
+
+model PriceChangeHistory {
+  id         String                @id @default(uuid()) @db.Uuid
+  entityType PriceChangeEntityType @map("entity_type")
+  entityId   String                @map("entity_id") @db.Uuid
+  oldPriceCents Int?               @map("old_price_cents")
+  newPriceCents Int                @map("new_price_cents")
+  currency   String                @default("EUR")
+  changedById String?             @map("changed_by_id") @db.Uuid
+  reason     String?
+  createdAt  DateTime              @default(now()) @map("created_at")
+
+  changedBy User? @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@map("price_change_history")
+}
+
+model AdminAuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id")
+  beforeJson  Json?    @map("before_json")
+  afterJson   Json?    @map("after_json")
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, createdAt])
+  @@map("admin_audit_logs")
+}
+
+model AcquisitionAttribution {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @unique @map("user_id") @db.Uuid
+  utmSource    String?  @map("utm_source")
+  utmMedium    String?  @map("utm_medium")
+  utmCampaign  String?  @map("utm_campaign")
+  referrer     String?
+  landingPath  String?  @map("landing_path")
+  firstSeenAt  DateTime @default(now()) @map("first_seen_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("acquisition_attributions")
 }

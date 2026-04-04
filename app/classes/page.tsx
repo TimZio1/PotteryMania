@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
+import { redirectEndUserIfNoPublicClasses } from "@/lib/public-catalog-guard";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +15,8 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function ClassesPage() {
+  const session = await auth();
+  await redirectEndUserIfNoPublicClasses(session?.user?.role);
   const experiences = await prisma.experience.findMany({
     where: {
       status: "active",

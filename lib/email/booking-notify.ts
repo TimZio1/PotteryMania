@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import { escapeHtml, renderEmailShell, sendEmailMessages } from "./base";
 
 export async function sendBookingEmails(opts: {
   customerEmail: string;
@@ -7,22 +7,15 @@ export async function sendBookingEmails(opts: {
   customerHtml: string;
   studioHtml?: string;
 }): Promise<void> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    console.info("[booking-email] RESEND_API_KEY not set; skip send");
-    return;
-  }
-  const resend = new Resend(key);
-  const from = process.env.RESEND_FROM || "PotteryMania <onboarding@resend.dev>";
-  await resend.emails.send({ from, to: opts.customerEmail, subject: opts.subject, html: opts.customerHtml });
+  const messages = [{ to: opts.customerEmail, subject: opts.subject, html: opts.customerHtml }];
   if (opts.studioEmail && opts.studioHtml) {
-    await resend.emails.send({
-      from,
+    messages.push({
       to: opts.studioEmail,
       subject: `[Studio] ${opts.subject}`,
       html: opts.studioHtml,
     });
   }
+  await sendEmailMessages(messages);
 }
 
 export type BookingEmailFields = {
@@ -55,63 +48,84 @@ function moneyLines(p: BookingEmailFields): string {
 
 export function bookingConfirmationCopy(p: BookingEmailFields): { customer: string; studio: string } {
   const ticket = p.ticketRef
-    ? `<p>Ticket / reference: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
+    ? `<p style="margin:0 0 8px;">Ticket / reference: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
     : "";
-  const seat = p.seatType ? `<p>Seat type: ${escapeHtml(p.seatType)}</p>` : "";
+  const seat = p.seatType ? `<p style="margin:0 0 8px;">Seat type: ${escapeHtml(p.seatType)}</p>` : "";
   const block = `
-    <p>Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
-    <p>Studio: ${escapeHtml(p.studioName)}</p>
-    <p>When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
-    <p>Participants: ${p.participants}</p>
+    <p style="margin:0 0 8px;">Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
+    <p style="margin:0 0 8px;">Studio: ${escapeHtml(p.studioName)}</p>
+    <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
+    <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
     ${seat}
     ${moneyLines(p)}
     ${ticket}
   `;
   return {
-    customer: `<h1>Booking confirmed</h1>${block}`,
-    studio: `<h1>New confirmed booking</h1>${block}`,
+    customer: renderEmailShell({
+      eyebrow: "Booking confirmed",
+      title: "Your booking is confirmed",
+      intro: `Your place for ${p.experienceTitle} is now confirmed.`,
+      bodyHtml: block,
+      ctaLabel: "View PotteryMania",
+      ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+    }),
+    studio: renderEmailShell({
+      eyebrow: "New confirmed booking",
+      title: "A booking has been confirmed",
+      intro: `You have a confirmed booking for ${p.experienceTitle}.`,
+      bodyHtml: block,
+      ctaLabel: "Open dashboard",
+      ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000"}/dashboard`,
+    }),
   };
 }
 
 export function bookingPendingApprovalCopy(p: BookingEmailFields): { customer: string; studio: string } {
   const ticket = p.ticketRef
-    ? `<p>Your reference: <strong>${escapeHtml(p.ticketRef)}</strong> (save this email)</p>`
+    ? `<p style="margin:0 0 8px;">Your reference: <strong>${escapeHtml(p.ticketRef)}</strong> (save this email)</p>`
     : "";
-  const seat = p.seatType ? `<p>Seat type: ${escapeHtml(p.seatType)}</p>` : "";
+  const seat = p.seatType ? `<p style="margin:0 0 8px;">Seat type: ${escapeHtml(p.seatType)}</p>` : "";
   const block = `
-    <p>Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
-    <p>Studio: ${escapeHtml(p.studioName)}</p>
-    <p>When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
-    <p>Participants: ${p.participants}</p>
+    <p style="margin:0 0 8px;">Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
+    <p style="margin:0 0 8px;">Studio: ${escapeHtml(p.studioName)}</p>
+    <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
+    <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
     ${seat}
     ${moneyLines(p)}
     ${ticket}
-    <p>Your payment was received. The studio will confirm or decline this booking shortly.</p>
+    <p style="margin:16px 0 0;">Your payment was received. The studio will confirm or decline this booking shortly.</p>
   `;
   return {
-    customer: `<h1>Booking received — pending studio approval</h1>${block}`,
-    studio: `<h1>New booking — approval required</h1>${block}<p>Please approve or decline in your PotteryMania dashboard.</p>`,
+    customer: renderEmailShell({
+      eyebrow: "Booking received",
+      title: "Your booking is pending studio approval",
+      intro: "Your payment was received and the studio has been notified.",
+      bodyHtml: block,
+      ctaLabel: "View PotteryMania",
+      ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+    }),
+    studio: renderEmailShell({
+      eyebrow: "Approval required",
+      title: "A new booking needs your review",
+      intro: `Please approve or decline the booking for ${p.experienceTitle}.`,
+      bodyHtml: `${block}<p style="margin:16px 0 0;">Please approve or decline in your PotteryMania dashboard.</p>`,
+      ctaLabel: "Open dashboard",
+      ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000"}/dashboard`,
+    }),
   };
 }
 
 export function bookingRejectedCopy(p: BookingEmailFields & { reason?: string | null }): string {
   const ticket = p.ticketRef
-    ? `<p>Reference: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
+    ? `<p style="margin:0 0 8px;">Reference: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
     : "";
-  const reason = p.reason ? `<p>Note from studio: ${escapeHtml(p.reason)}</p>` : "";
-  return `
-    <h1>Booking not approved</h1>
-    <p>Your booking for <strong>${escapeHtml(p.experienceTitle)}</strong> at ${escapeHtml(p.studioName)} was not approved.</p>
-    ${ticket}
-    ${reason}
-    <p>If you were charged, contact the studio for a refund.</p>
-  `;
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  const reason = p.reason ? `<p style="margin:0 0 8px;">Note from studio: ${escapeHtml(p.reason)}</p>` : "";
+  return renderEmailShell({
+    eyebrow: "Booking update",
+    title: "Your booking was not approved",
+    intro: `Your booking for ${p.experienceTitle} at ${p.studioName} was not approved.`,
+    bodyHtml: `${ticket}${reason}<p style="margin:16px 0 0;">If you were charged, contact the studio for a refund.</p>`,
+    ctaLabel: "View PotteryMania",
+    ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+  });
 }

@@ -23,6 +23,7 @@ export function EarlyAccessForm() {
   const [pending, setPending] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState(false);
+  const [uploadNotice, setUploadNotice] = useState("");
 
   const onFiles = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,13 +51,23 @@ export function EarlyAccessForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    setUploadNotice("");
     setPending(true);
 
     try {
       const photoUrls: string[] = [];
+      let uploadsSkipped = false;
       for (const p of photos) {
-        const uploaded = await uploadImage(p.file, "potterymania/early-access");
-        photoUrls.push(uploaded.secureUrl);
+        try {
+          const uploaded = await uploadImage(p.file, "potterymania/early-access");
+          photoUrls.push(uploaded.secureUrl);
+        } catch (error) {
+          if (error instanceof Error && error.message === "Hosted uploads are not configured") {
+            uploadsSkipped = true;
+            break;
+          }
+          throw error;
+        }
       }
 
       const r = await fetch("/api/early-access", {
@@ -79,9 +90,16 @@ export function EarlyAccessForm() {
         setPending(false);
         return;
       }
+      if (uploadsSkipped) {
+        setUploadNotice("Photo uploads are temporarily unavailable, so we saved your registration without photos.");
+      }
       setDone(true);
-    } catch {
-      setErr("Network error. Please try again.");
+    } catch (error) {
+      if (error instanceof Error && error.message === "Hosted uploads are not configured") {
+        setErr("Photo uploads are temporarily unavailable. You can still register without photos.");
+      } else {
+        setErr("Network error. Please try again.");
+      }
       setPending(false);
     }
   }
@@ -98,6 +116,7 @@ export function EarlyAccessForm() {
         <p className="mt-3 text-stone-600">
           We&apos;ll reach out soon with next steps. In the meantime, follow us for updates.
         </p>
+        {uploadNotice ? <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p> : null}
       </div>
     );
   }
@@ -184,6 +203,7 @@ export function EarlyAccessForm() {
       <div>
         <span className={ui.label}>Upload up to 3 photos</span>
         <p className="mt-1 text-xs text-stone-500">Show us your work — ceramics, studio, classes. Max {MAX_FILE_MB}MB each.</p>
+        <p className="mt-1 text-xs text-stone-500">Photos are optional. If hosted uploads are unavailable, we&apos;ll still save your registration.</p>
 
         {photos.length > 0 && (
           <div className="mt-3 flex gap-3">

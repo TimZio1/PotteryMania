@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
+import { redirectEndUserIfNoApprovedStudios } from "@/lib/public-catalog-guard";
 
 export const dynamic = "force-dynamic";
 
 export default async function StudiosPage() {
+  const session = await auth();
+  await redirectEndUserIfNoApprovedStudios(session?.user?.role);
   const studios = await prisma.studio.findMany({
     where: { status: "approved" },
     orderBy: { displayName: "asc" },

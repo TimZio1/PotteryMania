@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ReviewSummary } from "@/components/review-summary";
 import { ui } from "@/lib/ui-styles";
+import { redirectEndUserIfStudioHasNoPublicOfferings } from "@/lib/public-catalog-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,9 @@ export default async function StudioPage({ params }: Props) {
     }),
   ]);
   const avgRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
+
+  const session = await auth();
+  redirectEndUserIfStudioHasNoPublicOfferings(session?.user?.role, experiences.length, products.length);
 
   const toolbar = (
     <Link href="/studios" className="text-sm font-medium text-amber-900 hover:text-amber-950">

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { auth } from "@/auth";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
 import { listMarketplaceProducts, type ProductSort } from "@/lib/products";
 import { prisma } from "@/lib/db";
+import { redirectEndUserIfNoMarketplaceListings } from "@/lib/public-catalog-guard";
 import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +38,8 @@ function buildQuery(params: Record<string, string | undefined>) {
 }
 
 export default async function MarketplacePage({ searchParams }: Props) {
+  const session = await auth();
+  await redirectEndUserIfNoMarketplaceListings(session?.user?.role);
   const sp = (await searchParams) ?? {};
   const [catalog, categories] = await Promise.all([
     listMarketplaceProducts({

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { sendEarlyAccessEmails } from "@/lib/email/early-access-notify";
 import { assertRateLimit } from "@/lib/rate-limit";
 import {
   EUROPEAN_PREREGISTRATION_NOTE,
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "This email is already registered for early access" }, { status: 409 });
   }
 
-  await prisma.earlyAccessSignup.create({
+  const signup = await prisma.earlyAccessSignup.create({
     data: {
       email,
       studioName,
@@ -64,6 +65,20 @@ export async function POST(req: Request) {
       wantBoth,
     },
   });
+
+  try {
+    await sendEarlyAccessEmails({
+      email: signup.email,
+      studioName: signup.studioName,
+      country: signup.country,
+      websiteOrIg: signup.websiteOrIg,
+      wantBooking: signup.wantBooking,
+      wantMarket: signup.wantMarket,
+      wantBoth: signup.wantBoth,
+    });
+  } catch (error) {
+    console.error("[early-access-email]", error);
+  }
 
   return NextResponse.json({ ok: true });
 }
