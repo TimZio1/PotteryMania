@@ -82,9 +82,6 @@ export function SiteHeader() {
               <Link href="/my-bookings" className={linkClass("/my-bookings")}>
                 Bookings
               </Link>
-              <Link href="/my-waitlist" className={linkClass("/my-waitlist")}>
-                Waitlist
-              </Link>
               {adminVisible(role) ? (
                 <Link href="/admin" className={linkClass("/admin")}>
                   Admin
@@ -150,9 +147,6 @@ export function SiteHeader() {
               </Link>
               <Link href="/my-bookings" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
                 My bookings
-              </Link>
-              <Link href="/my-waitlist" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
-                My waitlist
               </Link>
               {adminVisible(role) ? (
                 <Link href="/admin" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
