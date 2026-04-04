@@ -1,6 +1,7 @@
 /**
- * When "on", marketplace, classes directory, and studio directory are closed to the public:
- * guests → /early-access; signed-in customers → /. Vendors and admins may still browse (QA / operations).
+ * When "on", marketplace, classes directory, and studio directory are closed to the public.
+ * Guests and customers hitting / are redirected to /early-access (conversion landing).
+ * Vendors and admins may still open / and browse directories (QA / operations).
  *
  * Override: PREREGISTRATION_ONLY=0 (or false/off) opens browsing for everyone.
  * Default: closed in production, open in development (set PREREGISTRATION_ONLY=1 locally to test).

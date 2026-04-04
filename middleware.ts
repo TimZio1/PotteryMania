@@ -28,6 +28,17 @@ export default auth((req) => {
   const isPublic = allow.some((p) => path === p || (p !== "/" && path.startsWith(p + "/")));
   const needsLogin = LOGIN_REQUIRED.some((p) => path === p || path.startsWith(p + "/"));
 
+  // During preregistration, the conversion-focused landing lives at /early-access.
+  // Guests and customers still matched "/" to the old long homepage — send them to the new page.
+  // Vendors and admins keep "/" for demos and QA.
+  if (
+    isPreregistrationOnly() &&
+    path === "/" &&
+    !canBrowseDuringPreregistration(req.auth?.user?.role)
+  ) {
+    return NextResponse.redirect(new URL("/early-access", req.url));
+  }
+
   if (needsLogin && !req.auth) {
     const u = new URL("/login", req.url);
     u.searchParams.set("callbackUrl", path);
