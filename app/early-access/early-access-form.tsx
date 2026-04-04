@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ui } from "@/lib/ui-styles";
 import { uploadImage } from "@/lib/client-upload";
 import {
   EUROPEAN_PREREGISTRATION_COUNTRIES,
-  EUROPEAN_PREREGISTRATION_NOTE,
 } from "@/lib/european-preregistration";
 
 const MAX_PHOTOS = 3;
 const MAX_FILE_MB = 5;
+const COUNTER_BASE = 123;
 
-export function EarlyAccessForm() {
+export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number }) {
   const [email, setEmail] = useState("");
   const [studioName, setStudioName] = useState("");
   const [country, setCountry] = useState("");
@@ -24,6 +24,15 @@ export function EarlyAccessForm() {
   const [err, setErr] = useState("");
   const [done, setDone] = useState(false);
   const [uploadNotice, setUploadNotice] = useState("");
+  const [showOptional, setShowOptional] = useState(false);
+  const [count, setCount] = useState(COUNTER_BASE + initialCount);
+
+  useEffect(() => {
+    fetch("/api/early-access/count")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d.count === "number") setCount(COUNTER_BASE + d.count); })
+      .catch(() => {});
+  }, []);
 
   const onFiles = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,6 +102,7 @@ export function EarlyAccessForm() {
       if (uploadsSkipped) {
         setUploadNotice("Photo uploads are temporarily unavailable, so we saved your registration without photos.");
       }
+      setCount((c) => c + 1);
       setDone(true);
     } catch (error) {
       if (error instanceof Error && error.message === "Hosted uploads are not configured") {
@@ -104,60 +114,67 @@ export function EarlyAccessForm() {
     }
   }
 
+  /* ── Success state ── */
   if (done) {
     return (
-      <div className="mx-auto max-w-md text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-          <svg className="h-8 w-8 text-emerald-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <div className="text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+          <svg className="h-7 w-7 text-emerald-700" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="mt-6 text-2xl font-semibold text-amber-950">You&apos;re on the list!</h2>
-        <p className="mt-3 text-stone-600">
-          We&apos;ll reach out soon with next steps. In the meantime, follow us for updates.
+        <h2 className="mt-5 font-serif text-2xl text-amber-950 sm:text-3xl">Welcome.</h2>
+        <p className="mt-3 text-sm leading-7 text-stone-600">
+          Your studio is on the list. We&apos;ll reach out with next steps before launch.
         </p>
-        {uploadNotice ? <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p> : null}
+        {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
+        {count > 0 && (
+          <p className="mt-4 text-xs text-stone-400">
+            {count} {count === 1 ? "studio" : "studios"} registered so far.
+          </p>
+        )}
       </div>
     );
   }
 
+  /* ── Form ── */
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-4">
       {err && <p className={ui.errorText}>{err}</p>}
 
-      {/* Email */}
-      <div>
-        <label className={ui.label} htmlFor="ea-email">
-          Email <span className="text-red-500">*</span>
-        </label>
-        <input
-          id="ea-email"
-          type="email"
-          autoComplete="email"
-          required
-          disabled={pending}
-          className={`${ui.input} mt-1`}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@studio.com"
-        />
-      </div>
-
-      {/* Studio name */}
-      <div>
-        <label className={ui.label} htmlFor="ea-studio">
-          Studio name <span className="text-red-500">*</span>
-        </label>
-        <input
-          id="ea-studio"
-          type="text"
-          required
-          disabled={pending}
-          className={`${ui.input} mt-1`}
-          value={studioName}
-          onChange={(e) => setStudioName(e.target.value)}
-          placeholder="Clay & Co"
-        />
+      {/* Email + Studio name side by side on desktop */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={ui.label} htmlFor="ea-email">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="ea-email"
+            type="email"
+            autoComplete="email"
+            required
+            disabled={pending}
+            className={`${ui.input} mt-1`}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@studio.com"
+          />
+        </div>
+        <div>
+          <label className={ui.label} htmlFor="ea-studio">
+            Studio name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="ea-studio"
+            type="text"
+            required
+            disabled={pending}
+            className={`${ui.input} mt-1`}
+            value={studioName}
+            onChange={(e) => setStudioName(e.target.value)}
+            placeholder="Clay & Co"
+          />
+        </div>
       </div>
 
       {/* Country */}
@@ -180,112 +197,151 @@ export function EarlyAccessForm() {
             </option>
           ))}
         </select>
-        <p className="mt-2 text-xs text-stone-500">{EUROPEAN_PREREGISTRATION_NOTE}</p>
       </div>
 
-      {/* Website / Instagram */}
-      <div>
-        <label className={ui.label} htmlFor="ea-web">
-          Website or Instagram
-        </label>
-        <input
-          id="ea-web"
-          type="text"
-          disabled={pending}
-          className={`${ui.input} mt-1`}
-          value={websiteOrIg}
-          onChange={(e) => setWebsiteOrIg(e.target.value)}
-          placeholder="instagram.com/yourstudio or www.yourstudio.com"
-        />
-      </div>
+      {/* Optional fields toggle */}
+      {!showOptional && (
+        <button
+          type="button"
+          onClick={() => setShowOptional(true)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-stone-200 bg-stone-50/80 py-2.5 text-xs font-medium text-stone-500 transition hover:border-amber-300 hover:text-stone-700"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Add more details (optional)
+        </button>
+      )}
 
-      {/* Photos */}
-      <div>
-        <span className={ui.label}>Upload up to 3 photos</span>
-        <p className="mt-1 text-xs text-stone-500">Show us your work — ceramics, studio, classes. Max {MAX_FILE_MB}MB each.</p>
-        <p className="mt-1 text-xs text-stone-500">Photos are optional. If hosted uploads are unavailable, we&apos;ll still save your registration.</p>
-
-        {photos.length > 0 && (
-          <div className="mt-3 flex gap-3">
-            {photos.map((p, i) => (
-              <div key={i} className="group relative h-24 w-24 overflow-hidden rounded-xl border border-stone-200 bg-stone-100 sm:h-28 sm:w-28">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.preview} alt={`Upload ${i + 1}`} className="h-full w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => removePhoto(i)}
-                  className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100"
-                  aria-label={`Remove photo ${i + 1}`}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+      {showOptional && (
+        <div className="space-y-4 rounded-xl border border-stone-100 bg-stone-50/60 p-4">
+          {/* Website / Instagram */}
+          <div>
+            <label className={ui.label} htmlFor="ea-web">
+              Website or Instagram
+            </label>
+            <input
+              id="ea-web"
+              type="text"
+              disabled={pending}
+              className={`${ui.input} mt-1`}
+              value={websiteOrIg}
+              onChange={(e) => setWebsiteOrIg(e.target.value)}
+              placeholder="instagram.com/yourstudio"
+            />
           </div>
-        )}
 
-        {photos.length < MAX_PHOTOS && (
-          <label className="mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:border-amber-400 hover:bg-amber-50/40">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Add photo{photos.length > 0 ? ` (${MAX_PHOTOS - photos.length} left)` : "s"}
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={onFiles}
-              className="sr-only"
-              disabled={pending}
-            />
-          </label>
-        )}
-      </div>
+          {/* Photos */}
+          <div>
+            <span className={ui.label}>Upload up to 3 photos</span>
+            <p className="mt-1 text-xs text-stone-500">
+              Show us your work. Max {MAX_FILE_MB}MB each. Optional.
+            </p>
 
-      {/* Interests */}
-      <fieldset>
-        <legend className={ui.label}>I&apos;m interested in…</legend>
-        <div className="mt-3 space-y-3">
-          <label className="flex min-h-11 items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:border-amber-300 has-checked:border-amber-400 has-checked:bg-amber-50/40">
-            <input
-              type="checkbox"
-              checked={wantBooking}
-              onChange={(e) => setWantBooking(e.target.checked)}
-              disabled={pending}
-              className="h-4 w-4 rounded border-stone-300 text-amber-900 accent-amber-900"
-            />
-            <span>Booking system — let customers book classes online</span>
-          </label>
-          <label className="flex min-h-11 items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:border-amber-300 has-checked:border-amber-400 has-checked:bg-amber-50/40">
-            <input
-              type="checkbox"
-              checked={wantMarket}
-              onChange={(e) => setWantMarket(e.target.checked)}
-              disabled={pending}
-              className="h-4 w-4 rounded border-stone-300 text-amber-900 accent-amber-900"
-            />
-            <span>Marketplace — sell ceramics to a global audience</span>
-          </label>
-          <label className="flex min-h-11 items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:border-amber-300 has-checked:border-amber-400 has-checked:bg-amber-50/40">
-            <input
-              type="checkbox"
-              checked={wantBoth}
-              onChange={(e) => setWantBoth(e.target.checked)}
-              disabled={pending}
-              className="h-4 w-4 rounded border-stone-300 text-amber-900 accent-amber-900"
-            />
-            <span>Both — the full platform</span>
-          </label>
+            {photos.length > 0 && (
+              <div className="mt-3 flex gap-3">
+                {photos.map((p, i) => (
+                  <div
+                    key={i}
+                    className="group relative h-20 w-20 overflow-hidden rounded-xl border border-stone-200 bg-stone-100 sm:h-24 sm:w-24"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.preview} alt={`Upload ${i + 1}`} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(i)}
+                      className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white opacity-0 transition group-hover:opacity-100"
+                      aria-label={`Remove photo ${i + 1}`}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {photos.length < MAX_PHOTOS && (
+              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-stone-300 bg-white px-3 py-2 text-xs font-medium text-stone-600 transition hover:border-amber-400 hover:bg-amber-50/40">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add photo{photos.length > 0 ? ` (${MAX_PHOTOS - photos.length} left)` : "s"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={onFiles}
+                  className="sr-only"
+                  disabled={pending}
+                />
+              </label>
+            )}
+          </div>
+
+          {/* Interests */}
+          <fieldset>
+            <legend className={ui.label}>I&apos;m interested in&hellip;</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <InterestChip label="Booking system" checked={wantBooking} onChange={setWantBooking} disabled={pending} />
+              <InterestChip label="Marketplace" checked={wantMarket} onChange={setWantMarket} disabled={pending} />
+              <InterestChip label="Both" checked={wantBoth} onChange={setWantBoth} disabled={pending} />
+            </div>
+          </fieldset>
         </div>
-      </fieldset>
+      )}
 
-      <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
-        {pending ? "Submitting…" : "Register Your Studio — Free"}
+      {/* CTA */}
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-amber-950 px-6 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-950 disabled:pointer-events-none disabled:opacity-45"
+      >
+        {pending ? "Securing\u2026" : "Secure your spot"}
       </button>
 
-      <p className="text-center text-xs text-stone-400">
-        No commitment. No credit card. We&apos;ll invite you when we launch.
-      </p>
+      {/* Trust + counter */}
+      <div className="flex flex-col items-center gap-2 pt-1">
+        <p className="text-center text-xs text-stone-400">
+          No credit card. No commitment. Cancel anytime.
+        </p>
+        {count > 0 && (
+          <p className="flex items-center gap-1.5 text-xs text-stone-400">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+            {count} {count === 1 ? "studio" : "studios"} already registered
+          </p>
+        )}
+      </div>
     </form>
+  );
+}
+
+function InterestChip({
+  label,
+  checked,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled: boolean;
+}) {
+  return (
+    <label
+      className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+        checked
+          ? "border-amber-400 bg-amber-50 text-amber-900"
+          : "border-stone-200 bg-white text-stone-600 hover:border-amber-300"
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        disabled={disabled}
+        className="sr-only"
+      />
+      {label}
+    </label>
   );
 }

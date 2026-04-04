@@ -1,136 +1,205 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { prisma } from "@/lib/db";
+import { PromoCountdown } from "@/components/promo-countdown";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
+import { isPromoActive } from "@/lib/promo";
+import { buildMetadata } from "@/lib/seo";
 import { EarlyAccessForm } from "./early-access-form";
 
-export const metadata: Metadata = {
-  title: "Early Access — PotteryMania",
-  description:
-    "Register your ceramic studio for free early access. Sell pottery, book classes, grow your audience — all in one place.",
-};
+export const dynamic = "force-dynamic";
 
-export default function EarlyAccessPage() {
+export const metadata: Metadata = buildMetadata({
+  title: "Early Access — Claim Your Studio",
+  description:
+    "Pre-register your ceramic studio. 3 months free, then €5/month. Sell pottery, book classes, grow your audience — the ceramics platform built for makers.",
+  path: "/early-access",
+});
+
+export default async function EarlyAccessPage() {
+  const initialCount = await prisma.earlyAccessSignup.count();
+  const promoActive = isPromoActive();
+
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="flex min-h-screen flex-col bg-stone-50">
       {/* Minimal header */}
-      <header className="border-b border-stone-200/80 bg-white/90 backdrop-blur-sm">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:h-16 sm:px-6">
-          <Link href="/" className="text-base font-semibold tracking-tight text-amber-950 sm:text-lg">
-            PotteryMania
+      <header className="absolute inset-x-0 top-0 z-30">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:h-18 sm:px-6">
+          <Link
+            href="/"
+            className="text-base font-semibold tracking-tight text-white/90 transition hover:text-white sm:text-lg"
+          >
+            <span className="font-serif text-[1.08em] font-normal tracking-tight">Pottery</span>
+            <span>Mania</span>
           </Link>
           <Link
             href="/login"
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-amber-400 hover:bg-stone-50"
+            className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur-sm transition hover:bg-white/10 hover:text-white"
           >
             Sign in
           </Link>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-linear-to-b from-amber-50/80 via-stone-50 to-stone-50 pb-16 pt-16 sm:pb-24 sm:pt-24">
-        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-          <p className="text-xs font-medium uppercase tracking-widest text-amber-800">Coming soon</p>
-          <h1 className="mt-4 text-4xl font-bold tracking-tight text-amber-950 sm:text-5xl lg:text-6xl">
-            Something new is coming to ceramics
-          </h1>
-          <p className="mx-auto mt-6 max-w-lg text-lg text-stone-600">
-            The first platform built by potters, for potters. Sell your work. Fill your classes. Grow your studio — all
-            from one place.
+      {/* Full-viewport hero */}
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+        {/* Background artwork */}
+        <div className="absolute inset-0">
+          <EarlyAccessArtwork />
+        </div>
+        <div className="absolute inset-0 bg-linear-to-t from-[#120d0a]/92 via-[#271a14]/55 to-[#6b513d]/20" aria-hidden />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08),transparent_50%)]" aria-hidden />
+
+        {/* Content */}
+        <div className="relative z-10 mx-auto w-full max-w-xl px-5 pt-24 pb-16 sm:px-6 sm:pt-28 sm:pb-20">
+          {/* Urgency banner */}
+          {promoActive && (
+            <div className="mb-8 flex flex-col items-center gap-3 text-center sm:mb-10">
+              <span className="inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-500/10 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-200 backdrop-blur-sm">
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" aria-hidden />
+                Closes May 1st
+              </span>
+              <PromoCountdown className="text-stone-300 [&_span]:text-white" />
+            </div>
+          )}
+
+          {/* Headline */}
+          <div className="text-center">
+            <h1 className="font-serif text-5xl leading-[0.92] tracking-tight text-white sm:text-6xl lg:text-7xl">
+              Claim your studio.
+            </h1>
+            <p className="mx-auto mt-5 max-w-md text-base leading-7 text-stone-200/90 sm:text-lg sm:leading-8">
+              The ceramics platform for makers who sell, teach, and grow.
+              <br className="hidden sm:block" />
+              <span className="font-medium text-white">3 months free.</span> Then €5/month.
+            </p>
+          </div>
+
+          {/* Form card */}
+          <div className="mt-8 rounded-3xl border border-white/10 bg-white/95 p-6 shadow-2xl shadow-black/30 backdrop-blur-md sm:mt-10 sm:p-8">
+            <EarlyAccessForm initialCount={initialCount} />
+          </div>
+
+          {/* EU note */}
+          <p className="mt-4 text-center text-xs text-stone-400/80">
+            {EUROPEAN_PREREGISTRATION_NOTE}
           </p>
-          <p className="mx-auto mt-4 max-w-lg text-sm font-medium text-stone-700">{EUROPEAN_PREREGISTRATION_NOTE}</p>
-          <p className="mx-auto mt-5 max-w-md rounded-2xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-center text-base font-semibold text-emerald-950 sm:px-5">
-            Pre-register and earn 3 months FREE, then €5/month.
+        </div>
+      </section>
+
+      {/* Below fold: value props */}
+      <section className="border-t border-(--brand-line) bg-white">
+        <div className="mx-auto max-w-4xl px-5 py-16 sm:px-6 sm:py-24">
+          <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-400">
+            Everything your studio needs
           </p>
-        </div>
-      </section>
-
-      {/* Value props */}
-      <section className="border-t border-stone-200/60 bg-white py-12 sm:py-16">
-        <div className="mx-auto grid max-w-4xl gap-8 px-4 sm:grid-cols-3 sm:px-6">
-          <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-900">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a1.897 1.897 0 0 1-.61-1.276c-.036-.39.016-.778.166-1.13L5.6 2.05a1 1 0 0 1 .917-.592h10.966a1 1 0 0 1 .917.592l2.294 4.892c.15.352.202.74.166 1.131a1.897 1.897 0 0 1-.61 1.276" />
-              </svg>
-            </div>
-            <h3 className="mt-4 text-sm font-semibold text-amber-950">Marketplace</h3>
-            <p className="mt-2 text-sm text-stone-600">
-              Sell ceramics globally. No listing fees. 5% commission only when you make a sale.
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-900">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-              </svg>
-            </div>
-            <h3 className="mt-4 text-sm font-semibold text-amber-950">Booking system</h3>
-            <p className="mt-2 text-sm text-stone-600">
-              Workshops, classes, open sessions — customers book and pay online. You teach.
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-900">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
-              </svg>
-            </div>
-            <h3 className="mt-4 text-sm font-semibold text-amber-950">Instant payouts</h3>
-            <p className="mt-2 text-sm text-stone-600">
-              Money goes straight to you via Stripe. We never hold your funds.
-            </p>
+          <h2 className="mt-4 text-center font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
+            Sell. Teach. Get discovered.
+          </h2>
+          <div className="mt-14 grid gap-10 sm:grid-cols-3 sm:gap-8">
+            <ValueProp
+              title="Marketplace"
+              body="Present ceramics with gallery-level care. No listing fees. 5% commission only when you sell."
+            />
+            <ValueProp
+              title="Booking"
+              body="Workshops, classes, open sessions. Customers book and pay online. You teach."
+            />
+            <ValueProp
+              title="Direct payouts"
+              body="Money goes to your Stripe account. We never hold funds. You stay in control."
+            />
           </div>
         </div>
       </section>
 
-      {/* Registration form */}
-      <section id="register" className="bg-stone-50 py-12 sm:py-20">
-        <div className="mx-auto max-w-md px-4 sm:px-6">
-          <div className="rounded-2xl border border-stone-200/90 bg-white p-6 shadow-sm sm:p-8">
-            <h2 className="text-center text-xl font-semibold tracking-tight text-amber-950 sm:text-2xl">
-              Register your studio
-            </h2>
-            <p className="mt-2 text-center text-sm text-stone-500">
-              Europe only for now, including the UK and the Balkans. Free. No commitment.
-            </p>
-            <div className="mt-8">
-              <EarlyAccessForm />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social proof / trust */}
-      <section className="border-t border-stone-200/60 bg-white py-12 sm:py-16">
-        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-          <p className="text-xs font-medium uppercase tracking-widest text-stone-400">Built for ceramicists</p>
-          <h2 className="mt-4 text-2xl font-semibold text-amber-950">Why studios are joining</h2>
-          <div className="mt-10 grid gap-6 text-left sm:grid-cols-2">
-            <div className="rounded-xl bg-stone-50 p-5">
-              <p className="text-sm italic text-stone-700">
-                &ldquo;Finally a platform that understands pottery isn&apos;t just e-commerce — it&apos;s about the experience too.&rdquo;
-              </p>
-              <p className="mt-3 text-xs font-medium text-stone-500">— Studio owner, Athens</p>
-            </div>
-            <div className="rounded-xl bg-stone-50 p-5">
-              <p className="text-sm italic text-stone-700">
-                &ldquo;I&apos;ve been managing classes on spreadsheets. This is exactly what I need.&rdquo;
-              </p>
-              <p className="mt-3 text-xs font-medium text-stone-500">— Workshop instructor, Barcelona</p>
-            </div>
+      {/* Social proof */}
+      <section className="border-t border-(--brand-line) bg-(--warm-surface)">
+        <div className="mx-auto max-w-3xl px-5 py-16 sm:px-6 sm:py-20">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Testimonial
+              quote="Finally, a platform that understands pottery is not just e-commerce. It is atmosphere, teaching, and trust."
+              author="Studio owner, Athens"
+            />
+            <Testimonial
+              quote="I have been managing classes across calendars and spreadsheets. This feels like something real."
+              author="Workshop instructor, Barcelona"
+            />
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-stone-200/80 bg-stone-50 py-8">
-        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
-          <p className="text-sm text-stone-500">
-            © {new Date().getFullYear()} PotteryMania. Made with clay and code.
-          </p>
+      <footer className="border-t border-(--brand-line) bg-(--brand-soft)">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p>&copy; {new Date().getFullYear()} PotteryMania.</p>
+          <p>Made with clay and code.</p>
         </div>
       </footer>
     </div>
+  );
+}
+
+function ValueProp({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="text-center">
+      <h3 className="font-serif text-xl text-(--brand-ink)">{title}</h3>
+      <p className="mt-3 text-sm leading-7 text-stone-600">{body}</p>
+    </div>
+  );
+}
+
+function Testimonial({ quote, author }: { quote: string; author: string }) {
+  return (
+    <article className="rounded-2xl border border-(--brand-line) bg-white p-6">
+      <p className="text-sm leading-7 text-stone-700 italic">&ldquo;{quote}&rdquo;</p>
+      <p className="mt-4 text-xs font-medium uppercase tracking-[0.16em] text-stone-400">{author}</p>
+    </article>
+  );
+}
+
+function EarlyAccessArtwork() {
+  return (
+    <svg
+      viewBox="0 0 1600 1000"
+      className="h-full w-full object-cover"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="eaBg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#e6cfbb" />
+          <stop offset="35%" stopColor="#9f6f54" />
+          <stop offset="70%" stopColor="#5a3a28" />
+          <stop offset="100%" stopColor="#2e1f18" />
+        </linearGradient>
+        <radialGradient id="eaLight" cx="50%" cy="30%" r="45%">
+          <stop offset="0%" stopColor="#fff8ef" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#fff8ef" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="1600" height="1000" fill="url(#eaBg)" />
+      <rect width="1600" height="1000" fill="url(#eaLight)" />
+      {/* Ceramic forms */}
+      <ellipse cx="260" cy="680" rx="180" ry="100" fill="#f6ede3" fillOpacity="0.15" />
+      <ellipse cx="260" cy="600" rx="100" ry="150" fill="#d8b393" fillOpacity="0.12" />
+      <ellipse cx="1340" cy="680" rx="180" ry="100" fill="#f6ede3" fillOpacity="0.12" />
+      <ellipse cx="1340" cy="590" rx="110" ry="160" fill="#c49370" fillOpacity="0.10" />
+      {/* Subtle wave layers */}
+      <path
+        d="M0 620c200-40 400-10 600 30s400 60 600 20 300-60 400-40v370H0Z"
+        fill="#f5e7da"
+        fillOpacity="0.08"
+      />
+      <path
+        d="M0 720c180-30 360 10 540 40s360 40 540 10 280-40 520-20v250H0Z"
+        fill="#c69471"
+        fillOpacity="0.06"
+      />
+      {/* Floating circles */}
+      <circle cx="180" cy="280" r="50" fill="#fff8ef" fillOpacity="0.04" />
+      <circle cx="1420" cy="320" r="65" fill="#fff8ef" fillOpacity="0.04" />
+      <circle cx="800" cy="160" r="40" fill="#fff8ef" fillOpacity="0.03" />
+    </svg>
   );
 }
