@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { HyperadminGoogleAnalytics } from "./hyperadmin-google-analytics";
 
 type ScoreCard = {
   label: string;
@@ -63,6 +64,7 @@ const sectionLinks = [
   ["users", "Users"],
   ["plans", "Pricing"],
   ["growth", "Growth"],
+  ["analytics", "GA4"],
   ["product", "Product"],
   ["ops", "Operations"],
   ["risk", "Risk"],
@@ -140,6 +142,14 @@ export function HyperadminSections(props: Props) {
             ))}
           </div>
         </div>
+      </Section>
+
+      <Section
+        id="analytics"
+        eyebrow="Web analytics"
+        title="Google Analytics 4 — traffic, acquisition, and engagement for potterymania.com."
+      >
+        <HyperadminGoogleAnalytics />
       </Section>
 
       <Section id="product" eyebrow="Product / Feature Usage Analytics" title="Usage proxies available today plus the instrumentation gaps to close next.">
