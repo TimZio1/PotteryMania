@@ -106,6 +106,8 @@ model Studio {
   /// Set when the vendor pays the one-time €5 activation fee via Stripe Checkout.
   activationPaidAt      DateTime?    @map("activation_paid_at")
   activationSessionId   String?      @map("activation_session_id")
+  /// Stripe Customer on the platform account (studio add-on subscriptions).
+  stripePlatformCustomerId String?   @map("stripe_platform_customer_id")
   createdAt             DateTime     @default(now()) @map("created_at")
   updatedAt             DateTime     @updatedAt @map("updated_at")
 
@@ -1506,6 +1508,8 @@ model PlatformFeature {
   visibility     PlatformFeatureVisibility @default(public)
   /// When true, every studio has access unless Hyperadmin turns this off for monetization.
   grantByDefault Boolean                   @default(true) @map("grant_by_default")
+  /// Recurring Stripe Price id (`price_...`) when add-ons are sold via Billing.
+  stripePriceId  String?                  @map("stripe_price_id")
   sortOrder      Int                       @default(0) @map("sort_order")
   createdAt      DateTime                  @default(now()) @map("created_at")
   updatedAt      DateTime                  @updatedAt @map("updated_at")
@@ -1523,6 +1527,8 @@ model StudioFeatureActivation {
   status                     StudioFeatureActivationStatus @default(inactive)
   trialEndsAt                DateTime?                     @map("trial_ends_at")
   deactivatesAt              DateTime?                     @map("deactivates_at")
+  /// Stripe Subscription id for this add-on when billed separately (one sub per feature).
+  stripeSubscriptionId       String?                       @map("stripe_subscription_id")
   stripeSubscriptionItemId   String?                       @map("stripe_subscription_item_id")
   overridePriceCents         Int?                          @map("override_price_cents")
   activatedAt                DateTime?                     @map("activated_at")
@@ -1535,5 +1541,6 @@ model StudioFeatureActivation {
   @@unique([studioId, featureId])
   @@index([studioId])
   @@index([featureId])
+  @@index([stripeSubscriptionId])
   @@map("studio_feature_activations")
 }

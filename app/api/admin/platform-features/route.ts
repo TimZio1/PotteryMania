@@ -24,6 +24,7 @@ export async function GET() {
       isActive: f.isActive,
       visibility: f.visibility,
       grantByDefault: f.grantByDefault,
+      stripePriceId: f.stripePriceId,
       sortOrder: f.sortOrder,
       updatedAt: f.updatedAt.toISOString(),
     })),

@@ -15,6 +15,7 @@ export type AdminPlatformFeatureRow = {
   isActive: boolean;
   visibility: string;
   grantByDefault: boolean;
+  stripePriceId: string | null;
   sortOrder: number;
 };
 
@@ -57,6 +58,7 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
             <tr>
               <th className="px-4 py-3">Feature</th>
               <th className="px-4 py-3">Price / mo</th>
+              <th className="min-w-[200px] px-4 py-3">Stripe price id</th>
               <th className="px-4 py-3">Visibility</th>
               <th className="px-4 py-3">Active</th>
               <th className="px-4 py-3">Grant all</th>
@@ -93,6 +95,23 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
                         }}
                       />
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      key={f.stripePriceId ?? "empty"}
+                      type="text"
+                      defaultValue={f.stripePriceId ?? ""}
+                      placeholder="price_…"
+                      disabled={busy}
+                      className={cn(ui.input, "min-h-9 py-1.5 font-mono text-xs")}
+                      onBlur={(ev) => {
+                        const v = ev.target.value.trim();
+                        const next = v.length ? v : null;
+                        const cur = f.stripePriceId ?? null;
+                        if (next === cur) return;
+                        void patch(f.id, { stripePriceId: next });
+                      }}
+                    />
                   </td>
                   <td className="px-4 py-3">
                     <select

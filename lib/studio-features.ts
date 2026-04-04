@@ -47,7 +47,19 @@ export type StudioFeatureListRow = {
   visibility: PlatformFeatureVisibility;
   /** True when the platform grants this to everyone (`grantByDefault`); access does not depend on the toggle yet. */
   includedForAll: boolean;
+  /** Hyperadmin set `stripePriceId` and turned off grant-by-default — checkout is required to enable. */
+  requiresPaidSubscription: boolean;
 };
+
+function computeRequiresPaidSubscription(f: {
+  isActive: boolean;
+  grantByDefault: boolean;
+  stripePriceId: string | null;
+}) {
+  if (!f.isActive || f.grantByDefault) return false;
+  const id = f.stripePriceId?.trim();
+  return Boolean(id && id.startsWith("price_"));
+}
 
 function computeEntitled(
   f: { isActive: boolean; grantByDefault: boolean },
@@ -87,6 +99,7 @@ export async function listStudioFeaturesForVendor(studioId: string): Promise<Stu
       platformActive: f.isActive,
       visibility: f.visibility,
       includedForAll: f.grantByDefault && f.isActive,
+      requiresPaidSubscription: computeRequiresPaidSubscription(f),
     });
   }
   return rows;

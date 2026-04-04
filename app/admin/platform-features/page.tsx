@@ -24,6 +24,7 @@ export default async function AdminPlatformFeaturesPage() {
     isActive: f.isActive,
     visibility: f.visibility,
     grantByDefault: f.grantByDefault,
+    stripePriceId: f.stripePriceId,
     sortOrder: f.sortOrder,
   }));
 
@@ -33,7 +34,9 @@ export default async function AdminPlatformFeaturesPage() {
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Platform add-ons</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Catalog entries power the studio Features page and runtime gates (for example kiln). Turning off &ldquo;Grant
-        all&rdquo; makes each studio rely on an active activation row for entitlement.
+        all&rdquo; makes each studio rely on an active activation. Set a recurring Stripe Price id (
+        <code className="font-mono text-xs">price_…</code>) so vendors can subscribe via Checkout; leave it empty to
+        activate toggles without charging.
       </p>
 
       <div className="mt-8">

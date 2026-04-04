@@ -27,6 +27,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     grantByDefault?: boolean;
     visibility?: string;
     sortOrder?: number;
+    stripePriceId?: string | null;
   };
   try {
     body = await req.json();
@@ -47,6 +48,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     grantByDefault?: boolean;
     visibility?: PlatformFeatureVisibility;
     sortOrder?: number;
+    stripePriceId?: string | null;
   } = {};
 
   if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
@@ -65,6 +67,13 @@ export async function PATCH(req: Request, ctx: Ctx) {
   }
   if (typeof body.sortOrder === "number" && Number.isFinite(body.sortOrder)) {
     data.sortOrder = Math.round(body.sortOrder);
+  }
+  if (body.stripePriceId !== undefined) {
+    if (body.stripePriceId === null) data.stripePriceId = null;
+    else if (typeof body.stripePriceId === "string") {
+      const t = body.stripePriceId.trim();
+      data.stripePriceId = t.length ? t : null;
+    }
   }
 
   if (!Object.keys(data).length) {
@@ -89,6 +98,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       grantByDefault: before.grantByDefault,
       visibility: before.visibility,
       sortOrder: before.sortOrder,
+      stripePriceId: before.stripePriceId,
     },
     after: {
       slug: updated.slug,
@@ -98,6 +108,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       grantByDefault: updated.grantByDefault,
       visibility: updated.visibility,
       sortOrder: updated.sortOrder,
+      stripePriceId: updated.stripePriceId,
     },
     reason: null,
   });
@@ -115,6 +126,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       visibility: updated.visibility,
       grantByDefault: updated.grantByDefault,
       sortOrder: updated.sortOrder,
+      stripePriceId: updated.stripePriceId,
       updatedAt: updated.updatedAt.toISOString(),
     },
   });

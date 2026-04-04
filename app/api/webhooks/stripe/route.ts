@@ -36,8 +36,79 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  if (event.type === "customer.subscription.deleted") {
+    const sub = event.data.object as Stripe.Subscription;
+    const act = await prisma.studioFeatureActivation.findFirst({
+      where: { stripeSubscriptionId: sub.id },
+    });
+    if (act) {
+      const feature = await prisma.platformFeature.findUnique({ where: { id: act.featureId } });
+      await prisma.studioFeatureActivation.update({
+        where: { id: act.id },
+        data: {
+          status: "inactive",
+          stripeSubscriptionId: null,
+          activatedAt: null,
+          deactivatesAt: null,
+        },
+      });
+      if (feature) {
+        await prisma.studioFeatureRequest.upsert({
+          where: { studioId_featureKey: { studioId: act.studioId, featureKey: feature.slug } },
+          create: { studioId: act.studioId, featureKey: feature.slug, desiredOn: false },
+          update: { desiredOn: false },
+        });
+      }
+    }
+    return NextResponse.json({ received: true });
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+
+    // --- Studio add-on subscription (platform Billing) ---
+    if (session.metadata?.type === "studio_feature_subscription") {
+      const studioId = session.metadata.studioId;
+      const featureId = session.metadata.featureId;
+      const subRaw = session.subscription;
+      const subscriptionId = typeof subRaw === "string" ? subRaw : subRaw?.id ?? null;
+      const custRaw = session.customer;
+      const customerId = typeof custRaw === "string" ? custRaw : custRaw?.id ?? null;
+      if (studioId && featureId && subscriptionId) {
+        const feature = await prisma.platformFeature.findUnique({ where: { id: featureId } });
+        if (feature) {
+          if (customerId) {
+            await prisma.studio.updateMany({
+              where: { id: studioId },
+              data: { stripePlatformCustomerId: customerId },
+            });
+          }
+          const now = new Date();
+          await prisma.studioFeatureActivation.upsert({
+            where: { studioId_featureId: { studioId, featureId } },
+            create: {
+              studioId,
+              featureId,
+              status: "active",
+              activatedAt: now,
+              stripeSubscriptionId: subscriptionId,
+            },
+            update: {
+              status: "active",
+              activatedAt: now,
+              stripeSubscriptionId: subscriptionId,
+              deactivatesAt: null,
+            },
+          });
+          await prisma.studioFeatureRequest.upsert({
+            where: { studioId_featureKey: { studioId, featureKey: feature.slug } },
+            create: { studioId, featureKey: feature.slug, desiredOn: true },
+            update: { desiredOn: true },
+          });
+        }
+      }
+      return NextResponse.json({ received: true });
+    }
 
     // --- Studio activation (platform-level, no Connect) ---
     if (session.metadata?.type === "studio_activation") {
