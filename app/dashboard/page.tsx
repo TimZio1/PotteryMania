@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   const adminSession = await requireAdminUser();
   if (adminSession) {
     return (
-      <div className="mx-auto max-w-lg">
+      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6 sm:py-10">
         <p className={ui.overline}>Admin</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Operations</h1>
         <p className="mt-3 text-stone-600">
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
 
   if (user.role === "customer") {
     return (
-      <div className="mx-auto max-w-lg">
+      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6 sm:py-10">
         <p className={ui.overline}>Customer</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Your account</h1>
         <p className="mt-3 text-stone-600">
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
 
   if (user.role !== "vendor") {
     return (
-      <div className="mx-auto max-w-lg">
+      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="text-xl font-semibold text-amber-950">Dashboard</h1>
         <p className="mt-3 text-stone-600">This area is for studio vendors. Use the main site to browse as a customer.</p>
         <Link href="/" className={`${ui.buttonSecondary} mt-6 inline-flex`}>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-wrap items-center gap-3">
         <p className={ui.overline}>Vendor</p>
         {isPromoActive() && <PromoCountdownCompact />}
@@ -144,12 +144,17 @@ export default async function DashboardPage() {
                       )}
                     </p>
                   </div>
-                  <Link
-                    href={`/dashboard/studio/${s.id}`}
-                    className={`${ui.buttonPrimary} shrink-0 text-center sm:w-auto`}
-                  >
-                    Manage studio
-                  </Link>
+                  <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                    <Link href={`/dashboard/${s.id}`} className={`${ui.buttonPrimary} text-center sm:w-auto`}>
+                      Open studio panel
+                    </Link>
+                    <Link
+                      href={`/dashboard/studio/${s.id}`}
+                      className="text-center text-xs text-stone-500 underline hover:text-amber-900"
+                    >
+                      Studio profile &amp; Stripe
+                    </Link>
+                  </div>
                 </div>
                 {activated && (
                   <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-stone-100 pt-4 text-sm">

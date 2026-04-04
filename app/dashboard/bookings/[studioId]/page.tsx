@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
-import VendorBookingActions from "./vendor-booking-actions";
+import VendorBookingActions from "@/components/dashboard/vendor-booking-actions";
 
 export const dynamic = "force-dynamic";
 

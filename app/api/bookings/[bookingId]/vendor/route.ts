@@ -24,8 +24,8 @@ export async function POST(req: Request, ctx: Ctx) {
   }
 
   const action = typeof body.action === "string" ? body.action : "";
-  if (action !== "approve" && action !== "reject") {
-    return NextResponse.json({ error: "action must be approve or reject" }, { status: 400 });
+  if (action !== "approve" && action !== "reject" && action !== "mark_completed") {
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 
   const booking = await prisma.booking.findUnique({
@@ -41,6 +41,29 @@ export async function POST(req: Request, ctx: Ctx) {
   if (booking.studio.ownerUserId !== user.id) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
+
+  if (action === "mark_completed") {
+    if (booking.bookingStatus !== "confirmed") {
+      return NextResponse.json({ error: "Only confirmed bookings can be marked completed" }, { status: 400 });
+    }
+    await prisma.$transaction(async (tx) => {
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { bookingStatus: "completed" },
+      });
+      await tx.bookingAuditLog.create({
+        data: {
+          bookingId,
+          actionType: "vendor_marked_completed",
+          actorRole: "vendor",
+          actorUserId: user.id,
+          payload: {} as Prisma.InputJsonValue,
+        },
+      });
+    });
+    return NextResponse.json({ ok: true, bookingStatus: "completed" });
+  }
+
   if (booking.bookingStatus !== "awaiting_vendor_approval") {
     return NextResponse.json({ error: "Booking is not awaiting approval" }, { status: 400 });
   }

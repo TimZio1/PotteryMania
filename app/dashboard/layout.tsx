@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10">{children}</div>
+      <div className="mx-auto w-full max-w-none px-0 py-0 sm:px-0 sm:py-0">{children}</div>
     </div>
   );
 }

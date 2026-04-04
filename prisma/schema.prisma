@@ -129,6 +129,8 @@ model Studio {
   shippingRateQuotes   ShippingRateQuote[]
   financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerStudio")
   featureUsageFacts    FeatureUsageFact[]
+  kilnFirings          KilnFiring[]
+  studioFeatureRequests StudioFeatureRequest[]
 
   @@index([status])
   @@index([country, city])
@@ -1420,4 +1422,59 @@ model AcquisitionAttribution {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("acquisition_attributions")
+}
+
+enum KilnFiringStatus {
+  draft
+  loading
+  firing
+  cooling
+  complete
+}
+
+model KilnFiring {
+  id          String           @id @default(uuid()) @db.Uuid
+  studioId    String           @map("studio_id") @db.Uuid
+  label       String?
+  scheduledAt DateTime?        @map("scheduled_at")
+  status      KilnFiringStatus @default(draft)
+  notes       String?
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  studio Studio    @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  items  KilnItem[]
+
+  @@index([studioId, createdAt])
+  @@map("kiln_firings")
+}
+
+model KilnItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  firingId    String   @map("firing_id") @db.Uuid
+  description String
+  status      String   @default("queued")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  firing KilnFiring @relation(fields: [firingId], references: [id], onDelete: Cascade)
+
+  @@index([firingId])
+  @@map("kiln_items")
+}
+
+/// Studio owner intent for add-on features (billing integration can map later).
+model StudioFeatureRequest {
+  id         String   @id @default(uuid()) @db.Uuid
+  studioId   String   @map("studio_id") @db.Uuid
+  featureKey String   @map("feature_key")
+  desiredOn  Boolean  @default(false) @map("desired_on")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, featureKey])
+  @@index([studioId])
+  @@map("studio_feature_requests")
 }
