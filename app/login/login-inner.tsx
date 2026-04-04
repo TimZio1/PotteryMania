@@ -9,6 +9,7 @@ import { ui } from "@/lib/ui-styles";
 export default function LoginInner() {
   const sp = useSearchParams();
   const callbackUrl = sp.get("callbackUrl") || "/dashboard";
+  const suspendedNotice = sp.get("reason") === "suspended";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
@@ -34,6 +35,9 @@ export default function LoginInner() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
+      {suspendedNotice ? (
+        <p className={ui.errorText}>This account has been suspended. Contact support if you think this is a mistake.</p>
+      ) : null}
       {err ? <p className={ui.errorText}>{err}</p> : null}
       <div>
         <label className={ui.label} htmlFor="login-email">

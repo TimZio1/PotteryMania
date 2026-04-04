@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
+import { logAdminAction } from "@/lib/admin-audit";
 import type { CommissionItemType } from "@prisma/client";
 
 const VALID_ITEM_TYPES: CommissionItemType[] = ["product", "booking"];
@@ -45,6 +46,11 @@ export async function PATCH(req: Request) {
       : "product"
   ) as CommissionItemType;
 
+  const prevRule = await prisma.commissionRule.findFirst({
+    where: { ruleScope: "global", studioId: null, itemType, isActive: true },
+    orderBy: { createdAt: "desc" },
+  });
+
   await prisma.commissionRule.updateMany({
     where: { ruleScope: "global", studioId: null, itemType },
     data: { isActive: false },
@@ -58,6 +64,17 @@ export async function PATCH(req: Request) {
       isActive: true,
     },
   });
+
+  await logAdminAction({
+    actorUserId: user.id,
+    action: "commission.update",
+    entityType: "commission_rule",
+    entityId: rule.id,
+    before: prevRule ? { itemType, percentageBasisPoints: prevRule.percentageBasisPoints } : null,
+    after: { itemType, percentageBasisPoints: rule.percentageBasisPoints },
+    reason: null,
+  });
+
   if (itemType === "product") {
     await prisma.adminConfig.upsert({
       where: { configKey: "default_product_commission_bps" },

@@ -30,6 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: email.toLowerCase().trim() },
         });
         if (!user?.passwordHash) return null;
+        if (user.suspendedAt) return null;
         const ok = await compare(password, user.passwordHash);
         if (!ok) return null;
         return {
@@ -41,9 +42,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user && "role" in user) {
         token.role = (user as { role: string }).role;
+      }
+      // Keep JWT role aligned with DB (SQL promote / seed) so middleware + /admin stay consistent.
+      if (token.sub) {
+        const row = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true, suspendedAt: true },
+        });
+        if (row?.role) token.role = row.role;
+        token.suspended = Boolean(row?.suspendedAt);
+      } else {
+        token.suspended = false;
       }
       return token;
     },
@@ -51,6 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.sub ?? "";
         (session.user as { role?: string }).role = token.role as string;
+        (session.user as { suspended?: boolean }).suspended = Boolean(token.suspended);
       }
       return session;
     },

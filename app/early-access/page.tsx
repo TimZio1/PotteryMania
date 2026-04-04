@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { prisma } from "@/lib/db";
 import { PromoCountdown } from "@/components/promo-countdown";
@@ -23,8 +24,14 @@ export default async function EarlyAccessPage() {
     <div className="flex min-h-screen flex-col bg-stone-50">
       {/* Minimal header */}
       <header className="absolute inset-x-0 top-0 z-30">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-start px-5 sm:h-18 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:h-18 sm:px-6">
           <BrandLogo href="/" variant="on-dark" priority />
+          <Link
+            href="/login"
+            className="shrink-0 text-sm font-medium text-white/90 underline-offset-4 transition hover:text-white hover:underline"
+          >
+            Sign in
+          </Link>
         </div>
       </header>
 
@@ -122,7 +129,15 @@ export default async function EarlyAccessPage() {
       <footer className="border-t border-(--brand-line) bg-(--brand-soft)">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>&copy; {new Date().getFullYear()} PotteryMania.</p>
-          <p>Made with clay and code.</p>
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Link href="/login" className="font-medium text-stone-600 transition hover:text-(--brand-ink)">
+              Studio / admin sign in
+            </Link>
+            <span className="hidden text-stone-300 sm:inline" aria-hidden>
+              ·
+            </span>
+            <span>Made with clay and code.</span>
+          </p>
         </div>
       </footer>
     </div>

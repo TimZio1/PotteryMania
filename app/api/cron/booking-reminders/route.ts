@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { logCronRun } from "@/lib/cron-audit";
 import { sendBookingEmails } from "@/lib/email/booking-notify";
 
 export async function GET(req: Request) {
@@ -42,5 +43,7 @@ export async function GET(req: Request) {
     sent += 1;
   }
 
-  return NextResponse.json({ ok: true, sent });
+  const body = { ok: true as const, sent, candidates: bookings.length };
+  void logCronRun("booking-reminders", body);
+  return NextResponse.json(body);
 }

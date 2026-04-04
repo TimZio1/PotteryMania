@@ -20,9 +20,9 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   try {
     const row = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, email: true, role: true },
+      select: { id: true, email: true, role: true, suspendedAt: true },
     });
-    if (!row) return null;
+    if (!row || row.suspendedAt) return null;
     return { id: row.id, email: row.email, role: row.role };
   } catch (e) {
     console.error("[getSessionUser]", e);

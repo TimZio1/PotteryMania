@@ -21,6 +21,9 @@ model User {
   email           String    @unique
   passwordHash    String?   @map("password_hash")
   role            UserRole  @default(customer)
+  lastLoginAt     DateTime? @map("last_login_at")
+  suspendedAt     DateTime? @map("suspended_at")
+  suspendedReason String?   @map("suspended_reason")
   emailVerifiedAt DateTime? @map("email_verified_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
@@ -43,6 +46,8 @@ model User {
   priceChangeHistory   PriceChangeHistory[]
   adminAuditLogs       AdminAuditLog[]
   pricingScenarios     PricingScenario[]
+  adminNotesAuthored   AdminNote[]          @relation("AdminNoteAuthor")
+  adminNotesReceived   AdminNote[]          @relation("AdminNoteTarget")
 
   @@map("users")
 }
@@ -1384,6 +1389,21 @@ model AdminAuditLog {
 
   @@index([entityType, createdAt])
   @@map("admin_audit_logs")
+}
+
+model AdminNote {
+  id           String   @id @default(uuid()) @db.Uuid
+  authorUserId String?  @map("author_user_id") @db.Uuid
+  targetUserId String   @map("target_user_id") @db.Uuid
+  content      String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  author User? @relation("AdminNoteAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  target User  @relation("AdminNoteTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([targetUserId, createdAt])
+  @@map("admin_notes")
 }
 
 model AcquisitionAttribution {

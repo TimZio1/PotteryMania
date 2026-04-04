@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { logCronRun } from "@/lib/cron-audit";
 import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -69,5 +70,7 @@ export async function GET(req: Request) {
     return { ordersCancelled, bookingsExpired };
   });
 
-  return NextResponse.json({ ok: true, cutoff: cutoff.toISOString(), ...result });
+  const body = { ok: true as const, cutoff: cutoff.toISOString(), ...result };
+  void logCronRun("expire-pending-bookings", body);
+  return NextResponse.json(body);
 }

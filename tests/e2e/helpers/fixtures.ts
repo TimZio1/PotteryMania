@@ -6,9 +6,9 @@ import { attachConsoleGuard } from "./console";
  * Passed tests fail if `console.error` or `pageerror` occurred (see BENIGN list in console.ts).
  */
 export const test = base.extend({
-  page: async ({ page }, use, testInfo) => {
+  page: async ({ page }, providePage, testInfo) => {
     const guard = attachConsoleGuard(page);
-    await use(page);
+    await providePage(page);
     guard.stop();
     await guard.finalize(testInfo);
   },

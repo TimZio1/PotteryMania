@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { logCronRun } from "@/lib/cron-audit";
 import { abandonedCartCopy, sendOrderEmails } from "@/lib/email/order-notify";
 
 function baseUrl() {
@@ -44,5 +45,7 @@ export async function GET(req: Request) {
     sent += 1;
   }
 
-  return NextResponse.json({ ok: true, sent });
+  const body = { ok: true as const, sent, scanned: carts.length };
+  void logCronRun("abandoned-carts", body);
+  return NextResponse.json(body);
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { FinanceLedgerEntryType } from "@prisma/client";
+import { logAdminAction } from "@/lib/admin-audit";
 import { requireFinanceAdmin } from "@/lib/finance/admin-guard";
 import { LEDGER_SOURCE_SYSTEM } from "@/lib/finance/constants";
 import { upsertLedgerEntry } from "@/lib/finance/ledger";
@@ -55,6 +56,22 @@ export async function POST(req: Request) {
     sourceType: "admin_adjustment",
     notes: body.notes ?? `Manual ${entryType} by ${g.user.email}`,
     userId: g.user.id,
+  });
+
+  await logAdminAction({
+    actorUserId: g.user.id,
+    action: "finance.ledger_manual_entry",
+    entityType: "finance_ledger",
+    entityId: null,
+    before: null,
+    after: {
+      dedupeKey,
+      entryType,
+      amountCents,
+      direction,
+      entryDate: day.toISOString().slice(0, 10),
+    },
+    reason: body.notes ?? null,
   });
 
   return NextResponse.json({ ok: true, dedupeKey });

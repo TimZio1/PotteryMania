@@ -1,11 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
-import { AdminStudios } from "./admin-studios";
-import { AdminBookings } from "./admin-bookings";
-import { AdminEarlyAccessList } from "./admin-early-access";
 import { AdminOverview } from "./admin-overview";
-import { HyperadminSections } from "./hyperadmin-sections";
+import { cn } from "@/lib/cn";
 
 export const dynamic = "force-dynamic";
 
@@ -20,42 +18,26 @@ export default async function AdminPage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const last30Start = startOfDay(new Date(now.getTime() - 29 * DAY_MS));
   const last60Start = startOfDay(new Date(now.getTime() - 59 * DAY_MS));
-  const last7Start = startOfDay(new Date(now.getTime() - 6 * DAY_MS));
-  const last14Start = startOfDay(new Date(now.getTime() - 13 * DAY_MS));
   const staleOrderThreshold = new Date(now.getTime() - DAY_MS);
-  const staleCartThreshold = new Date(now.getTime() - 3 * 60 * 60 * 1000);
 
   const [
     pending,
-    productCommission,
-    bookingCommission,
-    featureFlagsActive,
-    adminConfigsCount,
-    analyticsSnapshotsCount,
-    earlyAccessRows,
     earlyAccessCount,
-    earlyAccessLast30,
-    totalUsers,
     newUsersLast30,
     newUsersToday,
     approvedStudiosCount,
     activeStudiosCount,
     activatedStudiosCount,
-    stripeReadyStudiosCount,
     activeProductsCount,
     activeExperiencesCount,
     approvalRequiredExperienceCount,
     waitlistEnabledExperienceCount,
     referralsAcceptedCount,
-    referralsCreatedCount,
-    reviewStats,
-    calendarConnectionsCount,
     calendarErrorsLast30,
     bookingsAwaitingApprovalCount,
     manualRefundQueueCount,
     refundAmountBookings,
     stalePendingOrdersCount,
-    staleCartsCount,
     ordersLast60,
     bookingsLast60,
   ] = await Promise.all([
@@ -64,66 +46,22 @@ export default async function AdminPage() {
       orderBy: { updatedAt: "asc" },
       include: { owner: { select: { email: true } } },
     }),
-    prisma.commissionRule.findFirst({
-      where: { ruleScope: "global", studioId: null, itemType: "product", isActive: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.commissionRule.findFirst({
-      where: { ruleScope: "global", studioId: null, itemType: "booking", isActive: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.featureFlag.count({ where: { isActive: true } }),
-    prisma.adminConfig.count(),
-    prisma.analyticsSnapshot.count(),
-    prisma.earlyAccessSignup.findMany({
-      select: {
-        id: true,
-        email: true,
-        studioName: true,
-        country: true,
-        websiteOrIg: true,
-        photoUrls: true,
-        wantBooking: true,
-        wantMarket: true,
-        wantBoth: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-    }),
     prisma.earlyAccessSignup.count(),
-    prisma.earlyAccessSignup.count({ where: { createdAt: { gte: last30Start } } }),
-    prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: last30Start } } }),
     prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
     prisma.studio.count({ where: { status: "approved" } }),
     prisma.studio.count({ where: { status: "approved", OR: [{ products: { some: { status: "active" } } }, { experiences: { some: { status: "active" } } }] } }),
     prisma.studio.count({ where: { activationPaidAt: { not: null } } }),
-    prisma.stripeAccount.count({ where: { chargesEnabled: true, payoutsEnabled: true, detailsSubmitted: true } }),
     prisma.product.count({ where: { status: "active" } }),
     prisma.experience.count({ where: { status: "active" } }),
     prisma.experience.count({ where: { status: "active", bookingApprovalRequired: true } }),
     prisma.experience.count({ where: { status: "active", waitlistEnabled: true } }),
     prisma.referralInvite.count({ where: { acceptedAt: { not: null } } }),
-    prisma.referralInvite.count(),
-    prisma.review.aggregate({
-      where: { isVisible: true },
-      _count: { id: true },
-      _avg: { rating: true },
-    }),
-    prisma.calendarConnection.count(),
     prisma.calendarSyncLog.count({ where: { status: "error", createdAt: { gte: last30Start } } }),
     prisma.booking.count({ where: { bookingStatus: "awaiting_vendor_approval" } }),
     prisma.bookingCancellation.count({ where: { refundOutcome: "manual_refund_review_required" } }),
     prisma.bookingCancellation.aggregate({ _sum: { refundAmountCents: true } }),
     prisma.order.count({ where: { orderStatus: "pending", createdAt: { lt: staleOrderThreshold } } }),
-    prisma.cart.count({
-      where: {
-        updatedAt: { lt: staleCartThreshold },
-        items: { some: {} },
-        lastRecoveryEmailSentAt: null,
-      },
-    }),
     prisma.order.findMany({
       where: { createdAt: { gte: last60Start } },
       orderBy: { createdAt: "asc" },
@@ -171,9 +109,7 @@ export default async function AdminPage() {
   const currentOrders30 = ordersLast60.filter((order) => order.createdAt >= last30Start);
   const previousOrders30 = ordersLast60.filter((order) => order.createdAt >= last60Start && order.createdAt < last30Start);
   const currentBookings30 = bookingsLast60.filter((booking) => booking.createdAt >= last30Start);
-  const previousBookings30 = bookingsLast60.filter((booking) => booking.createdAt >= last60Start && booking.createdAt < last30Start);
 
-  const paidOrders30 = currentOrders30.filter(isMonetizedOrder);
   const paidOrdersMonth = ordersLast60.filter((order) => order.createdAt >= monthStart && isMonetizedOrder(order));
   const paidOrdersToday = ordersLast60.filter((order) => order.createdAt >= todayStart && isMonetizedOrder(order));
   const paidOrdersYesterday = ordersLast60.filter(
@@ -184,7 +120,6 @@ export default async function AdminPage() {
     (order) => order.orderStatus === "refunded" || order.orderStatus === "partially_refunded" || order.paymentStatus === "refunded" || order.paymentStatus === "partially_refunded"
   );
 
-  const monetizedBookings30 = currentBookings30.filter(isMonetizedBooking);
   const monetizedBookingsMonth = bookingsLast60.filter(
     (booking) => booking.createdAt >= monthStart && isMonetizedBooking(booking)
   );
@@ -200,16 +135,8 @@ export default async function AdminPage() {
   const grossRevenueMonthCents = sumBy(paidOrdersMonth, (order) => order.totalCents);
   const grossRevenuePrevious30Cents = sumBy(previousOrders30.filter(isMonetizedOrder), (order) => order.totalCents);
   const platformCommissionMonthCents = sumBy(paidOrdersMonth, orderCommissionCents);
-  const platformCommissionPrevious30Cents = sumBy(previousOrders30.filter(isMonetizedOrder), orderCommissionCents);
   const bookingCashMonthCents = sumBy(monetizedBookingsMonth, (booking) => booking.depositAmountCents);
   const refundsProxyCents = sumBy(refundedOrders30, (order) => order.totalCents) + (refundAmountBookings._sum.refundAmountCents ?? 0);
-  const manualRefundExposureCents = sumBy(
-    currentBookings30.filter(
-      (booking) =>
-        booking.bookingStatus === "refunded" || booking.bookingStatus === "partially_refunded" || booking.bookingStatus === "cancelled_by_admin"
-    ),
-    (booking) => booking.depositAmountCents || booking.totalAmountCents
-  );
   const contributionProfitProxyCents = Math.max(0, platformCommissionMonthCents - refundsProxyCents);
 
   const customerActivityKeys = new Set<string>();
@@ -227,7 +154,6 @@ export default async function AdminPage() {
   const ltvProxyCents = arpuMonthCents;
 
   const activationRate = approvedStudiosCount > 0 ? activatedStudiosCount / approvedStudiosCount : 0;
-  const refundRate = paidOrdersMonth.length > 0 ? refundedOrders30.length / paidOrdersMonth.length : 0;
   const failedPaymentRate =
     currentOrders30.length + currentBookings30.length > 0
       ? (failedOrders30.length + failedBookings30.length) / (currentOrders30.length + currentBookings30.length)
@@ -236,8 +162,6 @@ export default async function AdminPage() {
     currentBookings30.length > 0 ? cancelledBookings30.length / currentBookings30.length : 0;
 
   const topStudios = buildTopStudios(paidOrdersMonth);
-  const topCustomers = buildTopCustomers(ordersLast60.filter(isMonetizedOrder));
-  const riskAccounts = buildRiskAccounts(ordersLast60, bookingsLast60);
 
   const founderSummary = [
     `${formatCurrency(grossRevenueMonthCents)} in paid commerce has flowed through the platform this month, with ${formatCurrency(platformCommissionMonthCents)} captured as platform take and ${formatCurrency(bookingCashMonthCents)} collected as booking cash.`,
@@ -274,6 +198,22 @@ export default async function AdminPage() {
   const revenueTrend = buildTrend(currentOrders30, last30Start, (order) => (isMonetizedOrder(order) ? order.totalCents / 100 : 0));
   const orderTrend = buildTrend(currentOrders30, last30Start, () => 1);
   const bookingTrend = buildTrend(currentBookings30, last30Start, () => 1);
+
+  const navCards = [
+    {
+      href: "/admin/operations",
+      title: "Operations",
+      desc: "Approvals, early-access, bookings, recovery queues.",
+    },
+    { href: "/admin/users", title: "Users", desc: "Roles, suspension, activity, notes." },
+    { href: "/admin/revenue", title: "Revenue", desc: "Commerce throughput, take rate, refunds." },
+    { href: "/admin/content", title: "Content", desc: "Catalog health: products, experiences, studios." },
+    { href: "/admin/reports", title: "Reports", desc: "Funnel, retention proxies, CSV-friendly cuts." },
+    { href: "/admin/audit", title: "Audit", desc: "Immutable log of admin mutations." },
+    { href: "/admin/system", title: "System", desc: "Feature flags, health signals, environment." },
+    { href: "/admin/settings", title: "Settings", desc: "Commissions, platform config, plans surface." },
+    { href: "/admin/finance", title: "Finance engine", desc: "Ledger, scenarios, profitability command center." },
+  ] as const;
 
   return (
     <div>
@@ -379,492 +319,29 @@ export default async function AdminPage() {
         opportunities={opportunities}
       />
 
-      <HyperadminSections
-        financialCards={[
-          {
-            label: "Gross revenue",
-            value: formatCurrency(grossRevenueMonthCents),
-            note: `${paidOrdersMonth.length} paid orders this month`,
-          },
-          {
-            label: "Platform take",
-            value: formatCurrency(platformCommissionMonthCents),
-            note: deltaText(platformCommissionMonthCents, platformCommissionPrevious30Cents, "vs prior 30 days"),
-            tone: platformCommissionMonthCents >= platformCommissionPrevious30Cents ? "good" : "warn",
-          },
-          {
-            label: "Refund exposure",
-            value: formatCurrency(refundsProxyCents),
-            note: `${manualRefundQueueCount} bookings require manual refund review`,
-            tone: refundsProxyCents > 0 ? "warn" : "good",
-          },
-          {
-            label: "Average order value",
-            value: formatCurrency(paidOrdersMonth.length > 0 ? Math.round(grossRevenueMonthCents / paidOrdersMonth.length) : 0),
-            note: "Paid order GMV only",
-          },
-          {
-            label: "Booking cash collected",
-            value: formatCurrency(bookingCashMonthCents),
-            note: formatCurrency(
-              sumBy(monetizedBookingsMonth, (booking) => booking.remainingBalanceCents)
-            ) + " still outstanding",
-          },
-          {
-            label: "Gross profit proxy",
-            value: formatCurrency(contributionProfitProxyCents),
-            note: "Platform take less tracked refund exposure",
-          },
-          {
-            label: "Take rate proxy",
-            value: formatPercent(grossRevenueMonthCents > 0 ? platformCommissionMonthCents / grossRevenueMonthCents : 0),
-            note: "Based on paid commerce routed through the platform",
-          },
-          {
-            label: "Highest-cost blind spot",
-            value: "Infra not tracked",
-            note: "Add hosting, storage, email, and AI ledgers next",
-            tone: "warn",
-          },
-        ]}
-        userCards={[
-          {
-            label: "Total users",
-            value: formatCompactNumber(totalUsers),
-            note: `${newUsersLast30} new in the last 30 days`,
-          },
-          {
-            label: "Active user proxy",
-            value: formatCompactNumber(activeUsersProxy),
-            note: "Unique commerce participants in 30 days",
-          },
-          {
-            label: "Activated studios",
-            value: formatCompactNumber(activatedStudiosCount),
-            note: `${formatPercent(activationRate)} of approved studios`,
-            tone: activationRate >= 0.6 ? "good" : "warn",
-          },
-          {
-            label: "Stripe-ready studios",
-            value: formatCompactNumber(stripeReadyStudiosCount),
-            note: `${approvedStudiosCount - stripeReadyStudiosCount} still not payout-ready`,
-            tone: stripeReadyStudiosCount >= Math.max(1, Math.floor(approvedStudiosCount * 0.7)) ? "good" : "warn",
-          },
-          {
-            label: "Review sentiment",
-            value: reviewStats._avg.rating ? `${reviewStats._avg.rating.toFixed(1)} / 5` : "No ratings",
-            note: `${reviewStats._count.id} visible reviews`,
-          },
-          {
-            label: "Top customer value",
-            value: topCustomers[0]?.metricA ?? "€0.00",
-            note: topCustomers[0]?.name ?? "No monetized customers yet",
-          },
-          {
-            label: "Dormant risk signal",
-            value: formatCompactNumber(staleCartsCount),
-            note: "Stale carts waiting for recovery email",
-            tone: staleCartsCount > 0 ? "warn" : "good",
-          },
-          {
-            label: "Customer support risk",
-            value: formatCompactNumber(riskAccounts.length),
-            note: "Accounts with refund, failure, or balance risk signals",
-          },
-        ]}
-        planCards={[
-          {
-            label: "Recurring plans",
-            value: "Not yet modeled",
-            note: "Billing layer still needs true subscription entities",
-            tone: "warn",
-          },
-          {
-            label: "Product commission",
-            value: `${((productCommission?.percentageBasisPoints ?? 500) / 100).toFixed(2)}%`,
-            note: "Global marketplace take rate",
-          },
-          {
-            label: "Booking commission",
-            value: `${((bookingCommission?.percentageBasisPoints ?? productCommission?.percentageBasisPoints ?? 500) / 100).toFixed(2)}%`,
-            note: "Global class-booking take rate",
-          },
-          {
-            label: "Approved but inactive",
-            value: formatCompactNumber(Math.max(0, approvedStudiosCount - activatedStudiosCount)),
-            note: "Immediate activation conversion opportunity",
-            tone: approvedStudiosCount > activatedStudiosCount ? "warn" : "good",
-          },
-          {
-            label: "Feature flags live",
-            value: formatCompactNumber(featureFlagsActive),
-            note: "Current plan/control surface available in DB",
-          },
-          {
-            label: "Admin configs",
-            value: formatCompactNumber(adminConfigsCount),
-            note: "Platform tuning values with no audit trail yet",
-          },
-          {
-            label: "Pricing simulator",
-            value: "Next phase",
-            note: "Requires subscription plans and scenario engine",
-            tone: "warn",
-          },
-          {
-            label: "Manual plan assignment",
-            value: "Not yet built",
-            note: "Needs `plan`, `subscription`, and audit models",
-            tone: "warn",
-          },
-        ]}
-        growthCards={[
-          {
-            label: "Early-access pipeline",
-            value: formatCompactNumber(earlyAccessCount),
-            note: `${earlyAccessLast30} leads in the last 30 days`,
-          },
-          {
-            label: "Referral conversions",
-            value: formatCompactNumber(referralsAcceptedCount),
-            note: `${referralsCreatedCount} total invites created`,
-          },
-          {
-            label: "Activation conversion",
-            value: formatPercent(activationRate),
-            note: "Approved studio to paid activation",
-          },
-          {
-            label: "Recovery queue",
-            value: formatCompactNumber(staleCartsCount),
-            note: "Carts older than 3 hours without recovery email",
-            tone: staleCartsCount > 0 ? "warn" : "good",
-          },
-          {
-            label: "New user growth",
-            value: formatCompactNumber(newUsersLast30),
-            note: `${newUsersToday} arrived today`,
-          },
-          {
-            label: "Waitlist monetization potential",
-            value: formatCompactNumber(waitlistEnabledExperienceCount),
-            note: `${approvalRequiredExperienceCount} experiences also require manual approval`,
-          },
-          {
-            label: "Channel attribution",
-            value: "Missing",
-            note: "Add UTM/session attribution for real CAC and funnel intelligence",
-            tone: "warn",
-          },
-          {
-            label: "Visitor to signup",
-            value: "Not tracked",
-            note: "Needs web analytics events and landing-page attribution",
-            tone: "warn",
-          },
-        ]}
-        productCards={[
-          {
-            label: "Active products",
-            value: formatCompactNumber(activeProductsCount),
-            note: "Marketplace supply currently live",
-          },
-          {
-            label: "Active experiences",
-            value: formatCompactNumber(activeExperiencesCount),
-            note: "Bookable supply currently live",
-          },
-          {
-            label: "Approval-gated experiences",
-            value: formatCompactNumber(approvalRequiredExperienceCount),
-            note: "Good for quality control, but adds conversion friction",
-          },
-          {
-            label: "Waitlist-enabled experiences",
-            value: formatCompactNumber(waitlistEnabledExperienceCount),
-            note: "Good signal for demand capture",
-          },
-          {
-            label: "Analytics snapshots",
-            value: formatCompactNumber(analyticsSnapshotsCount),
-            note: "Historical metrics store exists but needs stronger contracts",
-          },
-          {
-            label: "Feature usage depth",
-            value: "Partial",
-            note: "Commerce and catalog signals exist; clickstream does not",
-            tone: "warn",
-          },
-          {
-            label: "Feature ROI",
-            value: "Not computed",
-            note: "Need event tracking plus cost ledger",
-            tone: "warn",
-          },
-          {
-            label: "Workflow completion",
-            value: "Not tracked",
-            note: "Add event-level funnel instrumentation across onboarding and checkout",
-            tone: "warn",
-          },
-        ]}
-        opsCards={[
-          {
-            label: "Stripe-ready studios",
-            value: formatCompactNumber(stripeReadyStudiosCount),
-            note: `${approvedStudiosCount} approved studios total`,
-          },
-          {
-            label: "Calendar connections",
-            value: formatCompactNumber(calendarConnectionsCount),
-            note: `${calendarErrorsLast30} sync errors in the last 30 days`,
-            tone: calendarErrorsLast30 > 0 ? "warn" : "good",
-          },
-          {
-            label: "Pending booking approvals",
-            value: formatCompactNumber(bookingsAwaitingApprovalCount),
-            note: "Manual ops load on studios",
-            tone: bookingsAwaitingApprovalCount > 0 ? "warn" : "good",
-          },
-          {
-            label: "Stale pending orders",
-            value: formatCompactNumber(stalePendingOrdersCount),
-            note: "Possible checkout or webhook leakage",
-            tone: stalePendingOrdersCount > 0 ? "danger" : "good",
-          },
-          {
-            label: "Monitoring",
-            value: process.env.SENTRY_DSN ? "Sentry live" : "Disabled",
-            note: process.env.SENTRY_DSN ? "Production capture available" : "Enable DSN for operational observability",
-            tone: process.env.SENTRY_DSN ? "good" : "warn",
-          },
-          {
-            label: "Failed payments",
-            value: formatCompactNumber(failedOrders30.length + failedBookings30.length),
-            note: `${formatPercent(failedPaymentRate)} of recent commerce attempts`,
-            tone: failedPaymentRate > 0.05 ? "danger" : "warn",
-          },
-          {
-            label: "Reminder and recovery jobs",
-            value: "Cron-based",
-            note: "Booking reminders and abandoned carts are active",
-          },
-          {
-            label: "Deployment / incident log",
-            value: "Missing",
-            note: "Needs persistent job runs, incidents, and retry controls",
-            tone: "warn",
-          },
-        ]}
-        riskCards={[
-          {
-            label: "Manual refund queue",
-            value: formatCompactNumber(manualRefundQueueCount),
-            note: formatCurrency(manualRefundExposureCents) + " of recent booking refund exposure",
-            tone: manualRefundQueueCount > 0 ? "danger" : "good",
-          },
-          {
-            label: "Failed payment rate",
-            value: formatPercent(failedPaymentRate),
-            note: `${failedOrders30.length + failedBookings30.length} failures in the last 30 days`,
-            tone: failedPaymentRate > 0.05 ? "danger" : "warn",
-          },
-          {
-            label: "Refund rate proxy",
-            value: formatPercent(refundRate),
-            note: "Order refunds against current paid order volume",
-            tone: refundRate > 0.04 ? "danger" : "warn",
-          },
-          {
-            label: "Cancellation rate",
-            value: formatPercent(cancellationRate),
-            note: `${cancelledBookings30.length} cancelled or refunded bookings`,
-            tone: cancellationRate > 0.1 ? "danger" : "warn",
-          },
-          {
-            label: "Awaiting approval",
-            value: formatCompactNumber(bookingsAwaitingApprovalCount),
-            note: "Potential churn risk if response time slips",
-            tone: bookingsAwaitingApprovalCount > 0 ? "warn" : "good",
-          },
-          {
-            label: "Commerce backlog",
-            value: formatCompactNumber(stalePendingOrdersCount),
-            note: "Orders stuck in pending for over 24 hours",
-            tone: stalePendingOrdersCount > 0 ? "danger" : "good",
-          },
-          {
-            label: "Payment-provider readiness",
-            value: formatPercent(approvedStudiosCount > 0 ? stripeReadyStudiosCount / approvedStudiosCount : 0),
-            note: "Approved studios able to charge and receive payouts",
-            tone: stripeReadyStudiosCount >= Math.max(1, Math.floor(approvedStudiosCount * 0.7)) ? "good" : "warn",
-          },
-          {
-            label: "Support system maturity",
-            value: "Low",
-            note: "No first-class tickets, CSAT, or complaint taxonomy yet",
-            tone: "warn",
-          },
-        ]}
-        controlCards={[
-          {
-            label: "Preregistration mode",
-            value: process.env.PREREGISTRATION_ONLY === "1" ? "On" : "Off",
-            note: "Controls browse gating for public users",
-          },
-          {
-            label: "Feature flags active",
-            value: formatCompactNumber(featureFlagsActive),
-            note: "Centralized toggles already exist in the database",
-          },
-          {
-            label: "Product commission",
-            value: `${((productCommission?.percentageBasisPoints ?? 500) / 100).toFixed(2)}%`,
-            note: "Editable via existing commission API",
-          },
-          {
-            label: "Booking commission",
-            value: `${((bookingCommission?.percentageBasisPoints ?? productCommission?.percentageBasisPoints ?? 500) / 100).toFixed(2)}%`,
-            note: "Editable via existing commission API",
-          },
-          {
-            label: "Audit trail",
-            value: "Missing",
-            note: "No versioned before/after admin log yet",
-            tone: "warn",
-          },
-          {
-            label: "Role separation",
-            value: "Shared admin gate",
-            note: "`admin` and `hyper_admin` are currently treated the same",
-            tone: "warn",
-          },
-          {
-            label: "Notification controls",
-            value: "Partial",
-            note: "Email alerts exist for early access; ops alerting is still shallow",
-            tone: "warn",
-          },
-          {
-            label: "Saved views / exports",
-            value: "Next phase",
-            note: "Needs parameterized admin APIs and report generation",
-            tone: "warn",
-          },
-        ]}
-        forecastCards={[
-          {
-            label: "Projected 30-day GMV",
-            value: formatCurrency(projectLinear(grossRevenueMonthCents, now)),
-            note: "Simple pace projection from current month run rate",
-          },
-          {
-            label: "Projected platform take",
-            value: formatCurrency(projectLinear(platformCommissionMonthCents, now)),
-            note: "Directional only; excludes future pricing changes",
-          },
-          {
-            label: "Projected booking cash",
-            value: formatCurrency(projectLinear(bookingCashMonthCents, now)),
-            note: "Deposit cash only",
-          },
-          {
-            label: "Projected activations",
-            value: formatCompactNumber(
-              Math.round((activatedStudiosCount / Math.max(daysIntoMonth(now), 1)) * daysInMonth(now))
-            ),
-            note: "Current month activation pace extrapolated",
-          },
-          {
-            label: "Renewal forecast",
-            value: "Unavailable",
-            note: "Requires subscription lifecycle data",
-            tone: "warn",
-          },
-          {
-            label: "Upgrade / downgrade forecast",
-            value: "Unavailable",
-            note: "Requires plans, entitlements, and billing history",
-            tone: "warn",
-          },
-          {
-            label: "Cost forecast",
-            value: "Unavailable",
-            note: "Requires infra, AI, storage, email, and API cost ingestion",
-            tone: "warn",
-          },
-          {
-            label: "Profit forecast",
-            value: "Proxy only",
-            note: "Possible once cost ledger is live",
-            tone: "warn",
-          },
-        ]}
-        topStudios={topStudios}
-        topCustomers={topCustomers}
-        riskAccounts={riskAccounts}
-        funnelSteps={[
-          {
-            label: "Traffic",
-            value: "Not tracked",
-            note: "Install event analytics to expose landing-page and acquisition performance.",
-          },
-          {
-            label: "Leads",
-            value: formatCompactNumber(earlyAccessCount),
-            note: `${earlyAccessLast30} added in the last 30 days.`,
-          },
-          {
-            label: "Approved",
-            value: formatCompactNumber(approvedStudiosCount),
-            note: `${pending.length} still waiting for review.`,
-          },
-          {
-            label: "Activated",
-            value: formatCompactNumber(activatedStudiosCount),
-            note: `${formatPercent(activationRate)} approval-to-activation conversion.`,
-          },
-        ]}
-        alerts={alerts}
-        opportunities={opportunities}
-        instrumentationGaps={[
-          {
-            title: "Session and funnel analytics",
-            detail: "Track page views, CTA clicks, onboarding steps, checkout steps, and plan-selection events so the founder can see visitor-to-signup and signup-to-paid conversion clearly.",
-          },
-          {
-            title: "Cost ledger",
-            detail: "Ingest hosting, storage, image processing, email, AI, and third-party API costs daily so margin can be calculated by feature, plan, and user segment.",
-          },
-          {
-            title: "Subscription and entitlement model",
-            detail: "Add plans, subscriptions, invoices, coupons, feature entitlements, and price-history records to unlock MRR, ARR, churn, renewal, and pricing simulation.",
-          },
-          {
-            title: "Support system",
-            detail: "Create support tickets, complaint taxonomy, satisfaction score, and issue linkage to users, features, and orders to surface churn risk early.",
-          },
-          {
-            title: "Audit and control trail",
-            detail: "Version all admin changes with actor, before value, after value, and reason so pricing, flags, and policy edits become safely governable.",
-          },
-          {
-            title: "Operational event store",
-            detail: "Persist webhook failures, cron runs, queue retries, deployment markers, and system incidents so reliability can be monitored as a first-class dashboard domain.",
-          },
-        ]}
-      />
-
-      <section className="mt-10 rounded-4xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Action queues</p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-amber-950">Raw operational workstreams</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-stone-600">
-          These sections stay close to the metal: approvals, leads, and booking records that still need hands-on operator attention.
+      <section className="mt-10">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Modules</p>
+        <h2 className="mt-2 text-xl font-semibold tracking-tight text-amber-950">Drill into the operating system</h2>
+        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+          Deep panels live on dedicated routes. Use the sidebar or jump from here.
         </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {navCards.map((card) => (
+            <Link
+              key={card.href}
+              href={card.href}
+              className={cn(
+                "rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-amber-900/25 hover:shadow-md",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900",
+              )}
+            >
+              <p className="font-semibold text-amber-950">{card.title}</p>
+              <p className="mt-2 text-sm leading-6 text-stone-600">{card.desc}</p>
+              <p className="mt-4 text-xs font-medium text-amber-800">Open →</p>
+            </Link>
+          ))}
+        </div>
       </section>
-      <AdminStudios initialStudios={pending} />
-      <AdminEarlyAccessList rows={earlyAccessRows} />
-      <AdminBookings />
     </div>
   );
 }
@@ -983,115 +460,6 @@ function buildTopStudios(
     }));
 }
 
-function buildTopCustomers(
-  orders: Array<{
-    customerEmail: string;
-    customerName: string;
-    totalCents: number;
-  }>
-) {
-  const map = new Map<string, { name: string; email: string; value: number; orders: number }>();
-  for (const order of orders) {
-    const key = customerKey(order.customerEmail, order.customerName);
-    const current = map.get(key) ?? {
-      name: order.customerName,
-      email: order.customerEmail,
-      value: 0,
-      orders: 0,
-    };
-    current.value += order.totalCents;
-    current.orders += 1;
-    map.set(key, current);
-  }
-  return [...map.values()]
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5)
-    .map((customer) => ({
-      name: customer.name,
-      secondary: customer.email,
-      metricA: formatCurrency(customer.value),
-      metricB: `${customer.orders} paid orders`,
-      metricC: customer.value >= 50000 ? "High value" : "Growing",
-    }));
-}
-
-function buildRiskAccounts(
-  orders: Array<{
-    customerEmail: string;
-    customerName: string;
-    totalCents: number;
-    paymentStatus: string;
-    orderStatus: string;
-  }>,
-  bookings: Array<{
-    customerEmail: string;
-    customerName: string;
-    remainingBalanceCents: number;
-    paymentStatus: string;
-    bookingStatus: string;
-  }>
-) {
-  const map = new Map<string, { name: string; email: string; value: number; risk: number; note: string }>();
-
-  for (const order of orders) {
-    const key = customerKey(order.customerEmail, order.customerName);
-    const current = map.get(key) ?? {
-      name: order.customerName,
-      email: order.customerEmail,
-      value: 0,
-      risk: 0,
-      note: "Stable",
-    };
-    if (isMonetizedOrder(order)) current.value += order.totalCents;
-    if (order.paymentStatus === "failed") {
-      current.risk += 2;
-      current.note = "Failed payment";
-    }
-    if (order.orderStatus === "refunded" || order.orderStatus === "partially_refunded") {
-      current.risk += 3;
-      current.note = "Refund pressure";
-    }
-    map.set(key, current);
-  }
-
-  for (const booking of bookings) {
-    const key = customerKey(booking.customerEmail, booking.customerName);
-    const current = map.get(key) ?? {
-      name: booking.customerName,
-      email: booking.customerEmail,
-      value: 0,
-      risk: 0,
-      note: "Stable",
-    };
-    current.value += booking.remainingBalanceCents;
-    if (booking.paymentStatus === "failed") {
-      current.risk += 2;
-      current.note = "Booking payment failed";
-    }
-    if (booking.remainingBalanceCents > 0) {
-      current.risk += 1;
-      current.note = "Outstanding booking balance";
-    }
-    if (["refunded", "partially_refunded", "cancelled_by_admin"].includes(booking.bookingStatus)) {
-      current.risk += 2;
-      current.note = "Refund / cancellation friction";
-    }
-    map.set(key, current);
-  }
-
-  return [...map.values()]
-    .filter((account) => account.risk > 0 || account.value > 0)
-    .sort((a, b) => b.risk - a.risk || b.value - a.value)
-    .slice(0, 5)
-    .map((account) => ({
-      name: account.name,
-      secondary: account.email,
-      metricA: formatCurrency(account.value),
-      metricB: `${account.risk} risk points`,
-      metricC: account.note,
-    }));
-}
-
 function buildAlerts(input: {
   pendingStudios: number;
   manualRefundQueueCount: number;
@@ -1200,7 +568,7 @@ function buildOpportunities(input: {
   if (input.referralsAcceptedCount > 0) {
     items.push({
       title: "Double down on referrals",
-      detail: `${input.referralsAcceptedCount} referrals have already converted. This is a strong signal to formalize reward economics and make referrals a first-class growth lever.`,
+      detail: `${input.referralsAcceptedCount} referral invite(s) have converted. Formalize reward economics to compound growth.`,
     });
   }
   if (input.waitlistEnabledExperienceCount < input.activeExperiencesCount && input.activeExperiencesCount > 0) {
@@ -1229,17 +597,4 @@ function buildOpportunities(input: {
   }
 
   return items.slice(0, 5);
-}
-
-function daysInMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-}
-
-function daysIntoMonth(date: Date) {
-  return date.getDate();
-}
-
-function projectLinear(currentCents: number, now: Date) {
-  const elapsedDays = Math.max(daysIntoMonth(now), 1);
-  return Math.round((currentCents / elapsedDays) * daysInMonth(now));
 }

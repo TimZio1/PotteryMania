@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logCronRun } from "@/lib/cron-audit";
 import { backfillOrdersToLedger, backfillStudioActivationsToLedger } from "@/lib/finance/backfill-commerce";
 import { aggregateFinancialSnapshotsForDate } from "@/lib/finance/aggregate-daily";
 import { syncStripeBalanceTransactions } from "@/lib/finance/stripe-balance-sync";
@@ -25,11 +26,21 @@ export async function GET(req: Request) {
 
   const intelligence = await runFinancialIntelligence();
 
-  return NextResponse.json({
-    ok: true,
+  const body = {
+    ok: true as const,
     orderBackfill,
     activationBackfill,
     stripe,
     intelligence,
+  };
+  void logCronRun("finance-reconcile", {
+    ok: true,
+    orderBackfillProcessed: orderBackfill.processed,
+    activationBackfillProcessed: activationBackfill.processed,
+    stripeRows: stripe.rows,
+    stripeError: stripe.error,
+    intelligenceAlerts: intelligence.alerts,
+    intelligenceRecommendations: intelligence.recommendations,
   });
+  return NextResponse.json(body);
 }

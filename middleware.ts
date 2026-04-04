@@ -23,6 +23,13 @@ function publicAllowlist(): string[] {
 }
 
 export default auth((req) => {
+  const suspended = Boolean(req.auth?.user && (req.auth.user as { suspended?: boolean }).suspended);
+  if (req.auth && suspended) {
+    const signout = new URL("/api/auth/signout", req.url);
+    signout.searchParams.set("callbackUrl", new URL("/login?reason=suspended", req.url).toString());
+    return NextResponse.redirect(signout);
+  }
+
   const path = req.nextUrl.pathname;
   const allow = publicAllowlist();
   const isPublic = allow.some((p) => path === p || (p !== "/" && path.startsWith(p + "/")));

@@ -81,7 +81,15 @@ export default async function UnauthorizedAdminPage() {
           </div>
         ) : null}
         <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50 p-4">
-          <p className="text-sm font-semibold text-amber-950">Fix in production Postgres</p>
+          <p className="text-sm font-semibold text-amber-950">No account yet? (Preregistration hides /register)</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">
+            Set <code className="rounded bg-white px-1 text-xs">SEED_HYPER_ADMIN_EMAIL</code> and{" "}
+            <code className="rounded bg-white px-1 text-xs">SEED_HYPER_ADMIN_PASSWORD</code> in your host env, then run once:{" "}
+            <code className="rounded bg-white px-1 text-xs">npx prisma db seed</code> against the same{" "}
+            <code className="text-xs">DATABASE_URL</code>. That creates or resets a <code className="text-xs">hyper_admin</code>{" "}
+            user you can use on <Link href="/login" className="font-medium text-amber-900 underline">/login</Link>.
+          </p>
+          <p className="mt-6 text-sm font-semibold text-amber-950">Already have a user? Promote in Postgres</p>
           <p className="mt-2 text-sm leading-6 text-stone-600">
             Run this in the <strong>same</strong> database your live app uses (the <code className="text-xs">DATABASE_URL</code> on
             Vercel / Railway / Neon — not a local copy). The value must be exactly{" "}
