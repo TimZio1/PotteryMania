@@ -4,6 +4,7 @@ import { MarketingLayout } from "@/components/marketing-layout";
 import { PromoCountdown } from "@/components/promo-countdown";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
+import { isPreregistrationOnly } from "@/lib/preregistration";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
@@ -274,9 +275,11 @@ export default function Home() {
               <Link href="/early-access" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
                 Register your studio
               </Link>
-              <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                Sign in
-              </Link>
+              {!isPreregistrationOnly() ? (
+                <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                  Sign in
+                </Link>
+              ) : null}
             </div>
           </div>
         </ImageSection>

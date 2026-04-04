@@ -7,19 +7,19 @@ import {
 } from "@/lib/preregistration";
 
 const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart"];
-const BASE_PUBLIC = [
+/** Public without marketplace; /register only when browsing is open (not preregistration-only). */
+const BASE_PUBLIC_CORE = [
   "/",
   "/early-access",
   "/login",
-  "/register",
   "/checkout/success",
   "/unauthorized-admin",
 ];
 const BROWSING_PUBLIC = ["/marketplace", "/classes", "/studios"];
 
 function publicAllowlist(): string[] {
-  if (isPreregistrationOnly()) return BASE_PUBLIC;
-  return [...BASE_PUBLIC, ...BROWSING_PUBLIC];
+  if (isPreregistrationOnly()) return BASE_PUBLIC_CORE;
+  return [...BASE_PUBLIC_CORE, "/register", ...BROWSING_PUBLIC];
 }
 
 export default auth((req) => {

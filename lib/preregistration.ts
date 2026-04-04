@@ -3,7 +3,7 @@
  * Guests and customers hitting / are redirected to /early-access (conversion landing).
  * Vendors and admins may still open / and browse directories (QA / operations).
  *
- * Override: PREREGISTRATION_ONLY=0 (or false/off) opens browsing for everyone.
+ * Override: PREREGISTRATION_ONLY=0 (or false/off) opens browsing for everyone and restores /register + public Sign in links.
  * Default: closed in production, open in development (set PREREGISTRATION_ONLY=1 locally to test).
  */
 export function isPreregistrationOnly(): boolean {

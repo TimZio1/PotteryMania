@@ -6,7 +6,10 @@ import { siteMetadata } from "@/lib/seo";
 /** Lets `next build` succeed when no DB is reachable (CI, fresh clone). */
 function staticSitemapFallback(): MetadataRoute.Sitemap {
   const now = new Date();
-  return ["/", "/early-access", "/login", "/register"].map((path) => ({
+  const paths = isPreregistrationOnly()
+    ? ["/", "/early-access"]
+    : ["/", "/early-access", "/login", "/register"];
+  return paths.map((path) => ({
     url: new URL(path, siteMetadata.url).toString(),
     lastModified: now,
   }));
@@ -21,8 +24,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       return [
         { url: `${base}/`, lastModified: now },
         { url: `${base}/early-access`, lastModified: now },
-        { url: `${base}/login`, lastModified: now },
-        { url: `${base}/register`, lastModified: now },
       ];
     }
 
@@ -39,6 +40,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       { url: `${base}/`, lastModified: now },
       { url: `${base}/early-access`, lastModified: now },
+      { url: `${base}/login`, lastModified: now },
+      { url: `${base}/register`, lastModified: now },
       { url: `${base}/marketplace`, lastModified: now },
       { url: `${base}/classes`, lastModified: now },
       { url: `${base}/studios`, lastModified: now },

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { isPreregistrationOnly } from "@/lib/preregistration";
 import { ui } from "@/lib/ui-styles";
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 export function MarketingLayout({ children, toolbar }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+      <SiteHeader showPublicSignIn={!isPreregistrationOnly()} />
       {toolbar ? (
         <div className="border-b border-(--brand-line) bg-white/80">
           <div className={`${ui.pageContainer} py-3`}>{toolbar}</div>
@@ -36,9 +37,11 @@ export function MarketingLayout({ children, toolbar }: Props) {
               <Link href="/early-access" className="transition hover:text-(--brand-ink)">
                 Early access
               </Link>
-              <Link href="/login" className="transition hover:text-(--brand-ink)">
-                Sign in
-              </Link>
+              {!isPreregistrationOnly() ? (
+                <Link href="/login" className="transition hover:text-(--brand-ink)">
+                  Sign in
+                </Link>
+              ) : null}
             </div>
           </div>
           <div className="mt-8 flex flex-col gap-3 border-t border-(--brand-line) pt-6 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between">

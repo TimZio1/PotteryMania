@@ -7,9 +7,11 @@ export default function robots() {
     rules: {
       userAgent: "*",
       allow: prereg
-        ? ["/", "/early-access", "/login", "/register", "/unauthorized-admin"]
+        ? ["/", "/early-access", "/unauthorized-admin"]
         : ["/", "/marketplace", "/classes", "/studios", "/early-access", "/unauthorized-admin"],
-      disallow: ["/dashboard", "/admin", "/api"],
+      disallow: prereg
+        ? ["/dashboard", "/admin", "/api", "/login", "/register", "/marketplace", "/classes", "/studios", "/cart"]
+        : ["/dashboard", "/admin", "/api"],
     },
     sitemap: `${siteMetadata.url}/sitemap.xml`,
   };

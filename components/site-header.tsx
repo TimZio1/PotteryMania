@@ -10,7 +10,12 @@ function adminVisible(role: string | undefined) {
   return role === "admin" || role === "hyper_admin";
 }
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  /** Hide for guests during preregistration-only (studio signup via /early-access only). */
+  showPublicSignIn?: boolean;
+};
+
+export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -96,12 +101,19 @@ export function SiteHeader() {
               </button>
             </div>
           ) : (
-            <Link
-              href="/early-access"
-              className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm"
-            >
-              Register your studio
-            </Link>
+            <>
+              <Link
+                href="/early-access"
+                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm"
+              >
+                Register your studio
+              </Link>
+              {showPublicSignIn ? (
+                <Link href="/login" className={linkClass("/login")}>
+                  Sign in
+                </Link>
+              ) : null}
+            </>
           )}
         </nav>
 
