@@ -1,7 +1,13 @@
 import NextAuth from "next-auth";
+import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
+
+/** Thrown from authorize so the client can show a specific message (code in Auth.js JSON error URL). */
+class AccountSuspendedSignin extends CredentialsSignin {
+  code = "suspended";
+}
 
 /**
  * Auth.js rejects empty/whitespace secrets (`!secret?.length` → 500 on /api/auth/session).
@@ -30,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: email.toLowerCase().trim() },
         });
         if (!user?.passwordHash) return null;
-        if (user.suspendedAt) return null;
+        if (user.suspendedAt) throw new AccountSuspendedSignin();
         const ok = await compare(password, user.passwordHash);
         if (!ok) return null;
         return {
@@ -48,12 +54,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       // Keep JWT role aligned with DB (SQL promote / seed) so middleware + /admin stay consistent.
       if (token.sub) {
-        const row = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { role: true, suspendedAt: true },
-        });
-        if (row?.role) token.role = row.role;
-        token.suspended = Boolean(row?.suspendedAt);
+        try {
+          const row = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { role: true, suspendedAt: true },
+          });
+          if (row?.role) token.role = row.role;
+          token.suspended = Boolean(row?.suspendedAt);
+        } catch (e) {
+          console.error("[auth jwt] user refresh failed", e);
+          if (user && "role" in user) {
+            token.suspended = false;
+          }
+        }
       } else {
         token.suspended = false;
       }
