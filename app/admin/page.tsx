@@ -201,6 +201,11 @@ export default async function AdminPage() {
 
   const navCards = [
     {
+      href: "/admin/war-room",
+      title: "War room",
+      desc: "Queues, booking backlog preview, pulse, audit snippets.",
+    },
+    {
       href: "/admin/operations",
       title: "Operations",
       desc: "Approvals, early-access, bookings, recovery queues.",

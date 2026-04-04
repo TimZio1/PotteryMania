@@ -7,6 +7,7 @@ import { AdminSignOut } from "./admin-sign-out";
 
 const adminLinks = [
   { href: "/admin", label: "Executive overview" },
+  { href: "/admin/war-room", label: "War room" },
   { href: "/admin/audit", label: "Audit" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/revenue", label: "Revenue" },

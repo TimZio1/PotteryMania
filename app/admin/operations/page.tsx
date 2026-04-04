@@ -105,7 +105,7 @@ export default async function AdminOperationsPage() {
         this view is for human intervention.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div id="ops-stats" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Studios pending review" value={String(pending.length)} hint="Approve or reject to grow supply" />
         <StatCard
           label="Bookings awaiting vendor"
@@ -181,9 +181,13 @@ export default async function AdminOperationsPage() {
         </div>
       </section>
 
-      <AdminStudios initialStudios={pending} />
+      <div id="pending-studios">
+        <AdminStudios initialStudios={pending} />
+      </div>
       <AdminEarlyAccessList rows={earlyAccessRows} />
-      <AdminBookings />
+      <div id="booking-queue">
+        <AdminBookings />
+      </div>
     </div>
   );
 }
