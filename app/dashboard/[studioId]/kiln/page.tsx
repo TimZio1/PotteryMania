@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
+import { hasStudioFeature } from "@/lib/studio-features";
 import { ui } from "@/lib/ui-styles";
 import KilnManager from "@/components/dashboard/kiln-manager";
 
@@ -14,6 +15,10 @@ export default async function StudioKilnPage({ params }: Props) {
   const { studioId } = await params;
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
   if (!studio || studio.ownerUserId !== user.id) notFound();
+
+  if (!(await hasStudioFeature(studioId, "kiln_tracking"))) {
+    redirect(`/dashboard/${studioId}/features`);
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">

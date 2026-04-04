@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import StudioPanelShell from "@/components/dashboard/studio-panel-shell";
+import { getStudioPanelNavForStudio } from "@/lib/studio-panel-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,10 @@ export default async function StudioPanelLayout({ children, params }: Props) {
   });
   if (!studio || studio.ownerUserId !== user.id) notFound();
 
+  const navItems = await getStudioPanelNavForStudio(studio.id);
+
   return (
-    <StudioPanelShell studioId={studio.id} studioName={studio.displayName}>
+    <StudioPanelShell studioId={studio.id} studioName={studio.displayName} navItems={navItems}>
       {children}
     </StudioPanelShell>
   );

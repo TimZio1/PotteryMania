@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
-import { STUDIO_FEATURE_CATALOG } from "@/lib/studio-feature-catalog";
 import { ui } from "@/lib/ui-styles";
 import StudioFeaturesClient from "@/components/dashboard/studio-features-client";
 
@@ -22,11 +21,11 @@ export default async function StudioFeaturesPage({ params }: Props) {
         <p className={ui.overline}>Add-ons</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Features / Add-ons</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Turn capabilities on in your preferences. Platform billing and instant activation will connect in a later
-          release — your choices are saved now.
+          Turn capabilities on in your preferences. The catalog is managed in Hyperadmin; billing and Stripe items will
+          connect in a later release.
         </p>
       </div>
-      <StudioFeaturesClient studioId={studioId} catalog={STUDIO_FEATURE_CATALOG} />
+      <StudioFeaturesClient studioId={studioId} />
     </div>
   );
 }

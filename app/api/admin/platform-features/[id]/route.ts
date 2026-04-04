@@ -1,0 +1,121 @@
+import { NextResponse } from "next/server";
+import type { PlatformFeatureVisibility } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import { requireAdminUser } from "@/lib/auth-session";
+import { logAdminAction } from "@/lib/admin-audit";
+
+export const dynamic = "force-dynamic";
+
+const VIS: PlatformFeatureVisibility[] = ["public", "hidden", "beta"];
+
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function PATCH(req: Request, ctx: Ctx) {
+  const user = await requireAdminUser();
+  if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await ctx.params;
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  let body: {
+    name?: string;
+    description?: string;
+    category?: string;
+    priceCents?: number;
+    currency?: string;
+    isActive?: boolean;
+    grantByDefault?: boolean;
+    visibility?: string;
+    sortOrder?: number;
+  };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const before = await prisma.platformFeature.findUnique({ where: { id } });
+  if (!before) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const data: {
+    name?: string;
+    description?: string;
+    category?: string;
+    priceCents?: number;
+    currency?: string;
+    isActive?: boolean;
+    grantByDefault?: boolean;
+    visibility?: PlatformFeatureVisibility;
+    sortOrder?: number;
+  } = {};
+
+  if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
+  if (typeof body.description === "string") data.description = body.description;
+  if (typeof body.category === "string" && body.category.trim()) data.category = body.category.trim();
+  if (typeof body.priceCents === "number" && Number.isFinite(body.priceCents) && body.priceCents >= 0) {
+    data.priceCents = Math.round(body.priceCents);
+  }
+  if (typeof body.currency === "string" && body.currency.trim().length === 3) {
+    data.currency = body.currency.trim().toUpperCase();
+  }
+  if (typeof body.isActive === "boolean") data.isActive = body.isActive;
+  if (typeof body.grantByDefault === "boolean") data.grantByDefault = body.grantByDefault;
+  if (typeof body.visibility === "string" && VIS.includes(body.visibility as PlatformFeatureVisibility)) {
+    data.visibility = body.visibility as PlatformFeatureVisibility;
+  }
+  if (typeof body.sortOrder === "number" && Number.isFinite(body.sortOrder)) {
+    data.sortOrder = Math.round(body.sortOrder);
+  }
+
+  if (!Object.keys(data).length) {
+    return NextResponse.json({ error: "No changes" }, { status: 400 });
+  }
+
+  const updated = await prisma.platformFeature.update({
+    where: { id },
+    data,
+  });
+
+  await logAdminAction({
+    actorUserId: user.id,
+    action: "platform_feature.update",
+    entityType: "platform_feature",
+    entityId: id,
+    before: {
+      slug: before.slug,
+      name: before.name,
+      priceCents: before.priceCents,
+      isActive: before.isActive,
+      grantByDefault: before.grantByDefault,
+      visibility: before.visibility,
+      sortOrder: before.sortOrder,
+    },
+    after: {
+      slug: updated.slug,
+      name: updated.name,
+      priceCents: updated.priceCents,
+      isActive: updated.isActive,
+      grantByDefault: updated.grantByDefault,
+      visibility: updated.visibility,
+      sortOrder: updated.sortOrder,
+    },
+    reason: null,
+  });
+
+  return NextResponse.json({
+    feature: {
+      id: updated.id,
+      slug: updated.slug,
+      name: updated.name,
+      description: updated.description,
+      category: updated.category,
+      priceCents: updated.priceCents,
+      currency: updated.currency,
+      isActive: updated.isActive,
+      visibility: updated.visibility,
+      grantByDefault: updated.grantByDefault,
+      sortOrder: updated.sortOrder,
+      updatedAt: updated.updatedAt.toISOString(),
+    },
+  });
+}

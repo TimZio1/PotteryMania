@@ -1,3 +1,5 @@
+import { hasStudioFeature } from "@/lib/studio-features";
+
 /** Studio Owner Panel — sidebar navigation (paths relative to `/dashboard/[studioId]`). */
 
 export type StudioPanelNavItem = {
@@ -21,4 +23,12 @@ export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
     { href: b("/features"), label: "Features / Add-ons" },
     { href: b("/settings"), label: "Settings" },
   ];
+}
+
+/** Sidebar items respecting platform feature gates (e.g. kiln add-on). */
+export async function getStudioPanelNavForStudio(studioId: string): Promise<StudioPanelNavItem[]> {
+  const all = studioPanelNav(studioId);
+  const kilnOk = await hasStudioFeature(studioId, "kiln_tracking");
+  if (kilnOk) return all;
+  return all.filter((i) => !i.href.endsWith("/kiln"));
 }

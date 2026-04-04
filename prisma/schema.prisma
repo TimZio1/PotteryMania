@@ -129,8 +129,9 @@ model Studio {
   shippingRateQuotes   ShippingRateQuote[]
   financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerStudio")
   featureUsageFacts    FeatureUsageFact[]
-  kilnFirings          KilnFiring[]
-  studioFeatureRequests StudioFeatureRequest[]
+  kilnFirings               KilnFiring[]
+  studioFeatureRequests     StudioFeatureRequest[]
+  studioFeatureActivations  StudioFeatureActivation[]
 
   @@index([status])
   @@index([country, city])
@@ -1477,4 +1478,62 @@ model StudioFeatureRequest {
   @@unique([studioId, featureKey])
   @@index([studioId])
   @@map("studio_feature_requests")
+}
+
+enum PlatformFeatureVisibility {
+  public
+  hidden
+  beta
+}
+
+enum StudioFeatureActivationStatus {
+  inactive
+  active
+  trialing
+  pending_cancel
+}
+
+/// Global add-on catalog (Hyperadmin-managed). Slugs match legacy `feature_key` values.
+model PlatformFeature {
+  id             String                    @id @default(uuid()) @db.Uuid
+  slug           String                    @unique
+  name           String
+  description    String                    @default("")
+  category       String                    @default("addons")
+  priceCents     Int                       @map("price_cents")
+  currency       String                    @default("EUR")
+  isActive       Boolean                   @default(true) @map("is_active")
+  visibility     PlatformFeatureVisibility @default(public)
+  /// When true, every studio has access unless Hyperadmin turns this off for monetization.
+  grantByDefault Boolean                   @default(true) @map("grant_by_default")
+  sortOrder      Int                       @default(0) @map("sort_order")
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
+
+  activations StudioFeatureActivation[]
+
+  @@index([isActive])
+  @@map("platform_features")
+}
+
+model StudioFeatureActivation {
+  id                         String                        @id @default(uuid()) @db.Uuid
+  studioId                   String                        @map("studio_id") @db.Uuid
+  featureId                  String                        @map("feature_id") @db.Uuid
+  status                     StudioFeatureActivationStatus @default(inactive)
+  trialEndsAt                DateTime?                     @map("trial_ends_at")
+  deactivatesAt              DateTime?                     @map("deactivates_at")
+  stripeSubscriptionItemId   String?                       @map("stripe_subscription_item_id")
+  overridePriceCents         Int?                          @map("override_price_cents")
+  activatedAt                DateTime?                     @map("activated_at")
+  createdAt                  DateTime                      @default(now()) @map("created_at")
+  updatedAt                  DateTime                      @updatedAt @map("updated_at")
+
+  studio  Studio          @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  feature PlatformFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, featureId])
+  @@index([studioId])
+  @@index([featureId])
+  @@map("studio_feature_activations")
 }

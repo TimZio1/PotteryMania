@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
+import { kilnFeatureDeniedResponse } from "@/lib/studio-features";
 
 type Ctx = { params: Promise<{ studioId: string; itemId: string }> };
 
@@ -12,6 +13,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (!studio || studio.ownerUserId !== user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  const kilnDenied = await kilnFeatureDeniedResponse(studioId);
+  if (kilnDenied) return kilnDenied;
 
   const item = await prisma.kilnItem.findFirst({
     where: { id: itemId, firing: { studioId } },

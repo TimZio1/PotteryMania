@@ -4,19 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import type { StudioPanelNavItem } from "@/lib/studio-panel-nav";
 import { studioPanelNav } from "@/lib/studio-panel-nav";
 
 export default function StudioPanelShell({
   studioId,
   studioName,
+  navItems,
   children,
 }: {
   studioId: string;
   studioName: string;
+  navItems?: StudioPanelNavItem[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const nav = studioPanelNav(studioId);
+  const nav = navItems ?? studioPanelNav(studioId);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
