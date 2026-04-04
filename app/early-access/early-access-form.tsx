@@ -129,7 +129,7 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
         {count > 0 && (
-          <p className="mt-4 text-xs text-stone-400">
+          <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
             {count} {count === 1 ? "studio" : "studios"} registered so far.
           </p>
         )}
@@ -300,13 +300,13 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
       </button>
 
       {/* Trust + counter */}
-      <div className="flex flex-col items-center gap-2 pt-1">
-        <p className="text-center text-xs text-stone-400">
+      <div className="flex flex-col items-center gap-3 border-t border-stone-200/80 pt-5">
+        <p className="text-center text-base font-semibold leading-snug text-stone-800 sm:text-lg">
           No credit card. No commitment. Cancel anytime.
         </p>
         {count > 0 && (
-          <p className="flex items-center gap-1.5 text-xs text-stone-400">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+          <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-stone-900 sm:text-lg">
+            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
             {count} {count === 1 ? "studio" : "studios"} already registered
           </p>
         )}

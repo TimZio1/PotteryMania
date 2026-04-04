@@ -75,7 +75,7 @@ export default async function EarlyAccessPage() {
           </div>
 
           {/* EU note */}
-          <p className="mt-4 text-center text-xs text-stone-400/80">
+          <p className="mx-auto mt-6 max-w-lg text-center text-base font-medium leading-relaxed text-stone-100 sm:text-lg">
             {EUROPEAN_PREREGISTRATION_NOTE}
           </p>
         </div>
