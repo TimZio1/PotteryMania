@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { BrandLogo } from "@/components/brand-logo";
 import { prisma } from "@/lib/db";
 import { PromoCountdown } from "@/components/promo-countdown";
-import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { isPromoActive } from "@/lib/promo";
 import { buildMetadata } from "@/lib/seo";
 import { EarlyAccessForm } from "./early-access-form";
@@ -40,6 +39,10 @@ export default async function EarlyAccessPage() {
 
         {/* Content */}
         <div className="relative z-10 mx-auto w-full max-w-xl px-5 pt-24 pb-16 sm:px-6 sm:pt-28 sm:pb-20">
+          <div className="mb-8 flex justify-center sm:mb-10">
+            <BrandLogo href="/" variant="on-dark" size="lg" priority />
+          </div>
+
           {/* Urgency banner */}
           {promoActive && (
             <div className="mb-8 flex flex-col items-center gap-3 text-center sm:mb-10">
@@ -67,17 +70,15 @@ export default async function EarlyAccessPage() {
           <div className="mt-8 rounded-3xl border border-white/10 bg-white/95 p-6 shadow-2xl shadow-black/30 backdrop-blur-md sm:mt-10 sm:p-8">
             <EarlyAccessForm initialCount={initialCount} />
           </div>
-
-          {/* EU note */}
-          <p className="mx-auto mt-6 max-w-lg text-center text-base font-medium leading-relaxed text-stone-100 sm:text-lg">
-            {EUROPEAN_PREREGISTRATION_NOTE}
-          </p>
         </div>
       </section>
 
       {/* Below fold: value props */}
       <section className="border-t border-(--brand-line) bg-white">
         <div className="mx-auto max-w-4xl px-5 py-16 sm:px-6 sm:py-24">
+          <div className="mb-8 flex justify-center sm:mb-10">
+            <BrandLogo href="/" size="md" className="text-(--brand-ink)" />
+          </div>
           <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-400">
             Everything your studio needs
           </p>

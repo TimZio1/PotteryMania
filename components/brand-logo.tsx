@@ -11,12 +11,13 @@ type Props = {
   priority?: boolean;
   /** Dark hero backgrounds: light frame so the cream logo reads clearly. */
   variant?: "default" | "on-dark";
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 };
 
 const sizeHeights: Record<NonNullable<Props["size"]>, string> = {
   sm: "h-7",
   md: "h-8 sm:h-9",
+  lg: "h-11 w-auto sm:h-14 md:h-[4.25rem]",
 };
 
 export function BrandLogo({
@@ -26,12 +27,13 @@ export function BrandLogo({
   variant = "default",
   size = "md",
 }: Props) {
+  const imgDims = size === "lg" ? { width: 320, height: 86 } : { width: 240, height: 64 };
   const img = (
     <Image
       src={BRAND_LOGO_PUBLIC_PATH}
       alt="PotteryMania"
-      width={240}
-      height={64}
+      width={imgDims.width}
+      height={imgDims.height}
       className={cn(sizeHeights[size], "w-auto")}
       priority={priority}
     />

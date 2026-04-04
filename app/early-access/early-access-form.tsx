@@ -75,6 +75,11 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
     setUploadNotice("");
     setPending(true);
 
+    const metaEventId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
     try {
       const photoUrls: string[] = [];
       let uploadsSkipped = false;
