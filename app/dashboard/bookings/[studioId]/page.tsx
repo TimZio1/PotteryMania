@@ -88,6 +88,8 @@ export default async function StudioBookingsPage({ params }: Props) {
             <VendorBookingActions
               bookingId={booking.id}
               bookingStatus={booking.bookingStatus}
+              participantCount={booking.participantCount}
+              seatType={booking.seatType}
             />
           </div>
         ))}

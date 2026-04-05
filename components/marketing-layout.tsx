@@ -35,6 +35,15 @@ export function MarketingLayout({ children, toolbar }: Props) {
               <Link href="/early-access" className="transition hover:text-(--brand-ink)">
                 Early access
               </Link>
+              <Link href="/terms" className="transition hover:text-(--brand-ink)">
+                Terms
+              </Link>
+              <Link href="/privacy" className="transition hover:text-(--brand-ink)">
+                Privacy
+              </Link>
+              <Link href="/vendor-terms" className="transition hover:text-(--brand-ink)">
+                Studio terms
+              </Link>
               {!isPreregistrationOnly() ? (
                 <Link href="/login" className="transition hover:text-(--brand-ink)">
                   Sign in

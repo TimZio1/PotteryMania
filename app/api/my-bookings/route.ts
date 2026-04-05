@@ -20,7 +20,7 @@ export async function GET() {
       ticketRef: true,
       seatType: true,
       experience: { select: { id: true, title: true, coverImageUrl: true } },
-      slot: { select: { slotDate: true, startTime: true, endTime: true, status: true } },
+      slot: { select: { id: true, slotDate: true, startTime: true, endTime: true, status: true } },
       studio: { select: { displayName: true } },
       cancellations: { select: { cancelledByRole: true, refundOutcome: true, createdAt: true }, take: 1, orderBy: { createdAt: "desc" } },
     },

@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser, isAdminRole } from "@/lib/auth-session";
 import { cancelBooking } from "@/lib/bookings/cancel";
+import { stripeRefundForBooking } from "@/lib/bookings/stripe-refund-booking";
 import { sendBookingEmails } from "@/lib/email/booking-notify";
+import type { Prisma } from "@prisma/client";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
 
@@ -48,6 +50,46 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
+  let stripeRefund: { refundId: string; amountCents: number } | null = null;
+  let stripeRefundError: string | null = null;
+  if (result.refundAmountCents > 0) {
+    const sr = await stripeRefundForBooking(bookingId, result.refundAmountCents);
+    if (sr.ok && "refundId" in sr) {
+      stripeRefund = { refundId: sr.refundId, amountCents: sr.amountCents };
+      await prisma.bookingAuditLog.create({
+        data: {
+          bookingId,
+          actionType: "stripe_refund_succeeded",
+          actorRole: "system",
+          payload: {
+            refundId: sr.refundId,
+            amountCents: sr.amountCents,
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } else if (!sr.ok) {
+      stripeRefundError = sr.error;
+      const latest = await prisma.bookingCancellation.findFirst({
+        where: { bookingId },
+        orderBy: { createdAt: "desc" },
+      });
+      if (latest) {
+        await prisma.bookingCancellation.update({
+          where: { id: latest.id },
+          data: { refundOutcome: "manual_refund_review_required" },
+        });
+      }
+      await prisma.bookingAuditLog.create({
+        data: {
+          bookingId,
+          actionType: "stripe_refund_failed",
+          actorRole: "system",
+          payload: { error: sr.error, requestedCents: result.refundAmountCents } as Prisma.InputJsonValue,
+        },
+      });
+    }
+  }
+
   try {
     const slotDate = booking.slot.slotDate.toISOString().slice(0, 10);
     const subject = `Booking cancelled: ${booking.experience.title} on ${slotDate}`;
@@ -66,5 +108,9 @@ export async function POST(req: Request, ctx: Ctx) {
     console.error("[cancel-email]", e);
   }
 
-  return NextResponse.json(result);
+  return NextResponse.json({
+    ...result,
+    stripeRefund,
+    stripeRefundError,
+  });
 }

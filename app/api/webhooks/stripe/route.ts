@@ -16,7 +16,7 @@ import type { Prisma } from "@prisma/client";
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
  * If experience.bookingApprovalRequired, booking becomes awaiting_vendor_approval until vendor approves → confirmed.
- * Reject (vendor) releases capacity; refund of charged amount is manual / out of band unless you add Stripe Refund API.
+ * Reject (vendor) releases capacity; customer/vendor cancel via API attempts Stripe refund when policy allows (`stripe-refund-booking`).
  */
 
 export async function POST(req: Request) {

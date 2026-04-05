@@ -24,12 +24,33 @@ async function main() {
   }
   const email = emailRaw.trim().toLowerCase();
   const passwordHash = await hash(password, 12);
+  const now = new Date();
   await prisma.user.upsert({
     where: { email },
-    create: { email, passwordHash, role: "hyper_admin" },
-    update: { passwordHash, role: "hyper_admin" },
+    create: { email, passwordHash, role: "hyper_admin", emailVerifiedAt: now },
+    update: { passwordHash, role: "hyper_admin", emailVerifiedAt: now },
   });
   console.log("[seed] hyper_admin ready — sign in at /login with:", email);
+
+  await prisma.featureFlag.upsert({
+    where: { flagKey: "booking_checkout_enabled" },
+    create: {
+      flagKey: "booking_checkout_enabled",
+      flagValue: { description: "When inactive, class booking checkout returns 503." },
+      isActive: true,
+    },
+    update: {},
+  });
+  await prisma.featureFlag.upsert({
+    where: { flagKey: "marketplace_checkout_enabled" },
+    create: {
+      flagKey: "marketplace_checkout_enabled",
+      flagValue: { description: "When inactive, product lines in cart checkout return 503." },
+      isActive: true,
+    },
+    update: {},
+  });
+  console.log("[seed] runtime checkout feature flags upserted (see /admin/system)");
 }
 
 main()

@@ -136,6 +136,24 @@ export default async function EarlyAccessPage() {
             <span className="hidden text-stone-300 sm:inline" aria-hidden>
               ·
             </span>
+            <Link href="/terms" className="transition hover:text-(--brand-ink)">
+              Terms
+            </Link>
+            <span className="hidden text-stone-300 sm:inline" aria-hidden>
+              ·
+            </span>
+            <Link href="/privacy" className="transition hover:text-(--brand-ink)">
+              Privacy
+            </Link>
+            <span className="hidden text-stone-300 sm:inline" aria-hidden>
+              ·
+            </span>
+            <Link href="/vendor-terms" className="transition hover:text-(--brand-ink)">
+              Studio terms
+            </Link>
+            <span className="hidden text-stone-300 sm:inline" aria-hidden>
+              ·
+            </span>
             <span>Made with clay and code.</span>
           </p>
         </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
+import { clearRuntimeFlagCache } from "@/lib/runtime-feature-flags";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,8 @@ export async function PATCH(req: Request) {
     after: { flagKey: updated.flagKey, isActive: updated.isActive, flagValue: updated.flagValue },
     reason: null,
   });
+
+  clearRuntimeFlagCache(updated.flagKey);
 
   return NextResponse.json({ flag: updated });
 }

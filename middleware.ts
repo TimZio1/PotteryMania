@@ -6,12 +6,17 @@ import {
   isPreregistrationOnly,
 } from "@/lib/preregistration";
 
-const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart"];
+const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart", "/account"];
 /** Public without marketplace; /register only when browsing is open (not preregistration-only). */
 const BASE_PUBLIC_CORE = [
   "/",
   "/early-access",
   "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/terms",
+  "/privacy",
+  "/vendor-terms",
   "/checkout/success",
   "/unauthorized-admin",
 ];

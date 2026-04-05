@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ui } from "@/lib/ui-styles";
+import { RescheduleBookingPanel } from "@/components/bookings/reschedule-booking-panel";
 
 type Booking = {
   id: string;
@@ -15,15 +16,20 @@ type Booking = {
   ticketRef: string | null;
   seatType: string | null;
   experience: { id: string; title: string };
-  slot: { slotDate: string; startTime: string; endTime: string; status: string };
+  slot: { id: string; slotDate: string; startTime: string; endTime: string; status: string };
   studio: { displayName: string };
   cancellations: { cancelledByRole: string; refundOutcome: string; createdAt: string }[];
 };
+
+type CalendarLinkPayload = { httpsUrl: string; webcalUrl: string; note: string };
 
 export function MyBookingsClient() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState("");
+  const [calendarLink, setCalendarLink] = useState<CalendarLinkPayload | null>(null);
+  const [calendarLinkErr, setCalendarLinkErr] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/my-bookings");
@@ -37,6 +43,21 @@ export function MyBookingsClient() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const res = await fetch("/api/my-bookings/calendar-link");
+      if (!res.ok) return;
+      const data = (await res.json()) as CalendarLinkPayload;
+      if (!cancelled) setCalendarLink(data);
+    })().catch(() => {
+      if (!cancelled) setCalendarLinkErr("Could not load calendar link.");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleCancel(bookingId: string) {
     if (!confirm("Cancel this booking? Refunds follow the studio’s policy.")) return;
@@ -85,6 +106,55 @@ export function MyBookingsClient() {
         </div>
       ) : null}
 
+      {calendarLinkErr ? (
+        <p className="mt-4 text-sm text-stone-500">{calendarLinkErr}</p>
+      ) : null}
+
+      {calendarLink ? (
+        <div className={`${ui.cardMuted} mt-6 space-y-3`}>
+          <p className="text-sm font-medium text-stone-800">Calendar</p>
+          <p className="text-xs text-stone-600">{calendarLink.note}</p>
+          <div className="flex flex-wrap gap-2">
+            <a href="/api/my-bookings/calendar" className={ui.buttonSecondary}>
+              Download all (.ics)
+            </a>
+            <button
+              type="button"
+              className={ui.buttonSecondary}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(calendarLink.httpsUrl);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                } catch {
+                  setCalendarLinkErr("Could not copy to clipboard.");
+                }
+              }}
+            >
+              {copied ? "Copied" : "Copy subscribe URL"}
+            </button>
+          </div>
+          <label className={ui.label} htmlFor="cal-feed-url">
+            Subscribe URL (HTTPS)
+          </label>
+          <input
+            id="cal-feed-url"
+            readOnly
+            value={calendarLink.httpsUrl}
+            className={`${ui.input} font-mono text-sm`}
+            onFocus={(e) => e.target.select()}
+          />
+          <p className={ui.helper}>
+            In Apple Calendar: File → New Calendar Subscription. Google Calendar: Settings → Add calendar → From URL.
+            You can also try{" "}
+            <a href={calendarLink.webcalUrl} className="font-medium text-amber-900 underline underline-offset-2">
+              open in calendar app (webcal)
+            </a>
+            .
+          </p>
+        </div>
+      ) : null}
+
       <div className="mt-8 space-y-4">
         {bookings.length === 0 ? (
           <div className={`${ui.cardMuted}`}>
@@ -128,8 +198,21 @@ export function MyBookingsClient() {
                 ) : null}
               </div>
             </div>
-            {isCancellable(b.bookingStatus) ? (
-              <div className="mt-5 border-t border-stone-100 pt-4">
+            <div className="mt-5 space-y-4 border-t border-stone-100 pt-4">
+              <a
+                href={`/api/bookings/${b.id}/calendar`}
+                className={`${ui.buttonSecondary} inline-flex text-center`}
+              >
+                Download calendar (.ics)
+              </a>
+              <RescheduleBookingPanel
+                bookingId={b.id}
+                bookingStatus={b.bookingStatus}
+                participantCount={b.participantCount}
+                seatType={b.seatType}
+                onSuccess={load}
+              />
+              {isCancellable(b.bookingStatus) ? (
                 <button
                   type="button"
                   onClick={() => handleCancel(b.id)}
@@ -137,8 +220,8 @@ export function MyBookingsClient() {
                 >
                   Cancel booking
                 </button>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
         ))}
       </div>

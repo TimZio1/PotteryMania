@@ -7,6 +7,9 @@ export const PROMO_DEADLINE = new Date("2026-05-01T23:59:59Z");
 
 export const PROMO_LABEL = "Free until 1 May 2026";
 
+/** Shown next to the live countdown on the landing strip and early-access page. */
+export const PROMO_COUNTDOWN_HEADLINE = "FREE PRE-REGISTRATION ENDS IN";
+
 export function isPromoActive(now = new Date()): boolean {
   return now < PROMO_DEADLINE;
 }

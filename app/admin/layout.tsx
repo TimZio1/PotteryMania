@@ -11,6 +11,8 @@ const adminLinks = [
   { href: "/admin/audit", label: "Audit" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/revenue", label: "Revenue" },
+  { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/operations", label: "Operations" },
   { href: "/admin/content", label: "Content" },
   { href: "/admin/platform-features", label: "Platform add-ons" },

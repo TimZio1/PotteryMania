@@ -34,6 +34,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!email || !password) return null;
         const user = await prisma.user.findUnique({
           where: { email: email.toLowerCase().trim() },
+          select: {
+            id: true,
+            email: true,
+            passwordHash: true,
+            role: true,
+            suspendedAt: true,
+            emailVerifiedAt: true,
+          },
         });
         if (!user?.passwordHash) return null;
         if (user.suspendedAt) throw new AccountSuspendedSignin();
@@ -57,10 +65,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           const row = await prisma.user.findUnique({
             where: { id: token.sub },
-            select: { role: true, suspendedAt: true },
+            select: { role: true, suspendedAt: true, emailVerifiedAt: true },
           });
           if (row?.role) token.role = row.role;
           token.suspended = Boolean(row?.suspendedAt);
+          token.emailVerified = Boolean(row?.emailVerifiedAt);
         } catch (e) {
           console.error("[auth jwt] user refresh failed", e);
           if (user && "role" in user) {
@@ -77,6 +86,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.sub ?? "";
         (session.user as { role?: string }).role = token.role as string;
         (session.user as { suspended?: boolean }).suspended = Boolean(token.suspended);
+        (session.user as { emailVerified?: boolean }).emailVerified = Boolean(token.emailVerified);
       }
       return session;
     },

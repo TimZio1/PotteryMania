@@ -29,7 +29,9 @@ export function RegisterForm() {
         setPending(false);
         return;
       }
-      setOk("Account created. You can now sign in.");
+      setOk(
+        "Account created. We sent a verification link to your email — confirm it when you can. You can sign in right away.",
+      );
       setPending(false);
     } catch {
       setErr("Something went wrong. Please try again.");
@@ -61,6 +63,15 @@ export function RegisterForm() {
           <option value="customer">Customer — shop &amp; book</option>
           <option value="vendor">Studio / vendor — sell &amp; schedule</option>
         </select>
+        {role === "vendor" ? (
+          <p className="mt-2 text-xs text-stone-500">
+            By choosing a studio account you also agree to our{" "}
+            <Link href="/vendor-terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+              studio &amp; vendor terms
+            </Link>
+            .
+          </p>
+        ) : null}
       </div>
       <div>
         <label className={ui.label} htmlFor="reg-email">

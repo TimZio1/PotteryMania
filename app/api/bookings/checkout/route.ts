@@ -7,6 +7,7 @@ import { depositChargedCents } from "@/lib/bookings/deposit";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import type { CancellationPolicy } from "@prisma/client";
 
 function baseUrl() {
@@ -29,6 +30,12 @@ export async function POST(req: Request) {
   const rate = assertRateLimit(req, "booking-checkout", 20, 60_000);
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many booking attempts" }, { status: 429 });
+  }
+  if (!(await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.bookingCheckoutEnabled))) {
+    return NextResponse.json(
+      { error: "Class booking checkout is temporarily unavailable. Please try again later." },
+      { status: 503 },
+    );
   }
   const user = await getSessionUser();
 

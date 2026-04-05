@@ -111,5 +111,34 @@ export async function generateSlotsForRule(
     return created;
   }
 
+  /** Explicit calendar dates stored in `weekdays` as YYYY-MM-DD (not mon/tue/…). */
+  if (rule.scheduleType === "manually_added_dates") {
+    const isoDay = /^\d{4}-\d{2}-\d{2}$/;
+    for (const raw of rule.weekdays || []) {
+      const s = String(raw).trim();
+      if (!isoDay.test(s)) continue;
+      const d = stripTime(new Date(`${s}T12:00:00.000Z`));
+      if (d < from || d > to) continue;
+      if (blockedDates.has(d.toISOString().slice(0, 10))) continue;
+      created += await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
+    }
+    return created;
+  }
+
+  /** One slot per calendar day between recurrenceStartDate and recurrenceEndDate (inclusive). */
+  if (rule.scheduleType === "flexible_window") {
+    if (!rule.recurrenceStartDate || !rule.recurrenceEndDate) return 0;
+    const ruleStart = stripTime(new Date(rule.recurrenceStartDate));
+    const ruleEnd = stripTime(new Date(rule.recurrenceEndDate));
+    const cursorStart = maxDate(from, ruleStart);
+    const cursorEnd = minDate(to, ruleEnd);
+    if (cursorEnd < cursorStart) return 0;
+    for (let d = new Date(cursorStart); d <= cursorEnd; d = addDays(d, 1)) {
+      if (blockedDates.has(d.toISOString().slice(0, 10))) continue;
+      created += await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
+    }
+    return created;
+  }
+
   return 0;
 }

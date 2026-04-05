@@ -4,9 +4,9 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { DataTable } from "@/components/admin/data-table";
 import { StatCard } from "@/components/admin/stat-card";
-import { AdminBookings } from "../admin-bookings";
 import { AdminEarlyAccessList } from "../admin-early-access";
 import { AdminStudios } from "../admin-studios";
+import { ui } from "@/lib/ui-styles";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +27,7 @@ export default async function AdminOperationsPage() {
     bookingsAwaitingApprovalCount,
     calendarErrorsLast30,
     cronRuns,
+    manualRefundRows,
   ] = await Promise.all([
     prisma.studio.findMany({
       where: { status: "pending_review" },
@@ -67,6 +68,24 @@ export default async function AdminOperationsPage() {
       orderBy: { createdAt: "desc" },
       take: 25,
       select: { id: true, createdAt: true, entityId: true, afterJson: true },
+    }),
+    prisma.bookingCancellation.findMany({
+      where: { refundOutcome: "manual_refund_review_required" },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: {
+        booking: {
+          select: {
+            id: true,
+            customerEmail: true,
+            customerName: true,
+            totalAmountCents: true,
+            bookingStatus: true,
+            experience: { select: { title: true } },
+            studio: { select: { displayName: true } },
+          },
+        },
+      },
     }),
   ]);
 
@@ -131,6 +150,84 @@ export default async function AdminOperationsPage() {
         />
       </div>
 
+      <section id="manual-refund-queue" className="mt-10">
+        <h2 className="text-lg font-semibold text-amber-950">Manual refund queue</h2>
+        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+          Cancellations where Stripe automation could not finish the refund. Complete in Stripe Dashboard, then update
+          records or leave notes in{" "}
+          <Link href="/admin/audit" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+            Audit
+          </Link>
+          .
+        </p>
+        <div className="mt-4">
+          <DataTable
+            rows={manualRefundRows}
+            empty="No manual refund cases. When webhooks or policy edge cases require human refunds, rows appear here."
+            columns={[
+              {
+                key: "when",
+                header: "Flagged (UTC)",
+                cell: (r) => (
+                  <span className="whitespace-nowrap text-xs text-stone-500">
+                    {r.createdAt.toISOString().slice(0, 19)}
+                  </span>
+                ),
+              },
+              {
+                key: "booking",
+                header: "Booking",
+                cell: (r) => (
+                  <Link
+                    href={`/admin/bookings/${r.booking.id}`}
+                    className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline"
+                  >
+                    Open
+                  </Link>
+                ),
+              },
+              {
+                key: "guest",
+                header: "Guest",
+                cell: (r) => (
+                  <div>
+                    <div className="text-sm text-stone-800">{r.booking.customerName}</div>
+                    <div className="text-xs text-stone-500">{r.booking.customerEmail}</div>
+                  </div>
+                ),
+              },
+              {
+                key: "class",
+                header: "Experience / studio",
+                cell: (r) => (
+                  <div className="text-xs text-stone-600">
+                    <div className="font-medium text-stone-800">{r.booking.experience.title}</div>
+                    <div>{r.booking.studio.displayName}</div>
+                  </div>
+                ),
+              },
+              {
+                key: "amt",
+                header: "Total",
+                cell: (r) => (
+                  <span className="tabular-nums text-sm">€{(r.booking.totalAmountCents / 100).toFixed(2)}</span>
+                ),
+              },
+              {
+                key: "st",
+                header: "Status",
+                cell: (r) => <code className="text-xs">{r.booking.bookingStatus}</code>,
+              },
+              {
+                key: "refund",
+                header: "Refund ¢",
+                cell: (r) => <span className="text-xs tabular-nums">{r.refundAmountCents}</span>,
+              },
+            ]}
+          />
+        </div>
+      </section>
+
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-amber-950">Scheduled jobs</h2>
         <p className="mt-2 text-sm text-stone-600">
@@ -185,9 +282,16 @@ export default async function AdminOperationsPage() {
         <AdminStudios initialStudios={pending} />
       </div>
       <AdminEarlyAccessList rows={earlyAccessRows} />
-      <div id="booking-queue">
-        <AdminBookings />
-      </div>
+      <section id="booking-queue" className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-amber-950">Bookings</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          Search, filter by studio and session date, and open full booking detail (orders, cancellations, reschedules) on
+          the dedicated console.
+        </p>
+        <Link href="/admin/bookings" className={`${ui.buttonPrimary} mt-4 inline-flex`}>
+          Open booking console
+        </Link>
+      </section>
     </div>
   );
 }

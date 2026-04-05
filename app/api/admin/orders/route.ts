@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
-import type { Prisma } from "@prisma/client";
+import { findAdminOrdersForList } from "@/lib/admin-orders-query";
 
 export async function GET(req: Request) {
   const user = await requireAdminUser();
@@ -11,18 +10,6 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const studioId = searchParams.get("studioId");
   const status = searchParams.get("status");
-  const where: Prisma.OrderWhereInput = {};
-  if (studioId) where.items = { some: { vendorId: studioId } };
-  if (status) where.orderStatus = status as Prisma.OrderWhereInput["orderStatus"];
-
-  const orders = await prisma.order.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    include: {
-      items: { include: { vendor: { select: { displayName: true } } } },
-      payments: true,
-    },
-  });
+  const orders = await findAdminOrdersForList({ studioId, status, take: 100 });
   return NextResponse.json({ orders });
 }

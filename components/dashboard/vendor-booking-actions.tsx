@@ -2,13 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { BookingStatus } from "@prisma/client";
+import { isReschedulable } from "@/lib/bookings/status";
+import { RescheduleBookingPanel } from "@/components/bookings/reschedule-booking-panel";
 
 export default function VendorBookingActions({
   bookingId,
   bookingStatus,
+  participantCount,
+  seatType,
 }: {
   bookingId: string;
   bookingStatus: string;
+  participantCount: number;
+  seatType?: string | null;
 }) {
   const [msg, setMsg] = useState("");
   const router = useRouter();
@@ -86,48 +93,67 @@ export default function VendorBookingActions({
   }
 
   const showBlock = needsApproval || isCancellable || canMarkCompleted;
-
-  if (!showBlock) return null;
+  const showReschedule = isReschedulable(bookingStatus as BookingStatus);
 
   return (
-    <div className="mt-3 space-y-2 border-t border-stone-100 pt-3">
-      {needsApproval && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={handleApprove}
-            className="min-h-11 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800"
-          >
-            Approve
-          </button>
-          <button
-            type="button"
-            onClick={handleReject}
-            className="min-h-11 rounded-lg bg-stone-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700"
-          >
-            Decline
-          </button>
+    <div className="space-y-2">
+      <a
+        href={`/api/bookings/${bookingId}/calendar`}
+        className="inline-block text-xs font-medium text-amber-900 underline underline-offset-2"
+      >
+        Calendar (.ics)
+      </a>
+      {showBlock || showReschedule ? (
+        <div className="mt-3 space-y-2 border-t border-stone-100 pt-3">
+          {showBlock && needsApproval && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleApprove}
+                className="min-h-11 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800"
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                onClick={handleReject}
+                className="min-h-11 rounded-lg bg-stone-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700"
+              >
+                Decline
+              </button>
+            </div>
+          )}
+          {showBlock && canMarkCompleted && (
+            <button
+              type="button"
+              onClick={handleMarkCompleted}
+              className="min-h-11 rounded-lg bg-amber-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-900"
+            >
+              Mark as attended / completed
+            </button>
+          )}
+          {showBlock && isCancellable && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="min-h-11 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
+            >
+              Cancel booking
+            </button>
+          )}
+          {showBlock && msg ? <span className="block text-xs text-stone-600">{msg}</span> : null}
+          {showReschedule ? (
+            <RescheduleBookingPanel
+              bookingId={bookingId}
+              bookingStatus={bookingStatus}
+              participantCount={participantCount}
+              seatType={seatType}
+              onSuccess={() => router.refresh()}
+              className={showBlock ? "!border-t-0 !pt-3" : "!border-t-0 !pt-0"}
+            />
+          ) : null}
         </div>
-      )}
-      {canMarkCompleted && (
-        <button
-          type="button"
-          onClick={handleMarkCompleted}
-          className="min-h-11 rounded-lg bg-amber-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-900"
-        >
-          Mark as attended / completed
-        </button>
-      )}
-      {isCancellable && (
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="min-h-11 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
-        >
-          Cancel booking
-        </button>
-      )}
-      {msg && <span className="block text-xs text-stone-600">{msg}</span>}
+      ) : null}
     </div>
   );
 }

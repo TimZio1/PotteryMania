@@ -3,6 +3,7 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import type { UserRole } from "@prisma/client";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { issueEmailVerificationToken } from "@/lib/email-verification-flow";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -36,5 +37,10 @@ export async function POST(req: Request) {
     data: { email, passwordHash, role },
     select: { id: true, email: true, role: true, createdAt: true },
   });
+  try {
+    await issueEmailVerificationToken(user.id, user.email);
+  } catch (e) {
+    console.error("[register] verification token failed", e);
+  }
   return NextResponse.json({ user }, { status: 201 });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { promoTimeLeft, PROMO_LABEL } from "@/lib/promo";
+import { promoTimeLeft, PROMO_COUNTDOWN_HEADLINE, PROMO_LABEL } from "@/lib/promo";
 
 export function PromoCountdown({ className = "" }: { className?: string }) {
   const [tl, setTl] = useState(promoTimeLeft());
@@ -19,7 +19,11 @@ export function PromoCountdown({ className = "" }: { className?: string }) {
     <div className={`flex items-center gap-2 text-xs text-stone-500 ${className}`}>
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
       <span>
-        {PROMO_LABEL} — <span className="tabular-nums font-medium text-stone-700">{tl.days}d {pad(tl.hours)}h {pad(tl.minutes)}m {pad(tl.seconds)}s</span>
+        <span className="font-semibold tracking-wide">{PROMO_COUNTDOWN_HEADLINE}</span>{" "}
+        <span className="tabular-nums font-medium text-stone-700">
+          {tl.days}d {pad(tl.hours)}h {pad(tl.minutes)}m {pad(tl.seconds)}s
+        </span>
+        <span className="text-stone-500"> · {PROMO_LABEL}</span>
       </span>
     </div>
   );
@@ -38,7 +42,7 @@ export function PromoCountdownCompact() {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
       <span className="inline-block h-1 w-1 rounded-full bg-emerald-500" aria-hidden />
-      Free — {tl.days}d left
+      FREE PRE-REG · {tl.days}d left
     </span>
   );
 }

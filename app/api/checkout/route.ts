@@ -8,6 +8,7 @@ import { depositChargedCents } from "@/lib/bookings/deposit";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import { calculateShippingRate } from "@/lib/shipping";
 import { calculateEstimatedTaxCents, stripeTaxEnabled } from "@/lib/tax";
 import type { Prisma } from "@prisma/client";
@@ -198,6 +199,21 @@ export async function POST(req: Request) {
       commissionCents: com,
       vendorCents: charged - com,
     });
+  }
+
+  const hasBookingsInCart = lineRows.some((row) => row.itemType === "booking");
+  const hasProductsInCart = lineRows.some((row) => row.itemType === "product");
+  if (hasBookingsInCart && !(await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.bookingCheckoutEnabled))) {
+    return NextResponse.json(
+      { error: "Class booking checkout is temporarily unavailable. Please try again later." },
+      { status: 503 },
+    );
+  }
+  if (hasProductsInCart && !(await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.marketplaceCheckoutEnabled))) {
+    return NextResponse.json(
+      { error: "Marketplace checkout is temporarily unavailable. Please try again later." },
+      { status: 503 },
+    );
   }
 
   const shipping = body.shippingAddress || {};

@@ -26,6 +26,8 @@ export default function LoginInner() {
   const sp = useSearchParams();
   const callbackUrl = sp.get("callbackUrl") || "/dashboard";
   const suspendedNotice = sp.get("reason") === "suspended";
+  const verifiedOk = sp.get("verified") === "1";
+  const verifiedBad = sp.get("verified") === "invalid";
   const urlAuthError = sp.get("error") ?? undefined;
   const urlAuthCode = sp.get("code") ?? undefined;
   const urlDerivedErr = useMemo(
@@ -83,6 +85,17 @@ export default function LoginInner() {
       {suspendedNotice ? (
         <p className={ui.errorText}>This account has been suspended. Contact support if you think this is a mistake.</p>
       ) : null}
+      {verifiedOk ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <p className={ui.successText}>Your email is verified. You can sign in.</p>
+        </div>
+      ) : null}
+      {verifiedBad ? (
+        <p className={ui.errorText}>
+          This verification link is invalid or has expired. Sign in and use &quot;Resend email&quot; from your dashboard,
+          or register again.
+        </p>
+      ) : null}
       {displayErr ? <p className={ui.errorText}>{displayErr}</p> : null}
       <div>
         <label className={ui.label} htmlFor="login-email">
@@ -115,6 +128,11 @@ export default function LoginInner() {
           required
           disabled={pending}
         />
+        <p className="mt-2 text-right text-sm">
+          <Link href="/forgot-password" className="font-medium text-amber-900 hover:underline">
+            Forgot password?
+          </Link>
+        </p>
       </div>
       <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
         {pending ? "Signing in…" : "Sign in"}

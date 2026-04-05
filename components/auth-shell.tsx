@@ -25,6 +25,23 @@ export function AuthShell({ title, description, children }: Props) {
           {description ? <p className="mt-2 text-sm text-stone-600">{description}</p> : null}
           <div className="mt-8">{children}</div>
         </div>
+        <p className="mt-8 text-center text-xs text-stone-500">
+          <Link href="/terms" className="underline-offset-2 hover:text-amber-900 hover:underline">
+            Terms
+          </Link>
+          <span className="mx-2 text-stone-300" aria-hidden>
+            ·
+          </span>
+          <Link href="/privacy" className="underline-offset-2 hover:text-amber-900 hover:underline">
+            Privacy
+          </Link>
+          <span className="mx-2 text-stone-300" aria-hidden>
+            ·
+          </span>
+          <Link href="/vendor-terms" className="underline-offset-2 hover:text-amber-900 hover:underline">
+            Studio terms
+          </Link>
+        </p>
       </div>
     </div>
   );

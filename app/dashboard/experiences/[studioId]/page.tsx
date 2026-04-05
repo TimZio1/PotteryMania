@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { ExperienceSchedulePanel, type RecurringRuleRow } from "./experience-schedule-panel";
+import { StudioClosedDaysSection } from "./studio-closed-days";
 
 type Exp = {
   id: string;
@@ -12,6 +14,7 @@ type Exp = {
   bookingDepositBps: number;
   bookingApprovalRequired: boolean;
   waitlistEnabled: boolean;
+  recurringRules: RecurringRuleRow[];
 };
 
 function percentToBps(percentStr: string): { bps: number; error: string | null } {
@@ -57,15 +60,30 @@ export default function StudioExperiencesPage() {
     }
     const raw = j.experiences || [];
     setList(
-      raw.map((x: Record<string, unknown>) => ({
-        id: String(x.id),
-        title: String(x.title),
-        status: String(x.status),
-        priceCents: Number(x.priceCents) || 0,
-        bookingDepositBps: typeof x.bookingDepositBps === "number" ? x.bookingDepositBps : 0,
-        bookingApprovalRequired: Boolean(x.bookingApprovalRequired),
-        waitlistEnabled: Boolean(x.waitlistEnabled),
-      }))
+      raw.map((x: Record<string, unknown>) => {
+        const rulesRaw = Array.isArray(x.recurringRules) ? x.recurringRules : [];
+        const recurringRules: RecurringRuleRow[] = rulesRaw.map((r: Record<string, unknown>) => ({
+          id: String(r.id),
+          scheduleType: String(r.scheduleType),
+          startTime: r.startTime != null ? String(r.startTime) : null,
+          endTime: r.endTime != null ? String(r.endTime) : null,
+          weekdays: Array.isArray(r.weekdays) ? r.weekdays.map((w) => String(w).toLowerCase()) : [],
+          recurrenceStartDate: r.recurrenceStartDate != null ? String(r.recurrenceStartDate) : null,
+          recurrenceEndDate: r.recurrenceEndDate != null ? String(r.recurrenceEndDate) : null,
+          capacityPerSlot: typeof r.capacityPerSlot === "number" ? r.capacityPerSlot : null,
+          isActive: r.isActive !== false,
+        }));
+        return {
+          id: String(x.id),
+          title: String(x.title),
+          status: String(x.status),
+          priceCents: Number(x.priceCents) || 0,
+          bookingDepositBps: typeof x.bookingDepositBps === "number" ? x.bookingDepositBps : 0,
+          bookingApprovalRequired: Boolean(x.bookingApprovalRequired),
+          waitlistEnabled: Boolean(x.waitlistEnabled),
+          recurringRules,
+        };
+      }),
     );
   }, [studioId]);
 
@@ -159,15 +177,16 @@ export default function StudioExperiencesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-10">
+    <div className="mx-auto max-w-3xl px-4 py-10">
       <Link href={`/dashboard/studio/${studioId}`} className="text-sm text-amber-800">
         ← Studio
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold">Experiences</h1>
+      <h1 className="mt-4 text-2xl font-semibold">Experiences &amp; schedule</h1>
       <p className="mt-2 text-sm text-stone-600">
-        Create a class, add rules via API, generate slots, then set status to <strong>active</strong> and visibility{" "}
-        <strong>public</strong> so it appears on /classes.
+        Create a class, add <strong>schedule rules</strong> and <strong>generate slots</strong> below, then set status
+        to <strong>active</strong> and visibility <strong>public</strong> so it appears on /classes.
       </p>
+      <StudioClosedDaysSection studioId={studioId} />
       {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
       <form onSubmit={create} className="mt-6 space-y-3 rounded border border-stone-200 bg-white p-4">
         <h2 className="font-medium">New experience (draft)</h2>
@@ -327,6 +346,13 @@ export default function StudioExperiencesPage() {
                 </div>
               </form>
             )}
+            <ExperienceSchedulePanel
+              studioId={studioId}
+              experienceId={ex.id}
+              experienceTitle={ex.title}
+              rules={ex.recurringRules}
+              onRefresh={load}
+            />
           </li>
         ))}
       </ul>

@@ -78,7 +78,12 @@ export default async function StudioPanelBookingsPage({ params }: Props) {
                 <td className="px-4 py-3 text-stone-600">{booking.bookingStatus}</td>
                 <td className="px-4 py-3 text-stone-600">€{(booking.totalAmountCents / 100).toFixed(2)}</td>
                 <td className="px-4 py-3 align-top">
-                  <VendorBookingActions bookingId={booking.id} bookingStatus={booking.bookingStatus} />
+                  <VendorBookingActions
+                    bookingId={booking.id}
+                    bookingStatus={booking.bookingStatus}
+                    participantCount={booking.participantCount}
+                    seatType={booking.seatType}
+                  />
                 </td>
               </tr>
             ))}

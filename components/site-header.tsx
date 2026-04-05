@@ -85,6 +85,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               <Link href="/my-bookings" className={linkClass("/my-bookings")}>
                 Bookings
               </Link>
+              <Link href="/account" className={linkClass("/account")}>
+                Account
+              </Link>
               {adminVisible(role) ? (
                 <Link href="/admin" className={linkClass("/admin")}>
                   Admin
@@ -152,6 +155,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </Link>
               <Link href="/my-bookings" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
                 My bookings
+              </Link>
+              <Link href="/account" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                Account
               </Link>
               {adminVisible(role) ? (
                 <Link href="/admin" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>

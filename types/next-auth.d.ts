@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: string;
       role: string;
       suspended?: boolean;
+      emailVerified?: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -14,5 +15,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     role?: string;
     suspended?: boolean;
+    emailVerified?: boolean;
   }
 }
