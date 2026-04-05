@@ -1,4 +1,9 @@
-import type { Prisma, PrismaClient, StudioFeatureActivationStatus } from "@prisma/client";
+import type {
+  Prisma,
+  PrismaClient,
+  StudioFeatureActivationEventKind,
+  StudioFeatureActivationStatus,
+} from "@prisma/client";
 
 const BILLABLE: StudioFeatureActivationStatus[] = ["active", "trialing", "pending_cancel"];
 
@@ -366,7 +371,31 @@ export type FeatureActivationEventLedgerDailySeries = {
   stripeCheckouts: FeatureActivationAuditDailyPoint[];
   /** `stripe_subscription_ended` (cancel API, vendor off, or Stripe `subscription.deleted`). */
   stripeSubscriptionEnds: FeatureActivationAuditDailyPoint[];
+  /**
+   * Directional signal from the append-only ledger (not true cohort retention): +1 for enable-shaped kinds,
+   * -1 for disable-shaped; `admin_override_price` ignored.
+   */
+  ledgerNet: FeatureActivationAuditDailyPoint[];
 };
+
+function ledgerKindDelta(kind: StudioFeatureActivationEventKind): number {
+  if (
+    kind === "vendor_enable" ||
+    kind === "checkout_single" ||
+    kind === "checkout_bundle" ||
+    kind === "admin_active"
+  ) {
+    return 1;
+  }
+  if (
+    kind === "vendor_disable" ||
+    kind === "admin_inactive" ||
+    kind === "stripe_subscription_ended"
+  ) {
+    return -1;
+  }
+  return 0;
+}
 
 /**
  * Append-only ledger (`StudioFeatureActivationEvent`) — durable Stripe checkout / sub-end counts.
@@ -391,6 +420,7 @@ export async function featureActivationEventLedgerDailySeries(
 
   const checkoutMap = new Map(dayKeys.map((k) => [k, 0]));
   const endedMap = new Map(dayKeys.map((k) => [k, 0]));
+  const netMap = new Map(dayKeys.map((k) => [k, 0]));
 
   for (const r of rows) {
     const k = r.createdAt.toISOString().slice(0, 10);
@@ -401,11 +431,16 @@ export async function featureActivationEventLedgerDailySeries(
     if (r.kind === "stripe_subscription_ended") {
       endedMap.set(k, (endedMap.get(k) ?? 0) + 1);
     }
+    const d = ledgerKindDelta(r.kind);
+    if (d !== 0) {
+      netMap.set(k, (netMap.get(k) ?? 0) + d);
+    }
   }
 
   return {
     windowDays,
     stripeCheckouts: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: checkoutMap.get(k) ?? 0 })),
     stripeSubscriptionEnds: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: endedMap.get(k) ?? 0 })),
+    ledgerNet: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: netMap.get(k) ?? 0 })),
   };
 }

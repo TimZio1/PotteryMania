@@ -172,6 +172,20 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
           />
         </div>
 
+        <div className="mt-10">
+          <TimeSeriesChart
+            title={`Ledger net / day (${ledgerSeries.windowDays}d, UTC)`}
+            subtitle={
+              featureIdRaw
+                ? "Enable-shaped minus disable-shaped events for this SKU (+ vendor_enable, checkouts, admin_active vs vendor_disable, admin_inactive, sub ended). Not cohort retention."
+                : "Same formula across all SKUs from the append-only ledger. `admin_override_price` excluded."
+            }
+            points={ledgerSeries.ledgerNet}
+            allowNegative
+            tone="amber"
+          />
+        </div>
+
         <section className="mt-10">
           <h2 className="text-lg font-semibold text-amber-950">By feature — analytics</h2>
           <p className="mt-1 text-xs text-stone-500">
