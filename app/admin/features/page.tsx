@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   featureActivationAdminAuditDailySeries,
+  featureActivationEventLedgerDailySeries,
   featureActivationLifecycleDailySeries,
   featureAnalyticsSnapshot,
   parseFeatureAnalyticsInactiveDays,
@@ -43,19 +44,24 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
           )?.slug ?? null
         : null;
 
-    const [catalogCount, analytics, auditSeries, lifecycleSeries, directoryResult] = await Promise.all([
-      prisma.platformFeature.count(),
-      featureAnalyticsSnapshot(prisma, { inactiveWindowDays: inactiveDays }),
-      featureActivationAdminAuditDailySeries(prisma, {
-        windowDays: inactiveDays,
-        featureSlug: analyticsFeatureSlug,
-      }),
-      featureActivationLifecycleDailySeries(prisma, {
-        windowDays: inactiveDays,
-        featureId: featureIdRaw.length > 0 ? featureIdRaw : null,
-      }),
-      directoryPromise,
-    ]);
+    const [catalogCount, analytics, auditSeries, lifecycleSeries, ledgerSeries, directoryResult] =
+      await Promise.all([
+        prisma.platformFeature.count(),
+        featureAnalyticsSnapshot(prisma, { inactiveWindowDays: inactiveDays }),
+        featureActivationAdminAuditDailySeries(prisma, {
+          windowDays: inactiveDays,
+          featureSlug: analyticsFeatureSlug,
+        }),
+        featureActivationLifecycleDailySeries(prisma, {
+          windowDays: inactiveDays,
+          featureId: featureIdRaw.length > 0 ? featureIdRaw : null,
+        }),
+        featureActivationEventLedgerDailySeries(prisma, {
+          windowDays: inactiveDays,
+          featureId: featureIdRaw.length > 0 ? featureIdRaw : null,
+        }),
+        directoryPromise,
+      ]);
 
     const { approvedStudioCount, rows: aRows, totals, inactiveWindowDays } = analytics;
 
@@ -140,6 +146,29 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
             }
             points={lifecycleSeries.activatedAtEvents}
             tone="indigo"
+          />
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <TimeSeriesChart
+            title={`Ledger: Stripe checkouts / day (${ledgerSeries.windowDays}d, UTC)`}
+            subtitle={
+              featureIdRaw
+                ? "Append-only `studio_feature_activation_events`: checkout_single + checkout_bundle for this SKU. No backfill before deploy."
+                : "Recorded when Checkout completes (per feature row). Retries may duplicate — see Stripe dashboard for source of truth."
+            }
+            points={ledgerSeries.stripeCheckouts}
+            tone="amber"
+          />
+          <TimeSeriesChart
+            title={`Ledger: subscription ends / day (${ledgerSeries.windowDays}d, UTC)`}
+            subtitle={
+              featureIdRaw
+                ? "`stripe_subscription_ended` events for this SKU (vendor cancel, admin revoke, or Stripe sub deleted)."
+                : "One row per studio+feature cleared from a Stripe subscription id (shared bundle sub → multiple events)."
+            }
+            points={ledgerSeries.stripeSubscriptionEnds}
+            tone="rose"
           />
         </div>
 

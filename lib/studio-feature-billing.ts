@@ -1,5 +1,6 @@
 import type { FeatureBundle, PlatformFeature, Studio, StudioFeatureActivation } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { getStripe } from "@/lib/stripe";
 
 export function platformFeatureRequiresStripeSubscription(
@@ -118,6 +119,14 @@ export async function markActivationsEndedForStripeSubscription(subscriptionId: 
     select: { studioId: true, featureId: true },
   });
   if (!acts.length) return;
+  for (const a of acts) {
+    await recordStudioFeatureActivationEvent(prisma, {
+      studioId: a.studioId,
+      featureId: a.featureId,
+      kind: "stripe_subscription_ended",
+      stripeSubscriptionId: subId,
+    });
+  }
   await prisma.studioFeatureActivation.updateMany({
     where: { stripeSubscriptionId: subId },
     data: {

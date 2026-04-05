@@ -180,8 +180,9 @@ model Studio {
   financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerStudio")
   featureUsageFacts    FeatureUsageFact[]
   kilnFirings               KilnFiring[]
-  studioFeatureRequests     StudioFeatureRequest[]
-  studioFeatureActivations  StudioFeatureActivation[]
+  studioFeatureRequests            StudioFeatureRequest[]
+  studioFeatureActivations         StudioFeatureActivation[]
+  studioFeatureActivationEvents    StudioFeatureActivationEvent[]
 
   @@index([status])
   @@index([country, city])
@@ -1544,6 +1545,18 @@ enum StudioFeatureActivationStatus {
   pending_cancel
 }
 
+/// Append-only audit trail for add-on activation changes (analytics + support).
+enum StudioFeatureActivationEventKind {
+  vendor_enable
+  vendor_disable
+  admin_active
+  admin_inactive
+  admin_override_price
+  checkout_single
+  checkout_bundle
+  stripe_subscription_ended
+}
+
 /// Global add-on catalog (Hyperadmin-managed). Slugs match legacy `feature_key` values.
 model PlatformFeature {
   id             String                    @id @default(uuid()) @db.Uuid
@@ -1563,11 +1576,29 @@ model PlatformFeature {
   createdAt      DateTime                  @default(now()) @map("created_at")
   updatedAt      DateTime                  @updatedAt @map("updated_at")
 
-  activations  StudioFeatureActivation[]
-  bundleItems  FeatureBundleItem[]
+  activations        StudioFeatureActivation[]
+  bundleItems        FeatureBundleItem[]
+  activationEvents   StudioFeatureActivationEvent[]
 
   @@index([isActive])
   @@map("platform_features")
+}
+
+model StudioFeatureActivationEvent {
+  id                   String                           @id @default(uuid()) @db.Uuid
+  studioId             String                           @map("studio_id") @db.Uuid
+  featureId            String                           @map("feature_id") @db.Uuid
+  kind                 StudioFeatureActivationEventKind
+  stripeSubscriptionId String?                          @map("stripe_subscription_id")
+  payloadJson          Json?                            @map("payload_json")
+  createdAt            DateTime                         @default(now()) @map("created_at")
+
+  studio  Studio          @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  feature PlatformFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@index([featureId, createdAt])
+  @@index([createdAt])
+  @@map("studio_feature_activation_events")
 }
 
 model StudioFeatureActivation {

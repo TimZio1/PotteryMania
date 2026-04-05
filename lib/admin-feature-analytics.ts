@@ -359,3 +359,53 @@ export async function featureActivationLifecycleDailySeries(
     activatedAtEvents: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: activatedMap.get(k) ?? 0 })),
   };
 }
+
+export type FeatureActivationEventLedgerDailySeries = {
+  windowDays: number;
+  /** `checkout_single` + `checkout_bundle` rows in `studio_feature_activation_events`. */
+  stripeCheckouts: FeatureActivationAuditDailyPoint[];
+  /** `stripe_subscription_ended` (cancel API, vendor off, or Stripe `subscription.deleted`). */
+  stripeSubscriptionEnds: FeatureActivationAuditDailyPoint[];
+};
+
+/**
+ * Append-only ledger (`StudioFeatureActivationEvent`) — durable Stripe checkout / sub-end counts.
+ * No backfill for history before this table shipped.
+ */
+export async function featureActivationEventLedgerDailySeries(
+  prisma: PrismaClient,
+  opts: { windowDays: number; featureId?: string | null },
+): Promise<FeatureActivationEventLedgerDailySeries> {
+  const windowDays = Math.min(365, Math.max(7, opts.windowDays));
+  const fid = opts.featureId?.trim() || null;
+  const dayKeys = buildUtcCalendarDayKeys(windowDays);
+  const queryFrom = new Date(`${dayKeys[0]}T00:00:00.000Z`);
+
+  const rows = await prisma.studioFeatureActivationEvent.findMany({
+    where: {
+      createdAt: { gte: queryFrom },
+      ...(fid ? { featureId: fid } : {}),
+    },
+    select: { kind: true, createdAt: true },
+  });
+
+  const checkoutMap = new Map(dayKeys.map((k) => [k, 0]));
+  const endedMap = new Map(dayKeys.map((k) => [k, 0]));
+
+  for (const r of rows) {
+    const k = r.createdAt.toISOString().slice(0, 10);
+    if (!checkoutMap.has(k)) continue;
+    if (r.kind === "checkout_single" || r.kind === "checkout_bundle") {
+      checkoutMap.set(k, (checkoutMap.get(k) ?? 0) + 1);
+    }
+    if (r.kind === "stripe_subscription_ended") {
+      endedMap.set(k, (endedMap.get(k) ?? 0) + 1);
+    }
+  }
+
+  return {
+    windowDays,
+    stripeCheckouts: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: checkoutMap.get(k) ?? 0 })),
+    stripeSubscriptionEnds: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: endedMap.get(k) ?? 0 })),
+  };
+}

@@ -9,6 +9,7 @@ import {
   createStudioFeatureSubscriptionCheckout,
   platformFeatureRequiresStripeSubscription,
 } from "@/lib/studio-feature-billing";
+import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -143,6 +144,11 @@ export async function POST(req: Request, ctx: Ctx) {
       create: { studioId, featureKey: slug, desiredOn: false },
       update: { desiredOn: false },
     });
+    await recordStudioFeatureActivationEvent(prisma, {
+      studioId,
+      featureId: feature.id,
+      kind: "vendor_disable",
+    });
     return NextResponse.json({ ok: true, slug, featureKey: slug, desiredOn: false, active: false });
   }
 
@@ -167,6 +173,11 @@ export async function POST(req: Request, ctx: Ctx) {
       where: { studioId_featureKey: { studioId, featureKey: slug } },
       create: { studioId, featureKey: slug, desiredOn: true },
       update: { desiredOn: true },
+    });
+    await recordStudioFeatureActivationEvent(prisma, {
+      studioId,
+      featureId: feature.id,
+      kind: "vendor_enable",
     });
     return NextResponse.json({ ok: true, slug, featureKey: slug, desiredOn: true, active: true });
   }

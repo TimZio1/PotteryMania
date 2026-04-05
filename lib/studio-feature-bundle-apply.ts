@@ -7,6 +7,7 @@ import {
   platformBundleRequiresStripeSubscription,
   platformFeatureRequiresStripeSubscription,
 } from "@/lib/studio-feature-billing";
+import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
 export type ApplyBundleResult =
   | { ok: true; alreadyComplete: true }
@@ -102,6 +103,12 @@ export async function applyStudioFeatureBundle(opts: {
       where: { studioId_featureKey: { studioId: opts.studioId, featureKey: feature.slug } },
       create: { studioId: opts.studioId, featureKey: feature.slug, desiredOn: true },
       update: { desiredOn: true },
+    });
+    await recordStudioFeatureActivationEvent(prisma, {
+      studioId: opts.studioId,
+      featureId: feature.id,
+      kind: "vendor_enable",
+      payload: { bundleFree: true, bundleId: opts.bundleId },
     });
     activatedSlugs.push(feature.slug);
   }

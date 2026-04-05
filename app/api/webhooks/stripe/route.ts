@@ -13,6 +13,7 @@ import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import type { Prisma } from "@prisma/client";
 import { markActivationsEndedForStripeSubscription } from "@/lib/studio-feature-billing";
+import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -85,6 +86,13 @@ export async function POST(req: Request) {
             create: { studioId, featureKey: feature.slug, desiredOn: true },
             update: { desiredOn: true },
           });
+          await recordStudioFeatureActivationEvent(prisma, {
+            studioId,
+            featureId,
+            kind: "checkout_single",
+            stripeSubscriptionId: subscriptionId,
+            payload: { checkoutSessionId: session.id },
+          });
         }
       }
       return NextResponse.json({ received: true });
@@ -131,6 +139,16 @@ export async function POST(req: Request) {
             where: { studioId_featureKey: { studioId, featureKey: feature.slug } },
             create: { studioId, featureKey: feature.slug, desiredOn: true },
             update: { desiredOn: true },
+          });
+          await recordStudioFeatureActivationEvent(prisma, {
+            studioId,
+            featureId: feature.id,
+            kind: "checkout_bundle",
+            stripeSubscriptionId: subscriptionId,
+            payload: {
+              checkoutSessionId: session.id,
+              bundleId: session.metadata.bundleId ?? null,
+            },
           });
         }
       }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { cancelStudioFeatureStripeSubscription } from "@/lib/studio-feature-billing";
+import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
 export const dynamic = "force-dynamic";
 
@@ -159,6 +160,21 @@ export async function PATCH(req: Request, ctx: Ctx) {
       : null,
     reason: typeof body.status === "string" ? `status:${body.status}` : "overridePriceCents",
   });
+
+  if (hasStatus && body.status === "active") {
+    await recordStudioFeatureActivationEvent(prisma, { studioId, featureId, kind: "admin_active" });
+  }
+  if (hasStatus && body.status === "inactive") {
+    await recordStudioFeatureActivationEvent(prisma, { studioId, featureId, kind: "admin_inactive" });
+  }
+  if (hasOverride) {
+    await recordStudioFeatureActivationEvent(prisma, {
+      studioId,
+      featureId,
+      kind: "admin_override_price",
+      payload: { overridePriceCents: fresh?.overridePriceCents ?? null },
+    });
+  }
 
   return NextResponse.json({
     ok: true,
