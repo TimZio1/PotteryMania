@@ -74,6 +74,7 @@ export default async function AdminStudioDetailPage({ params }: Props) {
             status: act.status,
             overridePriceCents: act.overridePriceCents,
             hasStripeSubscription: Boolean(act.stripeSubscriptionId?.trim()),
+            deactivatesAtIso: act.deactivatesAt ? act.deactivatesAt.toISOString() : null,
           }
         : null,
       accessEffective,

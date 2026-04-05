@@ -17,6 +17,8 @@ export type StudioFeatureEntitlementRow = {
     status: string;
     overridePriceCents: number | null;
     hasStripeSubscription: boolean;
+    /** When status is pending_cancel — billing/access end boundary from Stripe period. */
+    deactivatesAtIso: string | null;
   } | null;
   accessEffective: boolean;
 };
@@ -92,6 +94,15 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
                         </span>
                         {r.activation ? (
                           <span className="ml-1 text-xs text-stone-500">({r.activation.status})</span>
+                        ) : null}
+                        {r.activation?.status === "pending_cancel" && r.activation.deactivatesAtIso ? (
+                          <p className="mt-1 text-[11px] font-medium text-amber-900">
+                            Stripe ends ~{" "}
+                            {new Date(r.activation.deactivatesAtIso).toLocaleString(undefined, {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </p>
                         ) : null}
                       </>
                     )}

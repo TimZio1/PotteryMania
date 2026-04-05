@@ -308,6 +308,17 @@ export async function syncStudioBillingSubscriptionFromStripe(sub: Stripe.Subscr
   const periodEndSec = subscriptionBillingPeriodEndUnix(sub);
   const periodEnd = periodEndSec != null ? new Date(periodEndSec * 1000) : null;
   if (sub.cancel_at_period_end && periodEnd) {
+    const sample = await prisma.studioFeatureActivation.findFirst({
+      where: { stripeSubscriptionId: subId },
+      select: { status: true, deactivatesAt: true },
+    });
+    if (
+      sample?.status === "pending_cancel" &&
+      sample.deactivatesAt &&
+      Math.abs(sample.deactivatesAt.getTime() - periodEnd.getTime()) <= 120_000
+    ) {
+      return;
+    }
     await prisma.studioFeatureActivation.updateMany({
       where: { stripeSubscriptionId: subId },
       data: { status: "pending_cancel", deactivatesAt: periodEnd },
