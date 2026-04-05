@@ -155,7 +155,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
             subtitle={
               featureIdRaw
                 ? "Append-only `studio_feature_activation_events`: checkout_single + checkout_bundle for this SKU. No backfill before deploy."
-                : "Recorded when Checkout completes (per feature row). Retries may duplicate — see Stripe dashboard for source of truth."
+                : "Recorded when Checkout completes (per feature row). Same session + feature upserts — Stripe webhook retries do not duplicate."
             }
             points={ledgerSeries.stripeCheckouts}
             tone="amber"

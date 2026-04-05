@@ -91,6 +91,7 @@ export async function POST(req: Request) {
             featureId,
             kind: "checkout_single",
             stripeSubscriptionId: subscriptionId,
+            stripeCheckoutSessionId: session.id,
             payload: { checkoutSessionId: session.id },
           });
         }
@@ -145,6 +146,7 @@ export async function POST(req: Request) {
             featureId: feature.id,
             kind: "checkout_bundle",
             stripeSubscriptionId: subscriptionId,
+            stripeCheckoutSessionId: session.id,
             payload: {
               checkoutSessionId: session.id,
               bundleId: session.metadata.bundleId ?? null,

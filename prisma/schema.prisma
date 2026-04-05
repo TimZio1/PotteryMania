@@ -1585,19 +1585,22 @@ model PlatformFeature {
 }
 
 model StudioFeatureActivationEvent {
-  id                   String                           @id @default(uuid()) @db.Uuid
-  studioId             String                           @map("studio_id") @db.Uuid
-  featureId            String                           @map("feature_id") @db.Uuid
-  kind                 StudioFeatureActivationEventKind
-  stripeSubscriptionId String?                          @map("stripe_subscription_id")
-  payloadJson          Json?                            @map("payload_json")
-  createdAt            DateTime                         @default(now()) @map("created_at")
+  id                        String                           @id @default(uuid()) @db.Uuid
+  studioId                  String                           @map("studio_id") @db.Uuid
+  featureId                 String                           @map("feature_id") @db.Uuid
+  kind                      StudioFeatureActivationEventKind
+  stripeSubscriptionId      String?                          @map("stripe_subscription_id")
+  /// Set for `checkout_*` kinds — unique per feature + session so Stripe webhook retries do not duplicate rows.
+  stripeCheckoutSessionId   String?                          @map("stripe_checkout_session_id")
+  payloadJson               Json?                            @map("payload_json")
+  createdAt                 DateTime                         @default(now()) @map("created_at")
 
   studio  Studio          @relation(fields: [studioId], references: [id], onDelete: Cascade)
   feature PlatformFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
 
   @@index([featureId, createdAt])
   @@index([createdAt])
+  @@unique([featureId, stripeCheckoutSessionId], map: "studio_feature_activation_events_feature_checkout_session_key")
   @@map("studio_feature_activation_events")
 }
 
