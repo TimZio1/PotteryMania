@@ -7,27 +7,31 @@ import { ui } from "@/lib/ui-styles";
 
 const VIS_OPTIONS = ["public", "hidden", "beta"] as const;
 
-type ApiFeature = { isActive?: boolean; visibility?: string };
+type ApiFeature = { isActive?: boolean; visibility?: string; grantByDefault?: boolean };
 
 export function FeatureHubCatalogFlagsCell({
   featureId,
   isActive,
   visibility,
+  grantByDefault,
 }: {
   featureId: string;
   isActive: boolean;
   visibility: string;
+  grantByDefault: boolean;
 }) {
   const router = useRouter();
   const [active, setActive] = useState(isActive);
   const [vis, setVis] = useState(visibility);
+  const [grantDefault, setGrantDefault] = useState(grantByDefault);
   const [pending, setPending] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
 
   useEffect(() => {
     setActive(isActive);
     setVis(visibility);
-  }, [isActive, visibility]);
+    setGrantDefault(grantByDefault);
+  }, [isActive, visibility, grantByDefault]);
 
   async function patch(body: Record<string, unknown>) {
     setPending(true);
@@ -46,6 +50,7 @@ export function FeatureHubCatalogFlagsCell({
     const f = data.feature;
     if (typeof f?.isActive === "boolean") setActive(f.isActive);
     if (typeof f?.visibility === "string") setVis(f.visibility);
+    if (typeof f?.grantByDefault === "boolean") setGrantDefault(f.grantByDefault);
     router.refresh();
   }
 
@@ -84,6 +89,23 @@ export function FeatureHubCatalogFlagsCell({
           </option>
         ))}
       </select>
+      <label
+        className="flex cursor-pointer items-center gap-2 text-xs text-stone-600"
+        title="When enabled, all studios are entitled without a paid activation (runtime gating)."
+      >
+        <input
+          type="checkbox"
+          checked={grantDefault}
+          disabled={pending}
+          onChange={(e) => {
+            const next = e.target.checked;
+            if (next === grantDefault) return;
+            void patch({ grantByDefault: next });
+          }}
+          className="h-3.5 w-3.5 rounded border-stone-300 text-amber-900 focus:ring-amber-900/20"
+        />
+        <span>Grant by default</span>
+      </label>
       {hint ? <span className="text-[10px] text-stone-500">{hint}</span> : null}
     </div>
   );

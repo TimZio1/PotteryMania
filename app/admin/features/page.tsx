@@ -228,6 +228,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                       featureId={r.id}
                       isActive={r.isActive}
                       visibility={r.visibility}
+                      grantByDefault={r.grantByDefault}
                     />
                   ),
                 },
@@ -386,7 +387,12 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 key: "on",
                 header: "Catalog",
                 cell: (r) => (
-                  <FeatureHubCatalogFlagsCell featureId={r.id} isActive={r.isActive} visibility={r.visibility} />
+                  <FeatureHubCatalogFlagsCell
+                    featureId={r.id}
+                    isActive={r.isActive}
+                    visibility={r.visibility}
+                    grantByDefault={r.grantByDefault}
+                  />
                 ),
               },
               {

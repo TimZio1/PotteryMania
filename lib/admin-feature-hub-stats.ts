@@ -9,6 +9,7 @@ export type FeatureHubRow = {
   currency: string;
   isActive: boolean;
   visibility: string;
+  grantByDefault: boolean;
   billableActivations: number;
   estimatedMrrCents: number;
   /** Share of approved studios with a billable activation for this feature. */
@@ -66,6 +67,7 @@ export async function featureHubStats(prisma: PrismaClient): Promise<{
       currency: f.currency,
       isActive: f.isActive,
       visibility: f.visibility,
+      grantByDefault: f.grantByDefault,
       billableActivations: a.count,
       estimatedMrrCents: a.mrr,
       activationRatePct,
