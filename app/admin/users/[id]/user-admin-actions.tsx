@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import type { UserRole } from "@prisma/client";
 import { ConfirmActionModal } from "@/components/admin/confirm-action-modal";
@@ -14,10 +15,19 @@ type Props = {
   role: UserRole;
   suspended: boolean;
   actorIsHyperAdmin: boolean;
+  canImpersonate: boolean;
 };
 
-export function UserAdminActions({ userId, email, role, suspended, actorIsHyperAdmin }: Props) {
+export function UserAdminActions({
+  userId,
+  email,
+  role,
+  suspended,
+  actorIsHyperAdmin,
+  canImpersonate,
+}: Props) {
   const router = useRouter();
+  const { update } = useSession();
   const [msg, setMsg] = useState("");
   const [pending, setPending] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
@@ -65,6 +75,29 @@ export function UserAdminActions({ userId, email, role, suspended, actorIsHyperA
   const canChangeRole =
     actorIsHyperAdmin || role === "customer" || role === "vendor";
 
+  async function impersonate() {
+    setPending(true);
+    setMsg("");
+    try {
+      const r = await fetch(`/api/admin/users/${userId}/impersonate`, { method: "POST" });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setMsg(typeof j.error === "string" ? j.error : "Impersonation failed");
+        return;
+      }
+      const grantId = typeof j.grantId === "string" ? j.grantId : "";
+      if (!grantId) {
+        setMsg("Invalid server response");
+        return;
+      }
+      await update({ impersonationGrantId: grantId });
+      router.push("/dashboard");
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       {msg ? <p className={ui.errorText}>{msg}</p> : null}
@@ -106,6 +139,24 @@ export function UserAdminActions({ userId, email, role, suspended, actorIsHyperA
           {suspended ? "Lift suspension" : "Suspend account"}
         </button>
       </div>
+
+      {canImpersonate ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-5 shadow-sm">
+          <p className="text-sm font-semibold text-amber-950">Impersonate</p>
+          <p className="mt-1 text-xs text-stone-600">
+            Open the vendor/customer dashboard as <strong>{email}</strong>. Hyperadmin and admin areas stay blocked
+            until you exit. Session switch uses a short-lived server grant (about one minute to apply).
+          </p>
+          <button
+            type="button"
+            className={`${ui.buttonPrimary} mt-3`}
+            disabled={pending}
+            onClick={() => void impersonate()}
+          >
+            View as this user
+          </button>
+        </div>
+      ) : null}
 
       <ConfirmActionModal
         open={roleOpen}

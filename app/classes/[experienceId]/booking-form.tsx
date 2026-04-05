@@ -22,8 +22,15 @@ export function ClassBookingForm(props: {
   bookingDepositBps: number;
   slots: SlotOption[];
   waitlistSlots: WaitlistSlotOption[];
+  /** Deep-link from studio listing: `/classes/[id]?slot=…` */
+  initialSlotId?: string;
 }) {
-  const [slotId, setSlotId] = useState(props.slots[0]?.id ?? "");
+  const [slotId, setSlotId] = useState(() => {
+    if (props.initialSlotId && props.slots.some((s) => s.id === props.initialSlotId)) {
+      return props.initialSlotId;
+    }
+    return props.slots[0]?.id ?? "";
+  });
   const [participantCount, setParticipantCount] = useState(props.minP);
   const [seatType, setSeatType] = useState<string>("");
   const [err, setErr] = useState("");

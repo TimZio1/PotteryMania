@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -33,7 +34,15 @@ export function AdminStudios({ initialStudios }: { initialStudios: S[] }) {
 
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-medium">Pending studios</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-medium">Pending studios</h2>
+        <Link
+          href="/admin/studios"
+          className="text-sm font-medium text-amber-900 underline decoration-amber-700/40 underline-offset-2 hover:decoration-amber-900"
+        >
+          Browse all studios
+        </Link>
+      </div>
       {msg && <p className="text-sm text-red-600">{msg}</p>}
       <ul className="mt-4 space-y-4">
         {studios.map((s) => (

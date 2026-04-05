@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import type { UserRole } from "@prisma/client";
+import type { Prisma, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { normalizeAdminTags } from "@/lib/admin-user-tags";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 
@@ -50,6 +51,7 @@ export async function GET(_req: Request, ctx: Ctx) {
       suspendedAt: row.suspendedAt?.toISOString() ?? null,
       suspendedReason: row.suspendedReason,
       emailVerifiedAt: row.emailVerifiedAt?.toISOString() ?? null,
+      adminTags: row.adminTags,
       customerProfile: row.customerProfile,
       acquisition: row.acquisitionAttributions,
       studios: row.ownedStudios,
@@ -82,6 +84,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     role?: string;
     suspended?: boolean;
     suspendedReason?: string | null;
+    adminTags?: unknown;
     reason?: string;
   };
   try {
@@ -95,16 +98,20 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "reason is required" }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { id } });
+  const existing = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      role: true,
+      suspendedAt: true,
+      suspendedReason: true,
+      adminTags: true,
+    },
+  });
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const data: {
-    role?: UserRole;
-    suspendedAt?: Date | null;
-    suspendedReason?: string | null;
-  } = {};
+  const data: Prisma.UserUpdateInput = {};
 
   if (body.role !== undefined) {
     const nextRole = body.role as UserRole;
@@ -123,16 +130,29 @@ export async function PATCH(req: Request, ctx: Ctx) {
         return NextResponse.json({ error: "Cannot demote the last hyper_admin" }, { status: 400 });
       }
     }
-    data.role = nextRole;
+    if (nextRole !== existing.role) {
+      data.role = nextRole;
+    }
   }
 
   if (body.suspended !== undefined) {
-    if (body.suspended) {
-      data.suspendedAt = new Date();
-      data.suspendedReason = body.suspendedReason?.trim() || "Suspended by admin";
-    } else {
-      data.suspendedAt = null;
-      data.suspendedReason = null;
+    const isSuspended = Boolean(existing.suspendedAt);
+    if (body.suspended !== isSuspended) {
+      if (body.suspended) {
+        data.suspendedAt = new Date();
+        data.suspendedReason = body.suspendedReason?.trim() || "Suspended by admin";
+      } else {
+        data.suspendedAt = null;
+        data.suspendedReason = null;
+      }
+    }
+  }
+
+  if (body.adminTags !== undefined) {
+    const nextTags = normalizeAdminTags(body.adminTags);
+    const prevSorted = [...existing.adminTags].sort();
+    if (JSON.stringify(nextTags) !== JSON.stringify(prevSorted)) {
+      data.adminTags = { set: nextTags };
     }
   }
 
@@ -144,6 +164,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     role: existing.role,
     suspendedAt: existing.suspendedAt?.toISOString() ?? null,
     suspendedReason: existing.suspendedReason,
+    adminTags: [...existing.adminTags].sort(),
   };
 
   const updated = await prisma.user.update({
@@ -155,6 +176,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       role: true,
       suspendedAt: true,
       suspendedReason: true,
+      adminTags: true,
     },
   });
 
@@ -168,6 +190,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       role: updated.role,
       suspendedAt: updated.suspendedAt?.toISOString() ?? null,
       suspendedReason: updated.suspendedReason,
+      adminTags: [...updated.adminTags].sort(),
     },
     reason,
   });

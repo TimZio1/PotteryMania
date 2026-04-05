@@ -5,11 +5,16 @@ import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
 import { redirectEndUserIfNoApprovedStudios } from "@/lib/public-catalog-guard";
 import {
+  GEO_SCAN_LIMIT,
   buildStudioDiscoverWhere,
   buildStudiosSearchString,
+  filterRowsByNearKm,
   parseStudiosSearchParams,
 } from "@/lib/public-discovery";
+import { haversineKm } from "@/lib/geo";
 import { cn } from "@/lib/cn";
+import { NearPointFields } from "@/components/discovery/near-point-fields";
+import { NearResultsMap } from "@/components/discovery/near-results-map";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +22,17 @@ type Props = { searchParams?: Promise<Record<string, string | string[] | undefin
 
 function hasActiveStudioFilters(sp: Record<string, string | string[] | undefined>): boolean {
   const keys = ["q", "country", "city", "offer"];
-  return keys.some((k) => {
-    const v = sp[k];
-    return typeof v === "string" && v.trim() !== "";
-  });
+  if (
+    keys.some((k) => {
+      const v = sp[k];
+      return typeof v === "string" && v.trim() !== "";
+    })
+  ) {
+    return true;
+  }
+  const lat = typeof sp.lat === "string" ? sp.lat.trim() : "";
+  const lng = typeof sp.lng === "string" ? sp.lng.trim() : "";
+  return Boolean(lat && lng);
 }
 
 export default async function StudiosPage({ searchParams }: Props) {
@@ -32,11 +44,19 @@ export default async function StudiosPage({ searchParams }: Props) {
   const filters = parseStudiosSearchParams(raw);
   const filtered = hasActiveStudioFilters(raw);
   const where = buildStudioDiscoverWhere(filters);
+  const near = filters.near;
 
-  const studios = await prisma.studio.findMany({
+  let studios = await prisma.studio.findMany({
     where,
     orderBy: byName ? { displayName: "asc" } : [{ marketplaceRankWeight: "desc" }, { displayName: "asc" }],
+    ...(near ? { take: GEO_SCAN_LIMIT } : {}),
   });
+
+  if (near) {
+    studios = filterRowsByNearKm(studios, near, (s) =>
+      s.latitude != null && s.longitude != null ? { lat: s.latitude, lng: s.longitude } : null,
+    );
+  }
 
   const hrefRecommended = (() => {
     const q = buildStudiosSearchString(filters, undefined);
@@ -46,6 +66,22 @@ export default async function StudiosPage({ searchParams }: Props) {
     const q = buildStudiosSearchString(filters, "name");
     return q ? `/studios?${q}` : "/studios?sort=name";
   })();
+
+  const latDefault = near ? String(near.lat) : "";
+  const lngDefault = near ? String(near.lng) : "";
+  const radiusDefault = near ? String(near.radiusKm) : "";
+
+  const studioMapMarkers = near
+    ? studios
+        .filter((s) => s.latitude != null && s.longitude != null)
+        .map((s) => ({
+          id: s.id,
+          lat: s.latitude as number,
+          lng: s.longitude as number,
+          title: s.displayName,
+          href: `/studios/${s.id}`,
+        }))
+    : [];
 
   return (
     <MarketingLayout>
@@ -113,6 +149,18 @@ export default async function StudiosPage({ searchParams }: Props) {
                 Has public classes
               </label>
             </div>
+            <NearPointFields
+              idPrefix="studios"
+              initialLat={latDefault}
+              initialLng={lngDefault}
+              initialRadius={radiusDefault}
+              description={
+                <>
+                  Studios need latitude/longitude on their profile. Use the button to fill from your device, or paste
+                  from a map. We scan up to {GEO_SCAN_LIMIT} studios, filter by radius, then sort nearest first.
+                </>
+              }
+            />
           </div>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={ui.buttonPrimary}>
@@ -153,6 +201,25 @@ export default async function StudiosPage({ searchParams }: Props) {
           </Link>
         </div>
 
+        {near ? (
+          <section className="mt-10" aria-labelledby="studios-map-heading">
+            <h2 id="studios-map-heading" className="text-lg font-semibold text-amber-950">
+              Map
+            </h2>
+            <p className="mt-1 text-sm text-stone-600">
+              Amber circle: your search radius. Pins match the list below — click a pin to open the studio.
+            </p>
+            <div className="mt-4">
+              <NearResultsMap
+                centerLat={near.lat}
+                centerLng={near.lng}
+                radiusKm={near.radiusKm}
+                markers={studioMapMarkers}
+              />
+            </div>
+          </section>
+        ) : null}
+
         {studios.length === 0 ? (
           filtered ? (
             <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
@@ -176,7 +243,12 @@ export default async function StudiosPage({ searchParams }: Props) {
           )
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {studios.map((studio) => (
+            {studios.map((studio) => {
+              const km =
+                near && studio.latitude != null && studio.longitude != null
+                  ? haversineKm(near.lat, near.lng, studio.latitude, studio.longitude)
+                  : null;
+              return (
               <Link
                 key={studio.id}
                 href={`/studios/${studio.id}`}
@@ -188,6 +260,7 @@ export default async function StudiosPage({ searchParams }: Props) {
                     <p className="mt-1 text-sm text-stone-500">
                       {studio.city}, {studio.country}
                     </p>
+                    {km != null ? <p className="mt-1 text-xs text-stone-500">~{km.toFixed(1)} km away</p> : null}
                   </div>
                   {studio.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -198,7 +271,8 @@ export default async function StudiosPage({ searchParams }: Props) {
                   <p className="mt-4 line-clamp-3 text-sm text-stone-600">{studio.shortDescription}</p>
                 ) : null}
               </Link>
-            ))}
+            );
+            })}
           </div>
         )}
       </main>

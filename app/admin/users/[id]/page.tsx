@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireAdminUser } from "@/lib/auth-session";
+import { isAdminRole, requireAdminUser } from "@/lib/auth-session";
 import { StatCard } from "@/components/admin/stat-card";
 import { UserAdminActions } from "./user-admin-actions";
 import { UserAdminNotesForm } from "./user-admin-notes";
+import { UserAdminTagsPanel } from "./user-admin-tags";
 
 export const dynamic = "force-dynamic";
 
@@ -59,11 +60,115 @@ export default async function AdminUserDetailPage({ params }: Props) {
 
   if (!row) notFound();
 
-  const orderAgg = await prisma.order.aggregate({
-    where: { customerUserId: id },
-    _sum: { totalCents: true },
-    _count: { id: true },
-  });
+  const [orderAgg, recentOrders, recentBookings, recentFeatureActivations] = await Promise.all([
+    prisma.order.aggregate({
+      where: { customerUserId: id },
+      _sum: { totalCents: true },
+      _count: { id: true },
+    }),
+    prisma.order.findMany({
+      where: { customerUserId: id },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: {
+        id: true,
+        createdAt: true,
+        totalCents: true,
+        paymentStatus: true,
+        orderStatus: true,
+      },
+    }),
+    prisma.booking.findMany({
+      where: { customerUserId: id },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: {
+        id: true,
+        createdAt: true,
+        bookingStatus: true,
+        paymentStatus: true,
+        ticketRef: true,
+        experience: { select: { title: true } },
+      },
+    }),
+    prisma.studioFeatureActivation.findMany({
+      where: { studio: { ownerUserId: id } },
+      orderBy: { updatedAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        updatedAt: true,
+        status: true,
+        feature: { select: { name: true, slug: true } },
+        studio: { select: { displayName: true } },
+      },
+    }),
+  ]);
+
+  type TimelineEntry =
+    | {
+        kind: "order";
+        at: Date;
+        id: string;
+        totalCents: number;
+        paymentStatus: string;
+        orderStatus: string;
+      }
+    | {
+        kind: "booking";
+        at: Date;
+        id: string;
+        title: string;
+        ticketRef: string | null;
+        bookingStatus: string;
+        paymentStatus: string;
+      }
+    | {
+        kind: "feature";
+        at: Date;
+        id: string;
+        studioName: string;
+        featureName: string;
+        featureSlug: string;
+        status: string;
+      };
+
+  const timeline: TimelineEntry[] = [
+    ...recentOrders.map(
+      (o): TimelineEntry => ({
+        kind: "order",
+        at: o.createdAt,
+        id: o.id,
+        totalCents: o.totalCents,
+        paymentStatus: o.paymentStatus,
+        orderStatus: o.orderStatus,
+      }),
+    ),
+    ...recentBookings.map(
+      (b): TimelineEntry => ({
+        kind: "booking",
+        at: b.createdAt,
+        id: b.id,
+        title: b.experience.title,
+        ticketRef: b.ticketRef,
+        bookingStatus: b.bookingStatus,
+        paymentStatus: b.paymentStatus,
+      }),
+    ),
+    ...recentFeatureActivations.map(
+      (a): TimelineEntry => ({
+        kind: "feature",
+        at: a.updatedAt,
+        id: a.id,
+        studioName: a.studio.displayName,
+        featureName: a.feature.name,
+        featureSlug: a.feature.slug,
+        status: a.status,
+      }),
+    ),
+  ];
+  timeline.sort((a, b) => b.at.getTime() - a.at.getTime());
+  const timelineTop = timeline.slice(0, 28);
 
   const acquisition = row.acquisitionAttributions[0] ?? null;
   const engage = engagementLabel({
@@ -102,9 +207,73 @@ export default async function AdminUserDetailPage({ params }: Props) {
           role={row.role}
           suspended={!!row.suspendedAt}
           actorIsHyperAdmin={admin.role === "hyper_admin"}
+          canImpersonate={
+            !row.suspendedAt && row.id !== admin.id && !isAdminRole(row.role)
+          }
         />
-        <UserAdminNotesForm userId={row.id} />
+        <div className="space-y-6">
+          <UserAdminTagsPanel
+            key={row.adminTags.slice().sort().join("|")}
+            userId={row.id}
+            initialTags={row.adminTags}
+          />
+          <UserAdminNotesForm userId={row.id} />
+        </div>
       </div>
+
+      <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-semibold text-amber-950">Recent activity</h2>
+        <p className="mt-1 text-xs text-stone-500">
+          Newest first: marketplace orders and class bookings as this customer, plus platform add-on changes on studios
+          they own.
+        </p>
+        {timelineTop.length === 0 ? (
+          <p className="mt-4 text-sm text-stone-500">No orders, bookings, or add-on events yet.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-stone-100 text-sm">
+            {timelineTop.map((e) => (
+              <li key={`${e.kind}-${e.id}`} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
+                <div>
+                  {e.kind === "order" ? (
+                    <>
+                      <span className="font-medium text-amber-950">Order</span>{" "}
+                      <Link href={`/admin/orders/${e.id}`} className="text-amber-900 underline">
+                        {e.id.slice(0, 8)}…
+                      </Link>
+                      <span className="ml-2 text-xs text-stone-500">
+                        {e.orderStatus} · {e.paymentStatus} · {formatEur(e.totalCents)}
+                      </span>
+                    </>
+                  ) : e.kind === "booking" ? (
+                    <>
+                      <span className="font-medium text-amber-950">Booking</span>{" "}
+                      <Link href={`/admin/bookings/${e.id}`} className="text-amber-900 underline">
+                        {e.ticketRef ?? e.id.slice(0, 8) + "…"}
+                      </Link>
+                      <span className="ml-2 text-xs text-stone-500">
+                        {e.title} · {e.bookingStatus} · {e.paymentStatus}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium text-amber-950">Add-on</span>{" "}
+                      <span className="text-stone-700">
+                        {e.featureName} <code className="text-xs text-stone-500">({e.featureSlug})</code>
+                      </span>
+                      <span className="ml-2 text-xs text-stone-500">
+                        {e.studioName} · {e.status}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <time className="shrink-0 text-xs text-stone-400" dateTime={e.at.toISOString()}>
+                  {e.at.toISOString().slice(0, 16).replace("T", " ")}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-amber-950">Profile</h2>
@@ -144,7 +313,10 @@ export default async function AdminUserDetailPage({ params }: Props) {
           <ul className="mt-3 space-y-2 text-sm">
             {row.ownedStudios.map((s) => (
               <li key={s.id}>
-                {s.displayName} <code className="text-xs text-stone-500">({s.status})</code>
+                <Link href={`/admin/studios/${s.id}`} className="font-medium text-amber-900 underline">
+                  {s.displayName}
+                </Link>{" "}
+                <code className="text-xs text-stone-500">({s.status})</code>
               </li>
             ))}
           </ul>

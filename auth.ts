@@ -56,18 +56,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: updatePayload }) {
+      if (trigger === "update" && updatePayload && typeof updatePayload === "object") {
+        const payload = updatePayload as Record<string, unknown>;
+        if (payload.endImpersonation === true && typeof token.impersonatorSub === "string") {
+          token.sub = token.impersonatorSub;
+          delete token.impersonatorSub;
+          delete token.impersonatorEmail;
+        } else if (typeof payload.impersonationGrantId === "string" && token.sub) {
+          const grantId = payload.impersonationGrantId;
+          try {
+            const grant = await prisma.impersonationGrant.findUnique({ where: { id: grantId } });
+            const now = new Date();
+            if (grant && grant.adminUserId === token.sub && grant.expiresAt > now) {
+              token.impersonatorSub = token.sub;
+              token.impersonatorEmail = typeof token.email === "string" ? token.email : undefined;
+              token.sub = grant.targetUserId;
+              await prisma.impersonationGrant.delete({ where: { id: grant.id } });
+            }
+          } catch (e) {
+            console.error("[auth jwt] impersonation grant failed", e);
+          }
+        }
+      }
+
       if (user && "role" in user) {
         token.role = (user as { role: string }).role;
       }
-      // Keep JWT role aligned with DB (SQL promote / seed) so middleware + /admin stay consistent.
+      // Keep JWT role/email aligned with DB for current `sub` (handles impersonation target + admin promote).
       if (token.sub) {
         try {
           const row = await prisma.user.findUnique({
             where: { id: token.sub },
-            select: { role: true, suspendedAt: true, emailVerifiedAt: true },
+            select: { role: true, suspendedAt: true, emailVerifiedAt: true, email: true },
           });
           if (row?.role) token.role = row.role;
+          if (row?.email) token.email = row.email;
           token.suspended = Boolean(row?.suspendedAt);
           token.emailVerified = Boolean(row?.emailVerifiedAt);
         } catch (e) {
@@ -87,6 +111,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         (session.user as { role?: string }).role = token.role as string;
         (session.user as { suspended?: boolean }).suspended = Boolean(token.suspended);
         (session.user as { emailVerified?: boolean }).emailVerified = Boolean(token.emailVerified);
+        const impSub = token.impersonatorSub;
+        (session.user as { impersonatorId?: string }).impersonatorId =
+          typeof impSub === "string" ? impSub : undefined;
+        (session.user as { impersonatorEmail?: string }).impersonatorEmail =
+          typeof token.impersonatorEmail === "string" ? token.impersonatorEmail : undefined;
       }
       return session;
     },

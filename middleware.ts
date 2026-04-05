@@ -36,6 +36,10 @@ export default auth((req) => {
   }
 
   const path = req.nextUrl.pathname;
+  const impersonatorId = (req.auth?.user as { impersonatorId?: string })?.impersonatorId;
+  if (impersonatorId && (path === "/admin" || path.startsWith("/admin/"))) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
   const allow = publicAllowlist();
   const isPublic = allow.some((p) => path === p || (p !== "/" && path.startsWith(p + "/")));
   const needsLogin = LOGIN_REQUIRED.some((p) => path === p || path.startsWith(p + "/"));

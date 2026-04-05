@@ -7,11 +7,17 @@ import { ui } from "@/lib/ui-styles";
 import { redirectEndUserIfNoPublicClasses } from "@/lib/public-catalog-guard";
 import {
   DISCOVER_EXPERIENCE_TYPE_OPTIONS,
+  GEO_SCAN_LIMIT,
   buildExperienceDiscoverWhere,
+  experienceMeetingPoint,
+  filterRowsByNearKm,
   parseClassesSearchParams,
 } from "@/lib/public-discovery";
+import { haversineKm } from "@/lib/geo";
 import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/cn";
+import { NearPointFields } from "@/components/discovery/near-point-fields";
+import { NearResultsMap } from "@/components/discovery/near-results-map";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
@@ -24,10 +30,17 @@ type Props = { searchParams?: Promise<Record<string, string | string[] | undefin
 
 function hasActiveClassFilters(sp: Record<string, string | string[] | undefined>): boolean {
   const keys = ["q", "country", "city", "category", "skill", "type", "minPrice", "maxPrice", "from", "to", "spots"];
-  return keys.some((k) => {
-    const v = sp[k];
-    return typeof v === "string" && v.trim() !== "";
-  });
+  if (
+    keys.some((k) => {
+      const v = sp[k];
+      return typeof v === "string" && v.trim() !== "";
+    })
+  ) {
+    return true;
+  }
+  const lat = typeof sp.lat === "string" ? sp.lat.trim() : "";
+  const lng = typeof sp.lng === "string" ? sp.lng.trim() : "";
+  return Boolean(lat && lng);
 }
 
 export default async function ClassesPage({ searchParams }: Props) {
@@ -37,16 +50,29 @@ export default async function ClassesPage({ searchParams }: Props) {
   const filters = parseClassesSearchParams(raw);
   const filtered = hasActiveClassFilters(raw);
   const where = buildExperienceDiscoverWhere(filters);
+  const near = filters.near;
 
-  const experiences = await prisma.experience.findMany({
+  let experiences = await prisma.experience.findMany({
     where,
     orderBy: { createdAt: "desc" },
-    take: 80,
+    take: near ? GEO_SCAN_LIMIT : 80,
     include: {
-      studio: { select: { displayName: true, city: true, country: true } },
+      studio: {
+        select: {
+          displayName: true,
+          city: true,
+          country: true,
+          latitude: true,
+          longitude: true,
+        },
+      },
       images: { where: { isPrimary: true }, take: 1 },
     },
   });
+
+  if (near) {
+    experiences = filterRowsByNearKm(experiences, near, (ex) => experienceMeetingPoint(ex)).slice(0, 80);
+  }
 
   const minPriceDefault =
     filters.minPriceCents != null ? String(filters.minPriceCents / 100) : "";
@@ -54,6 +80,26 @@ export default async function ClassesPage({ searchParams }: Props) {
     filters.maxPriceCents != null ? String(filters.maxPriceCents / 100) : "";
   const dateFromDefault = /^\d{4}-\d{2}-\d{2}$/.test(filters.slotFrom ?? "") ? filters.slotFrom : "";
   const dateToDefault = /^\d{4}-\d{2}-\d{2}$/.test(filters.slotTo ?? "") ? filters.slotTo : "";
+  const latDefault = near ? String(near.lat) : "";
+  const lngDefault = near ? String(near.lng) : "";
+  const radiusDefault = near ? String(near.radiusKm) : "";
+
+  const classMapMarkers = near
+    ? experiences
+        .flatMap((ex) => {
+          const p = experienceMeetingPoint(ex);
+          if (!p) return [];
+          return [
+            {
+              id: ex.id,
+              lat: p.lat,
+              lng: p.lng,
+              title: ex.title,
+              href: `/classes/${ex.id}`,
+            },
+          ];
+        })
+    : [];
 
   return (
     <MarketingLayout>
@@ -220,6 +266,19 @@ export default async function ClassesPage({ searchParams }: Props) {
                 Only show dates with open spots
               </label>
             </div>
+            <NearPointFields
+              idPrefix="classes"
+              initialLat={latDefault}
+              initialLng={lngDefault}
+              initialRadius={radiusDefault}
+              description={
+                <>
+                  Decimal latitude &amp; longitude (WGS84). Use the button to fill from your device, or paste from a map.
+                  We scan up to {GEO_SCAN_LIMIT} classes, keep those within the radius, and sort by distance. Coordinates
+                  come from the class venue or the studio pin.
+                </>
+              }
+            />
           </div>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={ui.buttonPrimary}>
@@ -233,9 +292,28 @@ export default async function ClassesPage({ searchParams }: Props) {
           </div>
           <p className={ui.helper}>
             Filters update the URL so you can share a search. Dates use scheduled session days; open spots means the
-            slot is bookable today or later.
+            slot is bookable today or later. Leave latitude/longitude empty to search everywhere.
           </p>
         </form>
+
+        {near ? (
+          <section className="mt-10" aria-labelledby="classes-map-heading">
+            <h2 id="classes-map-heading" className="text-lg font-semibold text-amber-950">
+              Map
+            </h2>
+            <p className="mt-1 text-sm text-stone-600">
+              Amber circle: your search radius. Pins match the list below — click a pin to open the class.
+            </p>
+            <div className="mt-4">
+              <NearResultsMap
+                centerLat={near.lat}
+                centerLng={near.lng}
+                radiusKm={near.radiusKm}
+                markers={classMapMarkers}
+              />
+            </div>
+          </section>
+        ) : null}
 
         {experiences.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
@@ -282,6 +360,9 @@ export default async function ClassesPage({ searchParams }: Props) {
             {experiences.map((ex) => {
               const img = ex.images[0]?.imageUrl;
               const price = ex.priceCents / 100;
+              const pt = experienceMeetingPoint(ex);
+              const km =
+                near && pt ? haversineKm(near.lat, near.lng, pt.lat, pt.lng) : null;
               return (
                 <Link key={ex.id} href={`/classes/${ex.id}`} className={ui.tile}>
                   <div className="aspect-video bg-stone-100">
@@ -295,6 +376,9 @@ export default async function ClassesPage({ searchParams }: Props) {
                   <div className="p-4 sm:p-5">
                     <p className="text-xs font-medium text-stone-500">{ex.studio.displayName}</p>
                     <h2 className="mt-1 text-base font-semibold text-stone-900">{ex.title}</h2>
+                    {km != null ? (
+                      <p className="mt-1 text-xs text-stone-500">~{km.toFixed(1)} km away</p>
+                    ) : null}
                     <p className="mt-2 text-sm font-medium text-amber-950">From €{price.toFixed(2)} / person</p>
                   </div>
                 </Link>

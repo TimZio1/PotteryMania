@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import type { PlatformFeatureVisibility, StudioFeatureActivationStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
-function activationGrantsAccess(status: StudioFeatureActivationStatus, trialEndsAt: Date | null, deactivatesAt: Date | null) {
+export function activationGrantsAccess(
+  status: StudioFeatureActivationStatus,
+  trialEndsAt: Date | null,
+  deactivatesAt: Date | null,
+) {
   const now = new Date();
   if (status === "active") return true;
   if (status === "trialing") return trialEndsAt != null && trialEndsAt > now;

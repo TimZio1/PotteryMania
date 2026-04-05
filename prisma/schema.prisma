@@ -25,6 +25,8 @@ model User {
   suspendedAt     DateTime? @map("suspended_at")
   suspendedReason String?   @map("suspended_reason")
   emailVerifiedAt DateTime? @map("email_verified_at")
+  /// Hyperadmin-only labels (e.g. vip, at-risk). Lowercase slug segments; not shown to the user.
+  adminTags       String[]  @default([]) @map("admin_tags")
   /// Opaque token for unauthenticated iCal/WebCal feed of this user’s bookings (`/api/calendar/feed/[token]`). Treat as secret.
   calendarFeedToken String?   @unique @map("calendar_feed_token")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -54,6 +56,18 @@ model User {
   emailVerificationTokens   EmailVerificationToken[]
 
   @@map("users")
+}
+
+/// One-time id consumed by Auth.js `session.update({ impersonationGrantId })` so only server-created grants can switch JWT `sub`.
+model ImpersonationGrant {
+  id           String   @id @default(uuid()) @db.Uuid
+  adminUserId  String   @map("admin_user_id") @db.Uuid
+  targetUserId String   @map("target_user_id") @db.Uuid
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([adminUserId])
+  @@map("impersonation_grants")
 }
 
 model EmailVerificationToken {

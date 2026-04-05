@@ -1,4 +1,7 @@
 import type { ExperienceType, Prisma } from "@prisma/client";
+import { haversineKm, parseNearQueryFromParams, type NearQuery } from "@/lib/geo";
+
+export type { NearQuery };
 
 const EXPERIENCE_TYPES: ExperienceType[] = [
   "one_time_event",
@@ -33,6 +36,8 @@ export type ClassesDiscoveryFilters = {
   slotFrom?: string;
   slotTo?: string;
   openSpotsOnly: boolean;
+  /** When set, results are filtered and sorted by distance (see `GEO_SCAN_LIMIT`). */
+  near?: NearQuery;
 };
 
 export function parseClassesSearchParams(
@@ -46,6 +51,8 @@ export function parseClassesSearchParams(
   const minPriceCents = parseEuroToCents(pickString(sp, "minPrice"));
   const maxPriceCents = parseEuroToCents(pickString(sp, "maxPrice"));
 
+  const near = parseNearQueryFromParams(sp) ?? undefined;
+
   return {
     q: pickString(sp, "q"),
     country: pickString(sp, "country"),
@@ -58,6 +65,7 @@ export function parseClassesSearchParams(
     slotFrom: pickString(sp, "from"),
     slotTo: pickString(sp, "to"),
     openSpotsOnly: pickString(sp, "spots") === "open",
+    near,
   };
 }
 
@@ -143,21 +151,57 @@ export function buildExperienceDiscoverWhere(f: ClassesDiscoveryFilters): Prisma
   return { AND: and };
 }
 
+/** Max rows loaded from DB before in-memory distance filter (near-me). */
+export const GEO_SCAN_LIMIT = 400;
+
+export function experienceMeetingPoint(e: {
+  latitude: number | null;
+  longitude: number | null;
+  studio: { latitude: number | null; longitude: number | null };
+}): { lat: number; lng: number } | null {
+  if (e.latitude != null && e.longitude != null) return { lat: e.latitude, lng: e.longitude };
+  if (e.studio.latitude != null && e.studio.longitude != null) {
+    return { lat: e.studio.latitude, lng: e.studio.longitude };
+  }
+  return null;
+}
+
+export function filterRowsByNearKm<T>(
+  rows: T[],
+  near: NearQuery,
+  getPoint: (row: T) => { lat: number; lng: number } | null,
+): T[] {
+  return rows
+    .map((row) => {
+      const p = getPoint(row);
+      if (!p) return null;
+      const km = haversineKm(near.lat, near.lng, p.lat, p.lng);
+      if (km > near.radiusKm) return null;
+      return { row, km };
+    })
+    .filter((x): x is { row: T; km: number } => x != null)
+    .sort((a, b) => a.km - b.km)
+    .map((x) => x.row);
+}
+
 export type StudiosDiscoveryFilters = {
   q: string;
   country: string;
   city: string;
   hasPublicClasses: boolean;
+  near?: NearQuery;
 };
 
 export function parseStudiosSearchParams(
   sp: Record<string, string | string[] | undefined>
 ): StudiosDiscoveryFilters {
+  const near = parseNearQueryFromParams(sp) ?? undefined;
   return {
     q: pickString(sp, "q"),
     country: pickString(sp, "country"),
     city: pickString(sp, "city"),
     hasPublicClasses: pickString(sp, "offer") === "classes",
+    near,
   };
 }
 
@@ -202,6 +246,13 @@ export const DISCOVER_EXPERIENCE_TYPE_OPTIONS = EXPERIENCE_TYPES.map((v) => ({
   label: titleCaseWords(v),
 }));
 
+function appendNearParams(p: URLSearchParams, near: NearQuery | undefined): void {
+  if (!near) return;
+  p.set("lat", String(near.lat));
+  p.set("lng", String(near.lng));
+  if (near.radiusKm !== 50) p.set("radius", String(near.radiusKm));
+}
+
 /** Query string for `/studios` (no leading `?`). Preserves filters and optional sort. */
 export function buildStudiosSearchString(f: StudiosDiscoveryFilters, sort?: string): string {
   const p = new URLSearchParams();
@@ -209,6 +260,25 @@ export function buildStudiosSearchString(f: StudiosDiscoveryFilters, sort?: stri
   if (f.country) p.set("country", f.country);
   if (f.city) p.set("city", f.city);
   if (f.hasPublicClasses) p.set("offer", "classes");
+  appendNearParams(p, f.near);
   if (sort === "name") p.set("sort", "name");
+  return p.toString();
+}
+
+/** Query string for `/classes` (no leading `?`). */
+export function buildClassesSearchString(f: ClassesDiscoveryFilters): string {
+  const p = new URLSearchParams();
+  if (f.q) p.set("q", f.q);
+  if (f.country) p.set("country", f.country);
+  if (f.city) p.set("city", f.city);
+  if (f.category) p.set("category", f.category);
+  if (f.skillLevel) p.set("skill", f.skillLevel);
+  if (f.experienceType) p.set("type", f.experienceType);
+  if (f.minPriceCents != null) p.set("minPrice", String(f.minPriceCents / 100));
+  if (f.maxPriceCents != null) p.set("maxPrice", String(f.maxPriceCents / 100));
+  if (f.slotFrom && /^\d{4}-\d{2}-\d{2}$/.test(f.slotFrom)) p.set("from", f.slotFrom);
+  if (f.slotTo && /^\d{4}-\d{2}-\d{2}$/.test(f.slotTo)) p.set("to", f.slotTo);
+  if (f.openSpotsOnly) p.set("spots", "open");
+  appendNearParams(p, f.near);
   return p.toString();
 }

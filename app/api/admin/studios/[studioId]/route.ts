@@ -60,6 +60,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
     } else if (status === "rejected") {
       data.rejectionReason = body.rejectionReason ?? "Rejected";
       data.approvedAt = null;
+    } else if (status === "pending_review") {
+      data.rejectionReason = null;
+      data.approvedAt = null;
     } else {
       data.approvedAt = null;
     }

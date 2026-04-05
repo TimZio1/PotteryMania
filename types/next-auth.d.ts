@@ -7,6 +7,9 @@ declare module "next-auth" {
       role: string;
       suspended?: boolean;
       emailVerified?: boolean;
+      /** Set when an admin is viewing the app as another user (JWT `sub` is the target). */
+      impersonatorId?: string;
+      impersonatorEmail?: string;
     } & DefaultSession["user"];
   }
 }
@@ -16,5 +19,8 @@ declare module "next-auth/jwt" {
     role?: string;
     suspended?: boolean;
     emailVerified?: boolean;
+    /** Admin user id before switching `sub` to the impersonation target. */
+    impersonatorSub?: string;
+    impersonatorEmail?: string;
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { depositChargedCents } from "@/lib/bookings/deposit";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
 import { ui } from "@/lib/ui-styles";
@@ -23,6 +23,17 @@ type Item = {
   } | null;
 };
 
+type CouponPreview = {
+  code: string;
+  name: string | null;
+  subtotalBefore: number;
+  discountCents: number;
+  subtotalAfter: number;
+  shippingCents: number;
+  taxCents: number;
+  estimatedTotal: number;
+};
+
 export function CartContents() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,11 +43,27 @@ export function CartContents() {
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
   const [err, setErr] = useState("");
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedCode, setAppliedCode] = useState("");
+  const [couponPreview, setCouponPreview] = useState<CouponPreview | null>(null);
+  const [couponErr, setCouponErr] = useState("");
+  const [couponBusy, setCouponBusy] = useState(false);
+  const cartSigRef = useRef("");
 
   async function load() {
     const r = await fetch("/api/cart");
     const j = await r.json();
-    setItems(j.cart?.items || []);
+    const next: Item[] = j.cart?.items || [];
+    const sig = next
+      .map((i) => `${i.id}:${i.quantity}:${i.participantCount ?? ""}:${i.seatType ?? ""}`)
+      .join("|");
+    if (cartSigRef.current !== "" && cartSigRef.current !== sig) {
+      setCouponPreview(null);
+      setAppliedCode("");
+      setCouponErr("");
+    }
+    cartSigRef.current = sig;
+    setItems(next);
     setLoading(false);
   }
 
@@ -53,6 +80,35 @@ export function CartContents() {
     load();
   }
 
+  async function applyPromo() {
+    setCouponErr("");
+    setCouponBusy(true);
+    const r = await fetch("/api/coupon/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: promoInput.trim(),
+        shippingAddress: { line1, city, country },
+      }),
+    });
+    const j = await r.json().catch(() => ({}));
+    setCouponBusy(false);
+    if (!r.ok) {
+      setCouponPreview(null);
+      setAppliedCode("");
+      setCouponErr(typeof j.error === "string" ? j.error : "Could not apply code");
+      return;
+    }
+    setCouponPreview(j as CouponPreview);
+    setAppliedCode(j.code);
+  }
+
+  function clearPromo() {
+    setCouponPreview(null);
+    setAppliedCode("");
+    setCouponErr("");
+  }
+
   async function checkout() {
     setErr("");
     const r = await fetch("/api/checkout", {
@@ -62,6 +118,7 @@ export function CartContents() {
         customerName: name,
         customerEmail: email,
         shippingAddress: { line1, city, country },
+        ...(appliedCode ? { couponCode: appliedCode } : {}),
       }),
     });
     const j = await r.json();
@@ -222,15 +279,56 @@ export function CartContents() {
               );
             })}
           </ul>
-          <p className="mt-6 text-right text-sm text-stone-600">
-            Charged at checkout{" "}
-            <span className="text-base font-semibold text-amber-950">€{sub.toFixed(2)}</span>
-          </p>
+          <div className="mt-6 space-y-1 text-right text-sm text-stone-600">
+            <p>
+              Subtotal (due now){" "}
+              <span className="text-base font-semibold text-amber-950">€{sub.toFixed(2)}</span>
+            </p>
+            {couponPreview ? (
+              <>
+                <p>
+                  Discount ({couponPreview.code}
+                  {couponPreview.name ? ` — ${couponPreview.name}` : ""}){" "}
+                  <span className="font-semibold text-emerald-800">
+                    −€{(couponPreview.discountCents / 100).toFixed(2)}
+                  </span>
+                </p>
+                <p>
+                  After discount{" "}
+                  <span className="text-base font-semibold text-amber-950">
+                    €{(couponPreview.subtotalAfter / 100).toFixed(2)}
+                  </span>
+                </p>
+                {hasProducts ? (
+                  <>
+                    <p className="text-xs text-stone-500">
+                      Est. shipping €{(couponPreview.shippingCents / 100).toFixed(2)} · Est. tax €
+                      {(couponPreview.taxCents / 100).toFixed(2)}
+                    </p>
+                    <p>
+                      Est. total{" "}
+                      <span className="text-base font-semibold text-amber-950">
+                        €{(couponPreview.estimatedTotal / 100).toFixed(2)}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <p>
+                    Estimated total at checkout{" "}
+                    <span className="text-base font-semibold text-amber-950">
+                      €{(couponPreview.estimatedTotal / 100).toFixed(2)}
+                    </span>
+                  </p>
+                )}
+              </>
+            ) : null}
+          </div>
 
           <div className="mt-10 border-t border-stone-200 pt-10">
             <h2 className="text-lg font-semibold text-amber-950">Checkout details</h2>
             <p className="mt-1 text-sm text-stone-600">We use these details for your Stripe receipt and shipping when applicable.</p>
             {err ? <p className={`${ui.errorText} mt-4`}>{err}</p> : null}
+            {couponErr ? <p className={`${ui.errorText} mt-2`}>{couponErr}</p> : null}
             {!hasProducts ? (
               <p className="mt-4 text-sm text-stone-500">Booking-only: no shipping address needed. Name and email are required.</p>
             ) : null}
@@ -306,6 +404,41 @@ export function CartContents() {
                   </div>
                 </>
               ) : null}
+              <div className="rounded-2xl border border-stone-200/90 bg-stone-50/50 p-4">
+                <label className={ui.label} htmlFor="cart-promo">
+                  Promo code
+                </label>
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <input
+                    id="cart-promo"
+                    className={`${ui.input} sm:min-w-0 sm:flex-1`}
+                    placeholder="Enter code"
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value)}
+                    autoComplete="off"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={couponBusy || !promoInput.trim()}
+                      onClick={applyPromo}
+                      className={ui.buttonSecondary}
+                    >
+                      Apply
+                    </button>
+                    {appliedCode ? (
+                      <button type="button" onClick={clearPromo} className={ui.buttonGhost}>
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-stone-500">
+                  {hasProducts
+                    ? "Shipping and tax estimates use your address above."
+                    : "Discount applies to class deposits in this cart."}
+                </p>
+              </div>
               <button type="button" onClick={checkout} className={`${ui.buttonPrimary} mt-2 w-full`}>
                 Continue to payment
               </button>

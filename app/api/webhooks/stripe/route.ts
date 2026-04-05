@@ -129,9 +129,9 @@ export async function POST(req: Request) {
     const piId = typeof pi === "string" ? pi : pi?.id ?? null;
     const processed = await prisma.$transaction(async (tx) => {
       const rows = await tx.$queryRawUnsafe<
-        { id: string; order_status: string; total_cents: number }[]
+        { id: string; order_status: string; total_cents: number; customer_user_id: string | null }[]
       >(
-        `SELECT id, order_status::text, total_cents
+        `SELECT id, order_status::text, total_cents, customer_user_id
          FROM orders
          WHERE id = $1::uuid
          FOR UPDATE`,
@@ -159,6 +159,29 @@ export async function POST(req: Request) {
             currency: (session.currency || "eur").toUpperCase(),
           },
         });
+      }
+
+      const metaCouponId = session.metadata?.couponId;
+      const metaDiscount = session.metadata?.discountCents;
+      if (metaCouponId && metaDiscount) {
+        const dc = parseInt(String(metaDiscount), 10);
+        if (!Number.isNaN(dc) && dc > 0) {
+          const dup = await tx.discountRedemption.findFirst({ where: { orderId } });
+          if (!dup) {
+            await tx.discountRedemption.create({
+              data: {
+                couponId: metaCouponId,
+                orderId,
+                userId: rows[0].customer_user_id,
+                amountCents: dc,
+              },
+            });
+            await tx.coupon.update({
+              where: { id: metaCouponId },
+              data: { redeemedCount: { increment: 1 } },
+            });
+          }
+        }
       }
 
       const items = await tx.orderItem.findMany({ where: { orderId } });

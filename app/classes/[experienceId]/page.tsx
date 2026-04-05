@@ -8,10 +8,15 @@ import { ui } from "@/lib/ui-styles";
 
 export const dynamic = "force-dynamic";
 
-type PageProps = { params: Promise<{ experienceId: string }> };
+type PageProps = {
+  params: Promise<{ experienceId: string }>;
+  searchParams: Promise<{ slot?: string }>;
+};
 
-export default async function ClassDetailPage({ params }: PageProps) {
+export default async function ClassDetailPage({ params, searchParams }: PageProps) {
   const { experienceId } = await params;
+  const sp = await searchParams;
+  const initialSlotId = typeof sp.slot === "string" && sp.slot.length > 0 ? sp.slot : undefined;
 
   const experience = await prisma.experience.findFirst({
     where: {
@@ -129,6 +134,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
             bookingDepositBps={experience.bookingDepositBps}
             slots={slots}
             waitlistSlots={waitlistSlots}
+            initialSlotId={initialSlotId}
           />
         </div>
       </main>

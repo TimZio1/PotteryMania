@@ -38,6 +38,10 @@ export function isAdminRole(role: UserRole): boolean {
  * Hyperadmin /admin and admin APIs: DB-backed role check (same as getSessionUser + admin filter).
  */
 export async function requireAdminUser(): Promise<SessionUser | null> {
+  const session = await auth();
+  if ((session?.user as { impersonatorId?: string })?.impersonatorId) {
+    return null;
+  }
   const user = await getSessionUser();
   if (!user || !isAdminRole(user.role)) return null;
   return user;

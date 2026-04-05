@@ -38,6 +38,30 @@ body {
   color: var(--foreground);
 }
 
+/* Leaflet divIcon markers (near-results-map) */
+.near-map-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.near-map-center-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #ea580c;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.near-map-place-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #44403c;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
