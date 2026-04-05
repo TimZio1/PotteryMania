@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { AdminOrderRefundPanel } from "@/components/admin/admin-order-refund-panel";
 import { requireAdminUser } from "@/lib/auth-session";
 import { findAdminOrderById } from "@/lib/admin-orders-query";
+import { getStripeOrderRefundSnapshot } from "@/lib/orders/admin-stripe-order-refund";
 import { ui } from "@/lib/ui-styles";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +43,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const { id } = await params;
   const order = await findAdminOrderById(id);
   if (!order) notFound();
+
+  const refundSnapshot = await getStripeOrderRefundSnapshot(order.id);
 
   return (
     <div>
@@ -176,6 +180,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                   <code>{p.paymentStatus}</code>
                   <span className="text-stone-400"> · </span>
                   {p.provider}
+                  {p.providerPaymentId ? (
+                    <span className="mt-1 block break-all font-mono text-[11px] text-stone-400">
+                      {p.providerPaymentId}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="tabular-nums font-medium">{formatOrderMoney(p.amountCents, p.currency)}</span>
               </li>
@@ -183,6 +192,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           </ul>
         )}
       </div>
+
+      <AdminOrderRefundPanel orderId={order.id} snapshot={refundSnapshot} />
     </div>
   );
 }

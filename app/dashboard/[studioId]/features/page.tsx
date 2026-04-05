@@ -22,8 +22,9 @@ export default async function StudioFeaturesPage({ params }: Props) {
         <p className={ui.overline}>Add-ons</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Features / Add-ons</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Turn capabilities on in your preferences. Hyperadmin controls the catalog; when an add-on is not
-          grant-all and has a Stripe Price id, enabling opens Checkout for a monthly subscription.
+          Use <strong>Bundles</strong> when the platform offers a package, or enable add-ons individually. Hyperadmin
+          controls the catalog; paid add-ons open Stripe Checkout (one subscription per feature, or one for a bundle when
+          configured).
         </p>
       </div>
       <Suspense fallback={<p className="text-sm text-stone-500">Loading…</p>}>

@@ -1563,7 +1563,8 @@ model PlatformFeature {
   createdAt      DateTime                  @default(now()) @map("created_at")
   updatedAt      DateTime                  @updatedAt @map("updated_at")
 
-  activations StudioFeatureActivation[]
+  activations  StudioFeatureActivation[]
+  bundleItems  FeatureBundleItem[]
 
   @@index([isActive])
   @@map("platform_features")
@@ -1592,4 +1593,42 @@ model StudioFeatureActivation {
   @@index([featureId])
   @@index([stripeSubscriptionId])
   @@map("studio_feature_activations")
+}
+
+/// Hyperadmin-defined bundle of catalog features (discounted package price vs à la carte).
+model FeatureBundle {
+  id          String    @id @default(uuid()) @db.Uuid
+  slug        String    @unique
+  name        String
+  description String    @default("")
+  priceCents  Int       @map("price_cents")
+  currency    String    @default("EUR")
+  isActive    Boolean   @default(true) @map("is_active")
+  sortOrder   Int       @default(0) @map("sort_order")
+  validFrom   DateTime? @map("valid_from")
+  validUntil  DateTime? @map("valid_until")
+  /// Optional single recurring Stripe Price for the whole bundle (platform Billing).
+  stripePriceId String?   @map("stripe_price_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  items FeatureBundleItem[]
+
+  @@index([isActive])
+  @@map("feature_bundles")
+}
+
+model FeatureBundleItem {
+  id        String @id @default(uuid()) @db.Uuid
+  bundleId  String @map("bundle_id") @db.Uuid
+  featureId String @map("feature_id") @db.Uuid
+  sortOrder Int    @default(0) @map("sort_order")
+
+  bundle  FeatureBundle   @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  feature PlatformFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleId, featureId])
+  @@index([bundleId])
+  @@index([featureId])
+  @@map("feature_bundle_items")
 }

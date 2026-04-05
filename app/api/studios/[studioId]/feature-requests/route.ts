@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { listStudioFeaturesForVendor } from "@/lib/studio-features";
+import { listStudioBundlesForVendor } from "@/lib/studio-feature-bundles-vendor";
+import { applyStudioFeatureBundle } from "@/lib/studio-feature-bundle-apply";
 import {
   cancelStudioFeatureStripeSubscription,
   createStudioFeatureSubscriptionCheckout,
@@ -19,9 +21,12 @@ export async function GET(_req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const features = await listStudioFeaturesForVendor(studioId);
+  const [features, bundles] = await Promise.all([
+    listStudioFeaturesForVendor(studioId),
+    listStudioBundlesForVendor(studioId),
+  ]);
   const desiredByKey = Object.fromEntries(features.map((f) => [f.slug, f.preferenceOn]));
-  return NextResponse.json({ features, desiredByKey });
+  return NextResponse.json({ features, bundles, desiredByKey });
 }
 
 export async function POST(req: Request, ctx: Ctx) {
@@ -41,17 +46,60 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  let body: { featureKey?: string; desiredOn?: boolean; slug?: string; active?: boolean };
+  let body: { featureKey?: string; desiredOn?: boolean; slug?: string; active?: boolean; bundleId?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  const bundleId = typeof body.bundleId === "string" ? body.bundleId.trim() : "";
+  if (bundleId.length) {
+    const result = await applyStudioFeatureBundle({
+      studioId,
+      studio,
+      ownerEmail: user.email ?? "",
+      bundleId,
+    });
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+    if ("checkoutUrl" in result) {
+      return NextResponse.json({
+        checkoutUrl: result.checkoutUrl,
+        bundleSlug: result.bundleSlug,
+        pending: true,
+        message: "Complete payment in Stripe to activate all add-ons in this bundle.",
+      });
+    }
+    if ("alreadyComplete" in result && result.alreadyComplete) {
+      return NextResponse.json({
+        ok: true,
+        bundleId,
+        alreadyComplete: true,
+        message: "Every add-on in this bundle is already active for your studio.",
+      });
+    }
+    if ("activatedSlugs" in result) {
+      return NextResponse.json({
+        ok: true,
+        bundleId,
+        activatedSlugs: result.activatedSlugs,
+        needsIndividualStripeSlugs: result.needsIndividualStripeSlugs,
+        message:
+          result.needsIndividualStripeSlugs.length > 0
+            ? "Free add-ons in the bundle are on. Subscribe to the remaining add-ons individually below."
+            : "Bundle add-ons updated.",
+      });
+    }
+    return NextResponse.json({ error: "Unexpected bundle response" }, { status: 500 });
+  }
+
   const slug =
     (typeof body.slug === "string" ? body.slug.trim() : "") ||
     (typeof body.featureKey === "string" ? body.featureKey.trim() : "");
   if (!slug.length) {
-    return NextResponse.json({ error: "slug or featureKey required" }, { status: 400 });
+    return NextResponse.json({ error: "slug, featureKey, or bundleId required" }, { status: 400 });
   }
   const desiredOn = typeof body.active === "boolean" ? body.active : Boolean(body.desiredOn);
 
@@ -67,7 +115,12 @@ export async function POST(req: Request, ctx: Ctx) {
   });
 
   if (!desiredOn) {
-    await cancelStudioFeatureStripeSubscription(existing ?? { stripeSubscriptionId: null });
+    if (existing?.stripeSubscriptionId) {
+      await cancelStudioFeatureStripeSubscription({
+        studioId,
+        stripeSubscriptionId: existing.stripeSubscriptionId,
+      });
+    }
     await prisma.studioFeatureActivation.upsert({
       where: { studioId_featureId: { studioId, featureId: feature.id } },
       create: {
@@ -137,7 +190,7 @@ export async function POST(req: Request, ctx: Ctx) {
   try {
     const session = await createStudioFeatureSubscriptionCheckout({
       studio,
-      ownerEmail: user.email,
+      ownerEmail: user.email ?? "",
       feature,
     });
     if (!session.url) {

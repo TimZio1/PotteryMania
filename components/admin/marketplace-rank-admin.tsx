@@ -61,9 +61,14 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
                     <p className="text-xs text-stone-500">
                       {s.city}, {s.country}
                     </p>
-                    <Link href={`/studios/${s.id}`} className="mt-1 inline-block text-xs text-amber-900 underline">
-                      Public profile →
-                    </Link>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
+                      <Link href={`/studios/${s.id}`} className="text-amber-900 underline">
+                        Public profile →
+                      </Link>
+                      <Link href={`/admin/studios/${s.id}`} className="text-stone-600 underline">
+                        Admin →
+                      </Link>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-xs capitalize text-stone-600">{s.status.replace(/_/g, " ")}</td>
                   <td className="px-4 py-3">

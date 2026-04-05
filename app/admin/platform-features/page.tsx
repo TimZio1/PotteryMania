@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
@@ -37,6 +38,14 @@ export default async function AdminPlatformFeaturesPage() {
         all&rdquo; makes each studio rely on an active activation. Set a recurring Stripe Price id (
         <code className="font-mono text-xs">price_…</code>) so vendors can subscribe via Checkout; leave it empty to
         activate toggles without charging.
+      </p>
+      <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm">
+        <Link href="/admin/features" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+          Feature hub — adoption & est. MRR by SKU →
+        </Link>
+        <Link href="/admin/feature-bundles" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+          Feature bundles →
+        </Link>
       </p>
 
       <div className="mt-8">

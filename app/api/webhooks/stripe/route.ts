@@ -12,6 +12,7 @@ import { orderConfirmationCopy, sendOrderEmails } from "@/lib/email/order-notify
 import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import type { Prisma } from "@prisma/client";
+import { markActivationsEndedForStripeSubscription } from "@/lib/studio-feature-billing";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -38,28 +39,7 @@ export async function POST(req: Request) {
 
   if (event.type === "customer.subscription.deleted") {
     const sub = event.data.object as Stripe.Subscription;
-    const act = await prisma.studioFeatureActivation.findFirst({
-      where: { stripeSubscriptionId: sub.id },
-    });
-    if (act) {
-      const feature = await prisma.platformFeature.findUnique({ where: { id: act.featureId } });
-      await prisma.studioFeatureActivation.update({
-        where: { id: act.id },
-        data: {
-          status: "inactive",
-          stripeSubscriptionId: null,
-          activatedAt: null,
-          deactivatesAt: null,
-        },
-      });
-      if (feature) {
-        await prisma.studioFeatureRequest.upsert({
-          where: { studioId_featureKey: { studioId: act.studioId, featureKey: feature.slug } },
-          create: { studioId: act.studioId, featureKey: feature.slug, desiredOn: false },
-          update: { desiredOn: false },
-        });
-      }
-    }
+    await markActivationsEndedForStripeSubscription(sub.id);
     return NextResponse.json({ received: true });
   }
 
@@ -89,6 +69,53 @@ export async function POST(req: Request) {
             create: {
               studioId,
               featureId,
+              status: "active",
+              activatedAt: now,
+              stripeSubscriptionId: subscriptionId,
+            },
+            update: {
+              status: "active",
+              activatedAt: now,
+              stripeSubscriptionId: subscriptionId,
+              deactivatesAt: null,
+            },
+          });
+          await prisma.studioFeatureRequest.upsert({
+            where: { studioId_featureKey: { studioId, featureKey: feature.slug } },
+            create: { studioId, featureKey: feature.slug, desiredOn: true },
+            update: { desiredOn: true },
+          });
+        }
+      }
+      return NextResponse.json({ received: true });
+    }
+
+    if (session.metadata?.type === "studio_feature_bundle") {
+      const studioId = session.metadata.studioId;
+      const ids =
+        session.metadata.featureIds
+          ?.split(",")
+          .map((x) => x.trim())
+          .filter(Boolean) ?? [];
+      const subRaw = session.subscription;
+      const subscriptionId = typeof subRaw === "string" ? subRaw : subRaw?.id ?? null;
+      const custRaw = session.customer;
+      const customerId = typeof custRaw === "string" ? custRaw : custRaw?.id ?? null;
+      if (studioId && subscriptionId && ids.length) {
+        if (customerId) {
+          await prisma.studio.updateMany({
+            where: { id: studioId },
+            data: { stripePlatformCustomerId: customerId },
+          });
+        }
+        const now = new Date();
+        const features = await prisma.platformFeature.findMany({ where: { id: { in: ids } } });
+        for (const feature of features) {
+          await prisma.studioFeatureActivation.upsert({
+            where: { studioId_featureId: { studioId, featureId: feature.id } },
+            create: {
+              studioId,
+              featureId: feature.id,
               status: "active",
               activatedAt: now,
               stripeSubscriptionId: subscriptionId,
