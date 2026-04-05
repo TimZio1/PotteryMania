@@ -101,7 +101,14 @@ export async function POST(req: Request) {
     if (body.stripePriceId === null) stripePriceId = null;
     else if (typeof body.stripePriceId === "string") {
       const t = body.stripePriceId.trim();
-      stripePriceId = t.length ? t : null;
+      if (!t.length) stripePriceId = null;
+      else if (t.startsWith("price_")) stripePriceId = t;
+      else {
+        return NextResponse.json(
+          { error: "stripePriceId must be empty or a Stripe Price id (price_…)" },
+          { status: 400 },
+        );
+      }
     }
   }
 

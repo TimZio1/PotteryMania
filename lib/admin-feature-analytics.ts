@@ -19,6 +19,7 @@ export type FeatureAnalyticsRow = {
   visibility: string;
   grantByDefault: boolean;
   sortOrder: number;
+  stripePriceId: string | null;
   /** Every StudioFeatureActivation row for this catalog feature. */
   totalRows: number;
   active: number;
@@ -148,6 +149,7 @@ export async function featureAnalyticsSnapshot(
       visibility: f.visibility,
       grantByDefault: f.grantByDefault,
       sortOrder: f.sortOrder,
+      stripePriceId: f.stripePriceId,
       totalRows: g.totalRows,
       active: g.active,
       inactive: g.inactive,
@@ -202,6 +204,7 @@ export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): s
     "visibility",
     "grant_by_default",
     "sort_order",
+    "stripe_price_id",
     "total_activation_rows",
     "active",
     "inactive",
@@ -226,6 +229,7 @@ export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): s
         csvEscape(r.visibility),
         csvEscape(r.grantByDefault),
         csvEscape(r.sortOrder),
+        csvEscape(r.stripePriceId ?? ""),
         csvEscape(r.totalRows),
         csvEscape(r.active),
         csvEscape(r.inactive),

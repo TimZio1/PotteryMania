@@ -72,7 +72,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (body.stripePriceId === null) data.stripePriceId = null;
     else if (typeof body.stripePriceId === "string") {
       const t = body.stripePriceId.trim();
-      data.stripePriceId = t.length ? t : null;
+      if (!t.length) data.stripePriceId = null;
+      else if (t.startsWith("price_")) data.stripePriceId = t;
+      else {
+        return NextResponse.json(
+          { error: "stripePriceId must be empty or a Stripe Price id (price_…)" },
+          { status: 400 },
+        );
+      }
     }
   }
 

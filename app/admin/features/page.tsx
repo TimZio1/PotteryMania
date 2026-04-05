@@ -13,6 +13,7 @@ import { requireAdminUser } from "@/lib/auth-session";
 import { FeatureHubCatalogFlagsCell } from "@/components/admin/feature-hub-catalog-flags-cell";
 import { FeatureHubCatalogPriceCell } from "@/components/admin/feature-hub-catalog-price-cell";
 import { FeatureHubSortOrderCell } from "@/components/admin/feature-hub-sort-order-cell";
+import { FeatureHubStripePriceIdCell } from "@/components/admin/feature-hub-stripe-price-id-cell";
 import { DataTable } from "@/components/admin/data-table";
 import { StatCard } from "@/components/admin/stat-card";
 import { TimeSeriesChart } from "@/components/admin/time-series-chart";
@@ -239,6 +240,13 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                   cell: (r) => <FeatureHubSortOrderCell featureId={r.id} sortOrder={r.sortOrder} />,
                 },
                 {
+                  key: "stprice",
+                  header: "Stripe price",
+                  cell: (r) => (
+                    <FeatureHubStripePriceIdCell featureId={r.id} stripePriceId={r.stripePriceId} />
+                  ),
+                },
+                {
                   key: "rows",
                   header: "Rows",
                   cell: (r) => <span className="tabular-nums text-sm">{r.totalRows}</span>,
@@ -266,7 +274,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 },
                 {
                   key: "stripe",
-                  header: "Stripe",
+                  header: "Sub rows",
                   cell: (r) => <span className="tabular-nums text-sm">{r.withStripeSubscription}</span>,
                 },
                 {
@@ -392,6 +400,13 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 header: "List price",
                 cell: (r) => (
                   <FeatureHubCatalogPriceCell featureId={r.id} priceCents={r.priceCents} currency={r.currency} />
+                ),
+              },
+              {
+                key: "stprice",
+                header: "Stripe price",
+                cell: (r) => (
+                  <FeatureHubStripePriceIdCell featureId={r.id} stripePriceId={r.stripePriceId} />
                 ),
               },
               {
