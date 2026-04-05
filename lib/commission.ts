@@ -1,23 +1,14 @@
 import { prisma } from "@/lib/db";
 import type { CommissionItemType } from "@prisma/client";
+import {
+  DEFAULT_PLATFORM_COMMISSION_BPS,
+  platformCommissionPercentLabel,
+} from "@/lib/commission-defaults";
 
 const DEFAULT_BPS_KEY = "default_product_commission_bps";
 
-export async function resolveCommissionBps(
-  studioId: string,
-  itemType: CommissionItemType
-): Promise<number> {
-  const vendorRule = await prisma.commissionRule.findFirst({
-    where: {
-      isActive: true,
-      ruleScope: "vendor",
-      studioId,
-      itemType,
-    },
-    orderBy: { createdAt: "desc" },
-  });
-  if (vendorRule) return vendorRule.percentageBasisPoints;
-
+/** Active global rule + `admin_configs` fallback + code default (no per-studio vendor rule). */
+export async function resolveGlobalCommissionBps(itemType: CommissionItemType): Promise<number> {
   const globalRule = await prisma.commissionRule.findFirst({
     where: {
       isActive: true,
@@ -36,9 +27,39 @@ export async function resolveCommissionBps(
     const bps = (fallback.configValue as { bps: number }).bps;
     if (typeof bps === "number" && bps >= 0) return bps;
   }
-  return 500;
+  return DEFAULT_PLATFORM_COMMISSION_BPS;
+}
+
+export async function resolveCommissionBps(
+  studioId: string,
+  itemType: CommissionItemType
+): Promise<number> {
+  const vendorRule = await prisma.commissionRule.findFirst({
+    where: {
+      isActive: true,
+      ruleScope: "vendor",
+      studioId,
+      itemType,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  if (vendorRule) return vendorRule.percentageBasisPoints;
+
+  return resolveGlobalCommissionBps(itemType);
 }
 
 export function commissionCentsFromLine(lineTotalCents: number, basisPoints: number): number {
   return Math.floor((lineTotalCents * basisPoints) / 10000);
+}
+
+/** Public marketing copy: global product + booking rates (matches `/admin/settings` when no per-studio overrides). */
+export async function getMarketingCheckoutCommissionPctLabel(): Promise<string> {
+  const [p, b] = await Promise.all([
+    resolveGlobalCommissionBps("product"),
+    resolveGlobalCommissionBps("booking"),
+  ]);
+  if (p === b) return platformCommissionPercentLabel(p);
+  const lo = Math.min(p, b);
+  const hi = Math.max(p, b);
+  return `${platformCommissionPercentLabel(lo)}–${platformCommissionPercentLabel(hi)}`;
 }

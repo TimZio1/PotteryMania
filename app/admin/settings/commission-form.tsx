@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DEFAULT_PLATFORM_COMMISSION_BPS } from "@/lib/commission-defaults";
 import { ui } from "@/lib/ui-styles";
 
 export function CommissionForm() {
-  const [productBps, setProductBps] = useState(500);
-  const [bookingBps, setBookingBps] = useState(500);
+  const [productBps, setProductBps] = useState(DEFAULT_PLATFORM_COMMISSION_BPS);
+  const [bookingBps, setBookingBps] = useState(DEFAULT_PLATFORM_COMMISSION_BPS);
   const [msg, setMsg] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -15,8 +16,18 @@ export function CommissionForm() {
         const r = await fetch("/api/admin/commission");
         const j = await r.json();
         if (r.ok) {
+          const fb =
+            j.fallback?.configValue &&
+            typeof j.fallback.configValue === "object" &&
+            j.fallback.configValue !== null &&
+            "bps" in j.fallback.configValue &&
+            typeof (j.fallback.configValue as { bps: unknown }).bps === "number"
+              ? (j.fallback.configValue as { bps: number }).bps
+              : DEFAULT_PLATFORM_COMMISSION_BPS;
           if (j.productRule?.percentageBasisPoints != null) setProductBps(j.productRule.percentageBasisPoints);
+          else setProductBps(fb);
           if (j.bookingRule?.percentageBasisPoints != null) setBookingBps(j.bookingRule.percentageBasisPoints);
+          else setBookingBps(fb);
         }
       } catch {
         /* ignore */

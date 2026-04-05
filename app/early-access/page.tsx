@@ -3,22 +3,26 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { prisma } from "@/lib/db";
 import { PromoCountdown } from "@/components/promo-countdown";
+import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { isPromoActive } from "@/lib/promo";
 import { buildMetadata } from "@/lib/seo";
 import { EarlyAccessForm } from "./early-access-form";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Early Access — Claim Your Studio",
-  description:
-    "Pre-register your ceramic studio. 3 months free, then €5/month. Sell pottery, book classes, grow your audience — the ceramics platform built for makers.",
-  path: "/early-access",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  return buildMetadata({
+    title: "Early Access — Claim Your Studio",
+    description: `Pre-register your ceramic studio. 3 months free, then €5/month. ${commissionLabel} commission on checkout sales. Sell pottery, book classes, grow your audience.`,
+    path: "/early-access",
+  });
+}
 
 export default async function EarlyAccessPage() {
   const initialCount = await prisma.earlyAccessSignup.count();
   const promoActive = isPromoActive();
+  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-50">
@@ -95,7 +99,7 @@ export default async function EarlyAccessPage() {
           <div className="mt-14 grid gap-10 sm:grid-cols-3 sm:gap-8">
             <ValueProp
               title="Marketplace"
-              body="Present ceramics with gallery-level care. No listing fees. 5% commission only when you sell."
+              body={`Present ceramics with gallery-level care. No listing fees. ${commissionLabel} commission only when you sell through checkout.`}
             />
             <ValueProp
               title="Booking"

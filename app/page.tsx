@@ -2,18 +2,23 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { PromoCountdown } from "@/components/promo-countdown";
+import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Ceramics marketplace and classes",
-  description:
-    "Where ceramic studios sell, teach, and get discovered. Pre-register your studio for 3 months free, then EUR5/month.",
-  path: "/",
-});
+export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  return buildMetadata({
+    title: "Ceramics marketplace and classes",
+    description: `Where ceramic studios sell, teach, and get discovered. ${commissionLabel} platform commission on checkout sales. Pre-register for 3 months free, then EUR5/month.`,
+    path: "/",
+  });
+}
 
 const clarityItems = [
   {
@@ -28,14 +33,6 @@ const clarityItems = [
     title: "Get discovered",
     body: "Join a curated ceramics ecosystem where collectors and students come looking with intent.",
   },
-];
-
-const studioBenefits = [
-  "List products with gallery-quality presentation",
-  "Publish workshops and accept bookings online",
-  "Receive direct Stripe payouts without admin friction",
-  "Build a studio profile that earns trust over time",
-  "Reach new collectors and students through one destination",
 ];
 
 const differentiators = [
@@ -68,7 +65,17 @@ const studioShelfPieces = [
   { x: 960, y: 202, w: 88, h: 152, fill: "#b88263" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const studioBenefits = [
+    "List products with gallery-quality presentation",
+    "Publish workshops and accept bookings online",
+    `Pay ${commissionLabel} platform commission on sales through checkout — no listing fees`,
+    "Receive direct Stripe payouts without admin friction",
+    "Build a studio profile that earns trust over time",
+    "Reach new collectors and students through one destination",
+  ];
+
   return (
     <MarketingLayout>
       <main className="overflow-hidden">
@@ -92,8 +99,13 @@ export default function Home() {
             join a curated ceramics ecosystem that feels as refined as the craft itself.
           </p>
           <p className="mt-4 max-w-2xl text-sm font-medium text-stone-100/85">{EUROPEAN_PREREGISTRATION_NOTE}</p>
-          <div className="mt-6 inline-flex max-w-fit rounded-full border border-emerald-300/30 bg-emerald-50/10 px-4 py-2 text-sm font-medium text-emerald-50 backdrop-blur-sm">
-            Pre-register and earn 3 months free, then EUR5/month.
+          <div className="mt-6 flex max-w-xl flex-col gap-2">
+            <div className="inline-flex max-w-fit rounded-full border border-emerald-300/30 bg-emerald-50/10 px-4 py-2 text-sm font-medium text-emerald-50 backdrop-blur-sm">
+              Pre-register and earn 3 months free, then EUR5/month.
+            </div>
+            <p className="text-sm text-stone-100/80">
+              {commissionLabel} commission on marketplace and class checkout — only when you get paid.
+            </p>
           </div>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link href="/early-access" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">

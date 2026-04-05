@@ -11,8 +11,8 @@
 - **Checkout**: `POST /api/checkout` creates **pending** order + Stripe Checkout (destination charge + `application_fee_amount` from dynamic commission). Optional `couponCode` (platform `Coupon`): proportional discount on line subtotals, recomputed commission, session metadata `couponId` / `discountCents`. `POST /api/coupon/preview` previews discount + est. shipping/tax. Metadata: `orderId`, `cartId`.
 - **Webhook**: `POST /api/webhooks/stripe` handles `checkout.session.completed` (idempotent payment row, stock decrement, clear cart, `DiscountRedemption` + coupon `redeemedCount` when metadata includes a coupon).
 - **Stripe Connect**: `POST /api/studios/[studioId]/stripe/onboard` (Express, country `GR` default), `GET .../stripe/sync` refreshes flags.
-- **Commission**: `resolveCommissionBps` (vendor rule → global rule → `admin_configs` `default_product_commission_bps` → 1000 bps). `GET/PATCH /api/admin/commission` for global product rate.
-- **Seed**: hyper admin user, pottery categories, global 10% product commission + admin config.
+- **Commission**: `resolveCommissionBps` (vendor rule → `resolveGlobalCommissionBps`: global rule → `admin_configs` `default_product_commission_bps` → code default **380 bps / 3.8%**). `GET/PATCH /api/admin/commission` for global product + booking. **`/`** and **`/early-access`** use `getMarketingCheckoutCommissionPctLabel()` (DB-backed, **revalidate 60s** on home).
+- **Seed**: hyper admin user, pottery categories; configure rates in `/admin/settings`.
 
 ## Launch tiers (done)
 
