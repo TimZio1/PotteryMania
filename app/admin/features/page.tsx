@@ -252,24 +252,36 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                     </span>
                   ),
                 },
-                {
-                  key: "mrr",
-                  header: "Est. MRR",
-                  cell: (r) => <span className="tabular-nums font-medium text-amber-950">{eur(r.estimatedMrrCents)}</span>,
-                },
-                {
-                  key: "dir",
-                  header: "Directory",
-                  cell: (r) => (
-                    <Link
-                      href={analyticsFeatureQueryHref(r.id, inactiveDays)}
-                      className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline"
-                    >
-                      Studios →
-                    </Link>
-                  ),
-                },
-              ]}
+              {
+                key: "mrr",
+                header: "Est. MRR",
+                cell: (r) => <span className="tabular-nums font-medium text-amber-950">{eur(r.estimatedMrrCents)}</span>,
+              },
+              {
+                key: "sku",
+                header: "SKU editor",
+                cell: (r) => (
+                  <Link
+                    href={catalogSkuEditorHref(r.id)}
+                    className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline"
+                  >
+                    Price & flags →
+                  </Link>
+                ),
+              },
+              {
+                key: "dir",
+                header: "Directory",
+                cell: (r) => (
+                  <Link
+                    href={analyticsFeatureQueryHref(r.id, inactiveDays)}
+                    className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline"
+                  >
+                    Studios →
+                  </Link>
+                ),
+              },
+            ]}
             />
           </div>
         </section>
@@ -379,6 +391,18 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 cell: (r) => <span className="tabular-nums font-medium text-amber-950">{eur(r.estimatedMrrCents)}</span>,
               },
               {
+                key: "sku",
+                header: "SKU editor",
+                cell: (r) => (
+                  <Link
+                    href={catalogSkuEditorHref(r.id)}
+                    className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline"
+                  >
+                    Price & flags →
+                  </Link>
+                ),
+              },
+              {
                 key: "dir",
                 header: "Directory",
                 cell: (r) => (
@@ -402,6 +426,10 @@ function analyticsFeatureQueryHref(featureId: string, inactiveDays: number) {
   const p = new URLSearchParams({ tab: "analytics", featureId });
   if (inactiveDays !== 30) p.set("inactiveDays", String(inactiveDays));
   return `/admin/features?${p}`;
+}
+
+function catalogSkuEditorHref(featureId: string) {
+  return `/admin/platform-features#catalog-feature-${featureId}`;
 }
 
 function TabBar({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
 
@@ -22,6 +22,7 @@ export type AdminPlatformFeatureRow = {
 export default function PlatformFeaturesAdminTable({ initial }: { initial: AdminPlatformFeatureRow[] }) {
   const [rows, setRows] = useState(initial);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [flashRowId, setFlashRowId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newSlug, setNewSlug] = useState("");
@@ -35,6 +36,21 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
     () => [...rows].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)),
     [rows],
   );
+
+  useEffect(() => {
+    const raw = window.location.hash.replace(/^#/, "");
+    if (!raw.startsWith("catalog-feature-")) return;
+    const featureId = raw.slice("catalog-feature-".length).trim();
+    if (!featureId) return;
+    const el = document.getElementById(raw);
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setFlashRowId(featureId);
+    });
+    const t = window.setTimeout(() => setFlashRowId(null), 2800);
+    return () => window.clearTimeout(t);
+  }, []);
 
   async function patch(id: string, patchBody: Record<string, unknown>) {
     setPendingId(id);
@@ -205,7 +221,14 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
               const eur = (f.priceCents / 100).toFixed(2);
               const busy = pendingId === f.id;
               return (
-                <tr key={f.id} className="align-top">
+                <tr
+                  key={f.id}
+                  id={`catalog-feature-${f.id}`}
+                  className={cn(
+                    "align-top transition-[background-color,box-shadow] duration-300",
+                    flashRowId === f.id && "bg-amber-50/90 ring-2 ring-inset ring-amber-400",
+                  )}
+                >
                   <td className="px-4 py-3">
                     <input
                       key={`n-${f.id}-${f.name}`}
