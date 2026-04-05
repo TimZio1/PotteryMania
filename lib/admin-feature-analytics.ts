@@ -12,6 +12,9 @@ export type FeatureAnalyticsRow = {
   slug: string;
   name: string;
   category: string;
+  /** Catalog list price (editable from feature hub). */
+  catalogPriceCents: number;
+  currency: string;
   isActive: boolean;
   visibility: string;
   /** Every StudioFeatureActivation row for this catalog feature. */
@@ -137,6 +140,8 @@ export async function featureAnalyticsSnapshot(
       slug: f.slug,
       name: f.name,
       category: f.category,
+      catalogPriceCents: f.priceCents,
+      currency: f.currency,
       isActive: f.isActive,
       visibility: f.visibility,
       totalRows: g.totalRows,
@@ -187,6 +192,8 @@ export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): s
     "slug",
     "name",
     "category",
+    "list_price_cents",
+    "currency",
     "catalog_active",
     "visibility",
     "total_activation_rows",
@@ -207,6 +214,8 @@ export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): s
         csvEscape(r.slug),
         csvEscape(r.name),
         csvEscape(r.category),
+        csvEscape(r.catalogPriceCents),
+        csvEscape(r.currency),
         csvEscape(r.isActive),
         csvEscape(r.visibility),
         csvEscape(r.totalRows),

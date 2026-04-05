@@ -10,6 +10,8 @@ import {
 import { featureActivationDirectory, featureHubStats } from "@/lib/admin-feature-hub-stats";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
+import { FeatureHubCatalogFlagsCell } from "@/components/admin/feature-hub-catalog-flags-cell";
+import { FeatureHubCatalogPriceCell } from "@/components/admin/feature-hub-catalog-price-cell";
 import { DataTable } from "@/components/admin/data-table";
 import { StatCard } from "@/components/admin/stat-card";
 import { TimeSeriesChart } from "@/components/admin/time-series-chart";
@@ -208,6 +210,28 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                   ),
                 },
                 {
+                  key: "list",
+                  header: "List price",
+                  cell: (r) => (
+                    <FeatureHubCatalogPriceCell
+                      featureId={r.id}
+                      priceCents={r.catalogPriceCents}
+                      currency={r.currency}
+                    />
+                  ),
+                },
+                {
+                  key: "catflags",
+                  header: "Catalog",
+                  cell: (r) => (
+                    <FeatureHubCatalogFlagsCell
+                      featureId={r.id}
+                      isActive={r.isActive}
+                      visibility={r.visibility}
+                    />
+                  ),
+                },
+                {
                   key: "rows",
                   header: "Rows",
                   cell: (r) => <span className="tabular-nums text-sm">{r.totalRows}</span>,
@@ -354,21 +378,15 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
               {
                 key: "list",
                 header: "List price",
-                cell: (r) => eur(r.priceCents),
+                cell: (r) => (
+                  <FeatureHubCatalogPriceCell featureId={r.id} priceCents={r.priceCents} currency={r.currency} />
+                ),
               },
               {
                 key: "on",
                 header: "Catalog",
                 cell: (r) => (
-                  <span className="text-sm">
-                    {r.isActive ? (
-                      <span className="text-emerald-800">Active</span>
-                    ) : (
-                      <span className="text-stone-500">Off</span>
-                    )}
-                    <span className="text-stone-400"> · </span>
-                    <code className="text-xs">{r.visibility}</code>
-                  </span>
+                  <FeatureHubCatalogFlagsCell featureId={r.id} isActive={r.isActive} visibility={r.visibility} />
                 ),
               },
               {
