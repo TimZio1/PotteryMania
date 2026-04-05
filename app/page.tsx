@@ -9,7 +9,8 @@ import { isPreregistrationOnly } from "@/lib/preregistration";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
-export const revalidate = 60;
+/** DB-backed commission copy — must not prerender at build (Railway build has no DB). */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();

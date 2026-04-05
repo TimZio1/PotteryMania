@@ -54,6 +54,7 @@ model User {
   adminNotesReceived   AdminNote[]          @relation("AdminNoteTarget")
   passwordResetTokens       PasswordResetToken[]
   emailVerificationTokens   EmailVerificationToken[]
+  rankingBoostsAuthored     RankingBoost[]           @relation("RankingBoostAuthor")
 
   @@map("users")
 }
@@ -183,11 +184,87 @@ model Studio {
   studioFeatureRequests            StudioFeatureRequest[]
   studioFeatureActivations         StudioFeatureActivation[]
   studioFeatureActivationEvents    StudioFeatureActivationEvent[]
+  rankingScore                     StudioRankingScore?
+  rankingBoosts                    RankingBoost[]
+  featuredPlacements               FeaturedPlacement[]
 
   @@index([status])
   @@index([country, city])
   @@index([marketplaceRankWeight])
   @@map("studios")
+}
+
+/// Admin- or campaign-applied lift to the manual component of ranking (Prompt 4).
+enum RankingBoostType {
+  featured
+  seasonal
+  manual
+  paid
+}
+
+/// Curated slots on public surfaces (homepage, category rails, etc.).
+enum FeaturedPlacementSlot {
+  homepage_hero
+  category_top
+  trending
+  seasonal
+}
+
+/// One row per studio; upserted by the ranking cron (`P4-B`).
+model StudioRankingScore {
+  id               String   @id @default(uuid()) @db.Uuid
+  studioId         String   @unique @map("studio_id") @db.Uuid
+  performanceScore Float    @default(0) @map("performance_score")
+  activityScore    Float    @default(0) @map("activity_score")
+  manualBoost      Float    @default(0) @map("manual_boost")
+  compositeScore   Float    @default(0) @map("composite_score")
+  percentileRank   Int      @default(0) @map("percentile_rank")
+  scoreBreakdown   Json?    @map("score_breakdown")
+  calculatedAt     DateTime @default(now()) @map("calculated_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([compositeScore(sort: Desc)])
+  @@map("studio_ranking_scores")
+}
+
+model RankingBoost {
+  id              String           @id @default(uuid()) @db.Uuid
+  studioId        String           @map("studio_id") @db.Uuid
+  boostType       RankingBoostType @map("boost_type")
+  boostValue      Float            @map("boost_value")
+  reason          String?
+  startsAt        DateTime         @map("starts_at")
+  endsAt          DateTime?        @map("ends_at")
+  createdByUserId String?          @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  studio    Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  createdBy User?  @relation("RankingBoostAuthor", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([studioId])
+  @@index([startsAt, endsAt])
+  @@map("ranking_boosts")
+}
+
+model FeaturedPlacement {
+  id            String                @id @default(uuid()) @db.Uuid
+  studioId      String                @map("studio_id") @db.Uuid
+  placementSlot FeaturedPlacementSlot @map("placement_slot")
+  sortOrder     Int                   @default(0) @map("sort_order")
+  startsAt      DateTime              @map("starts_at")
+  endsAt        DateTime?             @map("ends_at")
+  isActive      Boolean               @default(true) @map("is_active")
+  createdAt     DateTime              @default(now()) @map("created_at")
+  updatedAt     DateTime              @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([placementSlot, isActive, sortOrder])
+  @@index([studioId])
+  @@map("featured_placements")
 }
 
 model ProductCategory {

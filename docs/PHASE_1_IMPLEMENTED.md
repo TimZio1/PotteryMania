@@ -11,7 +11,7 @@
 - **Checkout**: `POST /api/checkout` creates **pending** order + Stripe Checkout (destination charge + `application_fee_amount` from dynamic commission). Optional `couponCode` (platform `Coupon`): proportional discount on line subtotals, recomputed commission, session metadata `couponId` / `discountCents`. `POST /api/coupon/preview` previews discount + est. shipping/tax. Metadata: `orderId`, `cartId`.
 - **Webhook**: `POST /api/webhooks/stripe` handles `checkout.session.completed` (idempotent payment row, stock decrement, clear cart, `DiscountRedemption` + coupon `redeemedCount` when metadata includes a coupon).
 - **Stripe Connect**: `POST /api/studios/[studioId]/stripe/onboard` (Express, country `GR` default), `GET .../stripe/sync` refreshes flags.
-- **Commission**: `resolveCommissionBps` (vendor rule → `resolveGlobalCommissionBps`: global rule → `admin_configs` `default_product_commission_bps` → code default **380 bps / 3.8%**). `GET/PATCH /api/admin/commission` for global product + booking. **`/`** and **`/early-access`** use `getMarketingCheckoutCommissionPctLabel()` (DB-backed, **revalidate 60s** on home).
+- **Commission**: `resolveCommissionBps` (vendor rule → `resolveGlobalCommissionBps`: global rule → `admin_configs` `default_product_commission_bps` → code default **380 bps / 3.8%**). `GET/PATCH /api/admin/commission` for global product + booking. **`/`** (`export const dynamic = "force-dynamic"`) and **`/early-access`** use `getMarketingCheckoutCommissionPctLabel()` (DB at **request** time; **`try/catch`** → `DEFAULT_PLATFORM_COMMISSION_PCT_LABEL` if DB unreachable — required so **Railway/Railpack `next build`** does not prerender against `postgres.railway.internal`).
 - **Seed**: hyper admin user, pottery categories; configure rates in `/admin/settings`.
 
 ## Launch tiers (done)
@@ -35,6 +35,8 @@
 | **Tier 4B — Discovery filters** | `/classes` and `/studios` use `lib/public-discovery.ts` for URL-driven filters (search, country/city, category, skill, experience type, € min/max, session date range, open spots; studios + “has public classes” and sort links that preserve filters). | **Done** |
 | **Tier 4A — Geo + map discovery** | URL params `lat`, `lng`, optional `radius` (km): haversine filter/sort after `GEO_SCAN_LIMIT` scan; `NearPointFields` (**Use my location**). **`NearResultsMap`** (Leaflet + OSM): radius circle + pins + popups on `/classes` and `/studios` when geo search is active. PostGIS / tile providers optional later. | **Done** |
 | **P4-D — Studio public listing** | `/studios/[id]`: photo carousel, CTAs (book / shop / contact), upcoming session rows with deep link `?slot=`, product **Add to cart** (runtime marketplace flag), reviews summary. `/classes/[id]?slot=` preselects slot in `ClassBookingForm`. | **Done** |
+| **P4-A — Ranking schema** | Prisma **`StudioRankingScore`** (1:1 studio), **`RankingBoost`**, **`FeaturedPlacement`** + enums; migration **`20260411120000_marketplace_ranking_tables`**. | **Done** |
+| **P4-B — Ranking engine (v1)** | **`lib/ranking/score-engine.ts`** — 30d window: performance = avg(normalized **confirmed+completed bookings**, **paid order line GMV**); activity = avg(normalized **product** + **experience** `updatedAt` touches); manual = normalized **`RankingBoost`** sum + **`marketplaceRankWeight`**; composite **0.7/0.2/0.1**; percentile rank; upsert scores; delete scores for non-approved studios. **`GET /api/cron/ranking-update`** (`Bearer CRON_SECRET`) + **`logCronRun`**. **`/studios`** Recommended sort uses **`sortStudiosByMarketplaceRanking`** (geo mode still distance-first). **Next:** fairness / decay (P4-G), richer performance signals, **`FeaturedPlacement`** surfacing on homepage. | **Done (v1)** |
 | **Tier 3B — ICS / Apple Calendar** | `GET /api/bookings/[id]/calendar` (customer, studio owner, admin) and `GET /api/my-bookings/calendar` download `.ics`. `users.calendar_feed_token` + `GET /api/calendar/feed/[token]` for subscription URLs; `GET /api/my-bookings/calendar-link` returns HTTPS + webcal. `/my-bookings` exposes download, copy link, and webcal hint. Vendor dashboard booking rows link to the same per-booking `.ics`. | **Done** |
 | **Tier 5B — Coupons** | `Coupon` / `DiscountRedemption` wired to `POST /api/checkout` + Stripe metadata; redemption on successful payment. Cart promo field + `POST /api/coupon/preview`. Hyperadmin `/admin/coupons`, `GET`/`POST /api/admin/coupons`, `PATCH /api/admin/coupons/[id]`. | **Done** |
 | **Tier 5C — Customer account** | `/account` (login required): view email (read-only), edit `CustomerProfile` (name, phone, preferred language, preferred currency). `GET`/`PATCH /api/me/customer-profile` with upsert + rate limit. **Account** in site header (desktop + mobile). | **Done** |
@@ -45,7 +47,7 @@
 | **P5-K — Hyperadmin settings (partial)** | **`/admin/settings`**: global **product + booking** commission (bps); form loads **`admin_configs`** fallback. **`lib/commission-defaults.ts`** code default **380 bps**. Migration **`20260410120000_default_commission_380_seed`**: inserts **`default_product_commission_bps`** and active **global** product/booking rules at **380** only when missing (does not overwrite existing rates). | **Partial (v1–v2)** |
 | **Marketing — promo strip** | Landing / early-access countdown headline: **FREE PRE-REGISTRATION ENDS IN** + timer + date suffix (`lib/promo.ts`, `PromoCountdown`). | **Done** |
 
-Migrations to apply on the database (in order among others): `20260405230000_password_reset_tokens`, `20260406120000_email_verification_tokens`, `20260406180000_user_calendar_feed_token`, `20260407120000_impersonation_grants`, `20260407140000_user_admin_tags`, `20260408130000_feature_bundles`, `20260408140000_feature_bundle_stripe_price`, `20260409100000_studio_feature_activation_events`, `20260409110000_sfa_event_checkout_session_unique`, `20260409120000_sfa_event_subscription_end_partial_unique`, `20260409130000_vendor_cancel_at_period_end_event_kind`, `20260409140000_admin_cancel_at_period_end_event_kind`, `20260410120000_default_commission_380_seed`.
+Migrations to apply on the database (in order among others): `20260405230000_password_reset_tokens`, `20260406120000_email_verification_tokens`, `20260406180000_user_calendar_feed_token`, `20260407120000_impersonation_grants`, `20260407140000_user_admin_tags`, `20260408130000_feature_bundles`, `20260408140000_feature_bundle_stripe_price`, `20260409100000_studio_feature_activation_events`, `20260409110000_sfa_event_checkout_session_unique`, `20260409120000_sfa_event_subscription_end_partial_unique`, `20260409130000_vendor_cancel_at_period_end_event_kind`, `20260409140000_admin_cancel_at_period_end_event_kind`, `20260410120000_default_commission_380_seed`, `20260411120000_marketplace_ranking_tables`.
 
 ## Env (add to `.env`)
 
@@ -61,7 +63,13 @@ Migrations to apply on the database (in order among others): `20260405230000_pas
 
 `railway.json` runs **`npm run db:migrate`** (`prisma migrate deploy`) as **preDeployCommand**, then **`npm run start`**. Pushing/linking the service deploys migrations automatically once `DATABASE_URL` is set.
 
+**Build note:** The app image build does **not** have access to `postgres.railway.internal`. Do not prerender pages that call Prisma against prod DB at build time; home uses **`dynamic = "force-dynamic"`** and marketing commission reads use a safe fallback when the DB is unreachable.
+
 Local: `npx prisma migrate deploy` (requires a reachable `DATABASE_URL`). CLI: `npx @railway/cli login` → `railway link` → `railway up` from `potterymania/` if you deploy from the terminal.
+
+**Cron (production):** Schedule **`GET https://<host>/api/cron/ranking-update`** daily (e.g. Railway Cron) with header **`Authorization: Bearer <CRON_SECRET>`** so `studio_ranking_scores` stay fresh for `/studios` Recommended sort.
+
+After pulling schema changes: `npx prisma generate` (requires free disk space for the query engine copy).
 
 ## Smoke test order
 

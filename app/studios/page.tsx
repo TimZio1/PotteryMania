@@ -15,6 +15,7 @@ import { haversineKm } from "@/lib/geo";
 import { cn } from "@/lib/cn";
 import { NearPointFields } from "@/components/discovery/near-point-fields";
 import { NearResultsMap } from "@/components/discovery/near-results-map";
+import { sortStudiosByMarketplaceRanking } from "@/lib/ranking/score-engine";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,7 @@ export default async function StudiosPage({ searchParams }: Props) {
   let studios = await prisma.studio.findMany({
     where,
     orderBy: byName ? { displayName: "asc" } : [{ marketplaceRankWeight: "desc" }, { displayName: "asc" }],
+    include: { rankingScore: { select: { compositeScore: true } } },
     ...(near ? { take: GEO_SCAN_LIMIT } : {}),
   });
 
@@ -56,6 +58,8 @@ export default async function StudiosPage({ searchParams }: Props) {
     studios = filterRowsByNearKm(studios, near, (s) =>
       s.latitude != null && s.longitude != null ? { lat: s.latitude, lng: s.longitude } : null,
     );
+  } else if (!byName) {
+    studios = sortStudiosByMarketplaceRanking(studios);
   }
 
   const hrefRecommended = (() => {

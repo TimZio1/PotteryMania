@@ -94,6 +94,7 @@ export default async function AdminOperationsPage() {
     { name: "booking-reminders", path: "/api/cron/booking-reminders" },
     { name: "expire-pending-bookings", path: "/api/cron/expire-pending-bookings" },
     { name: "finance-reconcile", path: "/api/cron/finance-reconcile" },
+    { name: "ranking-update", path: "/api/cron/ranking-update" },
   ] as const;
 
   function cronSummary(payload: unknown): string {
@@ -107,6 +108,8 @@ export default async function AdminOperationsPage() {
     if (typeof p.bookingsExpired === "number") parts.push(`bookings expired ${p.bookingsExpired}`);
     if (typeof p.orderBackfillProcessed === "number") parts.push(`order backfill ${p.orderBackfillProcessed}`);
     if (typeof p.stripeRows === "number") parts.push(`stripe rows ${p.stripeRows}`);
+    if (typeof p.studiosProcessed === "number") parts.push(`studios ${p.studiosProcessed}`);
+    if (typeof p.durationMs === "number") parts.push(`${p.durationMs}ms`);
     if (parts.length) return parts.join(" · ");
     try {
       return JSON.stringify(p).slice(0, 140);
