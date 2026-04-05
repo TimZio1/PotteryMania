@@ -31,6 +31,7 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
   const [newCategory, setNewCategory] = useState("addons");
   const [newPriceEur, setNewPriceEur] = useState("0");
   const [newGrantAll, setNewGrantAll] = useState(false);
+  const [auditNote, setAuditNote] = useState("");
 
   const sorted = useMemo(
     () => [...rows].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)),
@@ -52,13 +53,19 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
     return () => window.clearTimeout(t);
   }, []);
 
+  function withOptionalAuditReason(body: Record<string, unknown>): Record<string, unknown> {
+    const t = auditNote.trim().slice(0, 500);
+    if (!t.length) return body;
+    return { ...body, reason: t };
+  }
+
   async function patch(id: string, patchBody: Record<string, unknown>) {
     setPendingId(id);
     setMessage(null);
     const res = await fetch(`/api/admin/platform-features/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patchBody),
+      body: JSON.stringify(withOptionalAuditReason(patchBody)),
     });
     const data = await res.json();
     setPendingId(null);
@@ -81,16 +88,18 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
     const res = await fetch("/api/admin/platform-features", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        slug: newSlug.trim().toLowerCase(),
-        name: newName.trim(),
-        description: newDesc,
-        category: newCategory.trim() || "addons",
-        priceCents,
-        grantByDefault: newGrantAll,
-        isActive: true,
-        visibility: "public",
-      }),
+      body: JSON.stringify(
+        withOptionalAuditReason({
+          slug: newSlug.trim().toLowerCase(),
+          name: newName.trim(),
+          description: newDesc,
+          category: newCategory.trim() || "addons",
+          priceCents,
+          grantByDefault: newGrantAll,
+          isActive: true,
+          visibility: "public",
+        }),
+      ),
     });
     const data = await res.json();
     setCreating(false);
@@ -130,6 +139,19 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
   return (
     <div className="space-y-6">
       {message ? <p className="text-sm text-stone-600">{message}</p> : null}
+
+      <label className="block rounded-xl border border-stone-200 bg-stone-50/80 p-3">
+        <span className="text-xs font-medium text-stone-600">
+          Optional audit note (appended to each save below, max 500 chars)
+        </span>
+        <textarea
+          value={auditNote}
+          onChange={(e) => setAuditNote(e.target.value.slice(0, 500))}
+          rows={2}
+          placeholder="e.g. Q2 pricing sync"
+          className={cn(ui.input, "mt-1 w-full max-w-xl resize-y text-sm")}
+        />
+      </label>
 
       <form
         onSubmit={createFeature}

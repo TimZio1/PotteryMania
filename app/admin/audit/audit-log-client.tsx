@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuditDiffViewer } from "@/components/admin/audit-diff-viewer";
+import { cn } from "@/lib/cn";
 import { DataTable } from "@/components/admin/data-table";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { ui } from "@/lib/ui-styles";
@@ -48,6 +49,28 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  const q = sp.get("q") ?? "";
+  const action = sp.get("action") ?? "";
+  const entityType = sp.get("entityType") ?? "";
+  const from = sp.get("from") ?? "";
+  const to = sp.get("to") ?? "";
+
+  function applyAuditPreset(partial: Record<string, string>) {
+    navigateWith({
+      q: "",
+      action: "",
+      entityType: "",
+      from: "",
+      to: "",
+      ...partial,
+    });
+  }
+
+  const presetClass = (active: boolean) =>
+    cn(ui.buttonSecondary, "px-3 py-1.5 text-xs", active && "bg-amber-100 ring-2 ring-amber-400 ring-offset-1");
+
+  const isResetActive = !q && !action && !entityType && !from && !to;
+
   return (
     <div className="space-y-6">
       <FilterBar>
@@ -90,6 +113,68 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
           </button>
         </form>
       </FilterBar>
+
+      <div className="rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Quick filters</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={presetClass(isResetActive)}
+            onClick={() => applyAuditPreset({})}
+          >
+            All (reset)
+          </button>
+          <button
+            type="button"
+            className={presetClass(entityType === "platform_feature" && !action && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ entityType: "platform_feature" })}
+          >
+            Catalog SKUs
+          </button>
+          <button
+            type="button"
+            className={presetClass(entityType === "feature_bundle" && !action && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ entityType: "feature_bundle" })}
+          >
+            Feature bundles
+          </button>
+          <button
+            type="button"
+            className={presetClass(action === "studio.feature_activation_admin" && !entityType && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ action: "studio.feature_activation_admin" })}
+          >
+            Add-on grants (admin)
+          </button>
+          <button
+            type="button"
+            className={presetClass(entityType === "studio" && !action && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ entityType: "studio" })}
+          >
+            Studios
+          </button>
+          <button
+            type="button"
+            className={presetClass(entityType === "user" && !action && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ entityType: "user" })}
+          >
+            Users
+          </button>
+          <button
+            type="button"
+            className={presetClass(entityType === "order" && !action && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ entityType: "order" })}
+          >
+            Orders
+          </button>
+          <button
+            type="button"
+            className={presetClass(action === "order.stripe_refund" && !entityType && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ action: "order.stripe_refund" })}
+          >
+            Stripe refunds
+          </button>
+        </div>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <a

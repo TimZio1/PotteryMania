@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const VIS: PlatformFeatureVisibility[] = ["public", "hidden", "beta"];
+const REASON_MAX = 500;
 
 export async function GET() {
   const user = await requireAdminUser();
@@ -52,12 +53,17 @@ export async function POST(req: Request) {
     isActive?: boolean;
     sortOrder?: number;
     stripePriceId?: string | null;
+    reason?: string;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  const reasonTrimmed =
+    typeof body.reason === "string" ? body.reason.trim().slice(0, REASON_MAX) : "";
+  const auditReason = reasonTrimmed.length > 0 ? reasonTrimmed : null;
 
   const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
   const name = typeof body.name === "string" ? body.name.trim() : "";
@@ -137,11 +143,16 @@ export async function POST(req: Request) {
     after: {
       slug: created.slug,
       name: created.name,
+      description: created.description,
+      category: created.category,
       priceCents: created.priceCents,
+      currency: created.currency,
       grantByDefault: created.grantByDefault,
       visibility: created.visibility,
+      sortOrder: created.sortOrder,
+      stripePriceId: created.stripePriceId,
     },
-    reason: null,
+    reason: auditReason,
   });
 
   return NextResponse.json({
