@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { featureAnalyticsSnapshot } from "@/lib/admin-feature-analytics";
+import {
+  featureAnalyticsSnapshot,
+  parseFeatureAnalyticsInactiveDays,
+} from "@/lib/admin-feature-analytics";
 import { featureActivationDirectory, featureHubStats } from "@/lib/admin-feature-hub-stats";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
@@ -20,13 +23,16 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
   const sp = (await searchParams) ?? {};
   const featureIdRaw = typeof sp.featureId === "string" ? sp.featureId.trim() : "";
   const tab = typeof sp.tab === "string" && sp.tab === "analytics" ? "analytics" : "overview";
+  const inactiveDays = parseFeatureAnalyticsInactiveDays(
+    typeof sp.inactiveDays === "string" ? sp.inactiveDays : undefined,
+  );
 
   const directoryPromise = featureIdRaw ? featureActivationDirectory(prisma, featureIdRaw) : Promise.resolve(null);
 
   if (tab === "analytics") {
     const [catalogCount, analytics, directoryResult] = await Promise.all([
       prisma.platformFeature.count(),
-      featureAnalyticsSnapshot(prisma),
+      featureAnalyticsSnapshot(prisma, { inactiveWindowDays: inactiveDays }),
       directoryPromise,
     ]);
 
@@ -47,11 +53,13 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
           full cohort model).
         </p>
 
-        <TabBar tab={tab} featureId={featureIdRaw} />
+        <TabBar tab={tab} featureId={featureIdRaw} inactiveDays={inactiveDays} />
 
         <CrossLinks />
 
-        <FeatureDirectoryForm tab={tab} featureIdRaw={featureIdRaw} rowOptions={aRows} />
+        <InactiveWindowPills current={inactiveDays} featureId={featureIdRaw} />
+
+        <FeatureDirectoryForm tab={tab} featureIdRaw={featureIdRaw} inactiveDays={inactiveDays} rowOptions={aRows} />
 
         {unknownFeature ? <UnknownFeatureNote /> : null}
 
@@ -144,7 +152,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                   header: "Directory",
                   cell: (r) => (
                     <Link
-                      href={`/admin/features?tab=analytics&featureId=${r.id}`}
+                      href={analyticsFeatureQueryHref(r.id, inactiveDays)}
                       className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline"
                     >
                       Studios →
@@ -182,11 +190,11 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
         every studio row and open admin detail for grants and price overrides.
       </p>
 
-      <TabBar tab={tab} featureId={featureIdRaw} />
+      <TabBar tab={tab} featureId={featureIdRaw} inactiveDays={inactiveDays} />
 
       <CrossLinks />
 
-      <FeatureDirectoryForm tab={tab} featureIdRaw={featureIdRaw} rowOptions={rows} />
+      <FeatureDirectoryForm tab={tab} featureIdRaw={featureIdRaw} inactiveDays={inactiveDays} rowOptions={rows} />
 
       {unknownFeature ? <UnknownFeatureNote /> : null}
 
@@ -280,13 +288,29 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
   );
 }
 
-function TabBar({ tab, featureId }: { tab: "overview" | "analytics"; featureId: string }) {
-  const overviewHref = featureId
-    ? `/admin/features?featureId=${encodeURIComponent(featureId)}`
-    : "/admin/features";
-  const analyticsHref = featureId
-    ? `/admin/features?tab=analytics&featureId=${encodeURIComponent(featureId)}`
-    : "/admin/features?tab=analytics";
+function analyticsFeatureQueryHref(featureId: string, inactiveDays: number) {
+  const p = new URLSearchParams({ tab: "analytics", featureId });
+  if (inactiveDays !== 30) p.set("inactiveDays", String(inactiveDays));
+  return `/admin/features?${p}`;
+}
+
+function TabBar({
+  tab,
+  featureId,
+  inactiveDays,
+}: {
+  tab: "overview" | "analytics";
+  featureId: string;
+  inactiveDays: number;
+}) {
+  const overviewParams = new URLSearchParams();
+  if (featureId) overviewParams.set("featureId", featureId);
+  const overviewHref = overviewParams.toString() ? `/admin/features?${overviewParams}` : "/admin/features";
+
+  const analyticsParams = new URLSearchParams({ tab: "analytics" });
+  if (inactiveDays !== 30) analyticsParams.set("inactiveDays", String(inactiveDays));
+  if (featureId) analyticsParams.set("featureId", featureId);
+  const analyticsHref = `/admin/features?${analyticsParams}`;
   return (
     <div className="mt-6 flex flex-wrap gap-2">
       <Link
@@ -309,6 +333,39 @@ function TabBar({ tab, featureId }: { tab: "overview" | "analytics"; featureId: 
       >
         Analytics
       </Link>
+    </div>
+  );
+}
+
+function InactiveWindowPills({ current, featureId }: { current: number; featureId: string }) {
+  const opts = [7, 30, 90] as const;
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-2 border-b border-stone-200 pb-4">
+      <span className="text-xs font-medium text-stone-600">Recent inactive window:</span>
+      {opts.map((d) => {
+        const p = new URLSearchParams({ tab: "analytics", inactiveDays: String(d) });
+        if (featureId) p.set("featureId", featureId);
+        const href = `/admin/features?${p}`;
+        return (
+          <Link
+            key={d}
+            href={href}
+            className={cn(
+              ui.buttonGhost,
+              "min-h-9 px-3 text-xs tabular-nums",
+              d === current ? "ring-2 ring-amber-400/90" : "",
+            )}
+          >
+            {d}d
+          </Link>
+        );
+      })}
+      <a
+        href={`/api/admin/feature-analytics/export?inactiveDays=${current}`}
+        className={cn(ui.buttonSecondary, "min-h-9 px-3 text-xs font-medium")}
+      >
+        Export CSV
+      </a>
     </div>
   );
 }
@@ -336,16 +393,24 @@ type DirOption = { id: string; name: string; slug: string };
 function FeatureDirectoryForm({
   tab,
   featureIdRaw,
+  inactiveDays,
   rowOptions,
 }: {
   tab: "overview" | "analytics";
   featureIdRaw: string;
+  inactiveDays: number;
   rowOptions: DirOption[];
 }) {
-  const clearHref = tab === "analytics" ? "/admin/features?tab=analytics" : "/admin/features";
+  const clearParams = new URLSearchParams();
+  if (tab === "analytics") clearParams.set("tab", "analytics");
+  if (tab === "analytics" && inactiveDays !== 30) clearParams.set("inactiveDays", String(inactiveDays));
+  const clearHref =
+    clearParams.toString().length > 0 ? `/admin/features?${clearParams}` : "/admin/features";
+
   return (
     <form method="get" className={`${ui.cardMuted} mt-6 flex flex-wrap items-end gap-4`}>
       {tab === "analytics" ? <input type="hidden" name="tab" value="analytics" /> : null}
+      {tab === "analytics" ? <input type="hidden" name="inactiveDays" value={String(inactiveDays)} /> : null}
       <div className="min-w-56 flex-1">
         <label className={ui.label} htmlFor="feature-hub-jump">
           View activations by feature

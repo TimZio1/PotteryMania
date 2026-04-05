@@ -160,3 +160,62 @@ export async function featureAnalyticsSnapshot(
     },
   };
 }
+
+/** Query param `inactiveDays` for analytics UI + CSV export; clamped 7–365, default 30. */
+export function parseFeatureAnalyticsInactiveDays(raw: string | string[] | undefined): number {
+  const v = Array.isArray(raw) ? raw[0] : raw;
+  if (v == null || v === "") return 30;
+  const n = parseInt(String(v), 10);
+  if (!Number.isFinite(n)) return 30;
+  return Math.min(365, Math.max(7, n));
+}
+
+function csvEscape(value: string | number | boolean): string {
+  const s = String(value);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+/** UTF-8 BOM prefix helps Excel open the file with correct encoding. */
+export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): string {
+  const header = [
+    "slug",
+    "name",
+    "category",
+    "catalog_active",
+    "visibility",
+    "total_activation_rows",
+    "active",
+    "inactive",
+    "trialing",
+    "pending_cancel",
+    "stripe_subscription_rows",
+    "billable_activations",
+    "adoption_pct",
+    "est_mrr_cents",
+    `inactive_recent_last_${snap.inactiveWindowDays}d`,
+  ];
+  const lines = [header.join(",")];
+  for (const r of snap.rows) {
+    lines.push(
+      [
+        csvEscape(r.slug),
+        csvEscape(r.name),
+        csvEscape(r.category),
+        csvEscape(r.isActive),
+        csvEscape(r.visibility),
+        csvEscape(r.totalRows),
+        csvEscape(r.active),
+        csvEscape(r.inactive),
+        csvEscape(r.trialing),
+        csvEscape(r.pendingCancel),
+        csvEscape(r.withStripeSubscription),
+        csvEscape(r.billableActivations),
+        csvEscape(r.activationRatePct),
+        csvEscape(r.estimatedMrrCents),
+        csvEscape(r.inactiveRecentCount),
+      ].join(","),
+    );
+  }
+  return `\uFEFF${lines.join("\n")}`;
+}
