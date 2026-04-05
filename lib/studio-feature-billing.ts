@@ -1,4 +1,10 @@
-import type { FeatureBundle, PlatformFeature, Studio, StudioFeatureActivation } from "@prisma/client";
+import type {
+  FeatureBundle,
+  PlatformFeature,
+  Studio,
+  StudioFeatureActivation,
+  StudioFeatureActivationEventKind,
+} from "@prisma/client";
 import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
@@ -171,6 +177,33 @@ export async function cancelStudioFeatureStripeSubscription(
   await markActivationsEndedForStripeSubscription(subId);
 }
 
+/** Sync `studio_feature_request.desired_on` for every catalog feature tied to this subscription row (bundle-safe). */
+export async function setStudioFeatureRequestsDesiredForSubscription(input: {
+  studioId: string;
+  subscriptionId: string;
+  desiredOn: boolean;
+}) {
+  const subId = input.subscriptionId.trim();
+  if (!subId) return;
+  const acts = await prisma.studioFeatureActivation.findMany({
+    where: { studioId: input.studioId, stripeSubscriptionId: subId },
+    select: { featureId: true },
+  });
+  const ids = [...new Set(acts.map((a) => a.featureId))];
+  if (!ids.length) return;
+  const feats = await prisma.platformFeature.findMany({
+    where: { id: { in: ids } },
+    select: { slug: true },
+  });
+  for (const { slug } of feats) {
+    await prisma.studioFeatureRequest.upsert({
+      where: { studioId_featureKey: { studioId: input.studioId, featureKey: slug } },
+      create: { studioId: input.studioId, featureKey: slug, desiredOn: input.desiredOn },
+      update: { desiredOn: input.desiredOn },
+    });
+  }
+}
+
 function isStudioBillingSubscription(sub: Stripe.Subscription) {
   const t = sub.metadata?.type;
   return t === "studio_feature_subscription" || t === "studio_feature_bundle";
@@ -189,7 +222,17 @@ function subscriptionBillingPeriodEndUnix(sub: Stripe.Subscription): number | nu
  * Stripe cancel at period end — keeps access until `current_period_end` (pending_cancel + deactivatesAt).
  * All activation rows sharing this subscription id are updated (bundle case).
  */
-export async function scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(subscriptionId: string) {
+export async function scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(
+  subscriptionId: string,
+  opts?: {
+    /** Defaults to vendor; use admin when hyperadmin schedules cancel from studio detail. */
+    scheduleEventKind?: Extract<
+      StudioFeatureActivationEventKind,
+      "vendor_cancel_at_period_end" | "admin_cancel_at_period_end"
+    >;
+  },
+) {
+  const scheduleEventKind = opts?.scheduleEventKind ?? "vendor_cancel_at_period_end";
   const subId = subscriptionId.trim();
   if (!subId) return { ok: false as const, error: "missing_subscription_id" };
   const stripe = getStripe();
@@ -226,7 +269,7 @@ export async function scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(subscri
     await recordStudioFeatureActivationEvent(prisma, {
       studioId: a.studioId,
       featureId: a.featureId,
-      kind: "vendor_cancel_at_period_end",
+      kind: scheduleEventKind,
       stripeSubscriptionId: subId,
       payload: { currentPeriodEnd: periodEnd.toISOString() },
     });

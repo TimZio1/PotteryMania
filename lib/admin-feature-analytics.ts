@@ -411,7 +411,7 @@ function ledgerKindDelta(kind: StudioFeatureActivationEventKind): number {
   ) {
     return -1;
   }
-  // vendor_cancel_at_period_end, admin_override_price → 0 (access continues until sub ends)
+  // vendor_cancel_at_period_end, admin_cancel_at_period_end, admin_override_price → 0
   return 0;
 }
 

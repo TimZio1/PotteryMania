@@ -13,7 +13,11 @@ export type StudioFeatureEntitlementRow = {
   grantByDefault: boolean;
   platformActive: boolean;
   isPaidAddOn: boolean;
-  activation: { status: string; overridePriceCents: number | null } | null;
+  activation: {
+    status: string;
+    overridePriceCents: number | null;
+    hasStripeSubscription: boolean;
+  } | null;
   accessEffective: boolean;
 };
 
@@ -48,8 +52,9 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
     <section className={`${ui.cardMuted} space-y-3`}>
       <h2 className="text-sm font-semibold text-amber-950">Platform add-ons</h2>
       <p className="text-xs text-stone-500">
-        Grant or revoke access without Stripe (cancels an existing add-on subscription if one exists). Override price is
-        stored for ops reference; billing still uses the catalog Stripe price until further integration.
+        Grant sets access without Checkout. Revoke clears access; if the studio has a Stripe subscription for this add-on
+        (or bundle), you can end billing <strong>now</strong> or at the <strong>end of the billing period</strong> (same
+        as vendor self-serve). Override price is ops reference only.
       </p>
       {msg ? <p className="text-sm text-red-600">{msg}</p> : null}
       <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
@@ -111,7 +116,19 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
                             "min-h-9 rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-stone-800 hover:bg-stone-50",
                             busy && "opacity-50",
                           )}
-                          onClick={() => void patch(r.featureId, { status: "inactive" })}
+                          onClick={() => {
+                            if (r.activation?.hasStripeSubscription) {
+                              const atPeriodEnd = window.confirm(
+                                "This studio has a Stripe subscription for this add-on (or bundle).\n\nOK — cancel at end of billing period\nCancel — cancel subscription immediately",
+                              );
+                              void patch(r.featureId, {
+                                status: "inactive",
+                                cancelStripeAtPeriodEnd: atPeriodEnd,
+                              });
+                              return;
+                            }
+                            void patch(r.featureId, { status: "inactive" });
+                          }}
                         >
                           Revoke
                         </button>

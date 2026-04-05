@@ -10,6 +10,7 @@ import {
   platformFeatureRequiresStripeSubscription,
   resumeStudioFeatureStripeSubscription,
   scheduleStudioFeatureSubscriptionCancelAtPeriodEnd,
+  setStudioFeatureRequestsDesiredForSubscription,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
@@ -125,26 +126,6 @@ export async function POST(req: Request, ctx: Ctx) {
     where: { studioId_featureId: { studioId, featureId: feature.id } },
   });
 
-  async function setDesiredForSubscriptionSlugs(subscriptionId: string, desired: boolean) {
-    const acts = await prisma.studioFeatureActivation.findMany({
-      where: { studioId, stripeSubscriptionId: subscriptionId },
-      select: { featureId: true },
-    });
-    const ids = [...new Set(acts.map((a) => a.featureId))];
-    if (!ids.length) return;
-    const feats = await prisma.platformFeature.findMany({
-      where: { id: { in: ids } },
-      select: { slug: true },
-    });
-    for (const { slug: s } of feats) {
-      await prisma.studioFeatureRequest.upsert({
-        where: { studioId_featureKey: { studioId, featureKey: s } },
-        create: { studioId, featureKey: s, desiredOn: desired },
-        update: { desiredOn: desired },
-      });
-    }
-  }
-
   if (desiredOn && existing?.status === "pending_cancel" && existing.stripeSubscriptionId?.trim()) {
     const subId = existing.stripeSubscriptionId.trim();
     if (!process.env.STRIPE_SECRET_KEY) {
@@ -157,7 +138,11 @@ export async function POST(req: Request, ctx: Ctx) {
     if (!resumed.ok) {
       return NextResponse.json({ error: "Could not resume subscription in Stripe." }, { status: 502 });
     }
-    await setDesiredForSubscriptionSlugs(subId, true);
+    await setStudioFeatureRequestsDesiredForSubscription({
+      studioId,
+      subscriptionId: subId,
+      desiredOn: true,
+    });
     const acts = await prisma.studioFeatureActivation.findMany({
       where: { studioId, stripeSubscriptionId: subId },
       select: { featureId: true },
@@ -191,7 +176,11 @@ export async function POST(req: Request, ctx: Ctx) {
             { status: 502 },
           );
         }
-        await setDesiredForSubscriptionSlugs(subId, false);
+        await setStudioFeatureRequestsDesiredForSubscription({
+          studioId,
+          subscriptionId: subId,
+          desiredOn: false,
+        });
         return NextResponse.json({
           ok: true,
           slug,

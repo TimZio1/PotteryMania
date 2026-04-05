@@ -70,7 +70,11 @@ export default async function AdminStudioDetailPage({ params }: Props) {
       platformActive: f.isActive,
       isPaidAddOn: platformFeatureRequiresStripeSubscription(f),
       activation: act
-        ? { status: act.status, overridePriceCents: act.overridePriceCents }
+        ? {
+            status: act.status,
+            overridePriceCents: act.overridePriceCents,
+            hasStripeSubscription: Boolean(act.stripeSubscriptionId?.trim()),
+          }
         : null,
       accessEffective,
     };
