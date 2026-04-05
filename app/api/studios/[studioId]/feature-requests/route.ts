@@ -8,6 +8,8 @@ import {
   cancelStudioFeatureStripeSubscription,
   createStudioFeatureSubscriptionCheckout,
   platformFeatureRequiresStripeSubscription,
+  resumeStudioFeatureStripeSubscription,
+  scheduleStudioFeatureSubscriptionCancelAtPeriodEnd,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
@@ -47,7 +49,15 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  let body: { featureKey?: string; desiredOn?: boolean; slug?: string; active?: boolean; bundleId?: string };
+  let body: {
+    featureKey?: string;
+    desiredOn?: boolean;
+    slug?: string;
+    active?: boolean;
+    bundleId?: string;
+    /** When turning off a paid add-on: if true, Stripe cancel_at_period_end (access until billing period ends). */
+    cancelAtPeriodEnd?: boolean;
+  };
   try {
     body = await req.json();
   } catch {
@@ -115,11 +125,86 @@ export async function POST(req: Request, ctx: Ctx) {
     where: { studioId_featureId: { studioId, featureId: feature.id } },
   });
 
+  async function setDesiredForSubscriptionSlugs(subscriptionId: string, desired: boolean) {
+    const acts = await prisma.studioFeatureActivation.findMany({
+      where: { studioId, stripeSubscriptionId: subscriptionId },
+      select: { featureId: true },
+    });
+    const ids = [...new Set(acts.map((a) => a.featureId))];
+    if (!ids.length) return;
+    const feats = await prisma.platformFeature.findMany({
+      where: { id: { in: ids } },
+      select: { slug: true },
+    });
+    for (const { slug: s } of feats) {
+      await prisma.studioFeatureRequest.upsert({
+        where: { studioId_featureKey: { studioId, featureKey: s } },
+        create: { studioId, featureKey: s, desiredOn: desired },
+        update: { desiredOn: desired },
+      });
+    }
+  }
+
+  if (desiredOn && existing?.status === "pending_cancel" && existing.stripeSubscriptionId?.trim()) {
+    const subId = existing.stripeSubscriptionId.trim();
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json(
+        { error: "Stripe is not configured — cannot resume subscription." },
+        { status: 503 },
+      );
+    }
+    const resumed = await resumeStudioFeatureStripeSubscription(subId);
+    if (!resumed.ok) {
+      return NextResponse.json({ error: "Could not resume subscription in Stripe." }, { status: 502 });
+    }
+    await setDesiredForSubscriptionSlugs(subId, true);
+    const acts = await prisma.studioFeatureActivation.findMany({
+      where: { studioId, stripeSubscriptionId: subId },
+      select: { featureId: true },
+    });
+    for (const a of acts) {
+      await recordStudioFeatureActivationEvent(prisma, {
+        studioId,
+        featureId: a.featureId,
+        kind: "vendor_enable",
+        stripeSubscriptionId: subId,
+      });
+    }
+    return NextResponse.json({ ok: true, slug, featureKey: slug, desiredOn: true, active: true, resumed: true });
+  }
+
   if (!desiredOn) {
-    if (existing?.stripeSubscriptionId) {
+    const cancelAtPeriodEnd = body.cancelAtPeriodEnd === true;
+    if (existing?.stripeSubscriptionId?.trim()) {
+      const subId = existing.stripeSubscriptionId.trim();
+      if (cancelAtPeriodEnd) {
+        if (!process.env.STRIPE_SECRET_KEY) {
+          return NextResponse.json(
+            { error: "Stripe is not configured — cannot schedule cancel." },
+            { status: 503 },
+          );
+        }
+        const scheduled = await scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(subId);
+        if (!scheduled.ok) {
+          return NextResponse.json(
+            { error: "Could not schedule cancel at period end. Try again or cancel immediately." },
+            { status: 502 },
+          );
+        }
+        await setDesiredForSubscriptionSlugs(subId, false);
+        return NextResponse.json({
+          ok: true,
+          slug,
+          featureKey: slug,
+          desiredOn: false,
+          active: false,
+          cancelAtPeriodEnd: true,
+          accessEndsAt: scheduled.periodEnd.toISOString(),
+        });
+      }
       await cancelStudioFeatureStripeSubscription({
         studioId,
-        stripeSubscriptionId: existing.stripeSubscriptionId,
+        stripeSubscriptionId: subId,
       });
     }
     await prisma.studioFeatureActivation.upsert({

@@ -1,4 +1,5 @@
 import type { FeatureBundle, PlatformFeature, Studio, StudioFeatureActivation } from "@prisma/client";
+import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { getStripe } from "@/lib/stripe";
@@ -168,4 +169,110 @@ export async function cancelStudioFeatureStripeSubscription(
     console.error("[studio-feature-billing] cancel subscription", e);
   }
   await markActivationsEndedForStripeSubscription(subId);
+}
+
+function isStudioBillingSubscription(sub: Stripe.Subscription) {
+  const t = sub.metadata?.type;
+  return t === "studio_feature_subscription" || t === "studio_feature_bundle";
+}
+
+/** Stripe REST still returns `current_period_end` on Subscription; SDK types may expose it only on items. */
+function subscriptionBillingPeriodEndUnix(sub: Stripe.Subscription): number | null {
+  const top = sub as unknown as { current_period_end?: number };
+  if (typeof top.current_period_end === "number") return top.current_period_end;
+  const first = sub.items?.data?.[0];
+  if (first && typeof first.current_period_end === "number") return first.current_period_end;
+  return null;
+}
+
+/**
+ * Stripe cancel at period end — keeps access until `current_period_end` (pending_cancel + deactivatesAt).
+ * All activation rows sharing this subscription id are updated (bundle case).
+ */
+export async function scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(subscriptionId: string) {
+  const subId = subscriptionId.trim();
+  if (!subId) return { ok: false as const, error: "missing_subscription_id" };
+  const stripe = getStripe();
+  let sub: Stripe.Subscription;
+  try {
+    sub = await stripe.subscriptions.retrieve(subId, { expand: ["items.data"] });
+  } catch (e) {
+    console.error("[studio-feature-billing] retrieve subscription", e);
+    return { ok: false as const, error: "stripe_retrieve_failed" };
+  }
+  if (!isStudioBillingSubscription(sub)) {
+    return { ok: false as const, error: "not_studio_billing_subscription" };
+  }
+  try {
+    sub = await stripe.subscriptions.update(subId, { cancel_at_period_end: true, expand: ["items.data"] });
+  } catch (e) {
+    console.error("[studio-feature-billing] schedule cancel at period end", e);
+    return { ok: false as const, error: "stripe_update_failed" };
+  }
+  const periodEndSec = subscriptionBillingPeriodEndUnix(sub);
+  if (periodEndSec == null) {
+    return { ok: false as const, error: "missing_period_end" };
+  }
+  const periodEnd = new Date(periodEndSec * 1000);
+  const acts = await prisma.studioFeatureActivation.findMany({
+    where: { stripeSubscriptionId: subId },
+    select: { studioId: true, featureId: true },
+  });
+  await prisma.studioFeatureActivation.updateMany({
+    where: { stripeSubscriptionId: subId },
+    data: { status: "pending_cancel", deactivatesAt: periodEnd },
+  });
+  for (const a of acts) {
+    await recordStudioFeatureActivationEvent(prisma, {
+      studioId: a.studioId,
+      featureId: a.featureId,
+      kind: "vendor_cancel_at_period_end",
+      stripeSubscriptionId: subId,
+      payload: { currentPeriodEnd: periodEnd.toISOString() },
+    });
+  }
+  return { ok: true as const, periodEnd };
+}
+
+/** Undo cancel_at_period_end before the period ends. */
+export async function resumeStudioFeatureStripeSubscription(subscriptionId: string) {
+  const subId = subscriptionId.trim();
+  if (!subId) return { ok: false as const, error: "missing_subscription_id" };
+  const stripe = getStripe();
+  try {
+    const sub = await stripe.subscriptions.retrieve(subId);
+    if (!isStudioBillingSubscription(sub)) {
+      return { ok: false as const, error: "not_studio_billing_subscription" };
+    }
+    await stripe.subscriptions.update(subId, { cancel_at_period_end: false });
+  } catch (e) {
+    console.error("[studio-feature-billing] resume subscription", e);
+    return { ok: false as const, error: "stripe_update_failed" };
+  }
+  await prisma.studioFeatureActivation.updateMany({
+    where: { stripeSubscriptionId: subId },
+    data: { status: "active", deactivatesAt: null },
+  });
+  return { ok: true as const };
+}
+
+/** Sync DB rows from Stripe when cancel_at_period_end or period changes (portal, retries). */
+export async function syncStudioBillingSubscriptionFromStripe(sub: Stripe.Subscription) {
+  const subId = sub.id?.trim();
+  if (!subId || !isStudioBillingSubscription(sub)) return;
+  const exists = await prisma.studioFeatureActivation.count({ where: { stripeSubscriptionId: subId } });
+  if (!exists) return;
+  const periodEndSec = subscriptionBillingPeriodEndUnix(sub);
+  const periodEnd = periodEndSec != null ? new Date(periodEndSec * 1000) : null;
+  if (sub.cancel_at_period_end && periodEnd) {
+    await prisma.studioFeatureActivation.updateMany({
+      where: { stripeSubscriptionId: subId },
+      data: { status: "pending_cancel", deactivatesAt: periodEnd },
+    });
+    return;
+  }
+  await prisma.studioFeatureActivation.updateMany({
+    where: { stripeSubscriptionId: subId },
+    data: { status: "active", deactivatesAt: null },
+  });
 }

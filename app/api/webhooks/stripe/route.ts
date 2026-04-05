@@ -12,7 +12,10 @@ import { orderConfirmationCopy, sendOrderEmails } from "@/lib/email/order-notify
 import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import type { Prisma } from "@prisma/client";
-import { markActivationsEndedForStripeSubscription } from "@/lib/studio-feature-billing";
+import {
+  markActivationsEndedForStripeSubscription,
+  syncStudioBillingSubscriptionFromStripe,
+} from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
 /**
@@ -41,6 +44,12 @@ export async function POST(req: Request) {
   if (event.type === "customer.subscription.deleted") {
     const sub = event.data.object as Stripe.Subscription;
     await markActivationsEndedForStripeSubscription(sub.id);
+    return NextResponse.json({ received: true });
+  }
+
+  if (event.type === "customer.subscription.updated") {
+    const sub = event.data.object as Stripe.Subscription;
+    await syncStudioBillingSubscriptionFromStripe(sub);
     return NextResponse.json({ received: true });
   }
 

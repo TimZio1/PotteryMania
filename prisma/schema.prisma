@@ -1549,6 +1549,7 @@ enum StudioFeatureActivationStatus {
 enum StudioFeatureActivationEventKind {
   vendor_enable
   vendor_disable
+  vendor_cancel_at_period_end
   admin_active
   admin_inactive
   admin_override_price

@@ -53,6 +53,8 @@ export type StudioFeatureListRow = {
   includedForAll: boolean;
   /** Hyperadmin set `stripePriceId` and turned off grant-by-default — checkout is required to enable. */
   requiresPaidSubscription: boolean;
+  /** ISO timestamp when a paid subscription is set to end (pending_cancel + Stripe cancel_at_period end). */
+  pendingCancelAt: string | null;
 };
 
 function computeRequiresPaidSubscription(f: {
@@ -85,11 +87,25 @@ export async function listStudioFeaturesForVendor(studioId: string): Promise<Stu
     },
   });
 
+  const slugs = features.map((f) => f.slug);
+  const requests =
+    slugs.length > 0
+      ? await prisma.studioFeatureRequest.findMany({
+          where: { studioId, featureKey: { in: slugs } },
+          select: { featureKey: true, desiredOn: true },
+        })
+      : [];
+  const desiredBySlug = new Map(requests.map((r) => [r.featureKey, r.desiredOn]));
+
   const rows: StudioFeatureListRow[] = [];
   for (const f of features) {
     const act = f.activations[0];
-    const preferenceOn = act ? activationGrantsAccess(act.status, act.trialEndsAt, act.deactivatesAt) : false;
+    const derivedToggle = act ? activationGrantsAccess(act.status, act.trialEndsAt, act.deactivatesAt) : false;
+    const savedDesired = desiredBySlug.get(f.slug);
+    const preferenceOn = savedDesired !== undefined ? savedDesired : derivedToggle;
     const entitled = computeEntitled(f, act);
+    const pendingCancelAt =
+      act?.status === "pending_cancel" && act.deactivatesAt ? act.deactivatesAt.toISOString() : null;
     rows.push({
       id: f.id,
       slug: f.slug,
@@ -104,6 +120,7 @@ export async function listStudioFeaturesForVendor(studioId: string): Promise<Stu
       visibility: f.visibility,
       includedForAll: f.grantByDefault && f.isActive,
       requiresPaidSubscription: computeRequiresPaidSubscription(f),
+      pendingCancelAt,
     });
   }
   return rows;

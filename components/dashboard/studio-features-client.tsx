@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +16,7 @@ type FeatureRow = {
   platformActive: boolean;
   includedForAll: boolean;
   requiresPaidSubscription: boolean;
+  pendingCancelAt: string | null;
 };
 
 type BundleRow = {
@@ -95,32 +96,40 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
     return () => clearInterval(id);
   }, [stripeBundleSlug, load, router, studioId]);
 
+
   async function toggle(slug: string, next: boolean) {
     const row = rows.find((r) => r.slug === slug);
     const label = row?.name ?? slug;
-    if (
-      !next &&
-      !confirm(
-        row?.requiresPaidSubscription
-          ? "Cancel this add-on? We will end the Stripe subscription immediately and access may stop right away."
-          : "Turn off this add-on in your preferences?",
-      )
-    ) {
-      return;
+    let cancelAtPeriodEndChoice = false;
+    if (!next) {
+      if (row?.requiresPaidSubscription) {
+        cancelAtPeriodEndChoice = window.confirm(
+          "Cancel this add-on?\n\nOK — at the end of your billing period (you keep access until then)\nCancel — end the Stripe subscription immediately",
+        );
+      } else if (!window.confirm("Turn off this add-on in your preferences?")) {
+        return;
+      }
     }
     if (next) {
       const msg = row?.requiresPaidSubscription
         ? `Subscribe to “${label}”? You will be redirected to Stripe Checkout for a recurring monthly charge.`
         : `Enable “${label}” in your preferences?`;
-      if (!confirm(msg)) return;
+      if (!window.confirm(msg)) return;
     }
     setPending(slug);
+    const body: Record<string, unknown> = { slug, active: next };
+    if (!next && row?.requiresPaidSubscription) body.cancelAtPeriodEnd = cancelAtPeriodEndChoice;
     const res = await fetch(`/api/studios/${studioId}/feature-requests`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, active: next }),
+      body: JSON.stringify(body),
     });
-    const data = (await res.json()) as { checkoutUrl?: string; error?: string };
+    const data = (await res.json()) as {
+      checkoutUrl?: string;
+      error?: string;
+      cancelAtPeriodEnd?: boolean;
+      accessEndsAt?: string;
+    };
     setPending(null);
     if (typeof data.checkoutUrl === "string" && data.checkoutUrl.length) {
       window.location.href = data.checkoutUrl;
@@ -129,6 +138,11 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
     if (!res.ok) {
       window.alert(data.error ?? "Could not update this add-on.");
       return;
+    }
+    if (data.cancelAtPeriodEnd && data.accessEndsAt) {
+      window.alert(
+        `Subscription will end after your current billing period (around ${new Date(data.accessEndsAt).toLocaleDateString()}). Turn the add-on on again before then to keep billing.`,
+      );
     }
     await load();
     if (slug === "kiln_tracking" || slug === "ai_advisor") router.refresh();
@@ -300,6 +314,13 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
                         {f.requiresPaidSubscription
                           ? "Not subscribed — turn on below to open Stripe Checkout."
                           : "Not entitled — turn this on below."}
+                      </p>
+                    ) : null}
+                    {f.pendingCancelAt ? (
+                      <p className="mt-2 text-xs font-medium text-amber-900">
+                        Scheduled to cancel on{" "}
+                        {new Date(f.pendingCancelAt).toLocaleDateString(undefined, { dateStyle: "medium" })}. Turn the
+                        add-on <strong>on</strong> again to keep your subscription.
                       </p>
                     ) : null}
                   </div>
