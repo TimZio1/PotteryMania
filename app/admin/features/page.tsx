@@ -460,7 +460,17 @@ function InactiveWindowPills({ current, featureId }: { current: number; featureI
         href={`/api/admin/feature-analytics/export?inactiveDays=${current}`}
         className={cn(ui.buttonSecondary, "min-h-9 px-3 text-xs font-medium")}
       >
-        Export CSV
+        Snapshot CSV
+      </a>
+      <a
+        href={
+          featureId
+            ? `/api/admin/feature-activation-events/export?inactiveDays=${current}&featureId=${encodeURIComponent(featureId)}`
+            : `/api/admin/feature-activation-events/export?inactiveDays=${current}`
+        }
+        className={cn(ui.buttonSecondary, "min-h-9 px-3 text-xs font-medium")}
+      >
+        Events CSV
       </a>
     </div>
   );
