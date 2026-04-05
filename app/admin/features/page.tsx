@@ -164,8 +164,8 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
             title={`Ledger: subscription ends / day (${ledgerSeries.windowDays}d, UTC)`}
             subtitle={
               featureIdRaw
-                ? "`stripe_subscription_ended` events for this SKU (vendor cancel, admin revoke, or Stripe sub deleted)."
-                : "One row per studio+feature cleared from a Stripe subscription id (shared bundle sub → multiple events)."
+                ? "`stripe_subscription_ended` for this SKU — at most one row per Stripe subscription id (deduped across cancel + webhook)."
+                : "One event per catalog feature per ended Stripe subscription (bundle → multiple features). Extra writes are dropped safely."
             }
             points={ledgerSeries.stripeSubscriptionEnds}
             tone="rose"

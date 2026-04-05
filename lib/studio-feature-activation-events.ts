@@ -1,4 +1,5 @@
-import type { Prisma, PrismaClient, StudioFeatureActivationEventKind } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { PrismaClient, StudioFeatureActivationEventKind } from "@prisma/client";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -49,6 +50,18 @@ export async function recordStudioFeatureActivationEvent(
       create: buildEventData({ ...input, stripeCheckoutSessionId: checkoutSessionId }),
       update: {},
     });
+    return;
+  }
+
+  if (input.kind === "stripe_subscription_ended" && input.stripeSubscriptionId?.trim()) {
+    try {
+      await db.studioFeatureActivationEvent.create({
+        data: buildEventData(input),
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") return;
+      throw e;
+    }
     return;
   }
 
