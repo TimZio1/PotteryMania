@@ -18,6 +18,7 @@ export type FeatureAnalyticsRow = {
   isActive: boolean;
   visibility: string;
   grantByDefault: boolean;
+  sortOrder: number;
   /** Every StudioFeatureActivation row for this catalog feature. */
   totalRows: number;
   active: number;
@@ -146,6 +147,7 @@ export async function featureAnalyticsSnapshot(
       isActive: f.isActive,
       visibility: f.visibility,
       grantByDefault: f.grantByDefault,
+      sortOrder: f.sortOrder,
       totalRows: g.totalRows,
       active: g.active,
       inactive: g.inactive,
@@ -199,6 +201,7 @@ export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): s
     "catalog_active",
     "visibility",
     "grant_by_default",
+    "sort_order",
     "total_activation_rows",
     "active",
     "inactive",
@@ -222,6 +225,7 @@ export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): s
         csvEscape(r.isActive),
         csvEscape(r.visibility),
         csvEscape(r.grantByDefault),
+        csvEscape(r.sortOrder),
         csvEscape(r.totalRows),
         csvEscape(r.active),
         csvEscape(r.inactive),

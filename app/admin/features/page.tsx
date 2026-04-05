@@ -12,6 +12,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { FeatureHubCatalogFlagsCell } from "@/components/admin/feature-hub-catalog-flags-cell";
 import { FeatureHubCatalogPriceCell } from "@/components/admin/feature-hub-catalog-price-cell";
+import { FeatureHubSortOrderCell } from "@/components/admin/feature-hub-sort-order-cell";
 import { DataTable } from "@/components/admin/data-table";
 import { StatCard } from "@/components/admin/stat-card";
 import { TimeSeriesChart } from "@/components/admin/time-series-chart";
@@ -233,6 +234,11 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                   ),
                 },
                 {
+                  key: "sort",
+                  header: "Sort",
+                  cell: (r) => <FeatureHubSortOrderCell featureId={r.id} sortOrder={r.sortOrder} />,
+                },
+                {
                   key: "rows",
                   header: "Rows",
                   cell: (r) => <span className="tabular-nums text-sm">{r.totalRows}</span>,
@@ -376,6 +382,11 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 ),
               },
               { key: "cat", header: "Category", cell: (r) => <span className="text-sm text-stone-700">{r.category}</span> },
+              {
+                key: "sort",
+                header: "Sort",
+                cell: (r) => <FeatureHubSortOrderCell featureId={r.id} sortOrder={r.sortOrder} />,
+              },
               {
                 key: "list",
                 header: "List price",
