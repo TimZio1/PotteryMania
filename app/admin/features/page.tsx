@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
+  featureActivationAdminAuditDailySeries,
   featureAnalyticsSnapshot,
   parseFeatureAnalyticsInactiveDays,
 } from "@/lib/admin-feature-analytics";
@@ -9,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { DataTable } from "@/components/admin/data-table";
 import { StatCard } from "@/components/admin/stat-card";
+import { TimeSeriesChart } from "@/components/admin/time-series-chart";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
 
@@ -30,9 +32,23 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
   const directoryPromise = featureIdRaw ? featureActivationDirectory(prisma, featureIdRaw) : Promise.resolve(null);
 
   if (tab === "analytics") {
-    const [catalogCount, analytics, directoryResult] = await Promise.all([
+    const analyticsFeatureSlug =
+      featureIdRaw.length > 0
+        ? (
+            await prisma.platformFeature.findUnique({
+              where: { id: featureIdRaw },
+              select: { slug: true },
+            })
+          )?.slug ?? null
+        : null;
+
+    const [catalogCount, analytics, auditSeries, directoryResult] = await Promise.all([
       prisma.platformFeature.count(),
       featureAnalyticsSnapshot(prisma, { inactiveWindowDays: inactiveDays }),
+      featureActivationAdminAuditDailySeries(prisma, {
+        windowDays: inactiveDays,
+        featureSlug: analyticsFeatureSlug,
+      }),
       directoryPromise,
     ]);
 
@@ -73,6 +89,29 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
             label={`Inactive (≤${inactiveWindowDays}d)`}
             value={String(totals.totalInactiveRecent)}
             hint="Updated while inactive"
+          />
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <TimeSeriesChart
+            title={`Hyperadmin grants / day (${auditSeries.windowDays}d, UTC)`}
+            subtitle={
+              featureIdRaw
+                ? "PATCH status → active from studio admin only; filtered to the selected catalog feature."
+                : "PATCH status → active from studio admin (excludes vendor checkout and override-only edits)."
+            }
+            points={auditSeries.grants}
+            tone="amber"
+          />
+          <TimeSeriesChart
+            title={`Hyperadmin revokes / day (${auditSeries.windowDays}d, UTC)`}
+            subtitle={
+              featureIdRaw
+                ? "PATCH status → inactive for the selected SKU."
+                : "PATCH status → inactive across all SKUs (audit log)."
+            }
+            points={auditSeries.revokes}
+            tone="rose"
           />
         </div>
 

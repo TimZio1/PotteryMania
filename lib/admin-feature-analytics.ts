@@ -1,4 +1,4 @@
-import type { PrismaClient, StudioFeatureActivationStatus } from "@prisma/client";
+import type { Prisma, PrismaClient, StudioFeatureActivationStatus } from "@prisma/client";
 
 const BILLABLE: StudioFeatureActivationStatus[] = ["active", "trialing", "pending_cancel"];
 
@@ -218,4 +218,87 @@ export function featureAnalyticsSnapshotToCsv(snap: FeatureAnalyticsSnapshot): s
     );
   }
   return `\uFEFF${lines.join("\n")}`;
+}
+
+export type FeatureActivationAuditDailyPoint = { label: string; value: number };
+
+export type FeatureActivationAuditDailySeries = {
+  windowDays: number;
+  /** Hyperadmin PATCH …/feature-activations with status → active (excludes vendor self-serve / Stripe). */
+  grants: FeatureActivationAuditDailyPoint[];
+  /** Same source, status → inactive. */
+  revokes: FeatureActivationAuditDailyPoint[];
+};
+
+function buildUtcCalendarDayKeys(dayCount: number): string[] {
+  const now = new Date();
+  const keys: string[] = [];
+  for (let i = dayCount - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i));
+    keys.push(d.toISOString().slice(0, 10));
+  }
+  return keys;
+}
+
+function shortUtcLabel(isoDay: string): string {
+  const [, m, d] = isoDay.split("-");
+  return `${Number(m)}/${Number(d)}`;
+}
+
+function featureSlugFromAuditAfter(j: Prisma.JsonValue | null): string | null {
+  if (j === null || typeof j !== "object" || Array.isArray(j)) return null;
+  const s = (j as Record<string, unknown>).featureSlug;
+  return typeof s === "string" ? s : null;
+}
+
+/**
+ * P2-G v3 (partial): daily buckets from `admin_audit_logs` for hyperadmin activation changes only.
+ * Optional `featureSlug` narrows to one catalog SKU (matches `after_json.featureSlug`).
+ */
+export async function featureActivationAdminAuditDailySeries(
+  prisma: PrismaClient,
+  opts: { windowDays: number; featureSlug?: string | null },
+): Promise<FeatureActivationAuditDailySeries> {
+  const windowDays = Math.min(365, Math.max(7, opts.windowDays));
+  const slugFilter = opts.featureSlug?.trim() || null;
+
+  const dayKeys = buildUtcCalendarDayKeys(windowDays);
+  const queryFrom = new Date(`${dayKeys[0]}T00:00:00.000Z`);
+
+  const logs = await prisma.adminAuditLog.findMany({
+    where: {
+      action: "studio.feature_activation_admin",
+      createdAt: { gte: queryFrom },
+      reason: { in: ["status:active", "status:inactive"] },
+    },
+    select: { createdAt: true, reason: true, afterJson: true },
+  });
+
+  const grantMap = new Map(dayKeys.map((k) => [k, 0]));
+  const revokeMap = new Map(dayKeys.map((k) => [k, 0]));
+
+  for (const row of logs) {
+    const slug = featureSlugFromAuditAfter(row.afterJson);
+    if (slugFilter && slug !== slugFilter) continue;
+
+    const key = row.createdAt.toISOString().slice(0, 10);
+    if (!grantMap.has(key)) continue;
+
+    if (row.reason === "status:active") {
+      grantMap.set(key, (grantMap.get(key) ?? 0) + 1);
+    } else if (row.reason === "status:inactive") {
+      revokeMap.set(key, (revokeMap.get(key) ?? 0) + 1);
+    }
+  }
+
+  const grants: FeatureActivationAuditDailyPoint[] = dayKeys.map((k) => ({
+    label: shortUtcLabel(k),
+    value: grantMap.get(k) ?? 0,
+  }));
+  const revokes: FeatureActivationAuditDailyPoint[] = dayKeys.map((k) => ({
+    label: shortUtcLabel(k),
+    value: revokeMap.get(k) ?? 0,
+  }));
+
+  return { windowDays, grants, revokes };
 }
