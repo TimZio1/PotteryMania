@@ -6,6 +6,8 @@ type Point = {
 const BAR_GRADIENT = {
   amber: "linear-gradient(180deg,#c38962_0%,#6d4530_100%)",
   rose: "linear-gradient(180deg,#e8a0a0_0%,#9a3f3f_100%)",
+  emerald: "linear-gradient(180deg,#6ee7b7_0%,#15803d_100%)",
+  indigo: "linear-gradient(180deg,#a5b4fc_0%,#4338ca_100%)",
 } as const;
 
 export function TimeSeriesChart({

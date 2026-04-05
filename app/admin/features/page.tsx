@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   featureActivationAdminAuditDailySeries,
+  featureActivationLifecycleDailySeries,
   featureAnalyticsSnapshot,
   parseFeatureAnalyticsInactiveDays,
 } from "@/lib/admin-feature-analytics";
@@ -42,12 +43,16 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
           )?.slug ?? null
         : null;
 
-    const [catalogCount, analytics, auditSeries, directoryResult] = await Promise.all([
+    const [catalogCount, analytics, auditSeries, lifecycleSeries, directoryResult] = await Promise.all([
       prisma.platformFeature.count(),
       featureAnalyticsSnapshot(prisma, { inactiveWindowDays: inactiveDays }),
       featureActivationAdminAuditDailySeries(prisma, {
         windowDays: inactiveDays,
         featureSlug: analyticsFeatureSlug,
+      }),
+      featureActivationLifecycleDailySeries(prisma, {
+        windowDays: inactiveDays,
+        featureId: featureIdRaw.length > 0 ? featureIdRaw : null,
       }),
       directoryPromise,
     ]);
@@ -112,6 +117,29 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
             }
             points={auditSeries.revokes}
             tone="rose"
+          />
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <TimeSeriesChart
+            title={`New activation rows / day (${lifecycleSeries.windowDays}d, UTC)`}
+            subtitle={
+              featureIdRaw
+                ? "First `StudioFeatureActivation` insert for this SKU (per studio)."
+                : "First studio+feature activation row created that day (includes seed/backfill noise on early days)."
+            }
+            points={lifecycleSeries.rowsCreated}
+            tone="emerald"
+          />
+          <TimeSeriesChart
+            title={`Turn-on events / day (${lifecycleSeries.windowDays}d, UTC)`}
+            subtitle={
+              featureIdRaw
+                ? "`activatedAt` stamped that day — vendor enable, Stripe checkout, or admin grant."
+                : "Count of rows whose `activatedAt` falls on that UTC day (vendor, Stripe webhook, admin)."
+            }
+            points={lifecycleSeries.activatedAtEvents}
+            tone="indigo"
           />
         </div>
 

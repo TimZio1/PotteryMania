@@ -302,3 +302,60 @@ export async function featureActivationAdminAuditDailySeries(
 
   return { windowDays, grants, revokes };
 }
+
+export type FeatureActivationLifecycleDailySeries = {
+  windowDays: number;
+  /** First insert of a studio+feature activation row (`createdAt` UTC date). */
+  rowsCreated: FeatureActivationAuditDailyPoint[];
+  /**
+   * Rows whose `activatedAt` falls on that UTC day (vendor free enable, Stripe checkout webhook, admin grant).
+   * Multiple updates the same day can count more than once per studio+feature if `activatedAt` is written again.
+   */
+  activatedAtEvents: FeatureActivationAuditDailyPoint[];
+};
+
+/**
+ * P2-G / P5-E: DB-backed daily counts from `StudioFeatureActivation` (vendor + Stripe + admin paths that set timestamps).
+ */
+export async function featureActivationLifecycleDailySeries(
+  prisma: PrismaClient,
+  opts: { windowDays: number; featureId?: string | null },
+): Promise<FeatureActivationLifecycleDailySeries> {
+  const windowDays = Math.min(365, Math.max(7, opts.windowDays));
+  const fid = opts.featureId?.trim() || null;
+  const featureWhere = fid ? { featureId: fid } : {};
+
+  const dayKeys = buildUtcCalendarDayKeys(windowDays);
+  const queryFrom = new Date(`${dayKeys[0]}T00:00:00.000Z`);
+
+  const [createdRows, activatedRows] = await Promise.all([
+    prisma.studioFeatureActivation.findMany({
+      where: { createdAt: { gte: queryFrom }, ...featureWhere },
+      select: { createdAt: true },
+    }),
+    prisma.studioFeatureActivation.findMany({
+      where: { activatedAt: { gte: queryFrom }, ...featureWhere },
+      select: { activatedAt: true },
+    }),
+  ]);
+
+  const createdMap = new Map(dayKeys.map((k) => [k, 0]));
+  const activatedMap = new Map(dayKeys.map((k) => [k, 0]));
+
+  for (const r of createdRows) {
+    const k = r.createdAt.toISOString().slice(0, 10);
+    if (createdMap.has(k)) createdMap.set(k, (createdMap.get(k) ?? 0) + 1);
+  }
+  for (const r of activatedRows) {
+    const at = r.activatedAt;
+    if (!at) continue;
+    const k = at.toISOString().slice(0, 10);
+    if (activatedMap.has(k)) activatedMap.set(k, (activatedMap.get(k) ?? 0) + 1);
+  }
+
+  return {
+    windowDays,
+    rowsCreated: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: createdMap.get(k) ?? 0 })),
+    activatedAtEvents: dayKeys.map((k) => ({ label: shortUtcLabel(k), value: activatedMap.get(k) ?? 0 })),
+  };
+}
