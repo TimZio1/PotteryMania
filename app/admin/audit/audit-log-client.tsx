@@ -180,6 +180,27 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
           >
             Commission
           </button>
+          <button
+            type="button"
+            className={presetClass(entityType === "coupon" && !action && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ entityType: "coupon" })}
+          >
+            Coupons
+          </button>
+          <button
+            type="button"
+            className={presetClass(action === "user.impersonate_grant" && !entityType && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ action: "user.impersonate_grant" })}
+          >
+            Impersonation
+          </button>
+          <button
+            type="button"
+            className={presetClass(action === "feature_flag.update" && !entityType && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ action: "feature_flag.update" })}
+          >
+            Feature flags
+          </button>
         </div>
       </div>
 
