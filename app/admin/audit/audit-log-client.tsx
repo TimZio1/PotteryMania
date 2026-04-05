@@ -173,6 +173,13 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
           >
             Stripe refunds
           </button>
+          <button
+            type="button"
+            className={presetClass(action === "commission.update" && !entityType && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ action: "commission.update" })}
+          >
+            Commission
+          </button>
         </div>
       </div>
 
