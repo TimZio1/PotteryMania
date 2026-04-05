@@ -8,6 +8,22 @@ export const dynamic = "force-dynamic";
 
 const VIS: PlatformFeatureVisibility[] = ["public", "hidden", "beta"];
 
+const REASON_MAX = 500;
+
+function platformFeaturePatchIsNoOp(
+  before: NonNullable<Awaited<ReturnType<typeof prisma.platformFeature.findUnique>>>,
+  data: Record<string, unknown>,
+): boolean {
+  const keys = Object.keys(data);
+  if (!keys.length) return false;
+  for (const k of keys) {
+    const key = k as keyof typeof before;
+    if (!(key in before)) return false;
+    if (before[key] !== data[k]) return false;
+  }
+  return true;
+}
+
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: Request, ctx: Ctx) {
@@ -28,12 +44,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
     visibility?: string;
     sortOrder?: number;
     stripePriceId?: string | null;
+    reason?: string;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  const reasonTrimmed =
+    typeof body.reason === "string" ? body.reason.trim().slice(0, REASON_MAX) : "";
+  const auditReason = reasonTrimmed.length > 0 ? reasonTrimmed : null;
 
   const before = await prisma.platformFeature.findUnique({ where: { id } });
   if (!before) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -87,6 +108,26 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });
   }
 
+  if (platformFeaturePatchIsNoOp(before, data as Record<string, unknown>)) {
+    return NextResponse.json({
+      feature: {
+        id: before.id,
+        slug: before.slug,
+        name: before.name,
+        description: before.description,
+        category: before.category,
+        priceCents: before.priceCents,
+        currency: before.currency,
+        isActive: before.isActive,
+        visibility: before.visibility,
+        grantByDefault: before.grantByDefault,
+        sortOrder: before.sortOrder,
+        stripePriceId: before.stripePriceId,
+        updatedAt: before.updatedAt.toISOString(),
+      },
+    });
+  }
+
   const updated = await prisma.platformFeature.update({
     where: { id },
     data,
@@ -100,7 +141,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
     before: {
       slug: before.slug,
       name: before.name,
+      description: before.description,
+      category: before.category,
       priceCents: before.priceCents,
+      currency: before.currency,
       isActive: before.isActive,
       grantByDefault: before.grantByDefault,
       visibility: before.visibility,
@@ -110,14 +154,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
     after: {
       slug: updated.slug,
       name: updated.name,
+      description: updated.description,
+      category: updated.category,
       priceCents: updated.priceCents,
+      currency: updated.currency,
       isActive: updated.isActive,
       grantByDefault: updated.grantByDefault,
       visibility: updated.visibility,
       sortOrder: updated.sortOrder,
       stripePriceId: updated.stripePriceId,
     },
-    reason: null,
+    reason: auditReason,
   });
 
   return NextResponse.json({
