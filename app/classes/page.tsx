@@ -18,6 +18,7 @@ import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/cn";
 import { NearPointFields } from "@/components/discovery/near-point-fields";
 import { NearResultsMap } from "@/components/discovery/near-results-map";
+import { sortExperiencesByMarketplaceRanking } from "@/lib/ranking/score-engine";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
@@ -64,6 +65,8 @@ export default async function ClassesPage({ searchParams }: Props) {
           country: true,
           latitude: true,
           longitude: true,
+          marketplaceRankWeight: true,
+          rankingScore: { select: { compositeScore: true } },
         },
       },
       images: { where: { isPrimary: true }, take: 1 },
@@ -72,6 +75,8 @@ export default async function ClassesPage({ searchParams }: Props) {
 
   if (near) {
     experiences = filterRowsByNearKm(experiences, near, (ex) => experienceMeetingPoint(ex)).slice(0, 80);
+  } else {
+    experiences = sortExperiencesByMarketplaceRanking(experiences);
   }
 
   const minPriceDefault =

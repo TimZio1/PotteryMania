@@ -105,9 +105,10 @@ export function buildProductOrderBy(sort: ProductSort = "recommended"): Prisma.P
   if (sort === "price_desc") return [{ salePriceCents: "desc" }, { priceCents: "desc" }, { createdAt: "desc" }];
   if (sort === "featured") return [{ isFeatured: "desc" }, { createdAt: "desc" }];
   if (sort === "newest") return [{ createdAt: "desc" }];
-  // recommended: featured products, then studio boost, then freshness
+  // recommended: featured, studio composite (P4), admin weight, freshness
   return [
     { isFeatured: "desc" },
+    { studio: { rankingScore: { compositeScore: "desc" } } },
     { studio: { marketplaceRankWeight: "desc" } },
     { createdAt: "desc" },
   ];

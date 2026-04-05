@@ -273,3 +273,27 @@ export function sortStudiosByMarketplaceRanking<T extends StudioWithRankingSort>
     return a.displayName.localeCompare(b.displayName);
   });
 }
+
+/** `/classes` list row: parent studio carries ranking for sort (non-geo mode). */
+export type ExperienceListStudioForRanking = {
+  marketplaceRankWeight: number;
+  rankingScore: { compositeScore: number } | null;
+};
+
+export type ExperienceRowWithStudioRanking = {
+  createdAt: Date;
+  studio: ExperienceListStudioForRanking;
+};
+
+/** Recommended class order: studio composite → weight → newest experience. */
+export function sortExperiencesByMarketplaceRanking<T extends ExperienceRowWithStudioRanking>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const ca = a.studio.rankingScore?.compositeScore ?? 0;
+    const cb = b.studio.rankingScore?.compositeScore ?? 0;
+    if (Math.abs(cb - ca) > 1e-9) return cb - ca;
+    const wa = a.studio.marketplaceRankWeight;
+    const wb = b.studio.marketplaceRankWeight;
+    if (wb !== wa) return wb - wa;
+    return b.createdAt.getTime() - a.createdAt.getTime();
+  });
+}
