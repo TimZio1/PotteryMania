@@ -26,6 +26,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   const includeArchived = searchParams.get("archived") === "1";
   const [rows, setRows] = useState(initial);
   const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -38,6 +39,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   async function patchProduct(id: string, body: Record<string, unknown>) {
     setBusy(true);
     setErr("");
+    setMsg("");
     const r = await fetch(`/api/admin/wear-products/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -52,14 +54,44 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     await refresh();
   }
 
+  async function syncFromSpreadconnect() {
+    setBusy(true);
+    setErr("");
+    setMsg("");
+    const r = await fetch("/api/admin/wear-products/sync-spreadconnect", {
+      method: "POST",
+    });
+    setBusy(false);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setErr((j as { error?: string }).error ?? "Spreadconnect sync failed");
+      return;
+    }
+    const result = j as {
+      syncedProducts?: number;
+      createdProducts?: number;
+      updatedProducts?: number;
+      archivedProducts?: number;
+      skippedArticles?: number;
+    };
+    setMsg(
+      `Spreadconnect sync complete: ${result.syncedProducts ?? 0} synced · ${result.createdProducts ?? 0} created · ${result.updatedProducts ?? 0} updated · ${result.archivedProducts ?? 0} archived · ${result.skippedArticles ?? 0} skipped`,
+    );
+    await refresh();
+  }
+
   return (
     <div className="mt-8 space-y-6">
       {err ? <p className={ui.errorText}>{err}</p> : null}
+      {msg ? <p className={ui.successText}>{msg}</p> : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Link href="/admin/wear-products/new" className={ui.buttonPrimary}>
           New wear product
         </Link>
+        <button type="button" disabled={busy} onClick={syncFromSpreadconnect} className={ui.buttonSecondary}>
+          Sync Spreadconnect catalog
+        </button>
         <Link
           href={includeArchived ? "/admin/wear-products" : "/admin/wear-products?archived=1"}
           className={ui.buttonGhost}

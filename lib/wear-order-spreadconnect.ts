@@ -2,11 +2,20 @@
  * Push paid native wear orders to Spreadconnect for fulfilment.
  * Requires line-level Spreadconnect SKUs on variants (`sku`) or, for products without variants,
  * `WearProduct.externalFulfillmentId` set to the Spreadconnect article variant SKU.
+ *
+ * Request body aligns with `docs/reference/spreadconnect-openapi.json` → `CreateOrder`, `CreateOrderItem`, `Address`, `CustomerPrice`.
  */
 import type Stripe from "stripe";
-import { prisma } from "@/lib/db";
+import { prisma as prismaSingleton } from "@/lib/db";
 
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
+
+/**
+ * Cursor/TS sometimes resolves the app singleton against a stale Prisma client in multi-root workspaces,
+ * even though the generated client includes the wear_* delegates and `tsc --noEmit` passes.
+ * Keep runtime behavior identical and force local delegate access to avoid editor false-positives here.
+ */
+const prisma = prismaSingleton as unknown as any;
 
 /**
  * Resolve ship-to for Spreadconnect from a completed Checkout Session.
@@ -16,14 +25,17 @@ function checkoutShippingDetails(
   session: Stripe.Checkout.Session,
   fallbackName: string,
 ): { name: string; address: Stripe.Address } | null {
+  const ci = session.collected_information;
   const nameFromCustomer =
     session.customer_details?.name?.trim() ||
     session.customer_details?.individual_name?.trim() ||
     session.customer_details?.business_name?.trim() ||
+    ci?.individual_name?.trim() ||
+    ci?.business_name?.trim() ||
     fallbackName.trim() ||
     "Customer";
 
-  const fromCollected = session.collected_information?.shipping_details;
+  const fromCollected = ci?.shipping_details;
   if (fromCollected?.address?.line1 && fromCollected.address.country) {
     const name = fromCollected.name?.trim() || nameFromCustomer;
     return { name, address: fromCollected.address };
@@ -108,12 +120,35 @@ type ScAddress = {
   zipCode: string;
 };
 
+/** OpenAPI Address: state is required for USA and Canada (ISO 3166-1 alpha-2 country + 2-letter subdivision). */
+function spreadconnectStateForCountry(
+  country: string,
+  state: string | null | undefined,
+): { ok: true; state: string } | { ok: false } {
+  const c = country.toUpperCase();
+  const raw = (state || "").trim().toUpperCase();
+  const two = raw.length >= 2 ? raw.slice(0, 2) : "";
+  const validTwo = /^[A-Z]{2}$/.test(two) ? two : "";
+
+  if (c === "US" || c === "CA") {
+    if (validTwo) return { ok: true, state: validTwo };
+    const fb =
+      c === "US"
+        ? process.env.SPREADCONNECT_FALLBACK_US_STATE?.trim().toUpperCase()
+        : process.env.SPREADCONNECT_FALLBACK_CA_PROVINCE?.trim().toUpperCase();
+    if (fb && /^[A-Z]{2}$/.test(fb)) return { ok: true, state: fb };
+    return { ok: false };
+  }
+
+  return { ok: true, state: validTwo || (raw ? raw : "—") };
+}
+
 function toSpreadconnectAddress(
   nameSource: string,
   line1: string,
   line2: string | null | undefined,
   city: string,
-  state: string | null | undefined,
+  stateForSc: string,
   postal: string,
   country: string,
 ): ScAddress {
@@ -125,9 +160,25 @@ function toSpreadconnectAddress(
     ...(line2 ? { streetAnnex: line2 } : {}),
     city: city || "—",
     country: (country || "DE").toUpperCase(),
-    state: (state || "").trim() || "—",
+    state: stateForSc,
     zipCode: postal || "—",
   };
+}
+
+/** Shipping paid in checkout (minor units), for Spreadconnect `shipping.customerPrice`. */
+function resolveShippingAmountCents(
+  session: Stripe.Checkout.Session,
+  orderRow: { subtotalCents: number; amountTotalCents: number | null },
+): number {
+  const sc = session.shipping_cost?.amount_total;
+  if (typeof sc === "number" && sc >= 0) return sc;
+  const td = session.total_details?.amount_shipping;
+  if (typeof td === "number" && td >= 0) return td;
+  const total = orderRow.amountTotalCents;
+  if (total != null && total >= orderRow.subtotalCents) {
+    return Math.max(0, total - orderRow.subtotalCents);
+  }
+  return 900;
 }
 
 export function resolveSpreadconnectSku(item: {
@@ -143,25 +194,28 @@ export function resolveSpreadconnectSku(item: {
   return null;
 }
 
+type ShippingPreferredType = "STANDARD" | "PREMIUM" | "EXPRESS";
+
 type CreateOrderPayload = {
   orderItems: {
     sku: string;
     quantity: number;
-    externalOrderItemReference: string;
-    customerPrice: { amount: number; currency: string };
+    externalOrderItemReference?: string;
+    customerPrice: { amount: number; currency?: string };
   }[];
   shipping: {
     address: ScAddress;
-    fromAddress: ScAddress;
-    preferredType: string;
-    customerPrice: { amount: number; currency: string };
+    /** OpenAPI optional; we mirror ship-to as RTS when not configured separately. */
+    fromAddress?: ScAddress;
+    preferredType?: ShippingPreferredType;
+    customerPrice: { amount: number; currency?: string };
   };
   phone: string;
   email: string;
   externalOrderReference: string;
-  externalOrderName: string;
-  state: "NEW" | "CONFIRMED";
-  customerTaxType: "SALESTAX" | "VAT" | "NOT_TAXABLE";
+  externalOrderName?: string;
+  state?: "NEW" | "CONFIRMED";
+  customerTaxType?: "SALESTAX" | "VAT" | "NOT_TAXABLE";
 };
 
 async function postSpreadconnectOrder(
@@ -249,25 +303,59 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
   }
 
   const shipName = shippingDetails.name.trim() || orderRow.customerName;
+  const country = (addr.country || "").toUpperCase() || "DE";
+  const stateNorm = spreadconnectStateForCountry(country, addr.state);
+  if (!stateNorm.ok) {
+    await prisma.wearAnalyticsEvent.create({
+      data: {
+        kind: FAILED_KIND,
+        orderId: opts.wearOrderId,
+        payload: {
+          reason: "invalid_us_ca_state",
+          country,
+          hint: "Spreadconnect requires a 2-letter state/province for US/CA. Set SPREADCONNECT_FALLBACK_US_STATE or SPREADCONNECT_FALLBACK_CA_PROVINCE, or ensure Stripe collects subdivision.",
+        },
+      },
+    });
+    console.error("[spreadconnect] US/CA order missing valid state for Spreadconnect", opts.wearOrderId);
+    return;
+  }
+
   const scAddr = toSpreadconnectAddress(
     shipName,
     addr.line1,
     addr.line2,
     addr.city ?? "",
-    addr.state,
+    stateNorm.state,
     addr.postal_code ?? "",
-    addr.country,
+    country,
   );
 
   const currency = (session.currency || orderRow.currency || "eur").toUpperCase();
-  const shippingCents =
-    typeof session.shipping_cost?.amount_total === "number" ? session.shipping_cost.amount_total : 900;
-  const shippingAmount = Math.max(0, shippingCents) / 100;
+  const shippingCents = resolveShippingAmountCents(session, orderRow);
+  const shippingAmount = shippingCents / 100;
 
   const phone =
     session.customer_details?.phone?.trim() ||
     process.env.SPREADCONNECT_FALLBACK_PHONE?.trim() ||
     "+0000000000";
+
+  const email =
+    orderRow.customerEmail.trim() || session.customer_details?.email?.trim() || "";
+  if (!email) {
+    await prisma.wearAnalyticsEvent.create({
+      data: {
+        kind: FAILED_KIND,
+        orderId: opts.wearOrderId,
+        payload: {
+          reason: "missing_customer_email",
+          sessionId: session.id,
+        },
+      },
+    });
+    console.error("[spreadconnect] wear order missing email for Spreadconnect", opts.wearOrderId);
+    return;
+  }
 
   const orderItems: CreateOrderPayload["orderItems"] = [];
   for (const it of orderRow.items) {
@@ -290,7 +378,7 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
     orderItems.push({
       sku,
       quantity: it.quantity,
-      externalOrderItemReference: it.id,
+      externalOrderItemReference: String(it.id),
       customerPrice: {
         amount: Math.round(it.unitPriceCents * it.quantity) / 100,
         currency,
@@ -309,8 +397,8 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
       customerPrice: { amount: shippingAmount, currency },
     },
     phone,
-    email: orderRow.customerEmail,
-    externalOrderReference: orderRow.id,
+    email,
+    externalOrderReference: String(orderRow.id),
     externalOrderName: `WEAR-${orderRow.id.slice(0, 8)}`,
     state: "CONFIRMED",
     customerTaxType,
