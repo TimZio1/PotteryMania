@@ -19,6 +19,7 @@ import {
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
+import { submitPaidWearOrderToSpreadconnect } from "@/lib/wear-order-spreadconnect";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -248,18 +249,20 @@ export async function POST(req: Request) {
         const piId = typeof pi === "string" ? pi : pi?.id ?? null;
         const amountTotal = session.amount_total ?? null;
         try {
-          await prisma.$transaction(async (tx) => {
+          const applied = await prisma.$transaction(async (tx) => {
             const order = await tx.wearOrder.findUnique({
               where: { id: wearOrderId },
               include: { items: true },
             });
-            if (!order || order.status === "paid") return;
-            if (order.stripeCheckoutSessionId && order.stripeCheckoutSessionId !== session.id) return;
+            if (!order || order.status !== "pending") return false;
+            if (order.stripeCheckoutSessionId && order.stripeCheckoutSessionId !== session.id) return false;
 
+            const paidNow = new Date();
             await tx.wearOrder.update({
               where: { id: wearOrderId },
               data: {
                 status: "paid",
+                paidAt: order.paidAt ?? paidNow,
                 stripeCheckoutSessionId: session.id,
                 stripePaymentIntentId: piId,
                 ...(amountTotal != null ? { amountTotalCents: amountTotal } : {}),
@@ -289,7 +292,21 @@ export async function POST(req: Request) {
                 },
               },
             });
+            return true;
           });
+
+          if (applied) {
+            try {
+              const stripe = getStripe();
+              const fullSession = await stripe.checkout.sessions.retrieve(session.id);
+              await submitPaidWearOrderToSpreadconnect({
+                wearOrderId,
+                stripeSession: fullSession,
+              });
+            } catch (scErr) {
+              console.error("[stripe webhook] wear_order spreadconnect", scErr);
+            }
+          }
         } catch (e) {
           console.error("[stripe webhook] wear_order", e);
         }

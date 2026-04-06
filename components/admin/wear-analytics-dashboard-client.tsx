@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
-import type { WearDashboardData, WearFunnelStep, WearProductPerf } from "@/lib/wear-analytics-dashboard";
+import type { WearDashboardData, WearFunnelDropoff, WearFunnelStep } from "@/lib/wear-analytics-dashboard";
 
 export type WearDashboardClientProps = Omit<WearDashboardData, "range"> & {
   range: { label: string; preset: string; startISO: string; endISO: string };
@@ -14,130 +14,153 @@ function eur(cents: number) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(cents / 100);
 }
 
-type SortKey = "revenue" | "conversion" | "engagement";
+type SortKey = "revenue" | "purchases" | "conversion" | "views";
 
-function engagementScore(p: WearProductPerf) {
-  return p.views + p.addToCart * 2 + p.paidOrderCount * 10;
-}
-
-function FunnelBlock({ steps }: { steps: WearFunnelStep[] }) {
+function FunnelBlock({
+  steps,
+  dropoff,
+}: {
+  steps: WearFunnelStep[];
+  dropoff: WearFunnelDropoff | null;
+}) {
   const max = Math.max(...steps.map((s) => s.count), 1);
   return (
-    <div className="space-y-4">
-      {steps.map((s, i) => {
-        const w = Math.max(8, Math.round((s.count / max) * 100));
-        return (
-          <div key={s.key}>
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-sm font-medium text-amber-950">{s.label}</span>
-              <span className="font-mono text-sm text-stone-700">
-                {s.count.toLocaleString()}
-                {s.pctOfPrev != null ? (
-                  <span className="ml-2 text-stone-500">
-                    ({s.pctOfPrev}% of previous{steps[i - 1] ? ` · was ${steps[i - 1].count.toLocaleString()}` : ""})
-                  </span>
-                ) : null}
-              </span>
+    <div className="space-y-6">
+      {dropoff && dropoff.dropPct > 0 && dropoff.fromCount > 0 ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+          <p className="font-semibold">Biggest drop-off</p>
+          <p className="mt-1 text-amber-900/90">
+            {dropoff.fromLabel} → {dropoff.toLabel}:{" "}
+            <span className="font-mono font-semibold">{dropoff.dropPct}%</span> left the funnel (
+            <span className="font-mono">{dropoff.toCount.toLocaleString()}</span> of{" "}
+            <span className="font-mono">{dropoff.fromCount.toLocaleString()}</span>).
+          </p>
+        </div>
+      ) : null}
+      <div className="space-y-4">
+        {steps.map((s, i) => {
+          const w = Math.max(8, Math.round((s.count / max) * 100));
+          return (
+            <div key={s.key}>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="text-sm font-medium text-amber-950">{s.label}</span>
+                <span className="font-mono text-sm text-stone-700">
+                  {s.count.toLocaleString()}
+                  {s.pctOfPrev != null ? (
+                    <span className="ml-2 text-stone-500">
+                      ({s.pctOfPrev}% from previous
+                      {steps[i - 1] ? ` · prior ${steps[i - 1]!.count.toLocaleString()}` : ""})
+                    </span>
+                  ) : null}
+                </span>
+              </div>
+              <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-stone-200">
+                <div
+                  className="h-full rounded-full bg-amber-700/90 transition-[width]"
+                  style={{ width: `${w}%` }}
+                  title={`${s.count}`}
+                />
+              </div>
             </div>
-            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-stone-200">
-              <div
-                className="h-full rounded-full bg-amber-700/90 transition-[width]"
-                style={{ width: `${w}%` }}
-                title={`${s.count}`}
-              />
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 function LineChart({ points }: { points: { day: string; cents: number }[] }) {
   if (points.length === 0) {
-    return <p className="text-sm text-stone-500">No paid orders in this window — no revenue curve yet.</p>;
+    return (
+      <p className="text-sm text-stone-500">
+        No days in this range — pick a wider window to see revenue by day.
+      </p>
+    );
+  }
+  const hasRevenue = points.some((p) => p.cents > 0);
+  if (!hasRevenue) {
+    return (
+      <p className="text-sm text-stone-500">
+        No paid orders in this window — revenue by day will appear after the first completed checkout.
+      </p>
+    );
   }
   const max = Math.max(...points.map((p) => p.cents), 1);
-  const w = 320;
-  const h = 120;
-  const pad = 8;
-  const step = points.length > 1 ? (w - pad * 2) / (points.length - 1) : 0;
+  const w = 640;
+  const h = 140;
+  const padX = 12;
+  const padY = 10;
+  const step = points.length > 1 ? (w - padX * 2) / (points.length - 1) : 0;
   const coords = points.map((p, i) => {
-    const x = pad + i * step;
-    const y = h - pad - (p.cents / max) * (h - pad * 2);
+    const x = padX + i * step;
+    const y = h - padY - (p.cents / max) * (h - padY * 2);
     return `${x},${y}`;
   });
-  const d = points.length > 1 ? `M ${coords.join(" L ")}` : `M ${pad},${h / 2} L ${w - pad},${h / 2}`;
+  const d = points.length > 1 ? `M ${coords.join(" L ")}` : `M ${padX},${h / 2} L ${w - padX},${h / 2}`;
 
   return (
-    <div className="overflow-x-auto">
-      <svg width={w} height={h + 24} className="text-amber-800" aria-label="Revenue over time">
-        <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="currentColor" strokeOpacity={0.2} />
+    <div className="w-full overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${w} ${h + 28}`}
+        className="h-auto w-full max-w-full text-amber-800"
+        preserveAspectRatio="xMidYMid meet"
+        aria-label="Revenue over time"
+      >
+        <line
+          x1={padX}
+          y1={h - padY}
+          x2={w - padX}
+          y2={h - padY}
+          stroke="currentColor"
+          strokeOpacity={0.2}
+        />
         <path d={d} fill="none" stroke="currentColor" strokeWidth={2} strokeLinejoin="round" />
         {points.map((p, i) => {
-          const x = pad + i * step;
-          const y = h - pad - (p.cents / max) * (h - pad * 2);
+          const x = padX + i * step;
+          const y = h - padY - (p.cents / max) * (h - padY * 2);
           return <circle key={p.day} cx={x} cy={y} r={3} fill="currentColor" />;
         })}
-        <text x={pad} y={h + 16} className="fill-stone-500 text-[10px]">
-          {points[0]?.day} → {points[points.length - 1]?.day}
+        <text x={padX} y={h + 18} className="fill-stone-500 text-[11px]">
+          {points[0]?.day} → {points[points.length - 1]?.day} (UTC, paid orders)
         </text>
       </svg>
     </div>
   );
 }
 
-function BarProducts({ rows }: { rows: WearProductPerf[] }) {
-  const top = rows.slice(0, 8);
-  if (top.length === 0) {
-    return <p className="text-sm text-stone-500">No product-level revenue in this window.</p>;
-  }
-  const max = Math.max(...top.map((r) => r.revenueCents), 1);
-  return (
-    <ul className="space-y-3" aria-label="Top products by revenue">
-      {top.map((r) => (
-        <li key={r.productId} className="flex items-center gap-3">
-          <span className="w-36 shrink-0 truncate text-xs font-medium text-stone-800" title={r.name}>
-            {r.name}
-          </span>
-          <div className="h-6 min-w-0 flex-1 overflow-hidden rounded bg-stone-200">
-            <div
-              className="h-full bg-amber-600/85"
-              style={{ width: `${Math.max(4, (r.revenueCents / max) * 100)}%` }}
-            />
-          </div>
-          <span className="w-20 shrink-0 text-right font-mono text-xs text-stone-600">{eur(r.revenueCents)}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 export default function WearAnalyticsDashboardClient(props: WearDashboardClientProps) {
   const [sort, setSort] = useState<SortKey>("revenue");
-
-  const barRows = useMemo(
-    () => [...props.topProducts].sort((a, b) => b.revenueCents - a.revenueCents),
-    [props.topProducts],
-  );
 
   const sortedProducts = useMemo(() => {
     const list = [...props.topProducts];
     if (sort === "revenue") {
       list.sort((a, b) => b.revenueCents - a.revenueCents);
+    } else if (sort === "purchases") {
+      list.sort((a, b) => b.purchases - a.purchases);
     } else if (sort === "conversion") {
       list.sort((a, b) => {
-        const ca = a.conversionViewToOrderPct ?? -1;
-        const cb = b.conversionViewToOrderPct ?? -1;
+        const ca = a.conversionPct ?? -1;
+        const cb = b.conversionPct ?? -1;
         return cb - ca;
       });
     } else {
-      list.sort((a, b) => engagementScore(b) - engagementScore(a));
+      list.sort((a, b) => b.views - a.views);
     }
     return list;
   }, [props.topProducts, sort]);
 
-  const { overview, funnel, dailyRevenue, insights, hasActivity, range } = props;
+  const {
+    overview,
+    funnel,
+    funnelDropoff,
+    dailyRevenue,
+    insights,
+    hasActivity,
+    hasFunnelData,
+    hasPurchases,
+    revenueWindows,
+    range,
+  } = props;
 
   const qp = (r: string, extra?: Record<string, string>) => {
     const u = new URLSearchParams();
@@ -148,15 +171,17 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
 
   return (
     <div className="mt-8 space-y-12">
-      {/* Time filter */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Time window</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Report period</p>
           <p className="mt-1 text-sm text-stone-600">
             {range.label}
             <span className="ml-2 font-mono text-xs text-stone-400">
               {range.startISO.slice(0, 10)} → {range.endISO.slice(0, 10)}
             </span>
+          </p>
+          <p className="mt-1 text-xs text-stone-500">
+            Funnel, table, and chart below use this range. Revenue strip uses rolling calendar windows (UTC).
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -166,10 +191,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
           >
             Today
           </Link>
-          <Link
-            href={qp("7d")}
-            className={cn(ui.buttonGhost, range.preset === "7d" && "bg-amber-100/80")}
-          >
+          <Link href={qp("7d")} className={cn(ui.buttonGhost, range.preset === "7d" && "bg-amber-100/80")}>
             7 days
           </Link>
           <Link
@@ -207,71 +229,105 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
 
       {!hasActivity ? (
         <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/80 px-6 py-14 text-center">
-          <p className="text-lg font-medium text-amber-950">No activity yet</p>
+          <p className="text-lg font-medium text-amber-950">No activity in this period</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-stone-600">
-            Start driving traffic to <Link href="/wear/shop" className="font-medium text-amber-900 underline">/wear/shop</Link>.
-            Events and paid orders will populate this dashboard automatically.
+            No PDP events or paid orders yet. Send traffic to{" "}
+            <Link href="/wear/shop" className="font-medium text-amber-900 underline">
+              /wear/shop
+            </Link>{" "}
+            or widen the date range.
           </p>
         </div>
       ) : null}
 
-      {/* Overview */}
-      <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Overview</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-stone-500">Revenue</p>
-            <p className="mt-1 text-2xl font-semibold text-amber-950">{eur(overview.revenueCents)}</p>
+      {hasActivity ? (
+        <section>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Overview</h2>
+          <p className="mt-1 max-w-3xl text-sm text-stone-600">
+            Rolling revenue helps you compare momentum; other KPIs match the report period above.
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-medium text-stone-500">Revenue · today (UTC)</p>
+              <p className="mt-1 text-xl font-semibold text-amber-950">{eur(revenueWindows.todayCents)}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-medium text-stone-500">Revenue · last 7 days</p>
+              <p className="mt-1 text-xl font-semibold text-amber-950">{eur(revenueWindows.last7Cents)}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-medium text-stone-500">Revenue · last 30 days</p>
+              <p className="mt-1 text-xl font-semibold text-amber-950">{eur(revenueWindows.last30Cents)}</p>
+            </div>
           </div>
-          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-stone-500">Paid orders</p>
-            <p className="mt-1 text-2xl font-semibold text-amber-950">{overview.orderCount}</p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-stone-500">Revenue · this period</p>
+              <p className="mt-1 text-2xl font-semibold text-amber-950">{eur(overview.revenueCents)}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-stone-500">Orders · this period</p>
+              <p className="mt-1 text-2xl font-semibold text-amber-950">{overview.orderCount}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-stone-500">Avg. order value</p>
+              <p className="mt-1 text-2xl font-semibold text-amber-950">
+                {overview.aovCents != null ? eur(overview.aovCents) : "—"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-stone-500">Conversion · view → purchase</p>
+              <p className="mt-1 text-2xl font-semibold text-amber-950">
+                {overview.conversionViewToPurchasePct != null
+                  ? `${overview.conversionViewToPurchasePct}%`
+                  : "—"}
+              </p>
+            </div>
           </div>
-          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-stone-500">Avg. order value</p>
-            <p className="mt-1 text-2xl font-semibold text-amber-950">
-              {overview.aovCents != null ? eur(overview.aovCents) : "—"}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-stone-500">View → order</p>
-            <p className="mt-1 text-2xl font-semibold text-amber-950">
-              {overview.conversionViewToOrderPct != null ? `${overview.conversionViewToOrderPct}%` : "—"}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:col-span-2 lg:col-span-1">
-            <p className="text-xs text-stone-500">Top product (revenue)</p>
-            <p className="mt-1 line-clamp-2 text-lg font-semibold leading-snug text-amber-950">
+
+          <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+            <p className="text-xs text-stone-500">Top product by revenue · this period</p>
+            <p className="mt-1 text-lg font-semibold text-amber-950">
               {overview.topProduct ? overview.topProduct.name : "—"}
             </p>
             {overview.topProduct ? (
               <p className="mt-1 font-mono text-xs text-stone-600">{eur(overview.topProduct.revenueCents)}</p>
-            ) : null}
+            ) : (
+              <p className="mt-1 text-sm text-stone-500">No paid line items in this window.</p>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      {/* Funnel */}
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-amber-950">Funnel</h2>
-            <p className="mt-1 max-w-xl text-sm text-stone-600">
-              Event counts vs. paid orders. Percentages show carry-over from the step above — use them to see where you
-              lose people.
-            </p>
+      {hasActivity ? (
+        <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-amber-950">Funnel</h2>
+              <p className="mt-1 max-w-2xl text-sm text-stone-600">
+                PDP events and checkout-start beacons, ending in paid orders. Percentages are step-to-step carry-over.
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="mt-8 max-w-2xl">
-          <FunnelBlock steps={funnel} />
-        </div>
-      </section>
+          <div className="mt-8 max-w-2xl">
+            {!hasFunnelData ? (
+              <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50/80 px-4 py-8 text-center text-sm text-stone-600">
+                No funnel events in this period yet (views, add to cart, checkout started). Purchases may still appear
+                if orders were recorded without matching events.
+              </div>
+            ) : (
+              <FunnelBlock steps={funnel} dropoff={funnelDropoff} />
+            )}
+          </div>
+        </section>
+      ) : null}
 
-      {/* Insights */}
       {insights.length > 0 ? (
         <section className="rounded-2xl border border-amber-200/80 bg-amber-50/60 p-6">
-          <h2 className="text-lg font-semibold text-amber-950">What to do next</h2>
-          <p className="mt-1 text-sm text-stone-600">Rule-based signals from this window — not predictions.</p>
+          <h2 className="text-lg font-semibold text-amber-950">Insights</h2>
+          <p className="mt-1 text-sm text-stone-600">Rule-based, actionable signals from metrics in this report.</p>
           <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-relaxed text-stone-800">
             {insights.map((t, i) => (
               <li key={i}>{t}</li>
@@ -280,48 +336,45 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
         </section>
       ) : hasActivity ? (
         <section className="rounded-2xl border border-stone-200 bg-white p-6 text-sm text-stone-600">
-          No strong automated signals for this window. Keep collecting data or widen the date range.
+          No strong rule-based signals for this window. Collect more events or widen the range.
         </section>
       ) : null}
 
-      {/* Charts row */}
       {hasActivity ? (
-        <div className="grid gap-8 lg:grid-cols-2">
-          <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-amber-950">Revenue over time</h2>
-            <p className="mt-1 text-sm text-stone-600">Paid orders only, by day (UTC).</p>
-            <div className="mt-6">
+        <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-amber-950">Revenue over time</h2>
+          <p className="mt-1 text-sm text-stone-600">Paid orders by calendar day (UTC), for the report period.</p>
+          <div className="mt-6">
+            {!hasPurchases ? (
+              <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50/80 px-4 py-8 text-center text-sm text-stone-600">
+                No purchases in this period — chart will fill after the first paid wear order.
+              </div>
+            ) : (
               <LineChart points={dailyRevenue} />
-            </div>
-          </section>
-          <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-amber-950">Top products</h2>
-            <p className="mt-1 text-sm text-stone-600">Revenue in this window.</p>
-            <div className="mt-6">
-              <BarProducts rows={barRows} />
-            </div>
-          </section>
-        </div>
+            )}
+          </div>
+        </section>
       ) : null}
 
-      {/* Table */}
       {hasActivity ? (
         <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-amber-950">Product performance</h2>
-              <p className="mt-1 text-sm text-stone-600">
-                Conversion = paid orders that included the product ÷ PDP views (same window). Requires views tied to{" "}
+              <h2 className="text-lg font-semibold text-amber-950">Top products</h2>
+              <p className="mt-1 max-w-2xl text-sm text-stone-600">
+                Checkout started = sessions (pending or paid orders) that included the product. Purchases = paid orders
+                containing the product. Conversion = purchases ÷ PDP views when views are tracked with{" "}
                 <code className="rounded bg-stone-100 px-1 text-xs">productId</code>.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs text-stone-500">Sort:</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-stone-500">Sort</span>
               {(
                 [
                   ["revenue", "Revenue"],
+                  ["purchases", "Purchases"],
                   ["conversion", "Conversion"],
-                  ["engagement", "Engagement"],
+                  ["views", "Views"],
                 ] as const
               ).map(([k, lab]) => (
                 <button
@@ -339,45 +392,57 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
               ))}
             </div>
           </div>
-          <div className="mt-6 overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-stone-200 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                <tr>
-                  <th className="px-3 py-2">Product</th>
-                  <th className="px-3 py-2 text-right">Views</th>
-                  <th className="px-3 py-2 text-right">Add to cart</th>
-                  <th className="px-3 py-2 text-right">Paid orders</th>
-                  <th className="px-3 py-2 text-right">Conv.</th>
-                  <th className="px-3 py-2 text-right">Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedProducts.map((p) => (
-                  <tr key={p.productId} className="border-b border-stone-100 last:border-0">
-                    <td className="px-3 py-3">
-                      <Link href={`/wear/${p.slug}`} className="font-medium text-amber-900 hover:underline">
-                        {p.name}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-3 text-right font-mono text-xs">{p.views}</td>
-                    <td className="px-3 py-3 text-right font-mono text-xs">{p.addToCart}</td>
-                    <td className="px-3 py-3 text-right font-mono text-xs">{p.paidOrderCount}</td>
-                    <td className="px-3 py-3 text-right font-mono text-xs">
-                      {p.conversionViewToOrderPct != null ? `${p.conversionViewToOrderPct}%` : "—"}
-                    </td>
-                    <td className="px-3 py-3 text-right font-mono text-xs">{eur(p.revenueCents)}</td>
+          {sortedProducts.length === 0 ? (
+            <p className="mt-8 text-sm text-stone-500">
+              No product-level rows for this window (no views, cart events, checkout sessions, or revenue).
+            </p>
+          ) : (
+            <div className="mt-6 overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-stone-200 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  <tr>
+                    <th className="px-3 py-2">Product</th>
+                    <th className="px-3 py-2 text-right">Views</th>
+                    <th className="px-3 py-2 text-right">Add to cart</th>
+                    <th className="px-3 py-2 text-right">Checkout started</th>
+                    <th className="px-3 py-2 text-right">Purchases</th>
+                    <th className="px-3 py-2 text-right">Conversion</th>
+                    <th className="px-3 py-2 text-right">Revenue</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {sortedProducts.map((p) => (
+                    <tr key={p.productId} className="border-b border-stone-100 last:border-0">
+                      <td className="px-3 py-3">
+                        {p.slug ? (
+                          <Link
+                            href={`/wear/${p.slug}`}
+                            className="font-medium text-amber-900 hover:underline"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {p.name}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-amber-950">{p.name}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-right font-mono text-xs">{p.views}</td>
+                      <td className="px-3 py-3 text-right font-mono text-xs">{p.addToCart}</td>
+                      <td className="px-3 py-3 text-right font-mono text-xs">{p.checkoutStarted}</td>
+                      <td className="px-3 py-3 text-right font-mono text-xs">{p.purchases}</td>
+                      <td className="px-3 py-3 text-right font-mono text-xs">
+                        {p.conversionPct != null ? `${p.conversionPct}%` : "—"}
+                      </td>
+                      <td className="px-3 py-3 text-right font-mono text-xs">{eur(p.revenueCents)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       ) : null}
-
-      <footer className="rounded-xl border border-stone-200/80 bg-stone-50/80 px-4 py-3 text-xs text-stone-500">
-        <strong className="text-stone-700">Next:</strong> cohort views, returning buyers, UTM / campaign fields on events —
-        structure reserved; not shown yet.
-      </footer>
     </div>
   );
 }

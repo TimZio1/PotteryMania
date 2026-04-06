@@ -1,25 +1,91 @@
 import { redirect } from "next/navigation";
+import type { Prisma, WearOrderStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import WearOrdersAdminClient from "@/components/admin/wear-orders-admin-client";
+import { wearOrderNeedsOpsAttention } from "@/lib/wear-order-lifecycle";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminWearOrdersPage() {
+const ALL_STATUSES: WearOrderStatus[] = [
+  "pending",
+  "paid",
+  "in_production",
+  "fulfilled",
+  "shipped",
+  "cancelled",
+  "refunded",
+];
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function parseStatus(s: string | undefined): WearOrderStatus | undefined {
+  if (!s || s === "all") return undefined;
+  return ALL_STATUSES.includes(s as WearOrderStatus) ? (s as WearOrderStatus) : undefined;
+}
+
+export default async function AdminWearOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; q?: string; from?: string; to?: string }>;
+}) {
   const user = await requireHyperAdminUser();
   if (!user) redirect("/unauthorized-admin");
 
-  const orders = await prisma.wearOrder.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 300,
-    include: {
-      items: {
-        include: {
-          wearProduct: { select: { slug: true } },
+  const sp = await searchParams;
+  const statusFilter = parseStatus(sp.status);
+  const qRaw = typeof sp.q === "string" ? sp.q.trim() : "";
+  const from = typeof sp.from === "string" && sp.from ? new Date(`${sp.from}T00:00:00.000Z`) : null;
+  const to =
+    typeof sp.to === "string" && sp.to ? new Date(`${sp.to}T23:59:59.999Z`) : null;
+
+  const where: Prisma.WearOrderWhereInput = {};
+  const andParts: Prisma.WearOrderWhereInput[] = [];
+  if (statusFilter) where.status = statusFilter;
+  if (from && !Number.isNaN(from.getTime()) && to && !Number.isNaN(to.getTime())) {
+    andParts.push({ createdAt: { gte: from, lte: to } });
+  } else {
+    if (from && !Number.isNaN(from.getTime())) andParts.push({ createdAt: { gte: from } });
+    if (to && !Number.isNaN(to.getTime())) andParts.push({ createdAt: { lte: to } });
+  }
+  if (qRaw) {
+    const or: Prisma.WearOrderWhereInput[] = [
+      { customerEmail: { contains: qRaw, mode: "insensitive" } },
+      { customerName: { contains: qRaw, mode: "insensitive" } },
+      { items: { some: { productNameSnapshot: { contains: qRaw, mode: "insensitive" } } } },
+    ];
+    if (UUID_RE.test(qRaw)) {
+      or.push({ id: qRaw });
+    }
+    andParts.push({ OR: or });
+  }
+  if (andParts.length) where.AND = andParts;
+
+  const [
+    orders,
+    summaryPending,
+    summaryPaidPipeline,
+    summaryFulfilledAwaitingShip,
+    summaryClosed,
+  ] = await Promise.all([
+    prisma.wearOrder.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 500,
+      include: {
+        items: {
+          include: {
+            wearProduct: { select: { slug: true } },
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.wearOrder.count({ where: { status: "pending" } }),
+    prisma.wearOrder.count({ where: { status: { in: ["paid", "in_production"] } } }),
+    prisma.wearOrder.count({ where: { status: "fulfilled" } }),
+    prisma.wearOrder.count({ where: { status: { in: ["cancelled", "refunded"] } } }),
+  ]);
 
   const initial = orders.map((o) => ({
     id: o.id,
@@ -30,6 +96,9 @@ export default async function AdminWearOrdersPage() {
     amountTotalCents: o.amountTotalCents,
     currency: o.currency,
     createdAt: o.createdAt.toISOString(),
+    paidAt: o.paidAt?.toISOString() ?? null,
+    trackingNumber: o.trackingNumber,
+    needsAction: wearOrderNeedsOpsAttention(o.status),
     stripeCheckoutSessionId: o.stripeCheckoutSessionId,
     stripePaymentIntentId: o.stripePaymentIntentId,
     items: o.items.map((it) => ({
@@ -48,9 +117,23 @@ export default async function AdminWearOrdersPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Wear orders</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Orders from the native wear checkout flow. Payment status follows Stripe webhook confirmation.
+        Operational queue for native wear. Move orders through production and shipping; Stripe still confirms payment.
       </p>
-      <WearOrdersAdminClient initial={initial} />
+      <WearOrdersAdminClient
+        initial={initial}
+        summary={{
+          pending: summaryPending,
+          paidPipeline: summaryPaidPipeline,
+          fulfilledAwaitingShip: summaryFulfilledAwaitingShip,
+          cancelledOrRefunded: summaryClosed,
+        }}
+        filter={{
+          status: sp.status ?? "all",
+          q: qRaw,
+          from: sp.from ?? "",
+          to: sp.to ?? "",
+        }}
+      />
     </div>
   );
 }

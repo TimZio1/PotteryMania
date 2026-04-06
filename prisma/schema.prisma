@@ -378,7 +378,11 @@ enum ProductStatus {
 enum WearOrderStatus {
   pending
   paid
+  in_production
+  fulfilled
+  shipped
   cancelled
+  refunded
 }
 
 model WearProduct {
@@ -397,7 +401,7 @@ model WearProduct {
   isFeatured            Boolean  @default(false) @map("is_featured")
   /// Soft-archive: hidden from storefront and default admin list until restored.
   archivedAt            DateTime? @map("archived_at")
-  /// Optional Spreadconnect / external fulfilment product id (automation later).
+  /// When the product has no variants: Spreadconnect article variant SKU for auto-fulfilment. Otherwise use variant.sku.
   externalFulfillmentId String?  @map("external_fulfillment_id")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
@@ -444,6 +448,17 @@ model WearOrder {
   /// Stripe `amount_total` when checkout completes (includes shipping); null until paid.
   amountTotalCents        Int?            @map("amount_total_cents")
   currency                String          @default("EUR")
+  /// When payment succeeded (Stripe webhook or rare admin override).
+  paidAt                  DateTime?       @map("paid_at")
+  fulfilledAt             DateTime?       @map("fulfilled_at")
+  shippedAt               DateTime?       @map("shipped_at")
+  cancelledAt             DateTime?       @map("cancelled_at")
+  refundedAt              DateTime?       @map("refunded_at")
+  fulfillmentProvider     String?         @map("fulfillment_provider")
+  trackingNumber          String?         @map("tracking_number")
+  internalNotes           String?         @map("internal_notes") @db.Text
+  /// External provider order / job id (distinct from catalog `WearProduct.externalFulfillmentId`).
+  externalFulfillmentRef  String?         @map("external_fulfillment_ref")
   createdAt               DateTime        @default(now()) @map("created_at")
   updatedAt               DateTime        @updatedAt @map("updated_at")
 

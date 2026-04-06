@@ -287,13 +287,18 @@ export default function WearProductEditorClient({
           </div>
           <div className="sm:col-span-2">
             <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-              External fulfilment ID (optional)
+              Spreadconnect SKU — no variants only (optional)
             </label>
             <input
               className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 font-mono text-sm"
               value={externalFulfillmentId}
               onChange={(e) => setExternalFulfillmentId(e.target.value)}
+              placeholder="e.g. P1026247707A12S5"
             />
+            <p className="mt-1 text-[11px] text-stone-500">
+              When this product has <strong>no</strong> variants, this value is used as the Spreadconnect line SKU on
+              auto-submit. If you use variants, set SKU on each variant instead.
+            </p>
           </div>
           <label className="flex items-center gap-2 text-sm text-stone-700">
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
@@ -363,11 +368,12 @@ export default function WearProductEditorClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500">SKU</label>
+                    <label className="text-xs text-stone-500">SKU (Spreadconnect)</label>
                     <input
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 font-mono text-sm"
                       value={v.sku ?? ""}
                       onChange={(e) => updateVariantLocal(v.id, { sku: e.target.value || null })}
+                      placeholder="Article variant SKU"
                     />
                   </div>
                   <div>

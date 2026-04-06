@@ -31,10 +31,32 @@ export default async function WearShopPage() {
         </p>
 
         {products.length === 0 ? (
-          <p className="mt-16 text-center text-sm text-neutral-500">
-            No pieces live yet. Run <span className="font-mono text-neutral-400">npx prisma db seed</span> or add rows in
-            the database.
-          </p>
+          <div className="mx-auto mt-16 max-w-md text-center">
+            <p className="text-sm leading-relaxed text-neutral-300">
+              We&apos;re between drops or restocking the shelf. Check back soon — new pieces always land here first.
+            </p>
+            <p className="mt-6 text-sm text-neutral-500">
+              <Link href="/wear" className="text-neutral-200 underline-offset-4 hover:text-white hover:underline">
+                Identity
+              </Link>
+              <span className="mx-2 text-neutral-600">·</span>
+              <Link
+                href="/early-access"
+                className="text-neutral-200 underline-offset-4 hover:text-white hover:underline"
+              >
+                Studio early access
+              </Link>
+            </p>
+            {process.env.NODE_ENV === "development" ? (
+              <p className="mt-8 font-mono text-[11px] text-neutral-600">
+                Dev: run <span className="text-neutral-400">npx prisma db seed</span> or use{" "}
+                <Link href="/admin/wear-products" className="text-neutral-400 underline hover:text-neutral-300">
+                  /admin/wear-products
+                </Link>
+                .
+              </p>
+            ) : null}
+          </div>
         ) : (
           <ul className="mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => {

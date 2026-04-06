@@ -193,6 +193,7 @@ export async function POST(req: Request) {
       mode: "payment",
       customer_email: customerEmail,
       line_items,
+      phone_number_collection: { enabled: true },
       success_url: `${baseUrl()}/wear/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl()}/wear/cart?cancelled=1`,
       shipping_address_collection: {

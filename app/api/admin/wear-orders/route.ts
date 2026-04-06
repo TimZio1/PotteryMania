@@ -30,6 +30,11 @@ export async function GET() {
       amountTotalCents: o.amountTotalCents,
       currency: o.currency,
       createdAt: o.createdAt.toISOString(),
+      paidAt: o.paidAt?.toISOString() ?? null,
+      fulfilledAt: o.fulfilledAt?.toISOString() ?? null,
+      shippedAt: o.shippedAt?.toISOString() ?? null,
+      trackingNumber: o.trackingNumber,
+      fulfillmentProvider: o.fulfillmentProvider,
       stripeCheckoutSessionId: o.stripeCheckoutSessionId,
       stripePaymentIntentId: o.stripePaymentIntentId,
       items: o.items.map((it) => ({

@@ -67,6 +67,8 @@ async function upsertWearProducts(prisma) {
         images: p.images,
         sortOrder: p.sortOrder,
         isActive: true,
+        isFeatured: p.slug === "studio-mark-tee",
+        archivedAt: null,
       },
       update: {
         name: p.name,
@@ -77,6 +79,8 @@ async function upsertWearProducts(prisma) {
         images: p.images,
         sortOrder: p.sortOrder,
         isActive: true,
+        isFeatured: p.slug === "studio-mark-tee",
+        archivedAt: null,
       },
     });
   }
