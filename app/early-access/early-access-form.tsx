@@ -122,7 +122,14 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
       if (uploadsSkipped) {
         setUploadNotice("Photo uploads are temporarily unavailable, so we saved your registration without photos.");
       }
-      setCount((c) => c + 1);
+      try {
+        const cr = await fetch("/api/early-access/count");
+        const cd = await cr.json();
+        if (typeof cd.count === "number") setCount(COUNTER_BASE + cd.count);
+        else setCount((c) => c + 1);
+      } catch {
+        setCount((c) => c + 1);
+      }
       setDone(true);
       trackMetaPixelEvent("Lead", { content_name: "early_access" }, { eventID: metaEventId });
     } catch (error) {

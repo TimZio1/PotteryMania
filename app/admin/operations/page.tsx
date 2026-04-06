@@ -21,6 +21,7 @@ export default async function AdminOperationsPage() {
   const [
     pending,
     earlyAccessRows,
+    earlyAccessTotal,
     stalePendingOrdersCount,
     staleCartsCount,
     manualRefundQueueCount,
@@ -50,6 +51,7 @@ export default async function AdminOperationsPage() {
       orderBy: { createdAt: "desc" },
       take: 200,
     }),
+    prisma.earlyAccessSignup.count(),
     prisma.order.count({ where: { orderStatus: "pending", createdAt: { lt: staleOrderThreshold } } }),
     prisma.cart.count({
       where: {
@@ -124,7 +126,8 @@ export default async function AdminOperationsPage() {
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Queues & recovery</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Review velocity, refund risk, and live booking traffic. Cron jobs cover reminders and abandoned carts;
-        this view is for human intervention.
+        this view is for human intervention. <strong>Early access / preregistration leads</strong> from{" "}
+        <code className="text-xs">/early-access</code> are listed near the top (below the stat cards), not under Users.
       </p>
 
       <div id="ops-stats" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -151,6 +154,15 @@ export default async function AdminOperationsPage() {
           value={process.env.CRON_SECRET ? "CRON_SECRET set" : "Missing secret"}
           hint="Railway cron must send Authorization: Bearer …"
         />
+        <StatCard
+          label="Early access leads (all time)"
+          value={String(earlyAccessTotal)}
+          hint="From /early-access — full list is the next section (newest 200)"
+        />
+      </div>
+
+      <div id="early-access-signups">
+        <AdminEarlyAccessList rows={earlyAccessRows} totalCount={earlyAccessTotal} />
       </div>
 
       <section id="manual-refund-queue" className="mt-10">
@@ -284,7 +296,6 @@ export default async function AdminOperationsPage() {
       <div id="pending-studios">
         <AdminStudios initialStudios={pending} />
       </div>
-      <AdminEarlyAccessList rows={earlyAccessRows} />
       <section id="booking-queue" className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-amber-950">Bookings</h2>
         <p className="mt-2 text-sm text-stone-600">

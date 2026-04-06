@@ -20,12 +20,21 @@ function interestFlags(r: Row) {
   return parts.length ? parts.join(", ") : "—";
 }
 
-export function AdminEarlyAccessList({ rows }: { rows: Row[] }) {
+export function AdminEarlyAccessList({ rows, totalCount }: { rows: Row[]; totalCount: number }) {
+  const shown = rows.length;
+  const capNote =
+    totalCount > shown ? ` Showing the ${shown} most recent of ${totalCount} total.` : ` ${totalCount} total.`;
+
   return (
     <div className="mt-10">
       <h2 className="text-lg font-medium text-amber-950">Early access signups</h2>
       <p className="mt-1 text-sm text-stone-500">
-        Leads from <code className="rounded bg-stone-100 px-1">/early-access</code>. Newest first.
+        Leads from <code className="rounded bg-stone-100 px-1">/early-access</code>. Newest first.{capNote} Not the same as
+        registered users — those appear under{" "}
+        <a href="/admin/users" className="font-medium text-amber-900 underline">
+          Users
+        </a>
+        .
       </p>
       {!rows.length ? (
         <p className="mt-4 text-sm text-stone-500">No signups yet.</p>
