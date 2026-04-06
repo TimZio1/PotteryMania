@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
+import StudioMonetizedInsightsPanel from "@/components/dashboard/studio-monetized-insights-panel";
+import { listStudioInsightsPayload } from "@/lib/ai/ensure-studio-insights";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +98,10 @@ export default async function StudioPanelHomePage({ params }: Props) {
       ? "No bookings in the next week and several empty slots — consider promoting a class."
       : null;
 
+  const insightRows = await listStudioInsightsPayload(prisma, studioId, { take: 16 });
+  const teaserInsights = insightRows.filter((i) => i.status === "generated" || i.status === "viewed");
+  const dashboardInsights = (teaserInsights.length ? teaserInsights : insightRows).slice(0, 3);
+
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <div>
@@ -170,22 +176,19 @@ export default async function StudioPanelHomePage({ params }: Props) {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-amber-950">AI insights preview</h2>
-        <p className="mt-1 text-sm text-stone-600">Short signals only — unlock full analysis when billing is connected.</p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          {[
-            { t: "Pricing may be below similar studios", p: "Unlock from €2.00" },
-            { t: "A weekday slot pattern looks weak", p: "Unlock from €1.50" },
-            { t: "Retention could be stronger", p: "Unlock from €3.50" },
-          ].map((c) => (
-            <div key={c.t} className={ui.cardMuted}>
-              <p className="text-sm font-medium text-amber-950">{c.t}</p>
-              <p className="mt-3 text-xs text-stone-500">{c.p}</p>
-              <Link href={`/dashboard/${studioId}/ai`} className={`${ui.buttonSecondary} mt-4 w-full text-center text-xs`}>
-                View AI Advisor
-              </Link>
-            </div>
-          ))}
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-amber-950">AI insights preview</h2>
+            <p className="mt-1 text-sm text-stone-600">
+              Generated from your bookings and listings. Unlock full analysis on the AI Advisor page.
+            </p>
+          </div>
+          <Link href={`/dashboard/${studioId}/ai`} className={`${ui.buttonGhost} text-sm text-amber-900`}>
+            Open AI Advisor
+          </Link>
+        </div>
+        <div className="mt-4">
+          <StudioMonetizedInsightsPanel studioId={studioId} initialInsights={dashboardInsights} variant="compact" />
         </div>
       </div>
     </div>

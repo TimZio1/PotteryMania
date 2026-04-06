@@ -178,6 +178,46 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
+    // --- AI insight one-time purchase (platform account) ---
+    if (session.metadata?.type === "insight_purchase") {
+      const insightId = session.metadata.insightId;
+      const studioId = session.metadata.studioId;
+      const userId = session.metadata.userId;
+      const pi = session.payment_intent;
+      const piId = typeof pi === "string" ? pi : pi?.id ?? null;
+      const amount = session.amount_total ?? 0;
+      if (insightId && studioId && userId && piId) {
+        try {
+          await prisma.$transaction(async (tx) => {
+            const insight = await tx.generatedInsight.findFirst({
+              where: { id: insightId, studioId },
+            });
+            if (!insight || insight.status === "purchased") return;
+            if (insight.status !== "generated" && insight.status !== "viewed") return;
+            await tx.generatedInsight.update({
+              where: { id: insightId },
+              data: { status: "purchased", purchasedAt: new Date() },
+            });
+            const existing = await tx.insightPurchase.findUnique({ where: { insightId } });
+            if (!existing) {
+              await tx.insightPurchase.create({
+                data: {
+                  insightId,
+                  studioId,
+                  userId,
+                  amountCents: amount,
+                  stripePaymentIntentId: piId,
+                },
+              });
+            }
+          });
+        } catch (e) {
+          console.error("insight_purchase webhook", e);
+        }
+      }
+      return NextResponse.json({ received: true });
+    }
+
     // --- Order / booking checkout (via Connect) ---
     const orderId = session.metadata?.orderId;
     if (!orderId) return NextResponse.json({ received: true });

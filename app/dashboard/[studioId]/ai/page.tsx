@@ -5,6 +5,8 @@ import { getSessionUser } from "@/lib/auth-session";
 import { hasStudioFeature } from "@/lib/studio-features";
 import { ui } from "@/lib/ui-styles";
 import StudioAiAdvisorClient from "@/components/dashboard/studio-ai-advisor-client";
+import StudioMonetizedInsightsPanel from "@/components/dashboard/studio-monetized-insights-panel";
+import { listStudioInsightsPayload } from "@/lib/ai/ensure-studio-insights";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,7 @@ export default async function StudioAiPage({ params }: Props) {
 
   const entitled = await hasStudioFeature(studioId, "ai_advisor");
   const openAiConfigured = Boolean(process.env.OPENAI_API_KEY?.trim());
+  const monetizedInsights = await listStudioInsightsPayload(prisma, studioId, { take: 12 });
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -26,9 +29,20 @@ export default async function StudioAiPage({ params }: Props) {
         <p className={ui.overline}>Intelligence</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">AI Advisor</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Ask practical questions about pricing, scheduling, and growth. Answers use aggregate stats from your studio on
-          PotteryMania — not generic web tips.
+          Pay-per-insight cards use your real booking and listing data (rule-based analysis). The chat below is separate
+          — it requires the AI Advisor add-on and OpenAI.
         </p>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-amber-950">Data insights</h2>
+        <p className="mt-1 text-sm text-stone-600">
+          Preview the signal for free; unlock the full diagnosis, benchmark, and recommendations with a one-time
+          payment.
+        </p>
+        <div className="mt-4">
+          <StudioMonetizedInsightsPanel studioId={studioId} initialInsights={monetizedInsights} variant="full" />
+        </div>
       </div>
 
       <StudioAiAdvisorClient studioId={studioId} entitled={entitled} openAiConfigured={openAiConfigured} />

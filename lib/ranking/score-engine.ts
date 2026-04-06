@@ -261,9 +261,34 @@ export type StudioWithRankingSort = {
   rankingScore: { compositeScore: number } | null;
 };
 
-/** Default "Recommended" ordering: composite score → admin rank weight → name. */
+/** P4-G v1: within each composite band (width `bandWidth`), shuffle order to reduce stagnation. */
+export function fairShuffleByCompositeBand<T>(rows: T[], getComposite: (t: T) => number, bandWidth = 5): T[] {
+  if (rows.length <= 1) return rows;
+  const sorted = [...rows].sort((a, b) => getComposite(b) - getComposite(a));
+  const out: T[] = [];
+  let i = 0;
+  while (i < sorted.length) {
+    const ceiling = getComposite(sorted[i]!);
+    const floor = ceiling - bandWidth;
+    const chunk: T[] = [];
+    while (i < sorted.length && getComposite(sorted[i]!) > floor) {
+      chunk.push(sorted[i]!);
+      i++;
+    }
+    for (let k = chunk.length - 1; k > 0; k--) {
+      const j = Math.floor(Math.random() * (k + 1));
+      const t = chunk[k]!;
+      chunk[k] = chunk[j]!;
+      chunk[j] = t;
+    }
+    out.push(...chunk);
+  }
+  return out;
+}
+
+/** Default "Recommended" ordering: composite score bands, shuffled within band (P4-G), then stable tie-breaks prepass. */
 export function sortStudiosByMarketplaceRanking<T extends StudioWithRankingSort>(studios: T[]): T[] {
-  return [...studios].sort((a, b) => {
+  const deterministic = [...studios].sort((a, b) => {
     const ca = a.rankingScore?.compositeScore ?? 0;
     const cb = b.rankingScore?.compositeScore ?? 0;
     if (Math.abs(cb - ca) > 1e-9) return cb - ca;
@@ -272,6 +297,7 @@ export function sortStudiosByMarketplaceRanking<T extends StudioWithRankingSort>
     if (wb !== wa) return wb - wa;
     return a.displayName.localeCompare(b.displayName);
   });
+  return fairShuffleByCompositeBand(deterministic, (s) => s.rankingScore?.compositeScore ?? 0);
 }
 
 /** `/classes` list row: parent studio carries ranking for sort (non-geo mode). */
@@ -285,9 +311,9 @@ export type ExperienceRowWithStudioRanking = {
   studio: ExperienceListStudioForRanking;
 };
 
-/** Recommended class order: studio composite → weight → newest experience. */
+/** Recommended class order: studio composite bands with in-band shuffle (P4-G). */
 export function sortExperiencesByMarketplaceRanking<T extends ExperienceRowWithStudioRanking>(rows: T[]): T[] {
-  return [...rows].sort((a, b) => {
+  const deterministic = [...rows].sort((a, b) => {
     const ca = a.studio.rankingScore?.compositeScore ?? 0;
     const cb = b.studio.rankingScore?.compositeScore ?? 0;
     if (Math.abs(cb - ca) > 1e-9) return cb - ca;
@@ -296,4 +322,33 @@ export function sortExperiencesByMarketplaceRanking<T extends ExperienceRowWithS
     if (wb !== wa) return wb - wa;
     return b.createdAt.getTime() - a.createdAt.getTime();
   });
+  return fairShuffleByCompositeBand(deterministic, (r) => r.studio.rankingScore?.compositeScore ?? 0);
+}
+
+/** `/marketplace` product row: studio ranking + featured + recency (recommended sort). */
+export type ProductRowWithStudioRanking = {
+  isFeatured: boolean;
+  createdAt: Date;
+  studio: ExperienceListStudioForRanking;
+};
+
+/**
+ * Featured listings stay first; within featured and within non-featured, apply composite band shuffle (P4-G).
+ */
+export function sortProductsByMarketplaceRanking<T extends ProductRowWithStudioRanking>(rows: T[]): T[] {
+  const rankChunk = (chunk: T[]) => {
+    const deterministic = [...chunk].sort((a, b) => {
+      const ca = a.studio.rankingScore?.compositeScore ?? 0;
+      const cb = b.studio.rankingScore?.compositeScore ?? 0;
+      if (Math.abs(cb - ca) > 1e-9) return cb - ca;
+      const wa = a.studio.marketplaceRankWeight;
+      const wb = b.studio.marketplaceRankWeight;
+      if (wb !== wa) return wb - wa;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+    return fairShuffleByCompositeBand(deterministic, (r) => r.studio.rankingScore?.compositeScore ?? 0);
+  };
+  const featured = rows.filter((r) => r.isFeatured);
+  const rest = rows.filter((r) => !r.isFeatured);
+  return [...rankChunk(featured), ...rankChunk(rest)];
 }

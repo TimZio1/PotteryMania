@@ -55,6 +55,7 @@ model User {
   passwordResetTokens       PasswordResetToken[]
   emailVerificationTokens   EmailVerificationToken[]
   rankingBoostsAuthored     RankingBoost[]           @relation("RankingBoostAuthor")
+  insightPurchases          InsightPurchase[]
 
   @@map("users")
 }
@@ -187,6 +188,9 @@ model Studio {
   rankingScore                     StudioRankingScore?
   rankingBoosts                    RankingBoost[]
   featuredPlacements               FeaturedPlacement[]
+  generatedInsights                GeneratedInsight[]
+  insightPurchases                 InsightPurchase[]
+  insightActionLogs                InsightActionLog[]
 
   @@index([status])
   @@index([country, city])
@@ -1744,4 +1748,115 @@ model FeatureBundleItem {
   @@index([bundleId])
   @@index([featureId])
   @@map("feature_bundle_items")
+}
+
+// --- AI monetized insights (Prompt 3) ---
+
+enum InsightTemplateCategory {
+  pricing
+  schedule
+  demand
+  retention
+  revenue
+  capacity
+  feature_rec
+}
+
+enum InsightComplexity {
+  simple
+  medium
+  advanced
+}
+
+enum GeneratedInsightStatus {
+  generated
+  viewed
+  purchased
+  expired
+  dismissed
+}
+
+enum InsightActionType {
+  applied
+  dismissed
+  viewed_editor
+  deferred
+}
+
+model InsightTemplate {
+  id             String                  @id @default(uuid()) @db.Uuid
+  slug           String                  @unique
+  category       InsightTemplateCategory
+  title          String
+  previewText    String                  @map("preview_text")
+  analysisPrompt String                  @default("") @map("analysis_prompt")
+  basePriceCents Int                     @map("base_price_cents")
+  complexity     InsightComplexity       @default(simple)
+  isActive       Boolean                 @default(true) @map("is_active")
+  createdAt      DateTime                @default(now()) @map("created_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
+
+  generatedInsights GeneratedInsight[]
+
+  @@map("insight_templates")
+}
+
+model GeneratedInsight {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  studioId            String                 @map("studio_id") @db.Uuid
+  templateId          String                 @map("template_id") @db.Uuid
+  previewTitle        String                 @map("preview_title")
+  previewHook         String                 @map("preview_hook")
+  potentialBenefit    String                 @default("") @map("potential_benefit")
+  priceCents          Int                    @map("price_cents")
+  fullAnalysis        Json?                  @map("full_analysis")
+  status              GeneratedInsightStatus @default(generated)
+  confidenceScore     Float?                 @map("confidence_score")
+  benchmarkSampleSize Int?                   @map("benchmark_sample_size")
+  generatedAt         DateTime               @default(now()) @map("generated_at")
+  expiresAt           DateTime?              @map("expires_at")
+  purchasedAt         DateTime?              @map("purchased_at")
+  createdAt           DateTime               @default(now()) @map("created_at")
+  updatedAt           DateTime               @updatedAt @map("updated_at")
+
+  studio     Studio             @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  template   InsightTemplate    @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  purchase   InsightPurchase?
+  actionLogs InsightActionLog[]
+
+  @@index([studioId])
+  @@index([templateId])
+  @@map("generated_insights")
+}
+
+model InsightPurchase {
+  id                    String   @id @default(uuid()) @db.Uuid
+  insightId             String   @unique @map("insight_id") @db.Uuid
+  studioId              String   @map("studio_id") @db.Uuid
+  userId                String   @map("user_id") @db.Uuid
+  amountCents           Int      @map("amount_cents")
+  stripePaymentIntentId String?  @map("stripe_payment_intent_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  insight GeneratedInsight @relation(fields: [insightId], references: [id], onDelete: Cascade)
+  studio  Studio           @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([studioId])
+  @@map("insight_purchases")
+}
+
+model InsightActionLog {
+  id         String            @id @default(uuid()) @db.Uuid
+  insightId  String            @map("insight_id") @db.Uuid
+  studioId   String            @map("studio_id") @db.Uuid
+  actionType InsightActionType @map("action_type")
+  metadata   Json?
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  insight GeneratedInsight @relation(fields: [insightId], references: [id], onDelete: Cascade)
+  studio  Studio           @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([insightId])
+  @@map("insight_action_logs")
 }

@@ -1,5 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { sortProductsByMarketplaceRanking } from "@/lib/ranking/score-engine";
+
+/** In-memory fairness shuffle for recommended sort on early pages (P4-G); deeper pages use SQL order only. */
+const RECOMMENDED_SHUFFLE_CAP = 400;
 
 export type ProductSort = "recommended" | "newest" | "price_asc" | "price_desc" | "featured";
 
@@ -114,33 +118,57 @@ export function buildProductOrderBy(sort: ProductSort = "recommended"): Prisma.P
   ];
 }
 
+const marketplaceListInclude = {
+  studio: {
+    select: {
+      id: true,
+      displayName: true,
+      city: true,
+      country: true,
+      marketplaceRankWeight: true,
+      rankingScore: { select: { compositeScore: true } },
+    },
+  },
+  category: { select: { id: true, name: true, slug: true } },
+  images: { where: { isPrimary: true }, take: 1 },
+} as const;
+
 export async function listMarketplaceProducts(input: ProductQueryInput) {
   const page = Math.max(1, input.page ?? 1);
   const pageSize = Math.min(48, Math.max(1, input.pageSize ?? DEFAULT_PAGE_SIZE));
   const where = buildProductWhere(input);
   const orderBy = buildProductOrderBy(input.sort);
+  const total = await prisma.product.count({ where });
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const start = (page - 1) * pageSize;
 
-  const [products, total] = await Promise.all([
-    prisma.product.findMany({
+  if (input.sort === "recommended" && total > 0 && start < Math.min(RECOMMENDED_SHUFFLE_CAP, total)) {
+    const cap = Math.min(RECOMMENDED_SHUFFLE_CAP, total);
+    const batch = await prisma.product.findMany({
       where,
       orderBy,
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      include: {
-        studio: { select: { id: true, displayName: true, city: true, country: true } },
-        category: { select: { id: true, name: true, slug: true } },
-        images: { where: { isPrimary: true }, take: 1 },
-      },
-    }),
-    prisma.product.count({ where }),
-  ]);
+      take: cap,
+      include: marketplaceListInclude,
+    });
+    const ranked = sortProductsByMarketplaceRanking(batch);
+    const products = ranked.slice(start, start + pageSize);
+    return { products, total, page, pageSize, pageCount };
+  }
+
+  const products = await prisma.product.findMany({
+    where,
+    orderBy,
+    skip: start,
+    take: pageSize,
+    include: marketplaceListInclude,
+  });
 
   return {
     products,
     total,
     page,
     pageSize,
-    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+    pageCount,
   };
 }
 

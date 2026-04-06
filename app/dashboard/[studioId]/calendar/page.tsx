@@ -1,27 +1,57 @@
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
+import StudioCalendarClient, {
+  type CalendarSlotPayload,
+} from "@/components/dashboard/studio-calendar-client";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ studioId: string }> };
+type Props = {
+  params: Promise<{ studioId: string }>;
+  searchParams?: Promise<{ week?: string }>;
+};
 
-function startOfWeekMonday(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  const day = x.getDay();
+/** Monday UTC of the week containing `d` (Date at UTC noon). */
+function startOfWeekMondayUtc(d: Date): Date {
+  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12, 0, 0));
+  const day = x.getUTCDay();
   const diff = day === 0 ? -6 : 1 - day;
-  x.setDate(x.getDate() + diff);
+  x.setUTCDate(x.getUTCDate() + diff);
   return x;
 }
 
-export default async function StudioCalendarPage({ params }: Props) {
-  const { studioId } = await params;
-  const monday = startOfWeekMonday(new Date());
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+function addDaysUtc(d: Date, n: number): Date {
+  const x = new Date(d);
+  x.setUTCDate(x.getUTCDate() + n);
+  return x;
+}
 
-  const slots = await prisma.bookingSlot.findMany({
+function isoDateUtc(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+export default async function StudioCalendarPage({ params, searchParams }: Props) {
+  const user = await getSessionUser();
+  if (!user) redirect("/login?callbackUrl=/dashboard");
+  const { studioId } = await params;
+  const sp = (await searchParams) ?? {};
+  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
+  if (!studio || studio.ownerUserId !== user.id) notFound();
+
+  let anchor = new Date();
+  const w = typeof sp.week === "string" ? sp.week.trim() : "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(w)) {
+    anchor = new Date(`${w}T12:00:00.000Z`);
+    if (Number.isNaN(anchor.getTime())) anchor = new Date();
+  }
+
+  const monday = startOfWeekMondayUtc(anchor);
+  const sunday = addDaysUtc(monday, 6);
+  sunday.setUTCHours(23, 59, 59, 999);
+
+  const slotsRaw = await prisma.bookingSlot.findMany({
     where: {
       experience: { studioId },
       slotDate: { gte: monday, lte: sunday },
@@ -30,20 +60,29 @@ export default async function StudioCalendarPage({ params }: Props) {
     include: { experience: { select: { id: true, title: true, experienceType: true } } },
   });
 
-  const days: Date[] = [];
+  const slots: CalendarSlotPayload[] = slotsRaw.map((s) => ({
+    id: s.id,
+    slotDate: s.slotDate.toISOString().slice(0, 10),
+    startTime: s.startTime,
+    endTime: s.endTime,
+    capacityTotal: s.capacityTotal,
+    capacityReserved: s.capacityReserved,
+    status: s.status,
+    experience: s.experience,
+  }));
+
+  const days = [];
   for (let i = 0; i < 7; i++) {
-    const t = new Date(monday);
-    t.setDate(t.getDate() + i);
-    days.push(t);
+    const d = addDaysUtc(monday, i);
+    days.push({
+      key: isoDateUtc(d),
+      labelShort: d.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" }),
+      dayNum: d.getUTCDate(),
+    });
   }
 
-  const byDay = new Map<string, typeof slots>();
-  for (const s of slots) {
-    const key = s.slotDate.toISOString().slice(0, 10);
-    const arr = byDay.get(key) ?? [];
-    arr.push(s);
-    byDay.set(key, arr);
-  }
+  const prevMonday = addDaysUtc(monday, -7);
+  const nextMonday = addDaysUtc(monday, 7);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -51,46 +90,19 @@ export default async function StudioCalendarPage({ params }: Props) {
         <p className={ui.overline}>Schedule</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Calendar</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Week of {monday.toISOString().slice(0, 10)} — capacity shows reserved / total per slot.
+          Week / day views, capacity bars, and time-overlap warnings. Drag-and-drop reschedule is not enabled yet — adjust
+          rules and slots from Classes.
         </p>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-7">
-        {days.map((d) => {
-          const key = d.toISOString().slice(0, 10);
-          const list = byDay.get(key) ?? [];
-          return (
-            <div key={key} className="min-h-[140px] rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                {d.toLocaleDateString(undefined, { weekday: "short" })}
-              </p>
-              <p className="text-sm font-medium text-amber-950">{d.getDate()}</p>
-              <ul className="mt-2 space-y-2">
-                {list.map((sl) => {
-                  const fill = sl.capacityTotal > 0 ? Math.round((sl.capacityReserved / sl.capacityTotal) * 100) : 0;
-                  return (
-                    <li key={sl.id} className="rounded-lg bg-stone-50 px-2 py-1.5 text-xs">
-                      <p className="font-medium text-stone-900 line-clamp-2">{sl.experience.title}</p>
-                      <p className="text-stone-500">
-                        {sl.startTime}–{sl.endTime}
-                      </p>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stone-200">
-                        <div className="h-full bg-amber-700" style={{ width: `${fill}%` }} />
-                      </div>
-                      <p className="mt-0.5 text-[10px] text-stone-500">
-                        {sl.capacityReserved}/{sl.capacityTotal} · {sl.status}
-                      </p>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          );
-        })}
-      </div>
-      <p className="text-xs text-stone-500">
-        Drag-and-drop and conflict detection can be added on top of this grid. Manage rules from Classes or the API.
-      </p>
+      <StudioCalendarClient
+        studioId={studioId}
+        weekStartIso={isoDateUtc(monday)}
+        prevWeekIso={isoDateUtc(prevMonday)}
+        nextWeekIso={isoDateUtc(nextMonday)}
+        days={days}
+        slots={slots}
+      />
     </div>
   );
 }

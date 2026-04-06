@@ -13,6 +13,7 @@ const adminLinks = [
   { href: "/admin/studios", label: "Studios" },
   { href: "/admin/revenue", label: "Revenue" },
   { href: "/admin/features", label: "Features" },
+  { href: "/admin/ai-insights", label: "AI insights" },
   { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/bookings", label: "Bookings" },
