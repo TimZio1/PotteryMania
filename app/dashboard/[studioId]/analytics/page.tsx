@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import StudioAnalyticsPanel from "@/components/dashboard/studio-analytics-panel";
+import StudioMarketplaceVisibility from "@/components/dashboard/studio-marketplace-visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function StudioPanelAnalyticsPage({ params }: Props) {
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Analytics</h1>
         <p className="mt-2 text-sm text-stone-600">Revenue and demand from paid orders and bookings.</p>
       </div>
+      <StudioMarketplaceVisibility studioId={studioId} />
       <StudioAnalyticsPanel studioId={studioId} />
     </div>
   );
