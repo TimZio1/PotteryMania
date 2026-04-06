@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 import { normalizeWearSlug } from "@/lib/wear-slug";
-import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 
 type SpreadconnectArticleVariant = {
   sku?: string | null;

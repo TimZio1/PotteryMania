@@ -15,7 +15,12 @@ import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
  * even though the generated client includes the wear_* delegates and `tsc --noEmit` passes.
  * Keep runtime behavior identical and force local delegate access to avoid editor false-positives here.
  */
-const prisma = prismaSingleton as unknown as any;
+type WearOrderDb = typeof prismaSingleton & {
+  wearAnalyticsEvent: typeof prismaSingleton.wearAnalyticsEvent;
+  wearOrder: typeof prismaSingleton.wearOrder;
+};
+
+const prisma: WearOrderDb = prismaSingleton as WearOrderDb;
 
 /**
  * Resolve ship-to for Spreadconnect from a completed Checkout Session.
