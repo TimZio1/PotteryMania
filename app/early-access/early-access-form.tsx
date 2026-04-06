@@ -7,6 +7,7 @@ import {
   EUROPEAN_PREREGISTRATION_COUNTRIES,
 } from "@/lib/european-preregistration";
 import { trackMetaPixelEvent } from "@/lib/meta-pixel";
+import { displayedPreRegTotal } from "@/lib/brand";
 
 const MAX_PHOTOS = 3;
 const MAX_FILE_MB = 5;
@@ -164,7 +165,7 @@ export function EarlyAccessForm({
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
         <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
-          {count}/{preRegCap} studios on the early access list.
+          {displayedPreRegTotal(count)}/{preRegCap} studios on the early access list.
         </p>
       </div>
     );
@@ -340,7 +341,7 @@ export function EarlyAccessForm({
         <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-stone-900 sm:text-lg">
           <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
           <span>
-            {count}/{preRegCap} studios already registered
+            {displayedPreRegTotal(count)}/{preRegCap} studios already registered
           </span>
         </p>
       </div>

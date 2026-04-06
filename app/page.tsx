@@ -9,7 +9,7 @@ import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rail";
 import { getFeaturedStudiosForSlot } from "@/lib/featured-studios-public";
-import { PREREG_STUDIO_CAP } from "@/lib/brand";
+import { displayedPreRegTotal, PREREG_STUDIO_CAP } from "@/lib/brand";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
@@ -91,7 +91,10 @@ export default async function Home() {
   return (
     <MarketingLayout>
       <main className="overflow-hidden">
-        <AnnouncementStrip preRegCount={preRegCount} preRegCap={PREREG_STUDIO_CAP} />
+        <AnnouncementStrip
+          preRegShown={displayedPreRegTotal(preRegCount)}
+          preRegCap={PREREG_STUDIO_CAP}
+        />
 
         <ImageSection
           tone="hero"
@@ -317,10 +320,10 @@ export default async function Home() {
   );
 }
 
-function AnnouncementStrip({ preRegCount, preRegCap }: { preRegCount: number; preRegCap: number }) {
+function AnnouncementStrip({ preRegShown, preRegCap }: { preRegShown: number; preRegCap: number }) {
   const preRegLine = (
     <p className="text-sm text-stone-600 sm:text-right">
-      <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegCount}</span>
+      <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegShown}</span>
       <span className="text-stone-400">/</span>
       <span className="tabular-nums text-stone-600">{preRegCap}</span> real pre-reg
     </p>
