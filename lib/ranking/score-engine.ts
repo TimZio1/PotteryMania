@@ -6,6 +6,12 @@ const WINDOW_DAYS = 30;
 const PERF_WEIGHT = 0.7;
 const ACTIVITY_WEIGHT = 0.2;
 const MANUAL_WEIGHT = 0.1;
+/** P4-G: new studios (first 14 days since creation) get a small activity lift. */
+const GRACE_DAYS = 14;
+const GRACE_ACTIVITY_MAX = 10;
+/** P4-G: blend profile/catalog completeness into the activity component. */
+const ACTIVITY_FROM_FRESHNESS = 0.72;
+const ACTIVITY_FROM_PROFILE = 0.28;
 
 const GOOD_BOOKING: BookingStatus[] = [BookingStatus.confirmed, BookingStatus.completed];
 
@@ -16,6 +22,44 @@ function startOfUtcDay(d: Date): Date {
 function norm(value: number, max: number): number {
   if (max <= 0 || value <= 0) return 0;
   return Math.min(100, (value / max) * 100);
+}
+
+/** P4-G: manual boost fades linearly as `endsAt` approaches (open-ended boosts keep full value). */
+function decayedBoostValue(now: Date, startsAt: Date, endsAt: Date | null, boostValue: number): number {
+  if (!endsAt) return boostValue;
+  const end = endsAt.getTime();
+  const start = startsAt.getTime();
+  if (end <= start) return boostValue;
+  const t = now.getTime();
+  if (t >= end) return 0;
+  if (t <= start) return boostValue;
+  return boostValue * ((end - t) / (end - start));
+}
+
+type ProfileBits = {
+  shortDescription: string | null;
+  longDescription: string | null;
+  logoUrl: string | null;
+  coverImageUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  stripeChargesEnabled: boolean;
+  activeExperienceCount: number;
+  activeProductCount: number;
+};
+
+/** P4-G: 0–100 profile + catalog readiness (not performance). */
+export function profileCompletenessScore(p: ProfileBits): number {
+  let pts = 0;
+  if (p.shortDescription?.trim()) pts += 14;
+  if ((p.longDescription?.trim()?.length ?? 0) > 80) pts += 10;
+  if (p.logoUrl) pts += 10;
+  if (p.coverImageUrl) pts += 10;
+  if (p.latitude != null && p.longitude != null) pts += 12;
+  if (p.stripeChargesEnabled) pts += 14;
+  if (p.activeExperienceCount >= 1) pts += 15;
+  if (p.activeProductCount >= 1) pts += 15;
+  return Math.min(100, pts);
 }
 
 export type RankingUpdateResult = {
@@ -38,7 +82,18 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
 
   const studios = await prisma.studio.findMany({
     where: { status: "approved" },
-    select: { id: true, marketplaceRankWeight: true },
+    select: {
+      id: true,
+      marketplaceRankWeight: true,
+      createdAt: true,
+      shortDescription: true,
+      longDescription: true,
+      logoUrl: true,
+      coverImageUrl: true,
+      latitude: true,
+      longitude: true,
+      stripeAccount: { select: { chargesEnabled: true } },
+    },
   });
 
   const deleted = await prisma.studioRankingScore.deleteMany({
@@ -56,7 +111,8 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
 
   const studioIds = studios.map((s) => s.id);
 
-  const [bookingGroups, orderItems, productTouches, experienceTouches, boosts] = await Promise.all([
+  const [bookingGroups, orderItems, productTouches, experienceTouches, boosts, activeExpByStudio, activeProdByStudio] =
+    await Promise.all([
     prisma.booking.groupBy({
       by: ["studioId"],
       where: {
@@ -92,7 +148,17 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
         startsAt: { lte: now },
         OR: [{ endsAt: null }, { endsAt: { gte: now } }],
       },
-      select: { studioId: true, boostValue: true },
+      select: { studioId: true, boostValue: true, startsAt: true, endsAt: true },
+    }),
+    prisma.experience.groupBy({
+      by: ["studioId"],
+      where: { studioId: { in: studioIds }, status: "active" },
+      _count: { _all: true },
+    }),
+    prisma.product.groupBy({
+      by: ["studioId"],
+      where: { studioId: { in: studioIds }, status: "active" },
+      _count: { _all: true },
     }),
   ]);
 
@@ -119,7 +185,17 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
 
   const boostSum = new Map<string, number>();
   for (const b of boosts) {
-    boostSum.set(b.studioId, (boostSum.get(b.studioId) ?? 0) + b.boostValue);
+    const v = decayedBoostValue(now, b.startsAt, b.endsAt, b.boostValue);
+    boostSum.set(b.studioId, (boostSum.get(b.studioId) ?? 0) + v);
+  }
+
+  const activeExpCount = new Map<string, number>();
+  for (const g of activeExpByStudio) {
+    activeExpCount.set(g.studioId, g._count._all);
+  }
+  const activeProdCount = new Map<string, number>();
+  for (const g of activeProdByStudio) {
+    activeProdCount.set(g.studioId, g._count._all);
   }
 
   let maxBook = 0;
@@ -145,6 +221,8 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
     manualBoost: number;
     compositeScore: number;
     scoreBreakdown: Prisma.InputJsonValue;
+    profileCompleteness: number;
+    graceActivityBonus: number;
   };
 
   const draft: Row[] = [];
@@ -156,6 +234,19 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
     const experiencesTouched30d = experienceCount.get(s.id) ?? 0;
     const bSum = boostSum.get(s.id) ?? 0;
     const manualRaw = bSum + s.marketplaceRankWeight;
+    const profileCompleteness = profileCompletenessScore({
+      shortDescription: s.shortDescription,
+      longDescription: s.longDescription,
+      logoUrl: s.logoUrl,
+      coverImageUrl: s.coverImageUrl,
+      latitude: s.latitude,
+      longitude: s.longitude,
+      stripeChargesEnabled: Boolean(s.stripeAccount?.chargesEnabled),
+      activeExperienceCount: activeExpCount.get(s.id) ?? 0,
+      activeProductCount: activeProdCount.get(s.id) ?? 0,
+    });
+    const ageDays = (now.getTime() - s.createdAt.getTime()) / 86400000;
+    const graceActivityBonus = ageDays < GRACE_DAYS ? GRACE_ACTIVITY_MAX * (1 - ageDays / GRACE_DAYS) : 0;
     maxBook = Math.max(maxBook, bookings30d);
     maxRev = Math.max(maxRev, revenueCents30d);
     maxProd = Math.max(maxProd, productsTouched30d);
@@ -178,6 +269,8 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
       manualBoost: 0,
       compositeScore: 0,
       scoreBreakdown: {},
+      profileCompleteness,
+      graceActivityBonus,
     });
   }
 
@@ -185,9 +278,19 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
     const bookingPart = norm(r.bookings30d, maxBook);
     const revenuePart = norm(r.revenueCents30d, maxRev);
     r.performanceNorm = (bookingPart + revenuePart) / 2;
-    r.activityNorm =
+    const freshnessNorm =
       (norm(r.productsTouched30d, maxProd) + norm(r.experiencesTouched30d, maxExp)) / 2;
+    r.activityNorm = Math.min(
+      100,
+      freshnessNorm * ACTIVITY_FROM_FRESHNESS +
+        r.profileCompleteness * ACTIVITY_FROM_PROFILE +
+        r.graceActivityBonus,
+    );
     r.manualNorm = norm(r.manualRaw, maxManualRaw);
+    // P4-G: curb manual/admin weight when there is no recent performance (anti pay-to-win).
+    if (r.bookings30d === 0 && r.revenueCents30d === 0 && r.manualRaw > 45) {
+      r.manualNorm *= 0.86;
+    }
     r.performanceScore = r.performanceNorm;
     r.activityScore = r.activityNorm;
     r.manualBoost = r.manualNorm;
@@ -201,6 +304,12 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
       experiencesTouched30d: r.experiencesTouched30d,
       boostSum: r.boostSum,
       marketplaceRankWeight: r.rankWeight,
+      fairness: {
+        profileCompleteness: r.profileCompleteness,
+        graceActivityBonus: Math.round(r.graceActivityBonus * 10) / 10,
+        boostDecayApplied: true,
+        manualCappedWithoutPerformance: r.bookings30d === 0 && r.revenueCents30d === 0 && r.manualRaw > 45,
+      },
       weights: { performance: PERF_WEIGHT, activity: ACTIVITY_WEIGHT, manual: MANUAL_WEIGHT },
       calculatedAtDay: startOfUtcDay(now).toISOString().slice(0, 10),
     };

@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
   return buildMetadata({
     title: "Ceramics marketplace and classes",
-    description: `Where ceramic studios sell, teach, and get discovered. ${commissionLabel} platform commission on checkout sales. Pre-register for 3 months free, then EUR5/month.`,
+    description: `Where ceramic studios sell, teach, and get discovered. Your own page, your own domain, your own shop. ${commissionLabel} platform commission on checkout sales. Pre-register for 3 months free, then EUR5/month.`,
     path: "/",
   });
 }
@@ -33,6 +33,10 @@ const clarityItems = [
   {
     title: "Get discovered",
     body: "Join a curated ceramics ecosystem where collectors and students come looking with intent.",
+  },
+  {
+    title: "Your page, your domain, your shop",
+    body: "A dedicated studio page on PotteryMania, your own shop for work and classes, and room to grow with your own domain when you are ready.",
   },
 ];
 
@@ -69,6 +73,7 @@ const studioShelfPieces = [
 export default async function Home() {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
   const studioBenefits = [
+    "Your own page, your own domain, your own shop — a branded studio home, not a buried profile",
     "List products with gallery-quality presentation",
     "Publish workshops and accept bookings online",
     `Pay ${commissionLabel} platform commission on sales through checkout — no listing fees`,
@@ -98,6 +103,9 @@ export default async function Home() {
           <p className="mt-6 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg sm:leading-8">
             A premium home for independent makers. List your work, fill your classes, shape your studio presence, and
             join a curated ceramics ecosystem that feels as refined as the craft itself.
+          </p>
+          <p className="mt-5 max-w-2xl text-base font-semibold leading-snug tracking-tight text-white sm:text-lg">
+            Your own page, your own domain, your own shop.
           </p>
           <p className="mt-4 max-w-2xl text-sm font-medium text-stone-100/85">{EUROPEAN_PREREGISTRATION_NOTE}</p>
           <div className="mt-6 flex max-w-xl flex-col gap-2">

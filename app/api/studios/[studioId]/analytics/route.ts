@@ -4,7 +4,31 @@ import { getSessionUser } from "@/lib/auth-session";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
-export async function GET(_req: Request, ctx: Ctx) {
+function parseDays(req: Request): number {
+  const u = new URL(req.url);
+  const d = Number(u.searchParams.get("days"));
+  return d === 7 || d === 30 || d === 90 ? d : 30;
+}
+
+function buildWeekBars(days: number) {
+  const numBars = Math.max(1, Math.ceil(days / 7));
+  const barMs = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const bars: { startMs: number; endMs: number; label: string }[] = [];
+  for (let k = numBars - 1; k >= 0; k -= 1) {
+    const endMs = now - k * barMs;
+    const startMs = endMs - barMs;
+    const start = new Date(startMs);
+    bars.push({
+      startMs,
+      endMs,
+      label: `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, "0")}-${String(start.getUTCDate()).padStart(2, "0")}`,
+    });
+  }
+  return bars;
+}
+
+export async function GET(req: Request, ctx: Ctx) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
@@ -13,7 +37,10 @@ export async function GET(_req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const [orders, bookings, products, experiences] = await Promise.all([
+  const days = parseDays(req);
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  const [orders, bookings, products, experiences, bookingsInWindow, ordersInWindow] = await Promise.all([
     prisma.order.findMany({
       where: { items: { some: { vendorId: studioId } }, paymentStatus: "paid" },
       include: { items: true },
@@ -23,6 +50,18 @@ export async function GET(_req: Request, ctx: Ctx) {
     }),
     prisma.product.findMany({ where: { studioId } }),
     prisma.experience.findMany({ where: { studioId } }),
+    prisma.booking.findMany({
+      where: { studioId, createdAt: { gte: since } },
+      select: { createdAt: true, bookingStatus: true, depositAmountCents: true },
+    }),
+    prisma.order.findMany({
+      where: {
+        createdAt: { gte: since },
+        items: { some: { vendorId: studioId } },
+        paymentStatus: "paid",
+      },
+      select: { createdAt: true, totalCents: true },
+    }),
   ]);
 
   const orderRevenueCents = orders.reduce((sum, order) => sum + order.totalCents, 0);
@@ -50,6 +89,34 @@ export async function GET(_req: Request, ctx: Ctx) {
     .sort((a, b) => b.bookings - a.bookings)
     .slice(0, 5);
 
+  const attendanceDen = bookingsInWindow.filter((b) =>
+    ["confirmed", "completed", "no_show", "awaiting_vendor_approval"].includes(b.bookingStatus),
+  ).length;
+  const attendanceNum = bookingsInWindow.filter((b) => b.bookingStatus === "completed").length;
+  const attendanceRate = attendanceDen > 0 ? Math.round((attendanceNum / attendanceDen) * 1000) / 10 : null;
+
+  const weekBars = buildWeekBars(days);
+  const bookingsPerWeek = weekBars.map((bar) => ({
+    label: bar.label,
+    count: bookingsInWindow.filter((b) => {
+      const t = b.createdAt.getTime();
+      return t >= bar.startMs && t < bar.endMs;
+    }).length,
+  }));
+
+  const revenueByWeek = weekBars.map((bar) => {
+    let cents = 0;
+    for (const o of ordersInWindow) {
+      const t = o.createdAt.getTime();
+      if (t >= bar.startMs && t < bar.endMs) cents += o.totalCents;
+    }
+    for (const b of bookingsInWindow) {
+      const t = b.createdAt.getTime();
+      if (t >= bar.startMs && t < bar.endMs) cents += b.depositAmountCents;
+    }
+    return { label: bar.label, revenueCents: cents };
+  });
+
   return NextResponse.json({
     metrics: {
       orderRevenueCents,
@@ -60,6 +127,12 @@ export async function GET(_req: Request, ctx: Ctx) {
       totalExperiences: experiences.length,
       topProducts,
       topExperiences,
+      rangeDays: days,
+      attendanceRate,
+      attendanceCompleted: attendanceNum,
+      attendanceDenominator: attendanceDen,
+      bookingsPerWeek,
+      revenueByWeek,
     },
   });
 }

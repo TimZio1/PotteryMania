@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
+import { InsightTemplateActiveCell, InsightTemplatePriceCell } from "@/components/admin/insight-template-admin-cells";
+import AdminInsightForceUnlockButton from "@/components/admin/admin-insight-force-unlock-button";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +12,8 @@ export default async function AdminAiInsightsPage() {
   const user = await requireAdminUser();
   if (!user) redirect("/unauthorized-admin");
 
-  const [templates, revenue, purchasedInsights, recentPurchases] = await Promise.all([
+  const [templates, revenue, purchasedInsights, recentPurchases, lockableInsights, totalGeneratedInsights] =
+    await Promise.all([
     prisma.insightTemplate.findMany({
       orderBy: { slug: "asc" },
       include: {
@@ -37,20 +40,31 @@ export default async function AdminAiInsightsPage() {
         user: { select: { email: true } },
       },
     }),
+    prisma.generatedInsight.findMany({
+      where: { status: { not: "purchased" } },
+      orderBy: { generatedAt: "desc" },
+      take: 25,
+      include: {
+        studio: { select: { id: true, displayName: true } },
+        template: { select: { slug: true } },
+      },
+    }),
+    prisma.generatedInsight.count(),
   ]);
 
   const totalEur = (revenue._sum.amountCents ?? 0) / 100;
+  const unlockRatePct = totalGeneratedInsights > 0 ? (purchasedInsights / totalGeneratedInsights) * 100 : 0;
 
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Monetization</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">AI insights</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Rule-based insight templates, studio-generated cards, and one-time Stripe unlocks. Template CRUD and force-unlock
-        can extend the existing admin PATCH patterns when needed.
+        Rule-based insight templates, studio-generated cards, and one-time Stripe unlocks. Edit list price and catalog
+        active flag inline; force-unlock recent rows for support.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
           <p className="text-xs font-medium uppercase text-stone-500">Lifetime purchases</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">{revenue._count}</p>
@@ -58,6 +72,11 @@ export default async function AdminAiInsightsPage() {
         <div className={ui.card}>
           <p className="text-xs font-medium uppercase text-stone-500">Unlocked insight rows</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">{purchasedInsights}</p>
+        </div>
+        <div className={ui.card}>
+          <p className="text-xs font-medium uppercase text-stone-500">Unlock rate</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-950">{unlockRatePct.toFixed(1)}%</p>
+          <p className="mt-1 text-xs text-stone-500">Purchased ÷ generated rows ({totalGeneratedInsights})</p>
         </div>
         <div className={ui.card}>
           <p className="text-xs font-medium uppercase text-stone-500">Gross (platform)</p>
@@ -84,11 +103,63 @@ export default async function AdminAiInsightsPage() {
                 <td className="px-4 py-3 font-mono text-xs">{t.slug}</td>
                 <td className="px-4 py-3">{t.category}</td>
                 <td className="px-4 py-3">{t.title}</td>
-                <td className="px-4 py-3">€{(t.basePriceCents / 100).toFixed(2)}</td>
-                <td className="px-4 py-3">{t.isActive ? "yes" : "no"}</td>
+                <td className="px-4 py-3">
+                  <InsightTemplatePriceCell templateId={t.id} basePriceCents={t.basePriceCents} />
+                </td>
+                <td className="px-4 py-3">
+                  <InsightTemplateActiveCell templateId={t.id} isActive={t.isActive} />
+                </td>
                 <td className="px-4 py-3">{t._count.generatedInsights}</td>
               </tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2 className="mt-10 text-lg font-semibold text-amber-950">Not yet purchased (force unlock)</h2>
+      <p className="mt-1 max-w-2xl text-sm text-stone-600">
+        Grants full analysis view without Stripe. Creates a zero-amount purchase row and audit entry. Optional prompt for
+        audit note.
+      </p>
+      <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 bg-white">
+        <table className="min-w-full text-left text-sm">
+          <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-600">
+            <tr>
+              <th className="px-4 py-3">Generated</th>
+              <th className="px-4 py-3">Studio</th>
+              <th className="px-4 py-3">Template</th>
+              <th className="px-4 py-3">Preview</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lockableInsights.length === 0 ? (
+              <tr>
+                <td className="px-4 py-6 text-stone-500" colSpan={6}>
+                  No lockable insights in view.
+                </td>
+              </tr>
+            ) : (
+              lockableInsights.map((row) => (
+                <tr key={row.id} className="border-b border-stone-100">
+                  <td className="px-4 py-3 whitespace-nowrap text-stone-600">
+                    {row.generatedAt.toISOString().slice(0, 19).replace("T", " ")}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link href={`/admin/studios/${row.studio.id}`} className="text-amber-900 underline">
+                      {row.studio.displayName}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs">{row.template.slug}</td>
+                  <td className="px-4 py-3 text-stone-800">{row.previewTitle}</td>
+                  <td className="px-4 py-3">{row.status}</td>
+                  <td className="px-4 py-3">
+                    <AdminInsightForceUnlockButton insightId={row.id} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

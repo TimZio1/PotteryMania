@@ -15,7 +15,7 @@ export default async function StudioPaymentsPage({ params }: Props) {
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
   if (!studio || studio.ownerUserId !== user.id) notFound();
 
-  const [orders, bookings] = await Promise.all([
+  const [orders, bookings, stripePayments] = await Promise.all([
     prisma.order.findMany({
       where: { paymentStatus: "paid", items: { some: { vendorId: studioId } } },
       orderBy: { createdAt: "desc" },
@@ -35,6 +35,26 @@ export default async function StudioPaymentsPage({ params }: Props) {
       take: 40,
       include: { experience: { select: { title: true } } },
     }),
+    prisma.payment.findMany({
+      where: {
+        order: { items: { some: { vendorId: studioId } } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 80,
+      include: {
+        order: {
+          select: {
+            customerEmail: true,
+            customerName: true,
+            items: {
+              where: { vendorId: studioId },
+              take: 3,
+              select: { itemType: true },
+            },
+          },
+        },
+      },
+    }),
   ]);
 
   const bookingPaid = bookings.reduce((s, b) => s + b.depositAmountCents, 0);
@@ -43,24 +63,93 @@ export default async function StudioPaymentsPage({ params }: Props) {
     0,
   );
 
+  const stripeSucceeded = stripePayments.filter((p) => p.paymentStatus === "succeeded");
+  const stripePending = stripePayments.filter((p) => p.paymentStatus === "pending");
+  const stripeRefunded = stripePayments.filter(
+    (p) => p.paymentStatus === "refunded" || p.paymentStatus === "partially_refunded",
+  );
+  const stripeSucceededCents = stripeSucceeded.reduce((s, p) => s + p.amountCents, 0);
+  const stripePendingCents = stripePending.reduce((s, p) => s + p.amountCents, 0);
+  const stripeRefundedCents = stripeRefunded.reduce((s, p) => s + p.amountCents, 0);
+
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <div>
         <p className={ui.overline}>Money in</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Payments</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Tracking only — payouts use Stripe Connect. Totals are approximate from recorded orders and booking deposits.
+          Tracking only — payouts use Stripe Connect. Shop totals are your share on listed orders; class totals are deposits on
+          listed bookings. Stripe rows are gross charges on checkout (order-level), not your net share.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Shop (vendor share, listed orders)</p>
+          <p className="text-sm text-stone-500">Shop (your share, listed)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{(orderVendor / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Classes (deposits collected, listed bookings)</p>
+          <p className="text-sm text-stone-500">Classes (deposits, listed)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{(bookingPaid / 100).toFixed(2)}</p>
+        </div>
+        <div className={ui.card}>
+          <p className="text-sm text-stone-500">Stripe captured (orders)</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-950">€{(stripeSucceededCents / 100).toFixed(2)}</p>
+          <p className="mt-1 text-xs text-stone-500">{stripeSucceeded.length} succeeded · €{(stripePendingCents / 100).toFixed(2)} pending</p>
+        </div>
+        <div className={ui.card}>
+          <p className="text-sm text-stone-500">Refunded / partial (records)</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-950">€{(stripeRefundedCents / 100).toFixed(2)}</p>
+          <p className="mt-1 text-xs text-stone-500">{stripeRefunded.length} payment row(s)</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-amber-950">Stripe payment records</h2>
+        <p className="mt-1 text-sm text-stone-600">Latest checkout captures and refunds touching your product orders.</p>
+        <div className="mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-white">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-500">
+              <tr>
+                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">Customer</th>
+                <th className="px-3 py-2">Type</th>
+                <th className="px-3 py-2">Amount</th>
+                <th className="px-3 py-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stripePayments.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-3 py-6 text-center text-stone-500">
+                    No Stripe payment rows yet for this studio&apos;s orders.
+                  </td>
+                </tr>
+              ) : (
+                stripePayments.map((p) => {
+                  const types = [...new Set(p.order.items.map((i) => i.itemType))];
+                  const typeLabel = types.includes("product")
+                    ? "Product"
+                    : types.includes("booking")
+                      ? "Booking"
+                      : "Order";
+                  return (
+                    <tr key={p.id} className="border-b border-stone-100">
+                      <td className="px-3 py-2 text-stone-600">{p.createdAt.toISOString().slice(0, 10)}</td>
+                      <td className="px-3 py-2">
+                        {p.order.customerName}
+                        <br />
+                        <span className="text-xs text-stone-500">{p.order.customerEmail}</span>
+                      </td>
+                      <td className="px-3 py-2 text-stone-600">{typeLabel}</td>
+                      <td className="px-3 py-2">€{(p.amountCents / 100).toFixed(2)}</td>
+                      <td className="px-3 py-2">{p.paymentStatus}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

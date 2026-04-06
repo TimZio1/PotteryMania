@@ -10,7 +10,7 @@ import { trackMetaPixelEvent } from "@/lib/meta-pixel";
 
 const MAX_PHOTOS = 3;
 const MAX_FILE_MB = 5;
-const COUNTER_BASE = 123;
+const COUNTER_BASE = 124;
 
 function readMetaCookie(name: "_fbc" | "_fbp"): string | undefined {
   if (typeof document === "undefined") return undefined;

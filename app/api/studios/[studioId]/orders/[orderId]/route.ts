@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { FulfillmentStatus, OrderStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 
@@ -26,7 +27,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const validStatuses = ["pending", "processing", "shipped", "delivered", "ready_for_pickup", "cancelled"];
+  const validStatuses: FulfillmentStatus[] = [
+    "pending",
+    "processing",
+    "shipped",
+    "delivered",
+    "ready_for_pickup",
+    "cancelled",
+  ];
   if (body.fulfillmentStatus && !validStatuses.includes(body.fulfillmentStatus)) {
     return NextResponse.json({ error: "Invalid fulfillment status" }, { status: 400 });
   }
@@ -36,21 +44,25 @@ export async function PATCH(req: Request, ctx: Ctx) {
   });
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
+  const data: Prisma.OrderUpdateInput = {};
+
+  if (body.fulfillmentStatus) {
+    data.fulfillmentStatus = body.fulfillmentStatus;
+    let nextOrderStatus: OrderStatus = order.orderStatus;
+    if (body.fulfillmentStatus === "delivered") nextOrderStatus = "fulfilled";
+    else if (body.fulfillmentStatus === "cancelled") nextOrderStatus = "cancelled";
+    data.orderStatus = nextOrderStatus;
+  }
+  if ("trackingCarrier" in body) data.trackingCarrier = body.trackingCarrier?.trim() || null;
+  if ("trackingNumber" in body) data.trackingNumber = body.trackingNumber?.trim() || null;
+  if ("trackingUrl" in body) data.trackingUrl = body.trackingUrl?.trim() || null;
+  if (typeof body.shippingMethod === "string") {
+    data.shippingMethod = body.shippingMethod.trim() || order.shippingMethod;
+  }
+
   const updated = await prisma.order.update({
     where: { id: orderId },
-    data: {
-      fulfillmentStatus: body.fulfillmentStatus,
-      trackingCarrier: body.trackingCarrier?.trim() || null,
-      trackingNumber: body.trackingNumber?.trim() || null,
-      trackingUrl: body.trackingUrl?.trim() || null,
-      shippingMethod: body.shippingMethod?.trim() || order.shippingMethod,
-      orderStatus:
-        body.fulfillmentStatus === "delivered"
-          ? "fulfilled"
-          : body.fulfillmentStatus === "cancelled"
-            ? "cancelled"
-            : order.orderStatus,
-    },
+    data,
   });
   return NextResponse.json({ order: updated });
 }

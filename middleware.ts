@@ -5,6 +5,13 @@ import {
   isPreregistrationClosedPath,
   isPreregistrationOnly,
 } from "@/lib/preregistration";
+import {
+  canonicalPublicOrigin,
+  normalizeDomainName,
+  primaryAppHostname,
+  stripPortFromHost,
+  vendorDomainResolveFetchBaseUrl,
+} from "@/lib/vendor-domain-core";
 
 const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart", "/account"];
 /** Public without marketplace; /register only when browsing is open (not preregistration-only). */
@@ -27,7 +34,7 @@ function publicAllowlist(): string[] {
   return [...BASE_PUBLIC_CORE, "/register", ...BROWSING_PUBLIC];
 }
 
-export default auth((req) => {
+export default auth(async (req) => {
   const suspended = Boolean(req.auth?.user && (req.auth.user as { suspended?: boolean }).suspended);
   if (req.auth && suspended) {
     const signout = new URL("/api/auth/signout", req.url);
@@ -36,6 +43,47 @@ export default auth((req) => {
   }
 
   const path = req.nextUrl.pathname;
+
+  const rawHost = req.headers.get("host");
+  const hostNoPort = stripPortFromHost(rawHost);
+  const primaryHost = primaryAppHostname();
+  if (hostNoPort && primaryHost) {
+    const hNorm = normalizeDomainName(hostNoPort);
+    if (hNorm && hNorm !== primaryHost && hNorm !== "localhost" && hNorm !== "127.0.0.1") {
+      const base = vendorDomainResolveFetchBaseUrl();
+      if (base) {
+        try {
+          const headers = new Headers();
+          const secret = process.env.VENDOR_DOMAIN_RESOLVE_SECRET?.trim();
+          if (secret) headers.set("x-potterymania-resolve-secret", secret);
+          const resolveUrl = `${base}/api/vendor-domains/resolve?host=${encodeURIComponent(hNorm)}`;
+          const res = await fetch(resolveUrl, { headers, cache: "no-store", signal: AbortSignal.timeout(8000) });
+          if (res.ok) {
+            const data = (await res.json()) as { studioId?: unknown };
+            const studioId = typeof data.studioId === "string" ? data.studioId : null;
+            if (studioId) {
+              const canon = canonicalPublicOrigin();
+              const onStudioPage =
+                path === `/studios/${studioId}` || path.startsWith(`/studios/${studioId}/`);
+              if (path === "/" || path === "") {
+                return NextResponse.rewrite(new URL(`/studios/${studioId}`, req.url));
+              }
+              if (onStudioPage) {
+                return NextResponse.next();
+              }
+              if (canon) {
+                const dest = new URL(`${path}${req.nextUrl.search}`, canon);
+                return NextResponse.redirect(dest);
+              }
+            }
+          }
+        } catch {
+          /* resolve unreachable — fall through */
+        }
+      }
+    }
+  }
+
   const impersonatorId = (req.auth?.user as { impersonatorId?: string })?.impersonatorId;
   if (impersonatorId && (path === "/admin" || path.startsWith("/admin/"))) {
     return NextResponse.redirect(new URL("/dashboard", req.url));

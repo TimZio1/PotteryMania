@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser, isAdminRole } from "@/lib/auth-session";
 import { rescheduleBooking } from "@/lib/bookings/reschedule";
+import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 import { sendBookingEmails } from "@/lib/email/booking-notify";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
@@ -55,6 +56,8 @@ export async function POST(req: Request, ctx: Ctx) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
+
+  syncBookingToGoogleCalendar(bookingId).catch((e) => console.error("[google-calendar-sync]", bookingId, e));
 
   try {
     const newSlot = await prisma.bookingSlot.findUnique({ where: { id: newSlotId } });

@@ -17,6 +17,7 @@ import {
   syncStudioBillingSubscriptionFromStripe,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
+import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -439,6 +440,10 @@ export async function POST(req: Request) {
       } catch (e) {
         console.error("[booking-email]", e);
       }
+    }
+
+    for (const bid of processed.confirmedBookingIds) {
+      syncBookingToGoogleCalendar(bid).catch((e) => console.error("[google-calendar-sync]", bid, e));
     }
 
     for (const it of pendingRows) {

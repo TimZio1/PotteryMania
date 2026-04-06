@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth-session";
 import { safeReleaseCapacity } from "@/lib/bookings/slot-lock";
 import { sendBookingEmails, bookingConfirmationCopy, bookingRejectedCopy } from "@/lib/email/booking-notify";
 import type { Prisma } from "@prisma/client";
+import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
 
@@ -110,6 +111,8 @@ export async function POST(req: Request, ctx: Ctx) {
     } catch (e) {
       console.error("[vendor-approve-email]", e);
     }
+
+    syncBookingToGoogleCalendar(bookingId).catch((e) => console.error("[google-calendar-sync]", bookingId, e));
 
     return NextResponse.json({ ok: true, bookingStatus: "confirmed" });
   }

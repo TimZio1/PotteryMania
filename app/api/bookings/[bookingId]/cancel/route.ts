@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser, isAdminRole } from "@/lib/auth-session";
 import { cancelBooking } from "@/lib/bookings/cancel";
+import { removeGoogleCalendarEventForBooking } from "@/lib/calendar/google-sync";
 import { stripeRefundForBooking } from "@/lib/bookings/stripe-refund-booking";
 import { sendBookingEmails } from "@/lib/email/booking-notify";
 import type { Prisma } from "@prisma/client";
@@ -49,6 +50,8 @@ export async function POST(req: Request, ctx: Ctx) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
+
+  removeGoogleCalendarEventForBooking(bookingId).catch((e) => console.error("[google-calendar-remove]", bookingId, e));
 
   let stripeRefund: { refundId: string; amountCents: number } | null = null;
   let stripeRefundError: string | null = null;

@@ -191,6 +191,7 @@ model Studio {
   generatedInsights                GeneratedInsight[]
   insightPurchases                 InsightPurchase[]
   insightActionLogs                InsightActionLog[]
+  studioContacts                   StudioContact[]
 
   @@index([status])
   @@index([country, city])
@@ -618,6 +619,8 @@ model Booking {
   notes                      String?
   reminderScheduledAt        DateTime?             @map("reminder_scheduled_at")
   reminderSentAt             DateTime?             @map("reminder_sent_at")
+  /// Google Calendar event id when synced via studio CalendarConnection (Tier 3A).
+  googleCalendarEventId      String?              @map("google_calendar_event_id")
   createdAt                  DateTime             @default(now()) @map("created_at")
   updatedAt                  DateTime             @updatedAt @map("updated_at")
 
@@ -973,6 +976,8 @@ model VendorDomain {
   studioId           String                   @map("studio_id") @db.Uuid
   domainType         VendorDomainType         @map("domain_type")
   domainName         String                   @unique @map("domain_name")
+  /// TXT at _potterymania.<apex> must include pm-verify=<token>
+  verificationToken  String?                  @unique @map("verification_token")
   verificationStatus DomainVerificationStatus @map("verification_status")
   sslStatus          SslStatus                @map("ssl_status")
   isActive           Boolean                  @default(false) @map("is_active")
@@ -1748,6 +1753,25 @@ model FeatureBundleItem {
   @@index([bundleId])
   @@index([featureId])
   @@map("feature_bundle_items")
+}
+
+/// Vendor CRM row: notes/tags + manual contacts, merged with booking history (P1-D).
+model StudioContact {
+  id              String   @id @default(uuid()) @db.Uuid
+  studioId        String   @map("studio_id") @db.Uuid
+  emailNormalized String   @map("email_normalized")
+  displayName     String   @map("display_name")
+  phone           String?
+  notes           String?  @db.Text
+  tags            String[] @default([])
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, emailNormalized])
+  @@index([studioId])
+  @@map("studio_contacts")
 }
 
 // --- AI monetized insights (Prompt 3) ---
