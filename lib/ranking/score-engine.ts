@@ -1,11 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import { BookingStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { getRankingScoreWeights } from "@/lib/ranking-weights-config";
 
 const WINDOW_DAYS = 30;
-const PERF_WEIGHT = 0.7;
-const ACTIVITY_WEIGHT = 0.2;
-const MANUAL_WEIGHT = 0.1;
 /** P4-G: new studios (first 14 days since creation) get a small activity lift. */
 const GRACE_DAYS = 14;
 const GRACE_ACTIVITY_MAX = 10;
@@ -79,6 +77,8 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
   const t0 = Date.now();
   const now = new Date();
   const since = new Date(now.getTime() - WINDOW_DAYS * 86400000);
+  const { performance: PERF_WEIGHT, activity: ACTIVITY_WEIGHT, manual: MANUAL_WEIGHT } =
+    await getRankingScoreWeights();
 
   const studios = await prisma.studio.findMany({
     where: { status: "approved" },

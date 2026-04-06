@@ -38,6 +38,7 @@ export default async function AdminPage() {
     manualRefundQueueCount,
     refundAmountBookings,
     stalePendingOrdersCount,
+    adminUnreadNotifications,
     ordersLast60,
     bookingsLast60,
   ] = await Promise.all([
@@ -62,6 +63,7 @@ export default async function AdminPage() {
     prisma.bookingCancellation.count({ where: { refundOutcome: "manual_refund_review_required" } }),
     prisma.bookingCancellation.aggregate({ _sum: { refundAmountCents: true } }),
     prisma.order.count({ where: { orderStatus: "pending", createdAt: { lt: staleOrderThreshold } } }),
+    prisma.adminNotification.count({ where: { readAt: null } }),
     prisma.order.findMany({
       where: { createdAt: { gte: last60Start } },
       orderBy: { createdAt: "asc" },
@@ -235,6 +237,15 @@ export default async function AdminPage() {
           <p className="mt-1 text-stone-600">Last 30 days with live month, today, and risk overlays.</p>
         </div>
       </div>
+
+      {adminUnreadNotifications > 0 ? (
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+          <Link href="/admin/notifications" className="font-semibold underline-offset-2 hover:underline">
+            {adminUnreadNotifications} unread admin notification{adminUnreadNotifications === 1 ? "" : "s"}
+          </Link>
+          <span className="text-amber-900/90"> — open the inbox to mark as read.</span>
+        </div>
+      ) : null}
 
       <AdminOverview
         founderSummary={founderSummary}

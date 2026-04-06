@@ -8,6 +8,7 @@ import { AdminSignOut } from "./admin-sign-out";
 const adminLinks = [
   { href: "/admin", label: "Executive overview" },
   { href: "/admin/war-room", label: "War room" },
+  { href: "/admin/notifications", label: "Notifications" },
   { href: "/admin/audit", label: "Audit" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/studios", label: "Studios" },
@@ -21,7 +22,9 @@ const adminLinks = [
   { href: "/admin/content", label: "Content" },
   { href: "/admin/platform-features", label: "Platform add-ons" },
   { href: "/admin/feature-bundles", label: "Feature bundles" },
+  { href: "/admin/marketplace", label: "Marketplace" },
   { href: "/admin/marketplace-ranking", label: "Marketplace ranking" },
+  { href: "/admin/experiments", label: "Experiments" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/system", label: "System" },
   { href: "/admin/settings", label: "Settings" },

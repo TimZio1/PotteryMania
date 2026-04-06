@@ -6,6 +6,8 @@ import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
 import { isPreregistrationOnly } from "@/lib/preregistration";
+import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rail";
+import { getFeaturedStudiosForSlot } from "@/lib/featured-studios-public";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
@@ -72,6 +74,7 @@ const studioShelfPieces = [
 
 export default async function Home() {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const featuredStudios = await getFeaturedStudiosForSlot("homepage_hero");
   const studioBenefits = [
     "Your own page, your own domain, your own shop — a branded studio home, not a buried profile",
     "List products with gallery-quality presentation",
@@ -125,6 +128,8 @@ export default async function Home() {
             </Link>
           </div>
         </ImageSection>
+
+        <FeaturedStudiosRail studios={featuredStudios} />
 
         <section id="clarity" className="border-y border-(--brand-line) bg-(--warm-surface)">
           <div className={`${ui.pageContainer} py-18 sm:py-24`}>

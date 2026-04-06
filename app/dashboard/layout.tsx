@@ -22,6 +22,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <Link href="/dashboard" className="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-amber-950">
               Overview
             </Link>
+            <Link href="/dashboard/billing" className="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-amber-950">
+              Billing
+            </Link>
             <Link href="/marketplace" className="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-amber-950">
               Shop
             </Link>

@@ -46,6 +46,13 @@ export default async function AdminReportsPage() {
 
   const cohortRows = await computeCohortRetention({ cohortsBack: 6, horizon: 4 });
 
+  const dailySnapshots = await prisma.analyticsSnapshot.findMany({
+    where: { snapshotScope: "platform", studioId: null },
+    orderBy: { snapshotDate: "desc" },
+    take: 14,
+    select: { snapshotDate: true, metrics: true },
+  });
+
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Reports</p>
@@ -63,6 +70,37 @@ export default async function AdminReportsPage() {
       </div>
 
       <section className="mt-10">
+        <h2 className="text-lg font-semibold text-amber-950">Daily platform snapshots</h2>
+        <p className="mt-1 max-w-2xl text-xs text-stone-500">
+          UTC-day aggregates from <code className="text-[11px]">analytics_snapshots</code>. Populate via cron{" "}
+          <code className="text-[11px]">GET /api/cron/analytics-snapshots</code> (Bearer <code className="text-[11px]">CRON_SECRET</code>
+          ).
+        </p>
+        <div className="mt-4">
+          <DataTable
+            rows={dailySnapshots.map((s) => {
+              const m = s.metrics as Record<string, unknown>;
+              return {
+                day: s.snapshotDate.toISOString().slice(0, 10),
+                orders: String(m.ordersCount ?? "—"),
+                bookings: String(m.bookingsCount ?? "—"),
+                users: String(m.newUsers ?? "—"),
+                insights: String(m.insightPurchaseTotalCents ?? "—"),
+              };
+            })}
+            empty="No snapshots yet — run the analytics-snapshots cron."
+            columns={[
+              { key: "d", header: "UTC day", cell: (r) => <span className="font-mono text-xs">{r.day}</span> },
+              { key: "o", header: "Orders", cell: (r) => r.orders },
+              { key: "b", header: "Bookings", cell: (r) => r.bookings },
+              { key: "u", header: "New users", cell: (r) => r.users },
+              { key: "i", header: "Insight € (cents)", cell: (r) => r.insights },
+            ]}
+          />
+        </div>
+      </section>
+
+      <section className="mt-10">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-amber-950">Cohort commerce retention</h2>
@@ -70,12 +108,20 @@ export default async function AdminReportsPage() {
               M0–M3 = calendar month offset from cohort month · % with order or booking (linked customer account).
             </p>
           </div>
-          <a
-            href="/api/admin/reports/cohort?format=csv"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
-          >
-            Download CSV
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="/api/admin/reports/cohort?format=csv"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
+            >
+              Cohort CSV
+            </a>
+            <a
+              href="/api/admin/reports/feature-adoption?format=csv"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 text-sm font-medium text-stone-800 transition hover:bg-stone-50"
+            >
+              Feature adoption CSV
+            </a>
+          </div>
         </div>
         <div className="mt-4">
           <DataTable

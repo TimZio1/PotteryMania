@@ -7,6 +7,14 @@ import type {
 } from "@prisma/client";
 import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
+
+/**
+ * P2-F: When multi-item Stripe subscriptions are implemented for add-ons, pass `proration_behavior` on
+ * `subscriptionItems.create` / `subscriptions.update` (e.g. `create_prorations` or `always_invoice`) per Stripe billing policy.
+ * Current flows use dedicated Checkout Sessions per feature/bundle; mid-cycle item adds are not wired yet.
+ */
+export const STUDIO_FEATURE_STRIPE_PRORATION_HINT =
+  process.env.STRIPE_STUDIO_FEATURE_PRORATION?.trim() || "none";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { getStripe } from "@/lib/stripe";
 

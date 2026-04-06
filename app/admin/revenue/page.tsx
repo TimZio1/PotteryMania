@@ -70,7 +70,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
   const windowStart = startOfDay(new Date(now.getTime() - (windowDays - 1) * DAY_MS));
   const dataLookbackDays = windowDays + 60;
 
-  const [orders, bookings, redemptions, subscriptions, redemptionRows, studioThroughput, featureAddonRows] =
+  const [orders, bookings, redemptions, subscriptions, redemptionRows, studioThroughput, featureAddonRows, insightPurchasesWindow] =
     await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: new Date(now.getTime() - dataLookbackDays * DAY_MS) } },
@@ -105,6 +105,11 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
     }),
     studioThroughputLast30d(prisma, windowStart),
     tab === "breakdown" ? featureAddonMrrRows(prisma) : Promise.resolve([]),
+    prisma.insightPurchase.aggregate({
+      where: { createdAt: { gte: windowStart } },
+      _sum: { amountCents: true },
+      _count: { _all: true },
+    }),
   ]);
 
   const studioThroughputFiltered =
@@ -193,6 +198,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
   const planMrrRows = aggregatePlanSubscriptionRows(subscriptions);
   const addonMrrTotalCents = featureAddonRows.reduce((s, r) => s + r.estimatedMrrCents, 0);
   const combinedMrrDirectionalCents = mrrCents + addonMrrTotalCents;
+  const insightRevenueWindowCents = insightPurchasesWindow._sum.amountCents ?? 0;
+  const insightPurchasesWindowCount = insightPurchasesWindow._count._all;
 
   return (
     <div>
@@ -276,6 +283,11 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           value={String(redemptions)}
           hint="All discount redemptions"
         />
+        <StatCard
+          label={`AI insight purchases (${windowLabel})`}
+          value={eur(insightRevenueWindowCents)}
+          hint={`${insightPurchasesWindowCount} unlocks`}
+        />
       </div>
 
       {tab === "breakdown" ? (
@@ -306,6 +318,11 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
                 label="Add-on MRR (est.)"
                 value={eur(addonMrrTotalCents)}
                 hint="Catalog or override × billable activations"
+              />
+              <StatCard
+                label={`AI insights (${windowLabel})`}
+                value={eur(insightRevenueWindowCents)}
+                hint={`${insightPurchasesWindowCount} paid unlocks`}
               />
             </div>
             <p className="mt-4 text-sm text-stone-600">

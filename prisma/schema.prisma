@@ -1884,3 +1884,31 @@ model InsightActionLog {
   @@index([insightId])
   @@map("insight_action_logs")
 }
+
+/// Tier 4F: A/B experiment definition; assignment uses deterministic hashing in `lib/experiment-assign.ts`.
+model Experiment {
+  id              String   @id @default(uuid()) @db.Uuid
+  slug            String   @unique
+  name            String
+  isActive        Boolean  @default(true) @map("is_active")
+  /// Share 0–100 for variant B; variant A gets the remainder.
+  variantBPercent Int      @default(50) @map("variant_b_percent")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("experiments")
+}
+
+/// Tier 5E: Hyperadmin in-app notifications.
+model AdminNotification {
+  id        String    @id @default(uuid()) @db.Uuid
+  title     String
+  body      String?
+  level     String    @default("info")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([readAt])
+  @@index([createdAt(sort: Desc)])
+  @@map("admin_notifications")
+}

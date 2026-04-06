@@ -74,8 +74,11 @@ export async function POST(req: Request) {
     const otherVendor = existingItems.find((i) => i.vendorId !== product.studioId);
     if (otherVendor) {
       return NextResponse.json(
-        { error: "Cart can only contain items from one studio. Clear cart first." },
-        { status: 400 }
+        {
+          error:
+            "Your cart can only include one studio at a time. Multi-vendor checkout is not available yet — finish or clear this cart, then shop another studio.",
+        },
+        { status: 400 },
       );
     }
 
@@ -134,8 +137,11 @@ export async function POST(req: Request) {
     const otherVendor = existingItems.find((i) => i.vendorId !== experience.studioId);
     if (otherVendor) {
       return NextResponse.json(
-        { error: "Cart can only contain items from one studio. Clear cart first." },
-        { status: 400 }
+        {
+          error:
+            "Your cart can only include one studio at a time. Multi-vendor checkout is not available yet — finish or clear this cart, then shop another studio.",
+        },
+        { status: 400 },
       );
     }
 

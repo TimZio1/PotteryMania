@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { StatCard } from "@/components/admin/stat-card";
+import { SystemHealthPings } from "@/components/admin/system-health-pings";
 import { FeatureFlagsPanel } from "./feature-flags-panel";
 
 export const dynamic = "force-dynamic";
@@ -52,6 +53,14 @@ export default async function AdminSystemPage() {
             }))}
           />
         </div>
+      </section>
+
+      <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h2 className="font-semibold text-amber-950">Endpoint checks</h2>
+        <p className="mt-1 text-xs text-stone-500">
+          Browser-side fetch to this origin (session cookie applies to Auth). For production signals, also use host monitoring.
+        </p>
+        <SystemHealthPings />
       </section>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-stone-50/80 p-5 text-sm text-stone-600">

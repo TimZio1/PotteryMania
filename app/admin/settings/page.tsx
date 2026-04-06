@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
+import { getRankingScoreWeights } from "@/lib/ranking-weights-config";
+import { RankingWeightsForm } from "@/components/admin/ranking-weights-form";
 import { CommissionForm } from "./commission-form";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +12,14 @@ export default async function AdminSettingsPage() {
   const user = await requireAdminUser();
   if (!user) redirect("/unauthorized-admin");
 
-  const configSample = await prisma.adminConfig.findMany({
-    orderBy: { configKey: "asc" },
-    take: 40,
-    select: { configKey: true },
-  });
+  const [configSample, rankingWeights] = await Promise.all([
+    prisma.adminConfig.findMany({
+      orderBy: { configKey: "asc" },
+      take: 40,
+      select: { configKey: true },
+    }),
+    getRankingScoreWeights(),
+  ]);
 
   return (
     <div>
@@ -26,6 +31,10 @@ export default async function AdminSettingsPage() {
 
       <div className="mt-8">
         <CommissionForm />
+      </div>
+
+      <div className="mt-10">
+        <RankingWeightsForm initial={rankingWeights} />
       </div>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
