@@ -298,7 +298,9 @@ export async function POST(req: Request) {
           if (applied) {
             try {
               const stripe = getStripe();
-              const fullSession = await stripe.checkout.sessions.retrieve(session.id);
+              const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+                expand: ["shipping_cost.shipping_rate"],
+              });
               await submitPaidWearOrderToSpreadconnect({
                 wearOrderId,
                 stripeSession: fullSession,

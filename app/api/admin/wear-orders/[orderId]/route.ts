@@ -289,7 +289,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (nextStatus === "paid" && order.status === "pending" && updated.stripeCheckoutSessionId) {
     try {
       const stripe = getStripe();
-      const sess = await stripe.checkout.sessions.retrieve(updated.stripeCheckoutSessionId);
+      const sess = await stripe.checkout.sessions.retrieve(updated.stripeCheckoutSessionId, {
+        expand: ["shipping_cost.shipping_rate"],
+      });
       await submitPaidWearOrderToSpreadconnect({ wearOrderId: orderId, stripeSession: sess });
     } catch (e) {
       console.error("[admin wear-order] spreadconnect", e);

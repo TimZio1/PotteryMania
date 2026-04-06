@@ -8,23 +8,42 @@ import { prisma } from "@/lib/db";
 
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 
-/** Stripe Checkout: shipping lives on `collected_information` (current API); older sessions may use root `shipping_details`. */
-function checkoutShippingDetails(session: Stripe.Checkout.Session): {
-  name: string;
-  address: Stripe.Address;
-} | null {
+/**
+ * Resolve ship-to for Spreadconnect from a completed Checkout Session.
+ * Tries: collected shipping → legacy shipping_details → customer_details.address (last resort for some API shapes).
+ */
+function checkoutShippingDetails(
+  session: Stripe.Checkout.Session,
+  fallbackName: string,
+): { name: string; address: Stripe.Address } | null {
+  const nameFromCustomer =
+    session.customer_details?.name?.trim() ||
+    session.customer_details?.individual_name?.trim() ||
+    session.customer_details?.business_name?.trim() ||
+    fallbackName.trim() ||
+    "Customer";
+
   const fromCollected = session.collected_information?.shipping_details;
-  if (fromCollected?.address && fromCollected.name) {
-    return { name: fromCollected.name, address: fromCollected.address };
+  if (fromCollected?.address?.line1 && fromCollected.address.country) {
+    const name = fromCollected.name?.trim() || nameFromCustomer;
+    return { name, address: fromCollected.address };
   }
+
   const legacy = (
     session as unknown as {
       shipping_details?: { name?: string | null; address?: Stripe.Address | null } | null;
     }
   ).shipping_details;
-  if (legacy?.address?.line1 && legacy.address.country && legacy.name) {
-    return { name: legacy.name, address: legacy.address };
+  if (legacy?.address?.line1 && legacy.address.country) {
+    const name = legacy.name?.trim() || nameFromCustomer;
+    return { name, address: legacy.address };
   }
+
+  const cd = session.customer_details;
+  if (cd?.address?.line1 && cd.address.country) {
+    return { name: nameFromCustomer, address: cd.address };
+  }
+
   return null;
 }
 
@@ -212,7 +231,7 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
   if (orderRow.externalFulfillmentRef?.startsWith("sc:")) return;
 
   const session = opts.stripeSession;
-  const shippingDetails = checkoutShippingDetails(session);
+  const shippingDetails = checkoutShippingDetails(session, orderRow.customerName);
   const addr = shippingDetails?.address;
   if (!shippingDetails || !addr?.line1 || !addr.country) {
     await prisma.wearAnalyticsEvent.create({

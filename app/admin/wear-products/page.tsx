@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
+import { getWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +41,8 @@ export default async function AdminWearProductsPage({
     variantCount: r._count.variants,
   }));
 
+  const health = await getWearCatalogHealthSnapshot();
+
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
@@ -47,6 +51,36 @@ export default async function AdminWearProductsPage({
         Catalog for the PotteryMania-native wear storefront. Archive removes pieces from the public shop without deleting
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
+
+      <div
+        className={`mt-6 rounded-2xl border px-4 py-4 text-sm ${
+          health.shopVisibleCount > 0
+            ? "border-emerald-200/80 bg-emerald-50/60 text-emerald-950"
+            : "border-amber-200/90 bg-amber-50/70 text-amber-950"
+        }`}
+      >
+        <p className="font-semibold">Live shop visibility (same rules as /wear/shop)</p>
+        <p className="mt-1 text-stone-700">
+          <span className="font-mono">{health.shopVisibleCount}</span> visible · {health.totalProducts} total ·{" "}
+          {health.archivedCount} archived · {health.inactiveCount} inactive
+        </p>
+        {health.emptyDiagnosis ? <p className="mt-2 text-stone-800">{health.emptyDiagnosis}</p> : null}
+        <p className="mt-2 text-xs text-stone-600">
+          Spreadconnect: {health.spreadconnectConfigured ? "API key set (paid orders may submit)" : "not configured"}
+          {health.spreadconnectConfigured
+            ? ` · SC failures (24h): ${health.spreadconnectFailuresLast24h}, successes: ${health.spreadconnectSubmissionsLast24h}`
+            : null}
+        </p>
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-600">
+          <Link href="/wear/shop" className="font-medium text-amber-900 underline">
+            Open public shop
+          </Link>
+          <span>
+            JSON: <span className="font-mono">GET /api/admin/wear-catalog-health</span>
+          </span>
+        </p>
+      </div>
+
       <Suspense fallback={<ListFallback />}>
         <WearProductsAdminClient initial={initial} />
       </Suspense>
