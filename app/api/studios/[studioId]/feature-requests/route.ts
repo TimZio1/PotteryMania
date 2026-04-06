@@ -5,12 +5,13 @@ import { listStudioFeaturesForVendor } from "@/lib/studio-features";
 import { listStudioBundlesForVendor } from "@/lib/studio-feature-bundles-vendor";
 import { applyStudioFeatureBundle } from "@/lib/studio-feature-bundle-apply";
 import {
-  cancelStudioFeatureStripeSubscription,
   createStudioFeatureSubscriptionCheckout,
   platformFeatureRequiresStripeSubscription,
+  removeStudioFeatureFromStripeBilling,
   resumeStudioFeatureStripeSubscription,
   scheduleStudioFeatureSubscriptionCancelAtPeriodEnd,
   setStudioFeatureRequestsDesiredForSubscription,
+  tryAddStudioFeatureViaSubscriptionItem,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 
@@ -171,6 +172,16 @@ export async function POST(req: Request, ctx: Ctx) {
         }
         const scheduled = await scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(subId);
         if (!scheduled.ok) {
+          if (scheduled.error === "multi_item_sub_cancel_at_period_end_unsupported") {
+            return NextResponse.json(
+              {
+                error:
+                  "This add-on shares one Stripe subscription with other add-ons. “Cancel at period end” only applies when an add-on has its own subscription. Turn it off now to remove just this add-on (prorated), or disable all add-ons on that subscription from Features.",
+                code: "MULTI_ITEM_CANCEL_AT_PERIOD_END",
+              },
+              { status: 409 },
+            );
+          }
           return NextResponse.json(
             { error: "Could not schedule cancel at period end. Try again or cancel immediately." },
             { status: 502 },
@@ -191,9 +202,12 @@ export async function POST(req: Request, ctx: Ctx) {
           accessEndsAt: scheduled.periodEnd.toISOString(),
         });
       }
-      await cancelStudioFeatureStripeSubscription({
+      await removeStudioFeatureFromStripeBilling({
         studioId,
+        featureId: feature.id,
         stripeSubscriptionId: subId,
+        stripeSubscriptionItemId: existing?.stripeSubscriptionItemId,
+        featureStripePriceId: feature.stripePriceId,
       });
     }
     await prisma.studioFeatureActivation.upsert({
@@ -270,6 +284,50 @@ export async function POST(req: Request, ctx: Ctx) {
       { error: "Stripe is not configured — paid add-ons cannot be started yet." },
       { status: 503 },
     );
+  }
+
+  const viaItem = await tryAddStudioFeatureViaSubscriptionItem({ studioId, feature });
+  if (viaItem.ok) {
+    const now = new Date();
+    await prisma.studioFeatureActivation.upsert({
+      where: { studioId_featureId: { studioId, featureId: feature.id } },
+      create: {
+        studioId,
+        featureId: feature.id,
+        status: "active",
+        activatedAt: now,
+        stripeSubscriptionId: viaItem.subscriptionId,
+        stripeSubscriptionItemId: viaItem.itemId,
+      },
+      update: {
+        status: "active",
+        activatedAt: now,
+        stripeSubscriptionId: viaItem.subscriptionId,
+        stripeSubscriptionItemId: viaItem.itemId,
+        deactivatesAt: null,
+      },
+    });
+    await prisma.studioFeatureRequest.upsert({
+      where: { studioId_featureKey: { studioId, featureKey: slug } },
+      create: { studioId, featureKey: slug, desiredOn: true },
+      update: { desiredOn: true },
+    });
+    await recordStudioFeatureActivationEvent(prisma, {
+      studioId,
+      featureId: feature.id,
+      kind: "vendor_enable",
+      stripeSubscriptionId: viaItem.subscriptionId,
+      payload: { subscriptionItemId: viaItem.itemId, proratedAdd: true },
+    });
+    return NextResponse.json({
+      ok: true,
+      slug,
+      featureKey: slug,
+      desiredOn: true,
+      active: true,
+      addedViaSubscriptionItem: true,
+      message: "Add-on added to your existing subscription (prorated).",
+    });
   }
 
   try {

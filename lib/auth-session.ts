@@ -46,3 +46,10 @@ export async function requireAdminUser(): Promise<SessionUser | null> {
   if (!user || !isAdminRole(user.role)) return null;
   return user;
 }
+
+/** Financial / session-identity actions: hyper_admin only (P5-L). */
+export async function requireHyperAdminUser(): Promise<SessionUser | null> {
+  const user = await requireAdminUser();
+  if (!user || user.role !== "hyper_admin") return null;
+  return user;
+}

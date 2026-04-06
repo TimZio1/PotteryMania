@@ -18,6 +18,7 @@ const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", 
 const BASE_PUBLIC_CORE = [
   "/",
   "/early-access",
+  "/wear",
   "/login",
   "/forgot-password",
   "/reset-password",

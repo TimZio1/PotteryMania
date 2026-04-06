@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import StudioPanelShell from "@/components/dashboard/studio-panel-shell";
 import { getStudioPanelNavForStudio } from "@/lib/studio-panel-nav";
+import { getBusinessTemplateBySlug } from "@/lib/business-templates";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +17,20 @@ export default async function StudioPanelLayout({ children, params }: Props) {
   const { studioId } = await params;
   const studio = await prisma.studio.findUnique({
     where: { id: studioId },
-    select: { id: true, displayName: true, ownerUserId: true },
+    select: { id: true, displayName: true, ownerUserId: true, businessTemplateSlug: true },
   });
   if (!studio || studio.ownerUserId !== user.id) notFound();
 
   const navItems = await getStudioPanelNavForStudio(studio.id);
+  const activeBusinessTemplate = await getBusinessTemplateBySlug(studio.businessTemplateSlug);
 
   return (
-    <StudioPanelShell studioId={studio.id} studioName={studio.displayName} navItems={navItems}>
+    <StudioPanelShell
+      studioId={studio.id}
+      studioName={studio.displayName}
+      navItems={navItems}
+      activeBusinessTemplateName={activeBusinessTemplate?.name ?? null}
+    >
       {children}
     </StudioPanelShell>
   );

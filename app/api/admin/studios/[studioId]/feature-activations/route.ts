@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import {
-  cancelStudioFeatureStripeSubscription,
+  removeStudioFeatureFromStripeBilling,
   scheduleStudioFeatureSubscriptionCancelAtPeriodEnd,
   setStudioFeatureRequestsDesiredForSubscription,
 } from "@/lib/studio-feature-billing";
@@ -27,6 +27,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
     overridePriceCents?: number | null;
     /** When revoking with a Stripe subscription: schedule cancel_at_period_end instead of immediate cancel. */
     cancelStripeAtPeriodEnd?: boolean;
+    /** Required for status changes (audit). */
+    reason?: string;
   };
   try {
     body = await req.json();
@@ -52,6 +54,15 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "status and/or overridePriceCents required" }, { status: 400 });
   }
 
+  const auditReason =
+    typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : "";
+  if ((hasStatus || hasOverride) && auditReason.length < 8) {
+    return NextResponse.json(
+      { error: "reason required (at least 8 characters) for add-on entitlement changes" },
+      { status: 400 },
+    );
+  }
+
   const beforeSnap = existing
     ? {
         status: existing.status,
@@ -66,7 +77,13 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (hasStatus) {
     if (body.status === "active") {
       if (existing?.stripeSubscriptionId) {
-        await cancelStudioFeatureStripeSubscription(existing);
+        await removeStudioFeatureFromStripeBilling({
+          studioId,
+          featureId,
+          stripeSubscriptionId: existing.stripeSubscriptionId,
+          stripeSubscriptionItemId: existing.stripeSubscriptionItemId,
+          featureStripePriceId: feature.stripePriceId,
+        });
       }
       const now = new Date();
       await prisma.studioFeatureActivation.upsert({
@@ -108,6 +125,16 @@ export async function PATCH(req: Request, ctx: Ctx) {
             scheduleEventKind: "admin_cancel_at_period_end",
           });
           if (!scheduled.ok) {
+            if (scheduled.error === "multi_item_sub_cancel_at_period_end_unsupported") {
+              return NextResponse.json(
+                {
+                  error:
+                    "This studio shares one Stripe subscription across multiple add-ons. Use immediate revoke to remove billing for this SKU (prorated), or manage the subscription in Stripe.",
+                  code: "MULTI_ITEM_CANCEL_AT_PERIOD_END",
+                },
+                { status: 409 },
+              );
+            }
             return NextResponse.json(
               { error: "Could not schedule cancel at period end in Stripe. Try immediate revoke." },
               { status: 502 },
@@ -121,7 +148,13 @@ export async function PATCH(req: Request, ctx: Ctx) {
           didScheduleStripePeriodEnd = true;
           skipAdminInactiveLedgerEvent = true;
         } else {
-          await cancelStudioFeatureStripeSubscription(existing);
+          await removeStudioFeatureFromStripeBilling({
+            studioId,
+            featureId,
+            stripeSubscriptionId: existing.stripeSubscriptionId,
+            stripeSubscriptionItemId: existing.stripeSubscriptionItemId,
+            featureStripePriceId: feature.stripePriceId,
+          });
         }
       }
 
@@ -197,7 +230,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
           overridePriceCents: fresh.overridePriceCents,
         }
       : null,
-    reason: typeof body.status === "string" ? `status:${body.status}` : "overridePriceCents",
+    reason: hasStatus ? `${auditReason} · status:${body.status}` : `${auditReason} · overridePrice`,
   });
 
   if (hasStatus && body.status === "active") {

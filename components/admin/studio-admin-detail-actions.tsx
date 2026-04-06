@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
 
 type Props = {
@@ -16,22 +17,32 @@ export function StudioAdminDetailActions({ studioId, displayName, status, market
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [rankInput, setRankInput] = useState(String(marketplaceRankWeight));
+  const [auditReason, setAuditReason] = useState("");
 
-  async function patch(body: Record<string, unknown>) {
+  async function patch(body: Record<string, unknown>): Promise<boolean> {
+    const reason = auditReason.trim();
+    if (reason.length < 8) {
+      setMsg("Enter an audit reason (min 8 characters) in the field below.");
+      return false;
+    }
     setBusy(true);
     setMsg("");
     try {
       const r = await fetch(`/api/admin/studios/${studioId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ ...body, reason }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
         setMsg(typeof j.error === "string" ? j.error : "Request failed");
-        return;
+        return false;
       }
       router.refresh();
+      return true;
+    } catch {
+      setMsg("Network error");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -43,13 +54,24 @@ export function StudioAdminDetailActions({ studioId, displayName, status, market
       setMsg("Rank weight must be a number");
       return;
     }
-    await patch({ marketplaceRankWeight: n });
-    setMsg("Saved rank weight");
+    const ok = await patch({ marketplaceRankWeight: n });
+    if (ok) setMsg("Saved rank weight");
   }
 
   return (
     <div className="space-y-6">
       {msg ? <p className={msg.includes("Saved") ? ui.successText : ui.errorText}>{msg}</p> : null}
+
+      <label className="block max-w-xl">
+        <span className={ui.label}>Audit reason (required for status / rank changes)</span>
+        <textarea
+          className={cn(ui.input, "mt-1 min-h-[72px] resize-y")}
+          value={auditReason}
+          onChange={(e) => setAuditReason(e.target.value)}
+          placeholder="Why you are changing this studio…"
+          maxLength={500}
+        />
+      </label>
 
       <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm">
         <h3 className="text-sm font-semibold text-amber-950">Marketplace rank weight</h3>

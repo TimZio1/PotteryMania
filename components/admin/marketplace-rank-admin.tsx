@@ -18,14 +18,20 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
   const [rows, setRows] = useState(initial);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [auditReason, setAuditReason] = useState("");
 
   async function save(id: string, marketplaceRankWeight: number) {
+    const reason = auditReason.trim();
+    if (reason.length < 8) {
+      setMessage("Enter an audit reason (min 8 characters) before saving rank weights.");
+      return;
+    }
     setPendingId(id);
     setMessage(null);
     const res = await fetch(`/api/admin/studios/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ marketplaceRankWeight }),
+      body: JSON.stringify({ marketplaceRankWeight, reason }),
     });
     const data = await res.json();
     setPendingId(null);
@@ -42,6 +48,16 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
   return (
     <div className="space-y-4">
       {message ? <p className="text-sm text-stone-600">{message}</p> : null}
+      <label className="block max-w-xl text-sm text-stone-700">
+        Audit reason (required for weight saves)
+        <textarea
+          className={cn(ui.input, "mt-1 min-h-[72px] w-full resize-y")}
+          value={auditReason}
+          onChange={(e) => setAuditReason(e.target.value)}
+          placeholder="Why you are changing marketplace rank weights…"
+          maxLength={500}
+        />
+      </label>
       <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-stone-200 text-sm">
           <thead className="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">

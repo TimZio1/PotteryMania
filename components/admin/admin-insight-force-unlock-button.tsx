@@ -9,14 +9,23 @@ export default function AdminInsightForceUnlockButton({ insightId }: { insightId
   const [busy, setBusy] = useState(false);
 
   async function run() {
-    const r = window.prompt("Optional note for audit log (or leave blank):");
-    if (r === null) return;
+    let note = "";
+    for (;;) {
+      const r = window.prompt(
+        "Audit reason (required, at least 8 characters) — who asked and why unlock:",
+        note,
+      );
+      if (r === null) return;
+      note = r.trim();
+      if (note.length >= 8) break;
+      window.alert("Please enter at least 8 characters for the audit log.");
+    }
     setBusy(true);
     try {
       const res = await fetch(`/api/admin/generated-insights/${insightId}/force-unlock`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: r.trim() || undefined }),
+        body: JSON.stringify({ reason: note }),
       });
       const j = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {

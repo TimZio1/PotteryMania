@@ -32,6 +32,15 @@ export function MarketingLayout({ children, toolbar }: Props) {
               </p>
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-stone-700">
+              <Link href="/classes" className="transition hover:text-(--brand-ink)">
+                Classes
+              </Link>
+              <Link href="/marketplace" className="transition hover:text-(--brand-ink)">
+                Shop
+              </Link>
+              <Link href="/wear/shop" className="transition hover:text-(--brand-ink)">
+                Wearables
+              </Link>
               <Link href="/early-access" className="transition hover:text-(--brand-ink)">
                 Early access
               </Link>

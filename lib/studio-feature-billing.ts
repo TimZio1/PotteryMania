@@ -7,16 +7,18 @@ import type {
 } from "@prisma/client";
 import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
-
-/**
- * P2-F: When multi-item Stripe subscriptions are implemented for add-ons, pass `proration_behavior` on
- * `subscriptionItems.create` / `subscriptions.update` (e.g. `create_prorations` or `always_invoice`) per Stripe billing policy.
- * Current flows use dedicated Checkout Sessions per feature/bundle; mid-cycle item adds are not wired yet.
- */
-export const STUDIO_FEATURE_STRIPE_PRORATION_HINT =
-  process.env.STRIPE_STUDIO_FEATURE_PRORATION?.trim() || "none";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { getStripe } from "@/lib/stripe";
+
+/** Proration for mid-cycle subscription item add/remove (`subscriptionItems.create` / `.del`). */
+export type StudioFeatureProrationBehavior = "create_prorations" | "none" | "always_invoice";
+
+export function getStudioFeatureProrationBehavior(): StudioFeatureProrationBehavior {
+  const v = (process.env.STRIPE_STUDIO_FEATURE_PRORATION ?? "create_prorations").trim().toLowerCase();
+  if (v === "none" || v === "always_invoice") return v;
+  return "create_prorations";
+}
+
 
 export function platformFeatureRequiresStripeSubscription(
   feature: Pick<PlatformFeature, "isActive" | "grantByDefault" | "stripePriceId">,
@@ -185,6 +187,141 @@ export async function cancelStudioFeatureStripeSubscription(
   await markActivationsEndedForStripeSubscription(subId);
 }
 
+export async function resolveSubscriptionItemIdForPrice(
+  subscriptionId: string,
+  stripePriceId: string,
+): Promise<string | null> {
+  const subId = subscriptionId.trim();
+  const priceId = stripePriceId.trim();
+  if (!subId || !priceId.startsWith("price_")) return null;
+  try {
+    const stripe = getStripe();
+    const sub = await stripe.subscriptions.retrieve(subId, { expand: ["items.data.price"] });
+    for (const it of sub.items?.data ?? []) {
+      const p = it.price;
+      const pid = typeof p === "string" ? p : p?.id;
+      if (pid === priceId) return it.id;
+    }
+  } catch (e) {
+    console.error("[studio-feature-billing] resolve subscription item", e);
+  }
+  return null;
+}
+
+/**
+ * Add a paid catalog feature to an existing platform subscription (metadata `studio_feature_subscription`)
+ * so multiple add-ons share one Stripe subscription with proration on the next invoice.
+ */
+export async function tryAddStudioFeatureViaSubscriptionItem(input: {
+  studioId: string;
+  feature: Pick<PlatformFeature, "id" | "slug" | "stripePriceId">;
+}): Promise<{ ok: true; subscriptionId: string; itemId: string } | { ok: false }> {
+  const priceId = input.feature.stripePriceId?.trim();
+  if (!priceId?.startsWith("price_")) return { ok: false };
+
+  const acts = await prisma.studioFeatureActivation.findMany({
+    where: {
+      studioId: input.studioId,
+      stripeSubscriptionId: { not: null },
+      status: { in: ["active", "trialing", "pending_cancel"] },
+    },
+    select: { stripeSubscriptionId: true },
+  });
+  const subIds = [...new Set(acts.map((a) => a.stripeSubscriptionId!.trim()).filter(Boolean))];
+  const stripe = getStripe();
+  const proration = getStudioFeatureProrationBehavior();
+
+  for (const subId of subIds) {
+    let sub: Stripe.Subscription;
+    try {
+      sub = await stripe.subscriptions.retrieve(subId, { expand: ["items.data.price"] });
+    } catch {
+      continue;
+    }
+    if (sub.status === "canceled" || sub.status === "incomplete_expired") continue;
+    if (sub.metadata?.type !== "studio_feature_subscription") continue;
+
+    const hasPrice = (sub.items?.data ?? []).some((it) => {
+      const p = it.price;
+      const pid = typeof p === "string" ? p : p?.id;
+      return pid === priceId;
+    });
+    if (hasPrice) return { ok: false };
+
+    try {
+      const item = await stripe.subscriptionItems.create({
+        subscription: subId,
+        price: priceId,
+        quantity: 1,
+        proration_behavior: proration,
+      });
+      return { ok: true, subscriptionId: subId, itemId: item.id };
+    } catch (e) {
+      console.error("[studio-feature-billing] subscriptionItems.create", e);
+    }
+  }
+  return { ok: false };
+}
+
+/**
+ * Turn off Stripe billing for one add-on: remove a subscription line item (prorated) when possible;
+ * otherwise cancel the whole subscription (legacy one-feature-per-sub).
+ */
+export async function removeStudioFeatureFromStripeBilling(input: {
+  studioId: string;
+  featureId: string;
+  stripeSubscriptionId: string | null | undefined;
+  stripeSubscriptionItemId?: string | null;
+  featureStripePriceId?: string | null;
+}): Promise<void> {
+  const subId = input.stripeSubscriptionId?.trim();
+  if (!subId) return;
+  const stripe = getStripe();
+  const proration = getStudioFeatureProrationBehavior();
+
+  let itemId = input.stripeSubscriptionItemId?.trim() || null;
+  const priceId = input.featureStripePriceId?.trim();
+  if (!itemId && priceId?.startsWith("price_")) {
+    itemId = await resolveSubscriptionItemIdForPrice(subId, priceId);
+  }
+
+  if (!itemId) {
+    await cancelStudioFeatureStripeSubscription({
+      studioId: input.studioId,
+      stripeSubscriptionId: subId,
+    });
+    return;
+  }
+
+  try {
+    const sub = await stripe.subscriptions.retrieve(subId, { expand: ["items.data"] });
+    const n = sub.items?.data?.length ?? 0;
+    if (n <= 1) {
+      await stripe.subscriptions.cancel(subId);
+      await markActivationsEndedForStripeSubscription(subId);
+      return;
+    }
+    await stripe.subscriptionItems.del(itemId, { proration_behavior: proration });
+    await prisma.studioFeatureActivation.updateMany({
+      where: { studioId: input.studioId, featureId: input.featureId },
+      data: {
+        status: "inactive",
+        stripeSubscriptionId: null,
+        stripeSubscriptionItemId: null,
+        activatedAt: null,
+        deactivatesAt: null,
+        trialEndsAt: null,
+      },
+    });
+  } catch (e) {
+    console.error("[studio-feature-billing] removeStudioFeatureFromStripeBilling", e);
+    await cancelStudioFeatureStripeSubscription({
+      studioId: input.studioId,
+      stripeSubscriptionId: subId,
+    });
+  }
+}
+
 /** Sync `studio_feature_request.desired_on` for every catalog feature tied to this subscription row (bundle-safe). */
 export async function setStudioFeatureRequestsDesiredForSubscription(input: {
   studioId: string;
@@ -239,7 +376,19 @@ export async function scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(
       "vendor_cancel_at_period_end" | "admin_cancel_at_period_end"
     >;
   },
-) {
+): Promise<
+  | { ok: true; periodEnd: Date }
+  | {
+      ok: false;
+      error:
+        | "missing_subscription_id"
+        | "stripe_retrieve_failed"
+        | "not_studio_billing_subscription"
+        | "stripe_update_failed"
+        | "missing_period_end"
+        | "multi_item_sub_cancel_at_period_end_unsupported";
+    }
+> {
   const scheduleEventKind = opts?.scheduleEventKind ?? "vendor_cancel_at_period_end";
   const subId = subscriptionId.trim();
   if (!subId) return { ok: false as const, error: "missing_subscription_id" };
@@ -254,8 +403,16 @@ export async function scheduleStudioFeatureSubscriptionCancelAtPeriodEnd(
   if (!isStudioBillingSubscription(sub)) {
     return { ok: false as const, error: "not_studio_billing_subscription" };
   }
+  const itemCount = sub.items?.data?.length ?? 0;
+  if (itemCount > 1) {
+    return { ok: false as const, error: "multi_item_sub_cancel_at_period_end_unsupported" };
+  }
   try {
-    sub = await stripe.subscriptions.update(subId, { cancel_at_period_end: true, expand: ["items.data"] });
+    sub = await stripe.subscriptions.update(subId, {
+      cancel_at_period_end: true,
+      proration_behavior: "none",
+      expand: ["items.data"],
+    });
   } catch (e) {
     console.error("[studio-feature-billing] schedule cancel at period end", e);
     return { ok: false as const, error: "stripe_update_failed" };

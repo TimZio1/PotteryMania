@@ -29,7 +29,10 @@ export async function POST(req: Request, ctx: Ctx) {
   } catch {
     body = {};
   }
-  const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : null;
+  const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : "";
+  if (reason.length < 8) {
+    return NextResponse.json({ error: "reason required (at least 8 characters)" }, { status: 400 });
+  }
 
   const insight = await prisma.generatedInsight.findUnique({
     where: { id },

@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { requireAdminUser } from "@/lib/auth-session";
+import { requireHyperAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { executeAdminStripeOrderRefund } from "@/lib/orders/admin-stripe-order-refund";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request, ctx: { params: Promise<{ orderId: string }> }) {
-  const user = await requireAdminUser();
+  const user = await requireHyperAdminUser();
   if (!user) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Forbidden — hyper_admin only" }, { status: 403 });
   }
 
   const { orderId } = await ctx.params;

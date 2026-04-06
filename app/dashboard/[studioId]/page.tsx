@@ -77,7 +77,7 @@ export default async function StudioPanelHomePage({ params }: Props) {
     }),
     prisma.studio.findUnique({
       where: { id: studioId },
-      select: { displayName: true, activationPaidAt: true },
+      select: { displayName: true, activationPaidAt: true, businessTemplateSlug: true },
     }),
   ]);
 
@@ -104,6 +104,21 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
+      {!studio?.businessTemplateSlug ? (
+        <div className="rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50/90 to-white px-5 py-6 shadow-sm sm:px-8 sm:py-8">
+          <h2 className="text-lg font-semibold text-amber-950 sm:text-xl">Your studio is not structured yet</h2>
+          <p className="mt-2 max-w-xl text-sm text-stone-700">
+            Choose a template to organize your classes, bookings, and growth. Takes under a minute.
+          </p>
+          <Link
+            href={`/dashboard/${studioId}/template`}
+            className={`${ui.buttonPrimary} mt-5 inline-flex w-full justify-center sm:w-auto`}
+          >
+            Choose template
+          </Link>
+        </div>
+      ) : null}
+
       <div>
         <p className={ui.overline}>Today</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">{studio?.displayName}</h1>

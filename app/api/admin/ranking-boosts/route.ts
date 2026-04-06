@@ -31,9 +31,9 @@ export async function POST(req: Request) {
   const boostValue = typeof body.boostValue === "number" && Number.isFinite(body.boostValue) ? body.boostValue : NaN;
   const reason = typeof body.reason === "string" ? body.reason.trim() : "";
 
-  if (!studioId || !boostType || Number.isNaN(boostValue) || reason.length < 3) {
+  if (!studioId || !boostType || Number.isNaN(boostValue) || reason.length < 8) {
     return NextResponse.json(
-      { error: "studioId, boostType, boostValue, and reason (min 3 chars) required" },
+      { error: "studioId, boostType, boostValue, and reason (min 8 chars) required" },
       { status: 400 },
     );
   }

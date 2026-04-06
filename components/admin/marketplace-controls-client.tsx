@@ -67,6 +67,10 @@ export default function MarketplaceControlsClient() {
   const [bBusy, setBBusy] = useState(false);
 
   async function addPlacement() {
+    if (pReason.trim().length < 8) {
+      setErr("Audit reason must be at least 8 characters.");
+      return;
+    }
     setPBusy(true);
     setErr(null);
     try {
@@ -94,6 +98,10 @@ export default function MarketplaceControlsClient() {
   }
 
   async function addBoost() {
+    if (bReason.trim().length < 8) {
+      setErr("Audit reason must be at least 8 characters.");
+      return;
+    }
     setBBusy(true);
     setErr(null);
     try {
@@ -122,8 +130,8 @@ export default function MarketplaceControlsClient() {
   }
 
   async function deletePlacement(id: string) {
-    const reason = window.prompt("Audit reason (min 3 chars) for removing this placement?");
-    if (!reason || reason.trim().length < 3) return;
+    const reason = window.prompt("Audit reason (min 8 chars) for removing this placement?");
+    if (!reason || reason.trim().length < 8) return;
     const r = await fetch(`/api/admin/featured-placements/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -139,8 +147,8 @@ export default function MarketplaceControlsClient() {
   }
 
   async function deleteBoost(id: string) {
-    const reason = window.prompt("Audit reason (min 3 chars) for removing this boost?");
-    if (!reason || reason.trim().length < 3) return;
+    const reason = window.prompt("Audit reason (min 8 chars) for removing this boost?");
+    if (!reason || reason.trim().length < 8) return;
     const r = await fetch(`/api/admin/ranking-boosts/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -197,7 +205,7 @@ export default function MarketplaceControlsClient() {
               className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2"
               value={pReason}
               onChange={(e) => setPReason(e.target.value)}
-              placeholder="Why add this placement?"
+              placeholder="Why add this placement? (min 8 chars)"
             />
           </label>
         </div>
@@ -259,7 +267,7 @@ export default function MarketplaceControlsClient() {
               className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2"
               value={bReason}
               onChange={(e) => setBReason(e.target.value)}
-              placeholder="Campaign / note"
+              placeholder="Campaign / note (min 8 chars)"
             />
           </label>
         </div>

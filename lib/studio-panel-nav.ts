@@ -11,6 +11,7 @@ export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
   const b = (path: string) => `/dashboard/${studioId}${path}`;
   return [
     { href: b(""), label: "Dashboard" },
+    { href: b("/template"), label: "Studio template" },
     { href: b("/calendar"), label: "Calendar" },
     { href: b("/bookings"), label: "Bookings" },
     { href: b("/students"), label: "Students" },

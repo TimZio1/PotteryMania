@@ -11,11 +11,14 @@ export default function StudioPanelShell({
   studioId,
   studioName,
   navItems,
+  activeBusinessTemplateName,
   children,
 }: {
   studioId: string;
   studioName: string;
   navItems?: StudioPanelNavItem[];
+  /** When set, shows top bar: Using: … + Change template */
+  activeBusinessTemplateName?: string | null;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -83,7 +86,23 @@ export default function StudioPanelShell({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 bg-stone-50/80 px-4 py-6 sm:px-6 lg:py-8">{children}</main>
+      <main className="min-w-0 flex-1 bg-stone-50/80 px-4 py-6 sm:px-6 lg:py-8">
+        {activeBusinessTemplateName ? (
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <p className="text-sm text-stone-800">
+              <span className="font-medium text-stone-500">Using:</span>{" "}
+              <span className="font-semibold text-amber-950">{activeBusinessTemplateName}</span>
+            </p>
+            <Link
+              href={`/dashboard/${studioId}/template`}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-amber-800/30 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-950 transition hover:bg-amber-100"
+            >
+              Change template
+            </Link>
+          </div>
+        ) : null}
+        {children}
+      </main>
     </div>
   );
 }

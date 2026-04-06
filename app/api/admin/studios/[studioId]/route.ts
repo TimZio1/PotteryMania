@@ -17,6 +17,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
     status?: string;
     rejectionReason?: string | null;
     marketplaceRankWeight?: number;
+    /** Audit trail — required for status or rank weight changes. */
+    reason?: string;
   };
   try {
     body = await req.json();
@@ -35,6 +37,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
   if (!hasStatus && !hasWeight) {
     return NextResponse.json({ error: "status or marketplaceRankWeight required" }, { status: 400 });
+  }
+
+  const auditReason = typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : "";
+  if ((hasStatus || hasWeight) && auditReason.length < 8) {
+    return NextResponse.json(
+      { error: "reason required (at least 8 characters) for studio updates" },
+      { status: 400 },
+    );
   }
 
   const before = await prisma.studio.findUnique({
@@ -95,7 +105,11 @@ export async function PATCH(req: Request, ctx: Ctx) {
         rejectionReason: studio.rejectionReason,
         displayName: studio.displayName,
       },
-      reason: typeof body.rejectionReason === "string" ? body.rejectionReason : status,
+      reason: `${auditReason} · status:${status}${
+        typeof body.rejectionReason === "string" && body.rejectionReason.trim()
+          ? ` · ${body.rejectionReason.trim().slice(0, 200)}`
+          : ""
+      }`,
     });
   }
 
@@ -107,7 +121,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       entityId: studioId,
       before: { marketplaceRankWeight: before.marketplaceRankWeight },
       after: { marketplaceRankWeight: studio.marketplaceRankWeight },
-      reason: null,
+      reason: auditReason,
     });
   }
 

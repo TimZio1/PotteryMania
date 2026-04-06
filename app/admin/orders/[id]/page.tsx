@@ -193,7 +193,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
         )}
       </div>
 
-      <AdminOrderRefundPanel orderId={order.id} snapshot={refundSnapshot} />
+      <AdminOrderRefundPanel
+        orderId={order.id}
+        snapshot={refundSnapshot}
+        allowRefund={admin.role === "hyper_admin"}
+      />
     </div>
   );
 }

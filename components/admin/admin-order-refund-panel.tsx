@@ -16,9 +16,11 @@ function formatMoney(cents: number, currency: string) {
 type Props = {
   orderId: string;
   snapshot: OrderRefundSnapshot;
+  /** P5-L: refunds are hyper_admin-only server-side; hide UI for other admins. */
+  allowRefund?: boolean;
 };
 
-export function AdminOrderRefundPanel({ orderId, snapshot }: Props) {
+export function AdminOrderRefundPanel({ orderId, snapshot, allowRefund = true }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -45,6 +47,21 @@ export function AdminOrderRefundPanel({ orderId, snapshot }: Props) {
         <p className="mt-2 text-xs text-stone-500">
           Received {formatMoney(snapshot.amountReceivedCents, snapshot.currency)}, already refunded{" "}
           {formatMoney(snapshot.amountRefundedCents, snapshot.currency)}.
+        </p>
+      </div>
+    );
+  }
+
+  if (!allowRefund) {
+    return (
+      <div className={`${ui.cardMuted} mt-8`}>
+        <p className={ui.label}>Stripe refund</p>
+        <p className="mt-1 text-sm text-stone-600">
+          Only <strong>hyper_admin</strong> can issue Stripe refunds. Refundable balance (read-only):{" "}
+          <span className="font-semibold tabular-nums text-amber-950">
+            {formatMoney(snapshot.refundableCents, snapshot.currency)}
+          </span>
+          .
         </p>
       </div>
     );

@@ -18,6 +18,7 @@ import {
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
+import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -74,6 +75,24 @@ export async function POST(req: Request) {
               data: { stripePlatformCustomerId: customerId },
             });
           }
+          let stripeSubscriptionItemId: string | null = null;
+          const priceId = feature.stripePriceId?.trim();
+          if (priceId?.startsWith("price_")) {
+            try {
+              const stripe = getStripe();
+              const fullSub = await stripe.subscriptions.retrieve(subscriptionId, {
+                expand: ["items.data.price"],
+              });
+              const match = (fullSub.items?.data ?? []).find((it) => {
+                const p = it.price;
+                const pid = typeof p === "string" ? p : p?.id;
+                return pid === priceId;
+              });
+              stripeSubscriptionItemId = match?.id ?? null;
+            } catch (e) {
+              console.error("[stripe webhook] resolve subscription item for feature", e);
+            }
+          }
           const now = new Date();
           await prisma.studioFeatureActivation.upsert({
             where: { studioId_featureId: { studioId, featureId } },
@@ -83,11 +102,13 @@ export async function POST(req: Request) {
               status: "active",
               activatedAt: now,
               stripeSubscriptionId: subscriptionId,
+              stripeSubscriptionItemId,
             },
             update: {
               status: "active",
               activatedAt: now,
               stripeSubscriptionId: subscriptionId,
+              stripeSubscriptionItemId,
               deactivatesAt: null,
             },
           });
@@ -214,6 +235,63 @@ export async function POST(req: Request) {
           });
         } catch (e) {
           console.error("insight_purchase webhook", e);
+        }
+      }
+      return NextResponse.json({ received: true });
+    }
+
+    // --- PotteryMania native wear (platform Checkout, no Connect) ---
+    if (session.metadata?.type === "wear_order") {
+      const wearOrderId = session.metadata.wearOrderId;
+      if (wearOrderId) {
+        const pi = session.payment_intent;
+        const piId = typeof pi === "string" ? pi : pi?.id ?? null;
+        const amountTotal = session.amount_total ?? null;
+        try {
+          await prisma.$transaction(async (tx) => {
+            const order = await tx.wearOrder.findUnique({
+              where: { id: wearOrderId },
+              include: { items: true },
+            });
+            if (!order || order.status === "paid") return;
+            if (order.stripeCheckoutSessionId && order.stripeCheckoutSessionId !== session.id) return;
+
+            await tx.wearOrder.update({
+              where: { id: wearOrderId },
+              data: {
+                status: "paid",
+                stripeCheckoutSessionId: session.id,
+                stripePaymentIntentId: piId,
+                ...(amountTotal != null ? { amountTotalCents: amountTotal } : {}),
+              },
+            });
+
+            for (const item of order.items) {
+              if (!item.wearProductVariantId) continue;
+              const v = await tx.wearProductVariant.findUnique({
+                where: { id: item.wearProductVariantId },
+              });
+              if (!v || v.stockQuantity == null) continue;
+              await tx.wearProductVariant.update({
+                where: { id: v.id },
+                data: { stockQuantity: Math.max(0, v.stockQuantity - item.quantity) },
+              });
+            }
+
+            await tx.wearAnalyticsEvent.create({
+              data: {
+                kind: WEAR_EVENT_KINDS.purchaseSuccess,
+                orderId: wearOrderId,
+                payload: {
+                  stripeCheckoutSessionId: session.id,
+                  amountTotalCents: amountTotal,
+                  currency: session.currency ?? null,
+                },
+              },
+            });
+          });
+        } catch (e) {
+          console.error("[stripe webhook] wear_order", e);
         }
       }
       return NextResponse.json({ received: true });

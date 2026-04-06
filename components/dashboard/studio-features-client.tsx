@@ -47,6 +47,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<string | null>(null);
   const [syncNote, setSyncNote] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/studios/${studioId}/feature-requests`);
@@ -116,6 +117,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
         : `Enable “${label}” in your preferences?`;
       if (!window.confirm(msg)) return;
     }
+    setActionError(null);
     setPending(slug);
     const body: Record<string, unknown> = { slug, active: next };
     if (!next && row?.requiresPaidSubscription) body.cancelAtPeriodEnd = cancelAtPeriodEndChoice;
@@ -127,6 +129,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
     const data = (await res.json()) as {
       checkoutUrl?: string;
       error?: string;
+      code?: string;
       cancelAtPeriodEnd?: boolean;
       accessEndsAt?: string;
     };
@@ -136,7 +139,11 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
       return;
     }
     if (!res.ok) {
-      window.alert(data.error ?? "Could not update this add-on.");
+      const msg = data.error ?? "Could not update this add-on.";
+      if (res.status === 409 && data.code === "MULTI_ITEM_CANCEL_AT_PERIOD_END") {
+        setActionError(msg);
+      }
+      window.alert(msg);
       return;
     }
     if (data.cancelAtPeriodEnd && data.accessEndsAt) {
@@ -159,6 +166,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
         : `Every add-on in this pack will be turned on now (no separate Stripe prices required).`;
     if (!confirm(`Enable “${bundle.name}”?\n\n${stripePart}`)) return;
 
+    setActionError(null);
     setPending(`bundle:${bundle.id}`);
     const res = await fetch(`/api/studios/${studioId}/feature-requests`, {
       method: "POST",
@@ -168,6 +176,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
     const data = (await res.json()) as {
       checkoutUrl?: string;
       error?: string;
+      code?: string;
       activatedSlugs?: string[];
       needsIndividualStripeSlugs?: string[];
       alreadyComplete?: boolean;
@@ -179,7 +188,11 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
       return;
     }
     if (!res.ok) {
-      window.alert(data.error ?? "Could not apply this bundle.");
+      const msg = data.error ?? "Could not apply this bundle.";
+      if (res.status === 409 && data.code === "MULTI_ITEM_CANCEL_AT_PERIOD_END") {
+        setActionError(msg);
+      }
+      window.alert(msg);
       return;
     }
     if (data.alreadyComplete) {
@@ -210,6 +223,11 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
   return (
     <div className="space-y-8">
       {syncNote ? <p className="text-sm font-medium text-amber-900">{syncNote}</p> : null}
+      {actionError ? (
+        <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900" role="alert">
+          {actionError}
+        </p>
+      ) : null}
 
       {bundles.length > 0 ? (
         <section>

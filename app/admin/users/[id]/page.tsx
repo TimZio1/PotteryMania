@@ -208,7 +208,10 @@ export default async function AdminUserDetailPage({ params }: Props) {
           suspended={!!row.suspendedAt}
           actorIsHyperAdmin={admin.role === "hyper_admin"}
           canImpersonate={
-            !row.suspendedAt && row.id !== admin.id && !isAdminRole(row.role)
+            admin.role === "hyper_admin" &&
+            !row.suspendedAt &&
+            row.id !== admin.id &&
+            !isAdminRole(row.role)
           }
         />
         <div className="space-y-6">

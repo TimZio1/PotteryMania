@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { isAdminRole, requireAdminUser } from "@/lib/auth-session";
+import { isAdminRole, requireHyperAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 
 export const dynamic = "force-dynamic";
@@ -10,9 +10,9 @@ const TTL_MS = 60_000;
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function POST(_req: Request, ctx: Ctx) {
-  const admin = await requireAdminUser();
+  const admin = await requireHyperAdminUser();
   if (!admin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Forbidden — hyper_admin only" }, { status: 403 });
   }
 
   const { id: targetUserId } = await ctx.params;

@@ -125,12 +125,18 @@ export default async function Home() {
               {commissionLabel} commission on marketplace and class checkout — only when you get paid.
             </p>
           </div>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Link href="/early-access" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               Register your studio
             </Link>
             <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               How it works
+            </Link>
+            <Link
+              href="/wear/shop"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-amber-200/50 bg-amber-400/15 px-7 py-3 text-sm font-semibold text-amber-50 backdrop-blur-sm transition hover:bg-amber-400/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
+            >
+              Shop wearables
             </Link>
           </div>
         </ImageSection>

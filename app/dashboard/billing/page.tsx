@@ -25,6 +25,12 @@ export default async function DashboardBillingPage() {
     select: { id: true, displayName: true },
   });
 
+  const platformSubscriptions = await prisma.subscription.findMany({
+    where: { userId: user.id, status: { in: ["active", "trialing", "past_due"] } },
+    orderBy: { createdAt: "desc" },
+    include: { plan: { select: { name: true, slug: true, priceCents: true, currency: true, interval: true } } },
+  });
+
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-10">
       <div>
@@ -36,6 +42,34 @@ export default async function DashboardBillingPage() {
           transparency when platform-wide vendor plans are enabled.
         </p>
       </div>
+
+      {platformSubscriptions.length > 0 ? (
+        <div className={`${ui.card} space-y-3`}>
+          <h2 className="text-lg font-semibold text-stone-900">Platform billing subscriptions</h2>
+          <p className="text-sm text-stone-600">
+            Legacy <code className="text-xs">subscriptions</code> tied to your account (when enabled by operations).
+          </p>
+          <ul className="divide-y divide-stone-100 text-sm">
+            {platformSubscriptions.map((s) => (
+              <li key={s.id} className="py-3">
+                <span className="font-medium text-stone-800">{s.plan.name}</span>{" "}
+                <span className="text-stone-500">
+                  ({s.plan.slug}) · <code className="text-xs">{s.status}</code>
+                </span>
+                <p className="mt-1 text-stone-600">
+                  {(s.plan.priceCents / 100).toFixed(2)} {s.plan.currency} / {s.plan.interval}
+                  {s.currentPeriodEnd ? (
+                    <span className="text-stone-500">
+                      {" "}
+                      · current period ends {s.currentPeriodEnd.toISOString().slice(0, 10)}
+                    </span>
+                  ) : null}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {studios.length > 0 ? (
         <div className={`${ui.card} space-y-2`}>

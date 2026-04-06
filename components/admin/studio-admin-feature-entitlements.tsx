@@ -29,15 +29,21 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [auditReason, setAuditReason] = useState("");
 
   async function patch(featureId: string, body: Record<string, unknown>) {
+    const reason = auditReason.trim();
+    if (reason.length < 8) {
+      setMsg("Enter an audit reason (at least 8 characters) before changing add-ons.");
+      return;
+    }
     setBusyId(featureId);
     setMsg(null);
     try {
       const r = await fetch(`/api/admin/studios/${studioId}/feature-activations`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ featureId, ...body }),
+        body: JSON.stringify({ featureId, reason, ...body }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -59,6 +65,17 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
         as vendor self-serve). Override price is ops reference only.
       </p>
       {msg ? <p className="text-sm text-red-600">{msg}</p> : null}
+      <label className="block max-w-xl">
+        <span className={ui.label}>Audit reason (required for any change)</span>
+        <textarea
+          className={cn(ui.input, "mt-1 min-h-[72px] resize-y")}
+          value={auditReason}
+          onChange={(e) => setAuditReason(e.target.value)}
+          placeholder="Why you are granting, revoking, or changing override pricing…"
+          maxLength={500}
+        />
+        <span className="mt-1 block text-[11px] text-stone-500">Logged on admin audit; minimum 8 characters.</span>
+      </label>
       <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
         <table className="min-w-full divide-y divide-stone-200 text-sm">
           <thead className="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">

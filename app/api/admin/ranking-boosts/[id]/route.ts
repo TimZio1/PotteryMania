@@ -22,8 +22,8 @@ export async function DELETE(req: Request, ctx: Ctx) {
   } catch {
     /* optional empty */
   }
-  if (reason.length < 3) {
-    return NextResponse.json({ error: "reason required (min 3 chars) in JSON body" }, { status: 400 });
+  if (reason.length < 8) {
+    return NextResponse.json({ error: "reason required (min 8 chars) in JSON body" }, { status: 400 });
   }
 
   await prisma.rankingBoost.delete({ where: { id } });

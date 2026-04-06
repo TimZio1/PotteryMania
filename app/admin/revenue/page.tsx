@@ -403,9 +403,14 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           <section className="mt-10 rounded-2xl border border-stone-200 bg-stone-50/80 p-5">
             <h2 className="text-sm font-semibold text-amber-950">AI insight revenue</h2>
             <p className="mt-1 text-sm text-stone-600">
-              No insight purchase ledger in the schema yet — wire this block when insight purchases ship (Prompt 3 /
-              P5-G).
+              Paid unlocks in the selected window (see cards above). Template and conversion detail:{" "}
+              <Link href="/admin/ai-insights" className="font-medium text-amber-900 underline">
+                AI insights
+              </Link>
+              .
             </p>
+            <p className="mt-2 text-lg font-semibold tabular-nums text-amber-950">{eur(insightRevenueWindowCents)}</p>
+            <p className="text-xs text-stone-500">{insightPurchasesWindowCount} purchase(s) · {windowLabel}</p>
           </section>
         </>
       ) : null}

@@ -12,8 +12,61 @@ const { PrismaClient } = require("@prisma/client");
 const { hash } = require("bcryptjs");
 
 const prisma = new PrismaClient();
+const { BUSINESS_TEMPLATE_SEEDS } = require("./business-template-seeds.cjs");
+const { upsertWearProducts } = require("./wear-products-seed.cjs");
+
+async function upsertBusinessTemplates() {
+  for (const s of BUSINESS_TEMPLATE_SEEDS) {
+    await prisma.businessTemplate.upsert({
+      where: { slug: s.slug },
+      create: {
+        slug: s.slug,
+        name: s.name,
+        tagline: s.tagline,
+        businessModelLabel: s.businessModelLabel,
+        bullets: s.bullets,
+        priceCents: s.priceCents,
+        currency: s.currency,
+        isVisible: s.isVisible,
+        isFeatured: s.isFeatured,
+        isPlatformRecommended: s.isPlatformRecommended,
+        isDefault: s.isDefault,
+        sortOrder: s.sortOrder,
+        visualTheme: s.visualTheme,
+        newSetupSummary: s.newSetupSummary,
+        currentSetupSummary: s.currentSetupSummary,
+        whatWillChange: s.whatWillChange,
+        expectedImpact: s.expectedImpact,
+        successGoalPhrase: s.successGoalPhrase,
+      },
+      update: {
+        name: s.name,
+        tagline: s.tagline,
+        businessModelLabel: s.businessModelLabel,
+        bullets: s.bullets,
+        priceCents: s.priceCents,
+        currency: s.currency,
+        isVisible: s.isVisible,
+        isFeatured: s.isFeatured,
+        isPlatformRecommended: s.isPlatformRecommended,
+        isDefault: s.isDefault,
+        sortOrder: s.sortOrder,
+        visualTheme: s.visualTheme,
+        newSetupSummary: s.newSetupSummary,
+        currentSetupSummary: s.currentSetupSummary,
+        whatWillChange: s.whatWillChange,
+        expectedImpact: s.expectedImpact,
+        successGoalPhrase: s.successGoalPhrase,
+      },
+    });
+  }
+  console.log("[seed] business_templates upserted (" + BUSINESS_TEMPLATE_SEEDS.length + " rows)");
+}
 
 async function main() {
+  await upsertBusinessTemplates();
+  await upsertWearProducts(prisma);
+
   const emailRaw = process.env.SEED_HYPER_ADMIN_EMAIL;
   const password = process.env.SEED_HYPER_ADMIN_PASSWORD;
   if (!emailRaw?.trim() || !password?.length) {

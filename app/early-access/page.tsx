@@ -31,12 +31,20 @@ export default async function EarlyAccessPage() {
       <header className="absolute inset-x-0 top-0 z-30">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:h-18 sm:px-6">
           <BrandLogo href="/" variant="on-dark" />
-          <Link
-            href="/login"
-            className="shrink-0 text-sm font-medium text-white/90 underline-offset-4 transition hover:text-white hover:underline"
-          >
-            Sign in
-          </Link>
+          <div className="flex shrink-0 items-center gap-5">
+            <Link
+              href="/wear/shop"
+              className="text-sm font-semibold text-amber-100 underline-offset-4 transition hover:text-white hover:underline"
+            >
+              Wearables
+            </Link>
+            <Link
+              href="/login"
+              className="text-sm font-medium text-white/90 underline-offset-4 transition hover:text-white hover:underline"
+            >
+              Sign in
+            </Link>
+          </div>
         </div>
       </header>
 

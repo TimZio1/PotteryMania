@@ -11,6 +11,10 @@ function adminVisible(role: string | undefined) {
   return role === "admin" || role === "hyper_admin";
 }
 
+function wearZoneActive(pathname: string) {
+  return pathname === "/wear" || pathname.startsWith("/wear/");
+}
+
 type SiteHeaderProps = {
   /** Hide for guests during preregistration-only (studio signup via /early-access only). */
   showPublicSignIn?: boolean;
@@ -73,9 +77,21 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           <BrandLogo className="min-w-0 truncate text-(--brand-ink)" />
         </div>
 
-        <nav className="flex shrink-0 items-center gap-1 sm:gap-2" aria-label="Primary">
+        <nav className="flex shrink-0 flex-wrap items-center justify-end gap-1 sm:gap-2" aria-label="Primary">
           {authed ? (
             <div className="hidden items-center gap-1 md:flex">
+              <Link href="/marketplace" className={linkClass("/marketplace")}>
+                Shop
+              </Link>
+              <Link href="/classes" className={linkClass("/classes")}>
+                Classes
+              </Link>
+              <Link
+                href="/wear/shop"
+                className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
+              >
+                Wearables
+              </Link>
               <Link href="/cart" className={linkClass("/cart")}>
                 Cart
               </Link>
@@ -103,6 +119,30 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
             </div>
           ) : (
             <>
+              <div className="hidden items-center gap-1 md:flex">
+                <Link href="/marketplace" className={linkClass("/marketplace")}>
+                  Shop
+                </Link>
+                <Link href="/classes" className={linkClass("/classes")}>
+                  Classes
+                </Link>
+                <Link
+                  href="/wear/shop"
+                  className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
+                >
+                  Wearables
+                </Link>
+              </div>
+              <Link
+                href="/wear/shop"
+                className={cn(
+                  ui.buttonGhost,
+                  wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "",
+                  "md:hidden",
+                )}
+              >
+                Wearables
+              </Link>
               <Link
                 href="/early-access"
                 className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm"
@@ -147,6 +187,15 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </button>
             </div>
             <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
+              <Link href="/marketplace" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                Shop
+              </Link>
+              <Link href="/classes" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                Classes
+              </Link>
+              <Link href="/wear/shop" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
+                Wearables
+              </Link>
               <Link href="/cart" className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base")}>
                 Cart
               </Link>

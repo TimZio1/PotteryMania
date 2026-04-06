@@ -36,8 +36,8 @@ export async function POST(req: Request) {
   }
 
   const reason = typeof body.reason === "string" ? body.reason.trim() : "";
-  if (reason.length < 3) {
-    return NextResponse.json({ error: "reason required (min 3 chars)" }, { status: 400 });
+  if (reason.length < 8) {
+    return NextResponse.json({ error: "reason required (min 8 chars)" }, { status: 400 });
   }
 
   const studio = await prisma.studio.findFirst({ where: { id: studioId, status: "approved" } });

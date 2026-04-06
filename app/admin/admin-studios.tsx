@@ -18,10 +18,16 @@ export function AdminStudios({ initialStudios }: { initialStudios: S[] }) {
 
   async function act(id: string, status: "approved" | "rejected", reason?: string) {
     setMsg("");
+    const auditReason =
+      status === "approved"
+        ? "Approved studio from executive overview pending queue (batch card)"
+        : (reason && reason.trim().length >= 8
+            ? reason.trim()
+            : "Rejected studio from executive overview pending queue — owner notified to update profile");
     const r = await fetch(`/api/admin/studios/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, rejectionReason: reason }),
+      body: JSON.stringify({ status, rejectionReason: reason, reason: auditReason }),
     });
     if (!r.ok) {
       const j = await r.json();
