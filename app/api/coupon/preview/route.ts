@@ -21,7 +21,11 @@ export async function POST(req: Request) {
   const user = await getSessionUser();
   const { cartId } = await getCartForRequest(user?.id ?? null);
 
-  let body: { code?: string; shippingAddress?: { line1?: string; city?: string; country?: string } };
+  let body: {
+    code?: string;
+    studioId?: string;
+    shippingAddress?: { line1?: string; city?: string; country?: string };
+  };
   try {
     body = await req.json();
   } catch {
@@ -41,8 +45,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cart empty" }, { status: 400 });
   }
 
-  const built = await buildCheckoutLineRowsFromCart(cart);
+  const scopeStudio = typeof body.studioId === "string" ? body.studioId.trim() : undefined;
+  const built = await buildCheckoutLineRowsFromCart(cart, scopeStudio ? { studioId: scopeStudio } : undefined);
   if (!built.ok) {
+    if (built.status === 409 && "multiVendorStudios" in built) {
+      return NextResponse.json(
+        { error: built.error, multiVendorStudios: built.multiVendorStudios },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: built.error }, { status: built.status });
   }
 

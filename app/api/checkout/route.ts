@@ -39,6 +39,8 @@ export async function POST(req: Request) {
     billingAddress?: Record<string, unknown>;
     notes?: string;
     couponCode?: string;
+    /** Required when the cart contains items from multiple studios (separate Stripe Connect checkouts). */
+    studioId?: string;
   };
   try {
     body = await req.json();
@@ -60,8 +62,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cart empty" }, { status: 400 });
   }
 
-  const built = await buildCheckoutLineRowsFromCart(cart);
+  const scopeStudio = typeof body.studioId === "string" ? body.studioId.trim() : undefined;
+  const built = await buildCheckoutLineRowsFromCart(cart, scopeStudio ? { studioId: scopeStudio } : undefined);
   if (!built.ok) {
+    if (built.status === 409 && "multiVendorStudios" in built) {
+      return NextResponse.json(
+        { error: built.error, multiVendorStudios: built.multiVendorStudios },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: built.error }, { status: built.status });
   }
 
@@ -264,9 +273,12 @@ export async function POST(req: Request) {
   const useFlattenedStripe = discountAppliedCents > 0;
   const line_items = lineRowsToStripeLineItems(lineRows, useFlattenedStripe);
 
+  const checkoutCartItemIds = lineRows.map((r) => r.cartItemId).join(",");
+
   const sessionMetadata: Record<string, string> = {
     orderId: order.id,
     cartId,
+    checkoutCartItemIds,
   };
   if (couponIdForMeta && discountAppliedCents > 0) {
     sessionMetadata.couponId = couponIdForMeta;

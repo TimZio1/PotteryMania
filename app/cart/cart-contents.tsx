@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { depositChargedCents } from "@/lib/bookings/deposit";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
 import { ui } from "@/lib/ui-styles";
 
 type Item = {
   id: string;
+  vendorId: string;
+  vendor?: { id: string; displayName: string } | null;
   itemType: "product" | "booking";
   quantity: number;
   participantCount?: number | null;
@@ -80,15 +82,43 @@ export function CartContents() {
     load();
   }
 
+  const vendorGroups = useMemo(() => {
+    const m = new Map<string, { studioId: string; displayName: string; items: Item[] }>();
+    for (const i of items) {
+      const vid = i.vendorId || i.vendor?.id;
+      if (!vid) continue;
+      const displayName = i.vendor?.displayName?.trim() || "Studio";
+      const g = m.get(vid) ?? { studioId: vid, displayName, items: [] };
+      g.items.push(i);
+      m.set(vid, g);
+    }
+    return [...m.values()];
+  }, [items]);
+
+  const multiVendor = vendorGroups.length > 1;
+
+  useEffect(() => {
+    if (!multiVendor) return;
+    setCouponPreview(null);
+    setAppliedCode("");
+    setCouponErr("");
+  }, [multiVendor]);
+
   async function applyPromo() {
+    if (multiVendor) {
+      setCouponErr("Promo codes apply to one studio at a time. Check out each studio separately, or empty the cart to a single studio first.");
+      return;
+    }
     setCouponErr("");
     setCouponBusy(true);
+    const singleStudioId = vendorGroups[0]?.studioId;
     const r = await fetch("/api/coupon/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         code: promoInput.trim(),
         shippingAddress: { line1, city, country },
+        ...(singleStudioId ? { studioId: singleStudioId } : {}),
       }),
     });
     const j = await r.json().catch(() => ({}));
@@ -109,7 +139,7 @@ export function CartContents() {
     setCouponErr("");
   }
 
-  async function checkout() {
+  async function checkout(studioScopeId?: string) {
     setErr("");
     const r = await fetch("/api/checkout", {
       method: "POST",
@@ -118,7 +148,8 @@ export function CartContents() {
         customerName: name,
         customerEmail: email,
         shippingAddress: { line1, city, country },
-        ...(appliedCode ? { couponCode: appliedCode } : {}),
+        ...(studioScopeId ? { studioId: studioScopeId } : {}),
+        ...(!multiVendor && appliedCode ? { couponCode: appliedCode } : {}),
       }),
     });
     const j = await r.json();
@@ -183,6 +214,12 @@ export function CartContents() {
       </div>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-amber-950">Cart</h1>
       <p className="mt-2 text-sm text-stone-600">Review items, then pay securely with Stripe.</p>
+      {multiVendor ? (
+        <p className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+          Your cart includes <strong>more than one studio</strong>. Each studio is paid out separately via Stripe Connect, so you will complete{" "}
+          <strong>one secure checkout per studio</strong>. After paying for the first, return here to pay the rest.
+        </p>
+      ) : null}
 
       {items.length === 0 ? (
         <div className={`${ui.cardMuted} mt-10`}>
@@ -200,8 +237,16 @@ export function CartContents() {
         </div>
       ) : (
         <>
-          <ul className="mt-8 space-y-4">
-            {items.map((i) => {
+          <div className="mt-8 space-y-8">
+            {vendorGroups.map((group) => (
+              <section key={group.studioId}>
+                {multiVendor ? (
+                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                    {group.displayName}
+                  </h2>
+                ) : null}
+                <ul className="space-y-4">
+                  {group.items.map((i) => {
               const seatKeys = i.itemType === "booking" ? seatTypeKeysFromSlot(i.slot?.seatCapacities) : [];
               const fullEur = (lineDisplayFullCents(i) / 100).toFixed(2);
               const dueEur = (lineDueCents(i) / 100).toFixed(2);
@@ -217,6 +262,9 @@ export function CartContents() {
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <div className="min-w-0">
+                      {!multiVendor && i.vendor?.displayName ? (
+                        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{i.vendor.displayName}</p>
+                      ) : null}
                       <p className="font-medium text-stone-900">
                         {i.itemType === "product" ? i.product?.title : i.experience?.title}
                       </p>
@@ -277,8 +325,11 @@ export function CartContents() {
                   )}
                 </li>
               );
-            })}
-          </ul>
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
           <div className="mt-6 space-y-1 text-right text-sm text-stone-600">
             <p>
               Subtotal (due now){" "}
@@ -408,40 +459,63 @@ export function CartContents() {
                 <label className={ui.label} htmlFor="cart-promo">
                   Promo code
                 </label>
-                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    id="cart-promo"
-                    className={`${ui.input} sm:min-w-0 sm:flex-1`}
-                    placeholder="Enter code"
-                    value={promoInput}
-                    onChange={(e) => setPromoInput(e.target.value)}
-                    autoComplete="off"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      disabled={couponBusy || !promoInput.trim()}
-                      onClick={applyPromo}
-                      className={ui.buttonSecondary}
-                    >
-                      Apply
-                    </button>
-                    {appliedCode ? (
-                      <button type="button" onClick={clearPromo} className={ui.buttonGhost}>
-                        Remove
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-                <p className="mt-2 text-xs text-stone-500">
-                  {hasProducts
-                    ? "Shipping and tax estimates use your address above."
-                    : "Discount applies to class deposits in this cart."}
-                </p>
+                {multiVendor ? (
+                  <p className="mt-2 text-sm text-stone-600">
+                    Promo codes apply to a single studio checkout. Use a code after your cart only contains items from one studio, or apply it on each studio&apos;s checkout one at a time.
+                  </p>
+                ) : (
+                  <>
+                    <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <input
+                        id="cart-promo"
+                        className={`${ui.input} sm:min-w-0 sm:flex-1`}
+                        placeholder="Enter code"
+                        value={promoInput}
+                        onChange={(e) => setPromoInput(e.target.value)}
+                        autoComplete="off"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={couponBusy || !promoInput.trim()}
+                          onClick={applyPromo}
+                          className={ui.buttonSecondary}
+                        >
+                          Apply
+                        </button>
+                        {appliedCode ? (
+                          <button type="button" onClick={clearPromo} className={ui.buttonGhost}>
+                            Remove
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs text-stone-500">
+                      {hasProducts
+                        ? "Shipping and tax estimates use your address above."
+                        : "Discount applies to class deposits in this cart."}
+                    </p>
+                  </>
+                )}
               </div>
-              <button type="button" onClick={checkout} className={`${ui.buttonPrimary} mt-2 w-full`}>
-                Continue to payment
-              </button>
+              {multiVendor ? (
+                <div className="mt-4 space-y-3">
+                  {vendorGroups.map((g) => (
+                    <button
+                      key={g.studioId}
+                      type="button"
+                      onClick={() => checkout(g.studioId)}
+                      className={`${ui.buttonPrimary} w-full`}
+                    >
+                      Continue to payment — {g.displayName}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <button type="button" onClick={() => checkout()} className={`${ui.buttonPrimary} mt-2 w-full`}>
+                  Continue to payment
+                </button>
+              )}
             </div>
           </div>
         </>

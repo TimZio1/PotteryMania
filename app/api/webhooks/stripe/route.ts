@@ -378,8 +378,18 @@ export async function POST(req: Request) {
       }
 
       const cartId = session.metadata?.cartId;
+      const checkoutCartItemIds = session.metadata?.checkoutCartItemIds
+        ?.split(",")
+        .map((x) => x.trim())
+        .filter(Boolean);
       if (cartId) {
-        await tx.cartItem.deleteMany({ where: { cartId } });
+        if (checkoutCartItemIds?.length) {
+          await tx.cartItem.deleteMany({
+            where: { cartId, id: { in: checkoutCartItemIds } },
+          });
+        } else {
+          await tx.cartItem.deleteMany({ where: { cartId } });
+        }
       }
       return { skip: false, confirmedBookingIds, pendingApprovalIds, autoCancelledIds };
     });

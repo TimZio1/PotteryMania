@@ -10,7 +10,6 @@ import { trackMetaPixelEvent } from "@/lib/meta-pixel";
 
 const MAX_PHOTOS = 3;
 const MAX_FILE_MB = 5;
-const COUNTER_BASE = 124;
 
 function readMetaCookie(name: "_fbc" | "_fbp"): string | undefined {
   if (typeof document === "undefined") return undefined;
@@ -23,7 +22,13 @@ function readMetaCookie(name: "_fbc" | "_fbp"): string | undefined {
   }
 }
 
-export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number }) {
+export function EarlyAccessForm({
+  initialCount = 0,
+  preRegCap,
+}: {
+  initialCount?: number;
+  preRegCap: number;
+}) {
   const [email, setEmail] = useState("");
   const [studioName, setStudioName] = useState("");
   const [country, setCountry] = useState("");
@@ -37,12 +42,14 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
   const [done, setDone] = useState(false);
   const [uploadNotice, setUploadNotice] = useState("");
   const [showOptional, setShowOptional] = useState(false);
-  const [count, setCount] = useState(COUNTER_BASE + initialCount);
+  const [count, setCount] = useState(initialCount);
 
   useEffect(() => {
     fetch("/api/early-access/count")
       .then((r) => r.json())
-      .then((d) => { if (typeof d.count === "number") setCount(COUNTER_BASE + d.count); })
+      .then((d) => {
+        if (typeof d.count === "number") setCount(d.count);
+      })
       .catch(() => {});
   }, []);
 
@@ -125,7 +132,7 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
       try {
         const cr = await fetch("/api/early-access/count");
         const cd = await cr.json();
-        if (typeof cd.count === "number") setCount(COUNTER_BASE + cd.count);
+        if (typeof cd.count === "number") setCount(cd.count);
         else setCount((c) => c + 1);
       } catch {
         setCount((c) => c + 1);
@@ -156,11 +163,9 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
           Your studio is on the list. We&apos;ll reach out with next steps before launch.
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
-        {count > 0 && (
-          <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
-            {count} {count === 1 ? "studio" : "studios"} registered so far.
-          </p>
-        )}
+        <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
+          {count}/{preRegCap} studios on the early access list.
+        </p>
       </div>
     );
   }
@@ -208,7 +213,7 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
       {/* Country */}
       <div>
         <label className={ui.label} htmlFor="ea-country">
-          Country <span className="text-red-500">*</span>
+          Country (Europe only) <span className="text-red-500">*</span>
         </label>
         <select
           id="ea-country"
@@ -218,7 +223,7 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
           value={country}
           onChange={(e) => setCountry(e.target.value)}
         >
-          <option value="">Select your country</option>
+          <option value="">Select your country (Europe only)</option>
           {EUROPEAN_PREREGISTRATION_COUNTRIES.map((item) => (
             <option key={item} value={item}>
               {item}
@@ -332,12 +337,12 @@ export function EarlyAccessForm({ initialCount = 0 }: { initialCount?: number })
         <p className="text-center text-base font-semibold leading-snug text-stone-800 sm:text-lg">
           No credit card. No commitment. Cancel anytime.
         </p>
-        {count > 0 && (
-          <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-stone-900 sm:text-lg">
-            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-            {count} {count === 1 ? "studio" : "studios"} already registered
-          </p>
-        )}
+        <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-stone-900 sm:text-lg">
+          <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+          <span>
+            {count}/{preRegCap} studios already registered
+          </span>
+        </p>
       </div>
     </form>
   );

@@ -9,6 +9,7 @@ import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rail";
 import { getFeaturedStudiosForSlot } from "@/lib/featured-studios-public";
+import { PREREG_STUDIO_CAP } from "@/lib/brand";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
@@ -64,9 +65,6 @@ const differentiators = [
 
 const trustTags = ["Stoneware", "Porcelain", "Workshops", "Wheel Throwing", "Raku", "Studio Shelf", "Glaze", "Handbuilt"];
 
-/** Shown as “{n}+ real pre-reg / {cap}” on the landing announcement strip. */
-const LANDING_PREREG_CAP = 500;
-
 const studioShelfPieces = [
   { x: 220, y: 205, w: 110, h: 140, fill: "#dfc0a3" },
   { x: 370, y: 205, w: 88, h: 120, fill: "#b1774f" },
@@ -93,7 +91,7 @@ export default async function Home() {
   return (
     <MarketingLayout>
       <main className="overflow-hidden">
-        <AnnouncementStrip preRegCount={preRegCount} preRegCap={LANDING_PREREG_CAP} />
+        <AnnouncementStrip preRegCount={preRegCount} preRegCap={PREREG_STUDIO_CAP} />
 
         <ImageSection
           tone="hero"
@@ -322,8 +320,9 @@ export default async function Home() {
 function AnnouncementStrip({ preRegCount, preRegCap }: { preRegCount: number; preRegCap: number }) {
   const preRegLine = (
     <p className="text-sm text-stone-600 sm:text-right">
-      <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegCount}+</span> real pre-reg{" "}
-      <span className="text-stone-400">/</span> <span className="tabular-nums text-stone-600">{preRegCap}</span>
+      <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegCount}</span>
+      <span className="text-stone-400">/</span>
+      <span className="tabular-nums text-stone-600">{preRegCap}</span> real pre-reg
     </p>
   );
 

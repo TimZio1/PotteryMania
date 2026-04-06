@@ -9,6 +9,7 @@ export type CartWithCheckoutItems = Prisma.CartGetPayload<{
 }>;
 
 export type CheckoutLineRow = {
+  cartItemId: string;
   itemType: "product" | "booking";
   title: string;
   stripeName: string;
@@ -27,6 +28,11 @@ export type CheckoutLineRow = {
   vendorCents: number;
 };
 
+export type BuildCheckoutLineOptions = {
+  /** When the cart has multiple studios, pass the studio whose lines to build for Connect + order creation. */
+  studioId?: string;
+};
+
 export type BuildLineRowsResult =
   | {
       ok: true;
@@ -38,17 +44,52 @@ export type BuildLineRowsResult =
       productBps: number;
       bookingBps: number;
     }
-  | { ok: false; error: string; status: number };
+  | { ok: false; error: string; status: number }
+  | {
+      ok: false;
+      error: string;
+      status: 409;
+      multiVendorStudios: { id: string; displayName: string; itemCount: number }[];
+    };
 
-export async function buildCheckoutLineRowsFromCart(cart: CartWithCheckoutItems | null): Promise<BuildLineRowsResult> {
+export async function buildCheckoutLineRowsFromCart(
+  cart: CartWithCheckoutItems | null,
+  options?: BuildCheckoutLineOptions,
+): Promise<BuildLineRowsResult> {
   if (!cart?.items.length) {
     return { ok: false, error: "Cart empty", status: 400 };
   }
 
-  const studioId = cart.items[0].vendorId;
-  if (cart.items.some((i) => i.vendorId !== studioId)) {
-    return { ok: false, error: "Mixed vendors", status: 400 };
+  const scopeStudio = options?.studioId?.trim() || null;
+  const items = scopeStudio
+    ? cart.items.filter((i) => i.vendorId === scopeStudio)
+    : cart.items;
+
+  if (scopeStudio && !items.length) {
+    return { ok: false, error: "No cart lines for that studio", status: 400 };
   }
+
+  const vendorIds = [...new Set(cart.items.map((i) => i.vendorId))];
+  if (!scopeStudio && vendorIds.length > 1) {
+    const counts = new Map<string, { displayName: string; itemCount: number }>();
+    for (const i of cart.items) {
+      const name = i.vendor?.displayName?.trim() || "Studio";
+      const cur = counts.get(i.vendorId) ?? { displayName: name, itemCount: 0 };
+      cur.itemCount += 1;
+      counts.set(i.vendorId, cur);
+    }
+    return {
+      ok: false,
+      error: "Your cart has items from more than one studio. Check out each studio separately.",
+      status: 409,
+      multiVendorStudios: vendorIds.map((id) => {
+        const c = counts.get(id)!;
+        return { id, displayName: c.displayName, itemCount: c.itemCount };
+      }),
+    };
+  }
+
+  const studioId = items[0].vendorId;
 
   const productBps = await resolveCommissionBps(studioId, "product");
   const bookingBps = await resolveCommissionBps(studioId, "booking");
@@ -58,7 +99,7 @@ export async function buildCheckoutLineRowsFromCart(cart: CartWithCheckoutItems 
   let totalWeightGrams = 0;
   const lineRows: CheckoutLineRow[] = [];
 
-  for (const item of cart.items) {
+  for (const item of items) {
     if (item.itemType === "product") {
       if (!item.productId || !item.product) {
         return { ok: false, error: "Invalid cart item", status: 400 };
@@ -81,6 +122,7 @@ export async function buildCheckoutLineRowsFromCart(cart: CartWithCheckoutItems 
       commissionTotal += com;
       totalWeightGrams += (p.weightGrams ?? 0) * item.quantity;
       lineRows.push({
+        cartItemId: item.id,
         itemType: "product",
         title: p.title,
         stripeName: p.title,
@@ -145,6 +187,7 @@ export async function buildCheckoutLineRowsFromCart(cart: CartWithCheckoutItems 
       : `${experience.title} (per person)`;
 
     lineRows.push({
+      cartItemId: item.id,
       itemType: "booking",
       title: experience.title,
       stripeName,

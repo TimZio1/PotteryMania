@@ -71,17 +71,6 @@ export async function POST(req: Request) {
     });
     if (!product) return NextResponse.json({ error: "Product not available" }, { status: 400 });
 
-    const otherVendor = existingItems.find((i) => i.vendorId !== product.studioId);
-    if (otherVendor) {
-      return NextResponse.json(
-        {
-          error:
-            "Your cart can only include one studio at a time. Multi-vendor checkout is not available yet — finish or clear this cart, then shop another studio.",
-        },
-        { status: 400 },
-      );
-    }
-
     const unit = product.salePriceCents ?? product.priceCents;
     const same = existingItems.find((i) => i.itemType === "product" && i.productId === productId);
     if (same) {
@@ -133,17 +122,6 @@ export async function POST(req: Request) {
     if (stErr) return NextResponse.json({ error: stErr }, { status: 400 });
     const seatErr = seatTypeCapacityError(slot.seatCapacities, seatType, participantCount, reservedBySame);
     if (seatErr) return NextResponse.json({ error: seatErr }, { status: 400 });
-
-    const otherVendor = existingItems.find((i) => i.vendorId !== experience.studioId);
-    if (otherVendor) {
-      return NextResponse.json(
-        {
-          error:
-            "Your cart can only include one studio at a time. Multi-vendor checkout is not available yet — finish or clear this cart, then shop another studio.",
-        },
-        { status: 400 },
-      );
-    }
 
     const policySnapshot = experience.cancellationPolicy
       ? {

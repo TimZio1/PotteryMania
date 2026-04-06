@@ -6,6 +6,7 @@ import { PromoCountdown } from "@/components/promo-countdown";
 import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { isPromoActive } from "@/lib/promo";
 import { buildMetadata } from "@/lib/seo";
+import { PREREG_STUDIO_CAP } from "@/lib/brand";
 import { EarlyAccessForm } from "./early-access-form";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
   return buildMetadata({
     title: "Early Access — Claim Your Studio",
-    description: `Pre-register your ceramic studio. 3 months free, then €5/month. ${commissionLabel} commission on checkout sales. Sell pottery, book classes, grow your audience.`,
+    description: `Pre-register your ceramic studio (Europe). 3 months free. ${commissionLabel} commission on checkout sales. Sell pottery, book classes, grow your audience.`,
     path: "/early-access",
   });
 }
@@ -73,7 +74,7 @@ export default async function EarlyAccessPage() {
             <p className="mx-auto mt-5 max-w-md text-base leading-7 text-stone-200/90 sm:text-lg sm:leading-8">
               The ceramics platform for makers who sell, teach, and grow.
               <br className="hidden sm:block" />
-              <span className="font-medium text-white">3 months free.</span> Then €5/month.
+              <span className="font-medium text-white">3 months free.</span>
             </p>
             <p className="mx-auto mt-4 max-w-md text-center text-sm leading-6 text-stone-300/95">
               We evaluate each studio for quality, authenticity, and fit before approval — pre-registering
@@ -83,7 +84,7 @@ export default async function EarlyAccessPage() {
 
           {/* Form card */}
           <div className="mt-8 rounded-3xl border border-white/10 bg-white/95 p-6 shadow-2xl shadow-black/30 backdrop-blur-md sm:mt-10 sm:p-8">
-            <EarlyAccessForm initialCount={initialCount} />
+            <EarlyAccessForm initialCount={initialCount} preRegCap={PREREG_STUDIO_CAP} />
           </div>
         </div>
       </section>
