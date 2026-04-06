@@ -29,7 +29,7 @@ export default async function EarlyAccessPage() {
       {/* Minimal header */}
       <header className="absolute inset-x-0 top-0 z-30">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:h-18 sm:px-6">
-          <BrandLogo href="/" variant="on-dark" priority />
+          <BrandLogo href="/" variant="on-dark" />
           <Link
             href="/login"
             className="shrink-0 text-sm font-medium text-white/90 underline-offset-4 transition hover:text-white hover:underline"
@@ -51,7 +51,7 @@ export default async function EarlyAccessPage() {
         {/* Content */}
         <div className="relative z-10 mx-auto w-full max-w-xl px-5 pt-24 pb-16 sm:px-6 sm:pt-28 sm:pb-20">
           <div className="mb-8 flex justify-center sm:mb-10">
-            <BrandLogo href="/" variant="on-dark" size="lg" priority />
+            <BrandLogo href="/" variant="on-dark" size="lg" />
           </div>
 
           {/* Urgency banner */}
@@ -74,6 +74,10 @@ export default async function EarlyAccessPage() {
               The ceramics platform for makers who sell, teach, and grow.
               <br className="hidden sm:block" />
               <span className="font-medium text-white">3 months free.</span> Then €5/month.
+            </p>
+            <p className="mx-auto mt-4 max-w-md text-center text-sm leading-6 text-stone-300/95">
+              We evaluate each studio for quality, authenticity, and fit before approval — pre-registering
+              expresses interest and is not a guarantee of access.
             </p>
           </div>
 

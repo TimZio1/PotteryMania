@@ -1,59 +1,56 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
+import { twMerge } from "tailwind-merge";
+import { PotteryManiaMark } from "@/components/pottery-mania-mark";
 import { cn } from "@/lib/cn";
-import { BRAND_LOGO_PUBLIC_PATH } from "@/lib/brand";
 
 type Props = {
   className?: string;
   href?: string | null;
-  priority?: boolean;
-  /** Dark hero backgrounds: light frame so the cream logo reads clearly. */
+  /** Dark hero backgrounds: light strokes and type (no box behind the logo). */
   variant?: "default" | "on-dark";
   size?: "sm" | "md" | "lg";
 };
 
-const sizeHeights: Record<NonNullable<Props["size"]>, string> = {
-  sm: "h-7",
-  md: "h-8 sm:h-9",
-  lg: "h-11 w-auto sm:h-14 md:h-[4.25rem]",
+const markSizes: Record<NonNullable<Props["size"]>, string> = {
+  sm: "h-5 w-5",
+  md: "h-7 w-7 sm:h-8 sm:w-8",
+  lg: "h-10 w-10 sm:h-12 sm:w-12 md:h-[3.25rem] md:w-[3.25rem]",
+};
+
+const wordSizes: Record<NonNullable<Props["size"]>, string> = {
+  sm: "text-base leading-none",
+  md: "text-lg leading-none sm:text-xl",
+  lg: "text-[1.65rem] leading-none sm:text-4xl md:text-[2.65rem] md:tracking-tight",
 };
 
 export function BrandLogo({
   className,
   href = "/",
-  priority,
   variant = "default",
   size = "md",
 }: Props) {
-  const imgDims = size === "lg" ? { width: 320, height: 86 } : { width: 240, height: 64 };
-  const img = (
-    <Image
-      src={BRAND_LOGO_PUBLIC_PATH}
-      alt="PotteryMania"
-      width={imgDims.width}
-      height={imgDims.height}
-      className={cn(sizeHeights[size], "w-auto")}
-      priority={priority}
-    />
+  const inner = (
+    <span className="inline-flex items-center gap-2 sm:gap-2.5">
+      <PotteryManiaMark className={markSizes[size]} />
+      <span className={cn("font-serif tracking-tight", wordSizes[size])}>PotteryMania</span>
+    </span>
   );
 
-  const inner =
-    variant === "on-dark" ? (
-      <span className="inline-flex rounded-lg bg-white/95 p-1.5 shadow-md ring-1 ring-white/25">{img}</span>
-    ) : (
-      img
-    );
+  const colorClass =
+    variant === "on-dark" ? "text-stone-50" : "text-(--brand-ink)";
 
   if (href === null) {
-    return <span className={cn("inline-flex items-center", className)}>{inner}</span>;
+    return (
+      <span className={twMerge("inline-flex items-center", colorClass, className)}>
+        {inner}
+      </span>
+    );
   }
 
   return (
     <Link
       href={href}
-      className={cn("inline-flex shrink-0 items-center", className)}
+      className={twMerge("inline-flex shrink-0 items-center", colorClass, className)}
       aria-label="PotteryMania home"
     >
       {inner}

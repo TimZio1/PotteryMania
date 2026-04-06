@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { MetaPixel } from "@/components/meta-pixel";
+import { BRAND_ICON_PUBLIC_PATH } from "@/lib/brand";
 import { siteMetadata } from "@/lib/seo";
 
 const geistSans = Geist({
@@ -38,8 +39,8 @@ export const metadata: Metadata = {
   description: siteMetadata.description,
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/potterymania-logo.png", type: "image/png" }],
-    apple: [{ url: "/potterymania-logo.png" }],
+    icon: [{ url: BRAND_ICON_PUBLIC_PATH, type: "image/svg+xml" }],
+    apple: [{ url: BRAND_ICON_PUBLIC_PATH }],
   },
   appleWebApp: { capable: true, title: "PotteryMania" },
   openGraph: {
@@ -74,6 +75,8 @@ export default function RootLayout({
         <MetaPixel />
         {metaPixelId ? (
           <noscript>
+            {/* Meta Pixel noscript fallback — must be a plain img per Meta docs; not a Next.js route. */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- external 1×1 tracking pixel */}
             <img
               height={1}
               width={1}

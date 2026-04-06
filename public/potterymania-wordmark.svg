@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" fill="none" role="img" aria-label="PotteryMania">
+  <g transform="translate(0 4)" stroke="#2c1810" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="37" x2="44" y2="37" stroke-width="2.35"/>
+    <path d="M7 37 Q24 11 41 37"/>
+    <path d="M11 37 Q24 16 37 37"/>
+    <path d="M15 37 Q24 21 33 37"/>
+  </g>
+  <text
+    x="56"
+    y="36"
+    fill="#2c1810"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="28"
+    font-weight="400"
+    letter-spacing="-0.02em"
+  >PotteryMania</text>
+</svg>

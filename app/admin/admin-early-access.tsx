@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Row = {
   id: string;
   email: string;
@@ -31,9 +33,9 @@ export function AdminEarlyAccessList({ rows, totalCount }: { rows: Row[]; totalC
       <p className="mt-1 text-sm text-stone-500">
         Leads from <code className="rounded bg-stone-100 px-1">/early-access</code>. Newest first.{capNote} Not the same as
         registered users — those appear under{" "}
-        <a href="/admin/users" className="font-medium text-amber-900 underline">
+        <Link href="/admin/users" className="font-medium text-amber-900 underline">
           Users
-        </a>
+        </Link>
         .
       </p>
       {!rows.length ? (

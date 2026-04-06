@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { PromoCountdown } from "@/components/promo-countdown";
+import { prisma } from "@/lib/db";
 import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
@@ -63,6 +64,9 @@ const differentiators = [
 
 const trustTags = ["Stoneware", "Porcelain", "Workshops", "Wheel Throwing", "Raku", "Studio Shelf", "Glaze", "Handbuilt"];
 
+/** Shown as “{n}+ real pre-reg / {cap}” on the landing announcement strip. */
+const LANDING_PREREG_CAP = 500;
+
 const studioShelfPieces = [
   { x: 220, y: 205, w: 110, h: 140, fill: "#dfc0a3" },
   { x: 370, y: 205, w: 88, h: 120, fill: "#b1774f" },
@@ -74,6 +78,7 @@ const studioShelfPieces = [
 
 export default async function Home() {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const preRegCount = await prisma.earlyAccessSignup.count();
   const featuredStudios = await getFeaturedStudiosForSlot("homepage_hero");
   const studioBenefits = [
     "Your own page, your own domain, your own shop — a branded studio home, not a buried profile",
@@ -88,7 +93,7 @@ export default async function Home() {
   return (
     <MarketingLayout>
       <main className="overflow-hidden">
-        <AnnouncementStrip />
+        <AnnouncementStrip preRegCount={preRegCount} preRegCap={LANDING_PREREG_CAP} />
 
         <ImageSection
           tone="hero"
@@ -314,15 +319,32 @@ export default async function Home() {
   );
 }
 
-function AnnouncementStrip() {
+function AnnouncementStrip({ preRegCount, preRegCap }: { preRegCount: number; preRegCap: number }) {
+  const preRegLine = (
+    <p className="text-sm text-stone-600 sm:text-right">
+      <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegCount}+</span> real pre-reg{" "}
+      <span className="text-stone-400">/</span> <span className="tabular-nums text-stone-600">{preRegCap}</span>
+    </p>
+  );
+
   return (
     <section className="border-b border-(--brand-line) bg-(--warm-surface)">
-      <div className={`${ui.pageContainer} flex flex-col gap-3 py-3 text-sm text-stone-700 sm:flex-row sm:items-center sm:justify-between`}>
-        <p className="font-medium text-(--brand-ink)">Curated onboarding for independent ceramic studios and makers.</p>
+      <div className={`${ui.pageContainer} flex flex-col gap-3 py-3 text-sm text-stone-700 sm:flex-row sm:items-start sm:justify-between`}>
+        <div className="max-w-xl space-y-1">
+          <p className="font-medium text-(--brand-ink)">Curated onboarding for independent ceramic studios and makers.</p>
+          <p className="text-xs leading-relaxed text-stone-600 sm:text-sm">
+            Pre-registration shows interest only. We <strong className="font-medium text-stone-700">evaluate</strong> each
+            studio for quality, authenticity, and fit with the platform before approval — not every signup is guaranteed a
+            spot.
+          </p>
+        </div>
         {isPromoActive() ? (
-          <PromoCountdown className="text-stone-600 [&_span]:text-stone-700" />
+          <div className="flex flex-col gap-1.5 sm:items-end">
+            <PromoCountdown className="text-stone-600 [&_span]:text-stone-700" />
+            {preRegLine}
+          </div>
         ) : (
-          <p className="text-stone-500">Now onboarding studios across Europe.</p>
+          preRegLine
         )}
       </div>
     </section>

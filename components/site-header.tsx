@@ -70,7 +70,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </svg>
             </button>
           ) : null}
-          <BrandLogo className="min-w-0 truncate text-(--brand-ink)" priority />
+          <BrandLogo className="min-w-0 truncate text-(--brand-ink)" />
         </div>
 
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2" aria-label="Primary">
