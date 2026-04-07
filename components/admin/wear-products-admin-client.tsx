@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 
 export type WearProductAdminRow = {
@@ -28,6 +29,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const refresh = useCallback(async () => {
     const q = includeArchived ? "?includeArchived=1" : "";
@@ -78,12 +80,14 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
 
   async function syncFromSpreadconnect() {
     setBusy(true);
+    setSyncing(true);
     setErr("");
     setMsg("");
     const r = await fetch("/api/admin/wear-products/sync-spreadconnect", {
       method: "POST",
     });
     setBusy(false);
+    setSyncing(false);
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
       setErr((j as { error?: string }).error ?? "Spreadconnect sync failed");
@@ -112,7 +116,14 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
           New wear product
         </Link>
         <button type="button" disabled={busy} onClick={syncFromSpreadconnect} className={ui.buttonSecondary}>
-          Sync Spreadconnect catalog
+          {syncing ? (
+            <span className="inline-flex items-center gap-2">
+              <Spinner size="sm" className="text-stone-600" />
+              Syncing Spreadconnect…
+            </span>
+          ) : (
+            "Sync Spreadconnect catalog"
+          )}
         </button>
         <Link
           href={includeArchived ? "/admin/wear-products" : "/admin/wear-products?archived=1"}
