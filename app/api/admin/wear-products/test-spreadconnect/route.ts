@@ -55,20 +55,50 @@ export async function GET(req: Request) {
     results.articles_bare = { error: e instanceof Error ? e.message : "fetch failed" };
   }
 
-  // Step 3: Test with limit/offset (what the sync uses)
+  // Step 3: Test with limit=1 (smallest possible request)
   try {
-    const artRes2 = await fetch(`${cfg.baseUrl}/articles?limit=100&offset=0`, {
+    const artRes2 = await fetch(`${cfg.baseUrl}/articles?limit=1&offset=0`, {
       headers: { "X-SPOD-ACCESS-TOKEN": cfg.apiKey },
       cache: "no-store",
     });
     const artBody2 = await artRes2.text();
-    results.articles_paginated = {
+    results.articles_limit1 = {
       status: artRes2.status,
       ok: artRes2.ok,
       body: artBody2.slice(0, 1000),
     };
   } catch (e) {
-    results.articles_paginated = { error: e instanceof Error ? e.message : "fetch failed" };
+    results.articles_limit1 = { error: e instanceof Error ? e.message : "fetch failed" };
+  }
+
+  // Step 4: Test with limit=100 (what the sync uses)
+  try {
+    const artRes3 = await fetch(`${cfg.baseUrl}/articles?limit=100&offset=0`, {
+      headers: { "X-SPOD-ACCESS-TOKEN": cfg.apiKey },
+      cache: "no-store",
+    });
+    const artBody3 = await artRes3.text();
+    results.articles_limit100 = {
+      status: artRes3.status,
+      ok: artRes3.ok,
+      body: artBody3.slice(0, 1000),
+    };
+  } catch (e) {
+    results.articles_limit100 = { error: e instanceof Error ? e.message : "fetch failed" };
+  }
+
+  // Step 5: Test product types endpoint (different resource, same auth)
+  try {
+    const ptRes = await fetch(`${cfg.baseUrl}/productTypes`, {
+      headers: { "X-SPOD-ACCESS-TOKEN": cfg.apiKey },
+      cache: "no-store",
+    });
+    results.productTypes = {
+      status: ptRes.status,
+      ok: ptRes.ok,
+    };
+  } catch (e) {
+    results.productTypes = { error: e instanceof Error ? e.message : "fetch failed" };
   }
 
   return NextResponse.json({ ok: true, ...results });
