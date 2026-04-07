@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SkeletonText } from "@/components/ui/skeleton";
 import { ui } from "@/lib/ui-styles";
 
 type FeatureRow = {
@@ -210,7 +211,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
     if (bits.length) window.alert(bits.join("\n"));
   }
 
-  if (loading) return <p className="text-sm text-stone-500">Loading…</p>;
+  if (loading) return <SkeletonText className="max-w-xl" lines={4} />;
 
   if (!rows.length) {
     return (

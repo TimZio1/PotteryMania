@@ -60,7 +60,7 @@ export default async function WearProductPage({ params }: Props) {
     <main className="bg-neutral-950 px-4 py-12 text-neutral-100 sm:px-6 sm:py-16">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:gap-16">
         <div>
-          <div className="relative aspect-[3/4] bg-neutral-900 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
+          <div className="relative aspect-3/4 bg-neutral-900 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
             {primary ? (
               <Image
                 src={primary}
@@ -70,13 +70,17 @@ export default async function WearProductPage({ params }: Props) {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />
-            ) : null}
+            ) : (
+              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-neutral-400">
+                Image coming soon
+              </div>
+            )}
           </div>
           {rest.length > 0 ? (
             <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
               {rest.map((src) => (
                 <div key={src} className="relative h-20 w-16 shrink-0 overflow-hidden bg-neutral-900 sm:h-24 sm:w-20">
-                  <Image src={src} alt="" fill className="object-cover" sizes="80px" />
+                  <Image src={src} alt={`${p.name} detail view`} fill className="object-cover" sizes="80px" />
                 </div>
               ))}
             </div>

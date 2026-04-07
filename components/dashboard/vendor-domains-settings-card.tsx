@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 
 type DomainRow = {
@@ -148,7 +149,9 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
           {error ? <p className="text-sm text-rose-700">{error}</p> : null}
 
           {loading ? (
-            <p className="text-sm text-stone-500">Loading…</p>
+            <div className="flex py-2">
+              <Spinner />
+            </div>
           ) : domains.length === 0 ? (
             <p className="text-sm text-stone-500">No domains yet.</p>
           ) : (

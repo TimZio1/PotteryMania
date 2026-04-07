@@ -1,15 +1,41 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCart } from "./add-to-cart";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ReviewSummary } from "@/components/review-summary";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ui } from "@/lib/ui-styles";
 import { getMarketplaceProduct } from "@/lib/products";
 import { prisma } from "@/lib/db";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ productId: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { productId } = await params;
+  const result = await getMarketplaceProduct(productId);
+  if (!result) {
+    return buildMetadata({
+      title: "Product not found",
+      description: "This marketplace product could not be found.",
+      path: `/marketplace/products/${productId}`,
+    });
+  }
+
+  const { product } = result;
+  return buildMetadata({
+    title: `${product.title} by ${product.studio.displayName}`,
+    description:
+      product.shortDescription ||
+      product.fullDescription ||
+      `Shop ${product.title} from ${product.studio.displayName} on PotteryMania.`,
+    path: `/marketplace/products/${productId}`,
+    image: product.images[0]?.imageUrl,
+  });
+}
 
 export default async function ProductPage({ params }: Props) {
   const { productId } = await params;
@@ -29,9 +55,12 @@ export default async function ProductPage({ params }: Props) {
   const price = (product.salePriceCents ?? product.priceCents) / 100;
 
   const toolbar = (
-    <Link href="/marketplace" className="text-sm font-medium text-amber-900 hover:text-amber-950">
-      ← Back to marketplace
-    </Link>
+    <Breadcrumbs
+      items={[
+        { label: "Marketplace", href: "/marketplace" },
+        { label: product.title },
+      ]}
+    />
   );
 
   return (
@@ -42,7 +71,7 @@ export default async function ProductPage({ params }: Props) {
             <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
               {product.images[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={product.images[0].imageUrl} alt="" className="aspect-square w-full object-cover" />
+                <img src={product.images[0].imageUrl} alt={product.title} className="aspect-square w-full object-cover" />
               ) : (
                 <div className="flex aspect-square items-center justify-center text-stone-400">No image</div>
               )}
@@ -51,7 +80,12 @@ export default async function ProductPage({ params }: Props) {
               <div className="mt-3 flex flex-wrap gap-2">
                 {product.images.slice(1).map((im) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={im.id} src={im.imageUrl} alt="" className="h-16 w-16 rounded-lg object-cover ring-1 ring-stone-200" />
+                  <img
+                    key={im.id}
+                    src={im.imageUrl}
+                    alt={`${product.title} detail view`}
+                    className="h-16 w-16 rounded-lg object-cover ring-1 ring-stone-200"
+                  />
                 ))}
               </div>
             ) : null}
@@ -152,7 +186,7 @@ export default async function ProductPage({ params }: Props) {
                   <div className="aspect-square bg-stone-100">
                     {item.images[0]?.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.images[0].imageUrl} alt="" className="h-full w-full object-cover" />
+                      <img src={item.images[0].imageUrl} alt={item.title} className="h-full w-full object-cover" />
                     ) : null}
                   </div>
                   <div className="p-4">

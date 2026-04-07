@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            <nav className="flex-1 space-y-1 px-3 py-4">
+            <nav aria-label="Hyperadmin sections" className="flex-1 space-y-1 px-3 py-4">
               {adminLinks.map((link) => (
                 <Link
                   key={link.href}

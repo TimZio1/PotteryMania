@@ -256,7 +256,15 @@ export default function StudioBookingsClient({
                         isSel && "bg-amber-50",
                         booking.bookingStatus === "awaiting_vendor_approval" && "bg-amber-50/40",
                       )}
+                      tabIndex={0}
+                      role="button"
                       onClick={() => openRow(booking)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          openRow(booking);
+                        }
+                      }}
                     >
                       <td className="px-2 py-3 align-top" onClick={(e) => e.stopPropagation()}>
                         {canSelect ? (

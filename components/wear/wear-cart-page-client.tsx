@@ -202,9 +202,18 @@ export function WearCartPageClient() {
         <h1 className="mt-4 text-center font-serif text-3xl text-white">Your selection</h1>
 
         {cancelled ? (
-          <p className="mt-6 rounded border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100">
-            Checkout was cancelled. Nothing was charged.
-          </p>
+          <div className="mt-6 rounded border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-center text-sm text-amber-100">
+            <p>Checkout was cancelled. Nothing was charged.</p>
+            <p className="mt-2 text-amber-100/80">Your cart is still here, so you can review it and try again whenever you’re ready.</p>
+            <button
+              type="button"
+              onClick={onCheckout}
+              disabled={checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid}
+              className="mt-3 inline-flex min-h-11 items-center justify-center border border-amber-200/40 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-400/10 disabled:opacity-50"
+            >
+              Try checkout again
+            </button>
+          </div>
         ) : null}
 
         {loadError ? <p className="mt-6 text-center text-sm text-red-300">{loadError}</p> : null}
@@ -246,12 +255,12 @@ export function WearCartPageClient() {
                       max={99}
                       value={l.quantity}
                       onChange={(e) => setQty(key, parseInt(e.target.value, 10) || 1)}
-                      className="w-16 border border-white/20 bg-neutral-900 px-2 py-2 text-center text-sm text-white"
+                      className="min-h-11 w-16 border border-white/20 bg-neutral-900 px-2 py-2 text-center text-sm text-white"
                     />
                     <button
                       type="button"
                       onClick={() => removeLine(key)}
-                      className="text-xs uppercase tracking-wider text-neutral-500 hover:text-red-300"
+                      className="min-h-11 px-2 text-xs uppercase tracking-wider text-neutral-500 hover:text-red-300"
                     >
                       Remove
                     </button>
@@ -318,6 +327,10 @@ export function WearCartPageClient() {
             >
               {checkoutBusy ? "Redirecting…" : "Pay securely"}
             </button>
+            <p className="mt-3 flex items-center justify-center gap-2 text-xs text-neutral-500">
+              <span aria-hidden="true">🔒</span>
+              Secure Stripe checkout
+            </p>
           </>
         ) : null}
 

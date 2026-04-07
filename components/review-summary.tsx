@@ -33,7 +33,10 @@ export function ReviewSummary({
         <div className="mt-6 space-y-4">
           {reviews.map((review) => (
             <article key={review.id} className="border-t border-stone-100 pt-4 first:border-0 first:pt-0">
-              <p className="text-sm font-medium text-amber-900">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</p>
+              <p className="text-sm font-medium text-amber-900" aria-label={`${review.rating} out of 5 stars`}>
+                {"★".repeat(review.rating)}
+                {"☆".repeat(5 - review.rating)}
+              </p>
               {review.title ? <h3 className="mt-2 text-sm font-semibold text-stone-900">{review.title}</h3> : null}
               {review.body ? <p className="mt-2 text-sm leading-relaxed text-stone-600">{review.body}</p> : null}
               <p className="mt-2 text-xs text-stone-400">{review.author?.email ? review.author.email.replace(/(.{2}).+(@.*)/, "$1***$2") : "Verified customer"}</p>

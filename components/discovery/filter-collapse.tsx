@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
 
 export function FilterCollapse({ label = "Filters", defaultOpen = false, children }: Props) {
   const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
 
   return (
     <>
@@ -19,6 +20,7 @@ export function FilterCollapse({ label = "Filters", defaultOpen = false, childre
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-800 shadow-sm md:hidden"
         aria-expanded={open}
+        aria-controls={panelId}
       >
         <span>{label}</span>
         <svg
@@ -34,7 +36,7 @@ export function FilterCollapse({ label = "Filters", defaultOpen = false, childre
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
-      <div className={cn("md:block", open ? "block" : "hidden")}>
+      <div id={panelId} className={cn("md:block", open ? "block" : "hidden")}>
         {children}
       </div>
     </>

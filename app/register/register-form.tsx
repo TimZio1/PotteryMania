@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getProviders, signIn } from "next-auth/react";
 import { ui } from "@/lib/ui-styles";
 
 export function RegisterForm() {
@@ -11,7 +12,19 @@ export function RegisterForm() {
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [pending, setPending] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    void getProviders().then((providers) => {
+      if (mounted) setGoogleEnabled(Boolean(providers?.google));
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +59,17 @@ export function RegisterForm() {
     }
   }
 
+  async function onGoogleSignUp() {
+    setErr("");
+    setGooglePending(true);
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } catch {
+      setErr("Google sign-up is unavailable right now.");
+      setGooglePending(false);
+    }
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       {err ? <p className={ui.errorText}>{err}</p> : null}
@@ -56,6 +80,18 @@ export function RegisterForm() {
             Go to sign in →
           </Link>
         </div>
+      ) : null}
+      {googleEnabled ? (
+        <>
+          <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignUp()} className={`${ui.buttonSecondary} w-full`}>
+            {googlePending ? "Connecting Google…" : "Continue with Google"}
+          </button>
+          <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-stone-400">
+            <span className="h-px flex-1 bg-stone-200" />
+            <span>or register with email</span>
+            <span className="h-px flex-1 bg-stone-200" />
+          </div>
+        </>
       ) : null}
       <div>
         <span className={ui.label}>Account type</span>

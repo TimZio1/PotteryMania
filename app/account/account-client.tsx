@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 
 const LANG_OPTIONS = [
@@ -82,8 +83,8 @@ export function AccountClient() {
 
   if (loading) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-stone-500">Loading…</p>
+      <div className="flex justify-center py-16">
+        <Spinner />
       </div>
     );
   }

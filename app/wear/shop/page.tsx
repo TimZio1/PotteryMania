@@ -65,7 +65,7 @@ export default async function WearShopPage() {
               return (
                 <li key={p.id}>
                   <Link href={`/wear/${p.slug}`} className="group block">
-                    <div className="relative aspect-[3/4] overflow-hidden bg-neutral-900">
+                    <div className="relative aspect-3/4 overflow-hidden bg-neutral-900">
                       {src ? (
                         <Image
                           src={src}
@@ -74,7 +74,11 @@ export default async function WearShopPage() {
                           className="object-cover transition duration-500 group-hover:scale-[1.02]"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
-                      ) : null}
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-neutral-900 px-6 text-center text-sm text-neutral-400">
+                          Image coming soon
+                        </div>
+                      )}
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <h2 className="font-medium text-white">{p.name}</h2>

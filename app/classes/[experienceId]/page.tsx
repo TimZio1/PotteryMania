@@ -1,10 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { ClassBookingForm, type SlotOption, type WaitlistSlotOption } from "./booking-form";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +15,40 @@ type PageProps = {
   params: Promise<{ experienceId: string }>;
   searchParams: Promise<{ slot?: string }>;
 };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { experienceId } = await params;
+  const experience = await prisma.experience.findFirst({
+    where: {
+      id: experienceId,
+      status: "active",
+      visibility: "public",
+      studio: { status: "approved" },
+    },
+    include: {
+      studio: { select: { displayName: true } },
+      images: { orderBy: { sortOrder: "asc" }, take: 1 },
+    },
+  });
+
+  if (!experience) {
+    return buildMetadata({
+      title: "Class not found",
+      description: "This pottery class or experience could not be found.",
+      path: `/classes/${experienceId}`,
+    });
+  }
+
+  return buildMetadata({
+    title: `${experience.title} | ${experience.studio.displayName}`,
+    description:
+      experience.shortDescription ||
+      experience.fullDescription ||
+      `Book ${experience.title} with ${experience.studio.displayName} on PotteryMania.`,
+    path: `/classes/${experienceId}`,
+    image: experience.images[0]?.imageUrl,
+  });
+}
 
 export default async function ClassDetailPage({ params, searchParams }: PageProps) {
   const { experienceId } = await params;
@@ -83,9 +120,12 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
   const primary = experience.images.find((i) => i.isPrimary) ?? experience.images[0];
 
   const toolbar = (
-    <Link href="/classes" className="text-sm font-medium text-amber-900 hover:text-amber-950">
-      ← All classes
-    </Link>
+    <Breadcrumbs
+      items={[
+        { label: "Classes", href: "/classes" },
+        { label: experience.title },
+      ]}
+    />
   );
 
   return (
@@ -112,7 +152,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         {primary?.imageUrl ? (
           <div className="mt-8 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={primary.imageUrl} alt="" className="max-h-[22rem] w-full object-cover sm:max-h-96" />
+            <img src={primary.imageUrl} alt={experience.title} className="max-h-88 w-full object-cover sm:max-h-96" />
           </div>
         ) : null}
         {experience.shortDescription && <p className="mt-8 text-base text-stone-700">{experience.shortDescription}</p>}

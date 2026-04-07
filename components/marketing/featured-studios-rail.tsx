@@ -34,7 +34,7 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
                   // eslint-disable-next-line @next/next/no-img-element -- remote studio URLs from Connect / uploads
                   <img
                     src={s.coverImageUrl}
-                    alt=""
+                    alt={`${s.displayName} studio cover`}
                     className="h-full w-full object-cover transition group-hover:scale-[1.02]"
                   />
                 ) : (
@@ -43,7 +43,7 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
                 {s.logoUrl ? (
                   <div className="absolute bottom-2 left-2 h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-white shadow">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.logoUrl} alt="" width={48} height={48} className="h-full w-full object-cover" />
+                    <img src={s.logoUrl} alt={`${s.displayName} logo`} width={48} height={48} className="h-full w-full object-cover" />
                   </div>
                 ) : null}
               </div>

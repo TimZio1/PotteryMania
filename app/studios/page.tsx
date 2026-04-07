@@ -276,7 +276,11 @@ export default async function StudiosPage({ searchParams }: Props) {
                   </div>
                   {studio.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={studio.logoUrl} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-stone-100" />
+                    <img
+                      src={studio.logoUrl}
+                      alt={`${studio.displayName} logo`}
+                      className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-stone-100"
+                    />
                   ) : null}
                 </div>
                 {studio.shortDescription ? (

@@ -272,7 +272,24 @@ export function CartContents() {
                   className="rounded-2xl border border-stone-200/90 bg-white p-4 shadow-sm sm:p-5"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-                    <div className="min-w-0">
+                    <div className="flex min-w-0 gap-4">
+                      {i.itemType === "product" ? (
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-stone-100">
+                          {i.product?.images[0]?.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={i.product.images[0].imageUrl}
+                              alt={i.product.title}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-[11px] text-stone-400">
+                              No image
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                      <div className="min-w-0">
                       {!multiVendor && i.vendor?.displayName ? (
                         <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{i.vendor.displayName}</p>
                       ) : null}
@@ -284,13 +301,14 @@ export function CartContents() {
                           {i.slot.slotDate.slice(0, 10)} · {i.slot.startTime}–{i.slot.endTime}
                         </p>
                       ) : null}
+                      </div>
                     </div>
                     <div className="flex shrink-0 flex-row items-center justify-between gap-4 sm:flex-col sm:items-end">
                       {i.itemType === "product" ? (
                         <input
                           type="number"
                           min={1}
-                          className="min-h-10 w-20 rounded-xl border border-stone-200 px-2 text-center text-sm"
+                          className="min-h-11 w-20 rounded-xl border border-stone-200 px-2 text-center text-sm"
                           value={i.quantity}
                           onChange={(e) => updateQty(i.id, parseInt(e.target.value, 10) || 1)}
                           aria-label="Quantity"
@@ -299,7 +317,7 @@ export function CartContents() {
                         <input
                           type="number"
                           min={1}
-                          className="min-h-10 w-20 rounded-xl border border-stone-200 px-2 text-center text-sm"
+                          className="min-h-11 w-20 rounded-xl border border-stone-200 px-2 text-center text-sm"
                           value={i.participantCount ?? 1}
                           onChange={(e) => updateParticipants(i.id, parseInt(e.target.value, 10) || 1)}
                           aria-label="Participants"
@@ -513,29 +531,40 @@ export function CartContents() {
               {multiVendor ? (
                 <div className="mt-4 space-y-3">
                   {vendorGroups.map((g) => (
-                    <button
-                      key={g.studioId}
-                      type="button"
-                      disabled={checkoutBusy}
-                      onClick={() => checkout(g.studioId)}
-                      className={`${ui.buttonPrimary} w-full`}
-                    >
-                      {checkoutBusy ? (
-                        <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
-                      ) : (
-                        <>Continue to payment — {g.displayName}</>
-                      )}
-                    </button>
+                    <div key={g.studioId} className="space-y-2">
+                      <button
+                        type="button"
+                        disabled={checkoutBusy}
+                        onClick={() => checkout(g.studioId)}
+                        className={`${ui.buttonPrimary} w-full`}
+                      >
+                        {checkoutBusy ? (
+                          <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
+                        ) : (
+                          <>Continue to payment — {g.displayName}</>
+                        )}
+                      </button>
+                      <p className="flex items-center justify-center gap-2 text-xs text-stone-500">
+                        <span aria-hidden="true">🔒</span>
+                        Secure Stripe checkout
+                      </p>
+                    </div>
                   ))}
                 </div>
               ) : (
-                <button type="button" disabled={checkoutBusy} onClick={() => checkout()} className={`${ui.buttonPrimary} mt-2 w-full`}>
-                  {checkoutBusy ? (
-                    <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
-                  ) : (
-                    "Continue to payment"
-                  )}
-                </button>
+                <div className="space-y-2">
+                  <button type="button" disabled={checkoutBusy} onClick={() => checkout()} className={`${ui.buttonPrimary} mt-2 w-full`}>
+                    {checkoutBusy ? (
+                      <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
+                    ) : (
+                      "Continue to payment"
+                    )}
+                  </button>
+                  <p className="flex items-center justify-center gap-2 text-xs text-stone-500">
+                    <span aria-hidden="true">🔒</span>
+                    Secure Stripe checkout
+                  </p>
+                </div>
               )}
             </div>
           </div>

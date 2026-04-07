@@ -1,18 +1,54 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ReviewSummary } from "@/components/review-summary";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { StudioHeroGallery } from "@/components/marketing/studio-hero-gallery";
 import { StudioProductAddToCart } from "@/components/marketing/studio-product-add-to-cart";
 import { ui } from "@/lib/ui-styles";
 import { redirectEndUserIfStudioHasNoPublicOfferings } from "@/lib/public-catalog-guard";
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { studioId } = await params;
+  const studio = await prisma.studio.findFirst({
+    where: { id: studioId, status: "approved" },
+    select: {
+      displayName: true,
+      shortDescription: true,
+      longDescription: true,
+      coverImageUrl: true,
+      city: true,
+      country: true,
+    },
+  });
+
+  if (!studio) {
+    return buildMetadata({
+      title: "Studio not found",
+      description: "This pottery studio could not be found.",
+      path: `/studios/${studioId}`,
+    });
+  }
+
+  return buildMetadata({
+    title: studio.displayName,
+    description:
+      studio.shortDescription ||
+      studio.longDescription ||
+      `Explore ${studio.displayName} in ${studio.city}, ${studio.country} on PotteryMania.`,
+    path: `/studios/${studioId}`,
+    image: studio.coverImageUrl || undefined,
+  });
+}
 
 function collectGalleryUrls(
   studio: { coverImageUrl: string | null; logoUrl: string | null },
@@ -102,9 +138,12 @@ export default async function StudioPage({ params }: Props) {
       : [];
 
   const toolbar = (
-    <Link href="/studios" className="text-sm font-medium text-amber-900 hover:text-amber-950">
-      ← All studios
-    </Link>
+    <Breadcrumbs
+      items={[
+        { label: "Studios", href: "/studios" },
+        { label: studio.displayName },
+      ]}
+    />
   );
 
   const productCardShell =
@@ -134,7 +173,7 @@ export default async function StudioPage({ params }: Props) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={studio.logoUrl}
-                  alt=""
+                  alt={`${studio.displayName} logo`}
                   className="h-14 w-14 shrink-0 rounded-xl border border-stone-200/80 bg-white object-contain p-1 sm:h-16 sm:w-16"
                 />
               ) : null}
@@ -237,7 +276,7 @@ export default async function StudioPage({ params }: Props) {
                 <div className="aspect-video bg-stone-100">
                   {experience.images[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={experience.images[0].imageUrl} alt="" className="h-full w-full object-cover" />
+                    <img src={experience.images[0].imageUrl} alt={experience.title} className="h-full w-full object-cover" />
                   ) : null}
                 </div>
                 <div className="p-4">
@@ -260,11 +299,11 @@ export default async function StudioPage({ params }: Props) {
           <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
               <div key={product.id} className={productCardShell}>
-                <Link href={`/marketplace/products/${product.id}`} className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900">
+                <Link href={`/marketplace/products/${product.id}`} className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900">
                   <div className="aspect-square bg-stone-100">
                     {product.images[0] ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={product.images[0].imageUrl} alt="" className="h-full w-full object-cover" />
+                      <img src={product.images[0].imageUrl} alt={product.title} className="h-full w-full object-cover" />
                     ) : null}
                   </div>
                   <div className="p-4">

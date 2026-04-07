@@ -21,6 +21,7 @@ export default function ExperimentsAdminClient() {
   const [pct, setPct] = useState("50");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/experiments");
@@ -34,6 +35,7 @@ export default function ExperimentsAdminClient() {
 
   async function create() {
     setBusy(true);
+    setError(null);
     try {
       const r = await fetch("/api/admin/experiments", {
         method: "POST",
@@ -47,7 +49,7 @@ export default function ExperimentsAdminClient() {
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
-        alert(j.error ?? "Failed");
+        setError(j.error ?? "Failed");
         return;
       }
       setSlug("");
@@ -63,11 +65,17 @@ export default function ExperimentsAdminClient() {
   async function toggle(row: Row) {
     const rsn = window.prompt("Audit reason (min 3 chars)?", row.isActive ? "Disable experiment" : "Enable experiment");
     if (!rsn || rsn.trim().length < 3) return;
-    await fetch(`/api/admin/experiments/${row.id}`, {
+    setError(null);
+    const res = await fetch(`/api/admin/experiments/${row.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: !row.isActive, reason: rsn.trim() }),
     });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setError(j.error ?? "Could not update experiment.");
+      return;
+    }
     await load();
     router.refresh();
   }
@@ -76,6 +84,7 @@ export default function ExperimentsAdminClient() {
     <div className="space-y-8">
       <div className={`${ui.card} space-y-3`}>
         <h2 className="text-lg font-semibold text-amber-950">New experiment</h2>
+        {error ? <p className={ui.errorText}>{error}</p> : null}
         <p className="text-sm text-stone-600">
           Slug is referenced in code when reading assignment. Variant B share is 0–100; A gets the rest.
         </p>

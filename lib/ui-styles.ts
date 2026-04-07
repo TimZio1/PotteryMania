@@ -33,8 +33,10 @@ export const ui = {
     "group block overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-sm transition hover:border-amber-300/50 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900",
 
   errorText: "text-sm font-medium text-red-700",
+  errorTextDark: "text-sm font-medium text-red-300",
 
   successText: "text-sm font-medium text-emerald-800",
+  successTextDark: "text-sm font-medium text-emerald-300",
 
   overline: "text-xs font-medium uppercase tracking-wide text-stone-500",
 } as const;

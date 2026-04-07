@@ -3,13 +3,18 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
+import { Spinner } from "@/components/ui/spinner";
 import { getWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
 
 export const dynamic = "force-dynamic";
 
 function ListFallback() {
-  return <p className="mt-8 text-sm text-stone-500">Loading…</p>;
+  return (
+    <div className="mt-8 flex">
+      <Spinner />
+    </div>
+  );
 }
 
 export default async function AdminWearProductsPage({

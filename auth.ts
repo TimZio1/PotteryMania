@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-audit";
@@ -19,45 +20,104 @@ const authSecret =
   process.env.NEXTAUTH_SECRET?.trim() ||
   undefined;
 
+const googleId = process.env.AUTH_GOOGLE_ID?.trim();
+const googleSecret = process.env.AUTH_GOOGLE_SECRET?.trim();
+
+const providers = [
+  ...(googleId && googleSecret
+    ? [
+        Google({
+          clientId: googleId,
+          clientSecret: googleSecret,
+          allowDangerousEmailAccountLinking: true,
+        }),
+      ]
+    : []),
+  Credentials({
+    name: "credentials",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    authorize: async (credentials) => {
+      const email = credentials?.email as string | undefined;
+      const password = credentials?.password as string | undefined;
+      if (!email || !password) return null;
+      const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase().trim() },
+        select: {
+          id: true,
+          email: true,
+          passwordHash: true,
+          role: true,
+          suspendedAt: true,
+          emailVerifiedAt: true,
+        },
+      });
+      if (!user?.passwordHash) return null;
+      if (user.suspendedAt) throw new AccountSuspendedSignin();
+      const ok = await compare(password, user.passwordHash);
+      if (!ok) return null;
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      };
+    },
+  }),
+];
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   ...(authSecret ? { secret: authSecret } : {}),
-  providers: [
-    Credentials({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      authorize: async (credentials) => {
-        const email = credentials?.email as string | undefined;
-        const password = credentials?.password as string | undefined;
-        if (!email || !password) return null;
-        const user = await prisma.user.findUnique({
-          where: { email: email.toLowerCase().trim() },
-          select: {
-            id: true,
-            email: true,
-            passwordHash: true,
-            role: true,
-            suspendedAt: true,
-            emailVerifiedAt: true,
-          },
-        });
-        if (!user?.passwordHash) return null;
-        if (user.suspendedAt) throw new AccountSuspendedSignin();
-        const ok = await compare(password, user.passwordHash);
-        if (!ok) return null;
-        return {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-        };
-      },
-    }),
-  ],
+  providers,
   callbacks: {
-    async jwt({ token, user, trigger, session: updatePayload }) {
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google") return true;
+      const email = typeof profile?.email === "string" ? profile.email.toLowerCase().trim() : "";
+      if (!email) return false;
+      const existing = await prisma.user.findUnique({
+        where: { email },
+        select: { suspendedAt: true },
+      });
+      if (existing?.suspendedAt) return "/login?reason=suspended";
+      return true;
+    },
+    async jwt({ token, user, account, profile, trigger, session: updatePayload }) {
+      if (account?.provider === "google") {
+        const email =
+          (typeof user?.email === "string" && user.email) ||
+          (typeof profile?.email === "string" && profile.email) ||
+          "";
+        if (email) {
+          const dbUser = await prisma.user.upsert({
+            where: { email: email.toLowerCase().trim() },
+            update: {
+              lastLoginAt: new Date(),
+              emailVerifiedAt: new Date(),
+            },
+            create: {
+              email: email.toLowerCase().trim(),
+              role: "customer",
+              lastLoginAt: new Date(),
+              emailVerifiedAt: new Date(),
+            },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              suspendedAt: true,
+              emailVerifiedAt: true,
+            },
+          });
+          token.sub = dbUser.id;
+          token.email = dbUser.email;
+          token.role = dbUser.role;
+          token.suspended = Boolean(dbUser.suspendedAt);
+          token.emailVerified = Boolean(dbUser.emailVerifiedAt);
+        }
+      }
+
       if (trigger === "update" && updatePayload && typeof updatePayload === "object") {
         const payload = updatePayload as Record<string, unknown>;
         if (payload.endImpersonation === true && typeof token.impersonatorSub === "string") {

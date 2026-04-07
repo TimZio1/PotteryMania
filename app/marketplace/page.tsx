@@ -175,7 +175,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
                   <div className="aspect-square bg-stone-100">
                     {img ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={img} alt="" className="h-full w-full object-cover transition group-hover:scale-[1.02]" />
+                      <img src={img} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-[1.02]" />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-stone-400">No image</div>
                     )}

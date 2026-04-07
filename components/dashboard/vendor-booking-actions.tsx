@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { BookingStatus } from "@prisma/client";
 import { isReschedulable } from "@/lib/bookings/status";
 import { RescheduleBookingPanel } from "@/components/bookings/reschedule-booking-panel";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function VendorBookingActions({
   studioId,
@@ -22,6 +23,7 @@ export default function VendorBookingActions({
   calendarSync?: { status: string; message: string | null; at: string } | null;
 }) {
   const [msg, setMsg] = useState("");
+  const [busyAction, setBusyAction] = useState<string | null>(null);
   const router = useRouter();
   const isCancellable =
     bookingStatus === "pending" || bookingStatus === "confirmed" || bookingStatus === "awaiting_vendor_approval";
@@ -31,6 +33,7 @@ export default function VendorBookingActions({
   async function handleCancel() {
     if (!confirm("Cancel this booking? The customer will be notified.")) return;
     setMsg("");
+    setBusyAction("cancel");
     const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -43,10 +46,12 @@ export default function VendorBookingActions({
     } else {
       setMsg(`Error: ${data.error}`);
     }
+    setBusyAction(null);
   }
 
   async function handleApprove() {
     setMsg("");
+    setBusyAction("approve");
     const res = await fetch(`/api/bookings/${bookingId}/vendor`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -59,12 +64,14 @@ export default function VendorBookingActions({
     } else {
       setMsg(`Error: ${data.error}`);
     }
+    setBusyAction(null);
   }
 
   async function handleReject() {
     const reason = prompt("Optional note to the customer (decline reason):") ?? "";
     if (reason === null) return;
     setMsg("");
+    setBusyAction("reject");
     const res = await fetch(`/api/bookings/${bookingId}/vendor`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -77,10 +84,12 @@ export default function VendorBookingActions({
     } else {
       setMsg(`Error: ${data.error}`);
     }
+    setBusyAction(null);
   }
 
   async function handleCalendarResync() {
     setMsg("");
+    setBusyAction("calendar");
     const res = await fetch(`/api/studios/${studioId}/bookings/${bookingId}/calendar-resync`, {
       method: "POST",
     });
@@ -91,11 +100,13 @@ export default function VendorBookingActions({
     } else {
       setMsg(`Calendar sync: ${data.message ?? data.error ?? res.statusText}`);
     }
+    setBusyAction(null);
   }
 
   async function handleMarkCompleted() {
     if (!confirm("Mark this booking as completed (attended)?")) return;
     setMsg("");
+    setBusyAction("complete");
     const res = await fetch(`/api/bookings/${bookingId}/vendor`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -108,6 +119,7 @@ export default function VendorBookingActions({
     } else {
       setMsg(`Error: ${data.error}`);
     }
+    setBusyAction(null);
   }
 
   const showBlock = needsApproval || isCancellable || canMarkCompleted;
@@ -134,10 +146,18 @@ export default function VendorBookingActions({
               {calendarSync.status !== "success" ? (
                 <button
                   type="button"
+                  disabled={busyAction !== null}
                   onClick={handleCalendarResync}
                   className="ml-2 font-medium text-amber-900 underline underline-offset-2"
                 >
-                  Retry
+                  {busyAction === "calendar" ? (
+                    <span className="inline-flex items-center gap-1">
+                      <Spinner size="sm" />
+                      Retrying…
+                    </span>
+                  ) : (
+                    "Retry"
+                  )}
                 </button>
               ) : null}
             </>
@@ -146,10 +166,18 @@ export default function VendorBookingActions({
               <span>No Google Calendar sync logged yet for this booking.</span>
               <button
                 type="button"
+                disabled={busyAction !== null}
                 onClick={handleCalendarResync}
                 className="ml-2 font-medium text-amber-900 underline underline-offset-2"
               >
-                Sync now
+                {busyAction === "calendar" ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Spinner size="sm" />
+                    Syncing…
+                  </span>
+                ) : (
+                  "Sync now"
+                )}
               </button>
             </>
           )}
@@ -161,36 +189,68 @@ export default function VendorBookingActions({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
+                disabled={busyAction !== null}
                 onClick={handleApprove}
                 className="min-h-11 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800"
               >
-                Approve
+                {busyAction === "approve" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" className="text-white" />
+                    Approving…
+                  </span>
+                ) : (
+                  "Approve"
+                )}
               </button>
               <button
                 type="button"
+                disabled={busyAction !== null}
                 onClick={handleReject}
                 className="min-h-11 rounded-lg bg-stone-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700"
               >
-                Decline
+                {busyAction === "reject" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" className="text-white" />
+                    Declining…
+                  </span>
+                ) : (
+                  "Decline"
+                )}
               </button>
             </div>
           )}
           {showBlock && canMarkCompleted && (
             <button
               type="button"
+              disabled={busyAction !== null}
               onClick={handleMarkCompleted}
               className="min-h-11 rounded-lg bg-amber-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-900"
             >
-              Mark as attended / completed
+              {busyAction === "complete" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner size="sm" className="text-white" />
+                  Saving…
+                </span>
+              ) : (
+                "Mark as attended / completed"
+              )}
             </button>
           )}
           {showBlock && isCancellable && (
             <button
               type="button"
+              disabled={busyAction !== null}
               onClick={handleCancel}
               className="min-h-11 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
             >
-              Cancel booking
+              {busyAction === "cancel" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner size="sm" className="text-white" />
+                  Cancelling…
+                </span>
+              ) : (
+                "Cancel booking"
+              )}
             </button>
           )}
           {showBlock && msg ? <span className="block text-xs text-stone-600">{msg}</span> : null}

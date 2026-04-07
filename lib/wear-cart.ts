@@ -5,6 +5,8 @@ export const WEAR_CART_CHANGED_EVENT = "potterymania-wear-cart-changed";
 
 export function notifyWearCartChanged() {
   if (typeof window === "undefined") return;
+  const count = parseWearCart(localStorage.getItem(WEAR_CART_STORAGE_KEY)).reduce((sum, line) => sum + line.quantity, 0);
+  document.cookie = `wear_cart_count=${count}; path=/; max-age=2592000; samesite=lax`;
   window.dispatchEvent(new Event(WEAR_CART_CHANGED_EVENT));
 }
 

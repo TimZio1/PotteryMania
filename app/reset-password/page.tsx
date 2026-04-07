@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { AuthShell } from "@/components/auth-shell";
+import { Spinner } from "@/components/ui/spinner";
 import ResetPasswordInner from "./reset-password-inner";
 
 export default function ResetPasswordPage() {
@@ -8,7 +9,13 @@ export default function ResetPasswordPage() {
       title="Choose a new password"
       description="Pick a strong password you haven’t used elsewhere. This link expires after one hour."
     >
-      <Suspense fallback={<p className="text-center text-sm text-stone-500">Loading…</p>}>
+      <Suspense
+        fallback={
+          <div className="flex justify-center py-6">
+            <Spinner />
+          </div>
+        }
+      >
         <ResetPasswordInner />
       </Suspense>
     </AuthShell>

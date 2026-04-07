@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
 
@@ -89,6 +89,9 @@ function isDestructive(next: string) {
 
 type Props = { initial: WearOrderDetailPayload };
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export default function WearOrderDetailClient({ initial }: Props) {
   const router = useRouter();
   const [notes, setNotes] = useState(initial.internalNotes ?? "");
@@ -103,6 +106,8 @@ export default function WearOrderDetailClient({ initial }: Props) {
   const [extRef, setExtRef] = useState(initial.externalFulfillmentRef ?? "");
   const [actionBusy, setActionBusy] = useState(false);
   const [actionErr, setActionErr] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setNotes(initial.internalNotes ?? "");
@@ -117,6 +122,20 @@ export default function WearOrderDetailClient({ initial }: Props) {
     initial.status,
     initial.trackingNumber,
   ]);
+
+  useEffect(() => {
+    if (modalNext) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      requestAnimationFrame(() => {
+        const first = modalRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+        first?.focus();
+      });
+      return;
+    }
+
+    previousFocusRef.current?.focus();
+    previousFocusRef.current = null;
+  }, [modalNext]);
 
   const saveNotes = useCallback(async () => {
     setNotesBusy(true);
@@ -415,11 +434,41 @@ export default function WearOrderDetailClient({ initial }: Props) {
       )}
 
       {modalNext ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-amber-950">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="wear-order-lifecycle-title"
+          aria-describedby="wear-order-lifecycle-description"
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && !actionBusy) {
+              setModalNext(null);
+              return;
+            }
+            if (e.key !== "Tab" || !modalRef.current) return;
+            const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }}
+        >
+          <div
+            ref={modalRef}
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
+          >
+            <h3 id="wear-order-lifecycle-title" className="text-lg font-semibold text-amber-950">
               {ACTION_LABEL[modalNext] ?? humanStatus(modalNext)}
             </h3>
+            <p id="wear-order-lifecycle-description" className="mt-2 text-sm text-stone-600">
+              Confirm the lifecycle transition and record any audit notes required for this change.
+            </p>
             {needsReason(modalNext) ? (
               <div className="mt-4">
                 <label className="text-xs font-medium text-stone-600">Reason (audit log, min. 8 characters)</label>
@@ -459,7 +508,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
               </label>
             ) : null}
             <div className="mt-6 flex flex-wrap gap-2">
-              <button type="button" className={ui.buttonGhost} onClick={() => setModalNext(null)}>
+              <button type="button" className={ui.buttonGhost} disabled={actionBusy} onClick={() => setModalNext(null)}>
                 Cancel
               </button>
               <button

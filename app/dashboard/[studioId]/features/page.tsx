@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
+import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 import StudioFeaturesClient from "@/components/dashboard/studio-features-client";
 
@@ -27,7 +28,13 @@ export default async function StudioFeaturesPage({ params }: Props) {
           configured).
         </p>
       </div>
-      <Suspense fallback={<p className="text-sm text-stone-500">Loading…</p>}>
+      <Suspense
+        fallback={
+          <div className="flex py-4">
+            <Spinner />
+          </div>
+        }
+      >
         <StudioFeaturesClient studioId={studioId} />
       </Suspense>
     </div>

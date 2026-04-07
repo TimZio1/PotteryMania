@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 import { isPromoActive } from "@/lib/promo";
 import { PromoCountdown } from "@/components/promo-countdown";
@@ -86,26 +87,36 @@ export default function EditStudioPage() {
     router.refresh();
   }
 
-  if (!studio) return <div className="p-8">Loading…</div>;
+  if (!studio) {
+    return (
+      <div className="flex justify-center p-8">
+        <Spinner />
+      </div>
+    );
+  }
 
   const activated = !!studio.activationPaidAt;
-
-  const keys = [
-    "displayName",
-    "legalBusinessName",
-    "vatNumber",
-    "responsiblePersonName",
-    "email",
-    "phone",
-    "country",
-    "city",
-    "addressLine1",
-    "addressLine2",
-    "postalCode",
-    "shortDescription",
-    "longDescription",
-    "logoUrl",
-    "coverImageUrl",
+  const fields: Array<{
+    key: string;
+    label: string;
+    type?: string;
+    required?: boolean;
+  }> = [
+    { key: "displayName", label: "Studio display name", required: true },
+    { key: "legalBusinessName", label: "Legal business name", required: true },
+    { key: "vatNumber", label: "VAT / tax number", required: true },
+    { key: "responsiblePersonName", label: "Responsible person", required: true },
+    { key: "email", label: "Studio email", type: "email", required: true },
+    { key: "phone", label: "Phone", type: "tel" },
+    { key: "country", label: "Country", required: true },
+    { key: "city", label: "City", required: true },
+    { key: "addressLine1", label: "Address line 1", required: true },
+    { key: "addressLine2", label: "Address line 2" },
+    { key: "postalCode", label: "Postal code" },
+    { key: "shortDescription", label: "Short description" },
+    { key: "longDescription", label: "Long description" },
+    { key: "logoUrl", label: "Logo image URL", type: "url" },
+    { key: "coverImageUrl", label: "Cover image URL", type: "url" },
   ];
 
   return (
@@ -175,13 +186,15 @@ export default function EditStudioPage() {
 
       <form onSubmit={save} className="mt-6 space-y-3">
         {err && !activating && <p className="text-sm text-red-600">{err}</p>}
-        {keys.map((k) => (
-          <label key={k} className="block text-sm">
-            <span className="text-stone-600">{k}</span>
+        {fields.map((field) => (
+          <label key={field.key} className="block text-sm">
+            <span className="text-stone-600">{field.label}</span>
             <input
               className="mt-1 w-full rounded border px-3 py-2"
-              value={studio[k] || ""}
-              onChange={(e) => setStudio({ ...studio, [k]: e.target.value })}
+              type={field.type ?? "text"}
+              required={field.required}
+              value={studio[field.key] || ""}
+              onChange={(e) => setStudio({ ...studio, [field.key]: e.target.value })}
             />
           </label>
         ))}

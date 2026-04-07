@@ -41,10 +41,11 @@ export default function NewStudioPage() {
     router.push(`/dashboard/studio/${j.studio.id}`);
   }
 
-  const field = (k: keyof typeof f, label: string, required = false) => (
+  const field = (k: keyof typeof f, label: string, required = false, type = "text") => (
     <label key={k} className="block text-sm">
       <span className="text-stone-600">{label}</span>
       <input
+        type={type}
         className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
         value={f[k]}
         onChange={(e) => setF({ ...f, [k]: e.target.value })}
@@ -65,7 +66,7 @@ export default function NewStudioPage() {
         {field("legalBusinessName", "Legal business name", true)}
         {field("vatNumber", "VAT / tax number", true)}
         {field("responsiblePersonName", "Responsible person", true)}
-        {field("email", "Studio email", true)}
+        {field("email", "Studio email", true, "email")}
         {field("phone", "Phone")}
         {field("country", "Country", true)}
         {field("city", "City", true)}
@@ -74,8 +75,8 @@ export default function NewStudioPage() {
         {field("postalCode", "Postal code")}
         {field("shortDescription", "Short description")}
         {field("longDescription", "Long description")}
-        {field("logoUrl", "Logo image URL")}
-        {field("coverImageUrl", "Cover image URL")}
+        {field("logoUrl", "Logo image URL", false, "url")}
+        {field("coverImageUrl", "Cover image URL", false, "url")}
         <button type="submit" className="w-full rounded bg-amber-800 py-2 text-white">
           Save draft
         </button>

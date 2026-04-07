@@ -92,6 +92,7 @@ export function ConfirmActionModal({
   if (!open) return null;
 
   const titleId = "confirm-modal-title";
+  const descriptionId = "confirm-modal-description";
 
   return (
     <div
@@ -99,6 +100,7 @@ export function ConfirmActionModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       onKeyDown={handleKeyDown}
     >
       <div
@@ -107,7 +109,7 @@ export function ConfirmActionModal({
       >
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Critical action</p>
         <h3 id={titleId} className="mt-3 text-2xl font-semibold tracking-tight text-amber-950">{title}</h3>
-        <p className="mt-3 text-sm leading-7 text-stone-600">{description}</p>
+        <p id={descriptionId} className="mt-3 text-sm leading-7 text-stone-600">{description}</p>
 
         {requireReason ? (
           <div className="mt-5">

@@ -248,7 +248,15 @@ export default function StudioShopClient({
                             isSel && "bg-amber-50",
                             p.isLowStock && "bg-amber-50/30",
                           )}
+                          tabIndex={0}
+                          role="button"
                           onClick={() => openProduct(p)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              openProduct(p);
+                            }
+                          }}
                         >
                           <td className="px-4 py-3 font-medium text-stone-900">
                             {p.title}

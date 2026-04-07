@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
+import { SkeletonText } from "@/components/ui/skeleton";
 import { ui } from "@/lib/ui-styles";
 
 type KilnItem = { id: string; description: string; status: string };
@@ -21,6 +23,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
   const [label, setLabel] = useState("");
   const [notes, setNotes] = useState("");
   const [msg, setMsg] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/studios/${studioId}/kiln/firings`);
@@ -42,6 +45,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
 
   async function createFiring() {
     setMsg("");
+    setBusyId("create");
     const res = await fetch(`/api/studios/${studioId}/kiln/firings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,49 +54,83 @@ export default function KilnManager({ studioId }: { studioId: string }) {
     if (!res.ok) {
       const j = await res.json();
       setMsg(j.error || "Failed");
+      setBusyId(null);
       return;
     }
     setLabel("");
     setNotes("");
     router.refresh();
     load();
+    setBusyId(null);
   }
 
   async function setFiringStatus(id: string, status: string) {
-    await fetch(`/api/studios/${studioId}/kiln/firings/${id}`, {
+    setBusyId(`firing:${id}`);
+    const res = await fetch(`/api/studios/${studioId}/kiln/firings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setMsg(j.error || "Could not update firing.");
+      setBusyId(null);
+      return;
+    }
     load();
+    setBusyId(null);
   }
 
   async function addItem(firingId: string, description: string) {
     if (!description.trim()) return;
-    await fetch(`/api/studios/${studioId}/kiln/firings/${firingId}/items`, {
+    setBusyId(`item-add:${firingId}`);
+    const res = await fetch(`/api/studios/${studioId}/kiln/firings/${firingId}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ description }),
     });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setMsg(j.error || "Could not add item.");
+      setBusyId(null);
+      return;
+    }
     load();
+    setBusyId(null);
   }
 
   async function updateItem(itemId: string, status: string) {
-    await fetch(`/api/studios/${studioId}/kiln/items/${itemId}`, {
+    setBusyId(`item:${itemId}`);
+    const res = await fetch(`/api/studios/${studioId}/kiln/items/${itemId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setMsg(j.error || "Could not update piece.");
+      setBusyId(null);
+      return;
+    }
     load();
+    setBusyId(null);
   }
 
   async function removeFiring(id: string) {
     if (!confirm("Delete this firing and all items?")) return;
-    await fetch(`/api/studios/${studioId}/kiln/firings/${id}`, { method: "DELETE" });
+    setBusyId(`delete:${id}`);
+    const res = await fetch(`/api/studios/${studioId}/kiln/firings/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setMsg(j.error || "Could not delete firing.");
+      setBusyId(null);
+      return;
+    }
     load();
+    setBusyId(null);
   }
 
-  if (loading) return <p className="text-sm text-stone-500">Loading kiln…</p>;
+  if (loading) return <SkeletonText className="max-w-xl" lines={4} />;
 
   return (
     <div className="space-y-8">
@@ -123,8 +161,15 @@ export default function KilnManager({ studioId }: { studioId: string }) {
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-          <button type="button" onClick={createFiring} className={ui.buttonPrimary}>
-            Create firing
+          <button type="button" onClick={createFiring} disabled={busyId !== null} className={ui.buttonPrimary}>
+            {busyId === "create" ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner size="sm" className="text-white" />
+                Creating…
+              </span>
+            ) : (
+              "Create firing"
+            )}
           </button>
         </div>
       </div>
@@ -151,6 +196,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
                   <button
                     key={s}
                     type="button"
+                    disabled={busyId !== null}
                     onClick={() => setFiringStatus(f.id, s)}
                     className={`rounded-full px-3 py-1 text-xs font-medium ${
                       f.status === s ? "bg-amber-950 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
@@ -161,6 +207,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
                 ))}
                 <button
                   type="button"
+                  disabled={busyId !== null}
                   onClick={() => removeFiring(f.id)}
                   className="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-800 hover:bg-red-100"
                 >
@@ -179,6 +226,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
                         <button
                           key={s}
                           type="button"
+                          disabled={busyId !== null}
                           onClick={() => updateItem(it.id, s)}
                           className={`rounded px-2 py-0.5 text-xs ${
                             it.status === s ? "bg-amber-800 text-white" : "bg-white text-stone-600 ring-1 ring-stone-200"
@@ -191,7 +239,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
                   </li>
                 ))}
               </ul>
-              <AddPieceRow onAdd={(d) => addItem(f.id, d)} />
+              <AddPieceRow onAdd={(d) => addItem(f.id, d)} disabled={busyId !== null} busy={busyId === `item-add:${f.id}`} />
             </div>
           </div>
         ))}
@@ -200,7 +248,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
   );
 }
 
-function AddPieceRow({ onAdd }: { onAdd: (d: string) => void }) {
+function AddPieceRow({ onAdd, disabled, busy }: { onAdd: (d: string) => void; disabled: boolean; busy: boolean }) {
   const [v, setV] = useState("");
   return (
     <div className="mt-3 flex gap-2">
@@ -209,16 +257,18 @@ function AddPieceRow({ onAdd }: { onAdd: (d: string) => void }) {
         placeholder="Piece description"
         value={v}
         onChange={(e) => setV(e.target.value)}
+        disabled={disabled}
       />
       <button
         type="button"
         className={ui.buttonSecondary}
+        disabled={disabled}
         onClick={() => {
           onAdd(v);
           setV("");
         }}
       >
-        Add piece
+        {busy ? "Adding…" : "Add piece"}
       </button>
     </div>
   );

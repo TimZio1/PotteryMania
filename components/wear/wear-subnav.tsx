@@ -19,9 +19,9 @@ function cartItemCount(): number {
   return lines.reduce((n, l) => n + l.quantity, 0);
 }
 
-export function WearSubnav() {
+export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
   const pathname = usePathname() || "/wear";
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(initialCount);
 
   useEffect(() => {
     function sync() {
@@ -34,7 +34,7 @@ export function WearSubnav() {
       window.removeEventListener("storage", sync);
       window.removeEventListener(WEAR_CART_CHANGED_EVENT, sync);
     };
-  }, []);
+  }, [initialCount]);
 
   return (
     <div className="border-b border-white/10 bg-neutral-950 text-neutral-100">

@@ -1,9 +1,9 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ui } from "@/lib/ui-styles";
 
 function messageForAuthError(error: string | undefined, code: string | undefined): string | null {
@@ -38,6 +38,18 @@ export default function LoginInner() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [pending, setPending] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    void getProviders().then((providers) => {
+      if (mounted) setGoogleEnabled(Boolean(providers?.google));
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const displayErr = err || urlDerivedErr;
 
@@ -80,6 +92,17 @@ export default function LoginInner() {
     }
   }
 
+  async function onGoogleSignIn() {
+    setErr("");
+    setGooglePending(true);
+    try {
+      await signIn("google", { callbackUrl });
+    } catch {
+      setErr("Google sign-in is unavailable right now.");
+      setGooglePending(false);
+    }
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-5">
       {suspendedNotice ? (
@@ -97,6 +120,18 @@ export default function LoginInner() {
         </p>
       ) : null}
       {displayErr ? <p className={ui.errorText}>{displayErr}</p> : null}
+      {googleEnabled ? (
+        <>
+          <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignIn()} className={`${ui.buttonSecondary} w-full`}>
+            {googlePending ? "Connecting Google…" : "Continue with Google"}
+          </button>
+          <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-stone-400">
+            <span className="h-px flex-1 bg-stone-200" />
+            <span>or sign in with email</span>
+            <span className="h-px flex-1 bg-stone-200" />
+          </div>
+        </>
+      ) : null}
       <div>
         <label className={ui.label} htmlFor="login-email">
           Email
