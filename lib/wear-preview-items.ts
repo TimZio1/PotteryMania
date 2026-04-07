@@ -16,31 +16,35 @@ function firstImageUrl(images: unknown): string | null {
  * Featured + active wear products for `/wear` preview (falls back to static list when empty).
  */
 export async function getWearPreviewItemsFromDb(): Promise<WearPreviewItem[]> {
-  const rows = await prisma.wearProduct.findMany({
-    where: { isActive: true, archivedAt: null },
-    orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-    take: 4,
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      priceCents: true,
-      currency: true,
-      images: true,
-    },
-  });
+  try {
+    const rows = await prisma.wearProduct.findMany({
+      where: { isActive: true, archivedAt: null },
+      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
+      take: 4,
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        priceCents: true,
+        currency: true,
+        images: true,
+      },
+    });
 
-  return rows.map((p) => {
-    const img = firstImageUrl(p.images) ?? PLACEHOLDER_IMG;
-    const sym = p.currency === "EUR" ? "€" : p.currency === "USD" ? "$" : `${p.currency} `;
-    const priceLabel = `from ${sym}${(p.priceCents / 100).toFixed(0)}`;
-    return {
-      id: p.id,
-      slug: p.slug,
-      name: p.name,
-      priceLabel,
-      imageSrc: img,
-      imageAlt: p.name,
-    };
-  });
+    return rows.map((p) => {
+      const img = firstImageUrl(p.images) ?? PLACEHOLDER_IMG;
+      const sym = p.currency === "EUR" ? "€" : p.currency === "USD" ? "$" : `${p.currency} `;
+      const priceLabel = `from ${sym}${(p.priceCents / 100).toFixed(0)}`;
+      return {
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        priceLabel,
+        imageSrc: img,
+        imageAlt: p.name,
+      };
+    });
+  } catch {
+    return [];
+  }
 }

@@ -4,6 +4,9 @@ import { buildMetadata } from "@/lib/seo";
 import { WEAR_PREVIEW_ITEMS } from "@/lib/wear-config";
 import { getWearPreviewItemsFromDb } from "@/lib/wear-preview-items";
 
+/** Prisma (Railway internal DB host) is not reachable during image build / prerender. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = buildMetadata({
   title: "Wear",
   description:
