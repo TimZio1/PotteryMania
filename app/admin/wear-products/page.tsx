@@ -59,6 +59,13 @@ export default async function AdminWearProductsPage({
         </div>
       ) : null}
 
+      {health.catalogImportHint ? (
+        <div className="mt-6 rounded-2xl border border-sky-300 bg-sky-50/90 px-4 py-3 text-sm text-sky-950">
+          <p className="font-semibold">Where are my Spreadshop / SPOD products?</p>
+          <p className="mt-1 text-sky-900">{health.catalogImportHint}</p>
+        </div>
+      ) : null}
+
       <div
         className={`mt-6 rounded-2xl border px-4 py-4 text-sm ${
           health.shopVisibleCount > 0
@@ -68,8 +75,9 @@ export default async function AdminWearProductsPage({
       >
         <p className="font-semibold">Live shop visibility (same rules as /wear/shop)</p>
         <p className="mt-1 text-stone-700">
-          <span className="font-mono">{health.shopVisibleCount}</span> visible · {health.totalProducts} total ·{" "}
-          {health.archivedCount} archived · {health.inactiveCount} inactive
+          <span className="font-mono">{health.shopVisibleCount}</span> visible (
+          <span className="font-mono">{health.syncedShopVisibleCount}</span> with SPOD-linked variants or external id) ·{" "}
+          {health.totalProducts} total · {health.archivedCount} archived · {health.inactiveCount} inactive
         </p>
         {health.emptyDiagnosis ? <p className="mt-2 text-stone-800">{health.emptyDiagnosis}</p> : null}
         <p className="mt-2 text-xs text-stone-600">

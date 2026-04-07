@@ -39,6 +39,7 @@ export async function listUnknownWearImageHostsForActiveCatalog(): Promise<strin
 export async function getWearCatalogHealthSnapshot() {
   const [
     shopVisibleCount,
+    syncedShopVisibleCount,
     totalProducts,
     archivedCount,
     inactiveCount,
@@ -47,6 +48,16 @@ export async function getWearCatalogHealthSnapshot() {
     spreadconnectSuccess24h,
   ] = await Promise.all([
     prisma.wearProduct.count({ where: { isActive: true, archivedAt: null } }),
+    prisma.wearProduct.count({
+      where: {
+        isActive: true,
+        archivedAt: null,
+        OR: [
+          { externalFulfillmentId: { not: null } },
+          { variants: { some: { isActive: true, sku: { not: null } } } },
+        ],
+      },
+    }),
     prisma.wearProduct.count(),
     prisma.wearProduct.count({ where: { archivedAt: { not: null } } }),
     prisma.wearProduct.count({ where: { isActive: false } }),
@@ -75,7 +86,20 @@ export async function getWearCatalogHealthSnapshot() {
   const spreadconnectConfigured = getSpreadconnectConfig() !== null;
   const spreadconnectWarning = spreadconnectPendingPlaceholder
     ? "API key is __PENDING__ (catalog sync and POD submit disabled)"
-    : null;
+    : !rawKey
+      ? "SPREADCONNECT_API_KEY is not set (catalog sync and POD submit disabled)"
+      : null;
+
+  let catalogImportHint: string | null = null;
+  if (shopVisibleCount > 0 && syncedShopVisibleCount === 0) {
+    if (!spreadconnectConfigured) {
+      catalogImportHint =
+        "The public shop is still showing the built-in demo catalog from the database, not your Spreadconnect (SPOD) articles. Set a real SPREADCONNECT_API_KEY on the host, redeploy, then click “Sync from Spreadconnect” below. After a successful sync, placeholder products without variant SKUs are archived automatically.";
+    } else {
+      catalogImportHint =
+        "Spreadconnect is configured, but the live shop has no imported catalog rows yet (no products with variant SKUs or an external fulfillment id). Click “Sync from Spreadconnect” below. API articles without images, SKUs, or prices are skipped — check the sync counts for “skipped”.";
+    }
+  }
 
   let emptyDiagnosis: string | null = null;
   if (shopVisibleCount === 0) {
@@ -117,6 +141,7 @@ export async function getWearCatalogHealthSnapshot() {
 
   return {
     shopVisibleCount,
+    syncedShopVisibleCount,
     totalProducts,
     archivedCount,
     inactiveCount,
@@ -124,6 +149,7 @@ export async function getWearCatalogHealthSnapshot() {
     visibleSample: visibleSample.map((p) => ({ slug: p.slug, name: p.name, featured: p.isFeatured })),
     spreadconnectConfigured,
     spreadconnectWarning,
+    catalogImportHint,
     spreadconnectFailuresLast24h: spreadconnectFailures24h,
     spreadconnectSubmissionsLast24h: spreadconnectSuccess24h,
     unknownImageHosts: [...unknownImageHosts].sort(),
