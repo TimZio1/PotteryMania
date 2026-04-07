@@ -16,6 +16,7 @@ import {
 import { haversineKm } from "@/lib/geo";
 import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/cn";
+import { FilterCollapse } from "@/components/discovery/filter-collapse";
 import { NearPointFields } from "@/components/discovery/near-point-fields";
 import { NearResultsMap } from "@/components/discovery/near-results-map";
 import { sortExperiencesByMarketplaceRanking } from "@/lib/ranking/score-engine";
@@ -119,12 +120,14 @@ export default async function ClassesPage({ searchParams }: Props) {
           </p>
         </div>
 
+        <div className="mt-8">
+        <FilterCollapse label="Filter classes" defaultOpen={filtered}>
         <form
           method="get"
           action="/classes"
-          className={`${ui.cardMuted} mt-8 space-y-5`}
+          className={`${ui.cardMuted} mt-3 space-y-5 md:mt-0`}
         >
-          <p className="text-sm font-medium text-stone-800">Filter classes</p>
+          <p className="hidden text-sm font-medium text-stone-800 md:block">Filter classes</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
               <label className={ui.label} htmlFor="classes-q">
@@ -300,6 +303,8 @@ export default async function ClassesPage({ searchParams }: Props) {
             slot is bookable today or later. Leave latitude/longitude empty to search everywhere.
           </p>
         </form>
+        </FilterCollapse>
+        </div>
 
         {near ? (
           <section className="mt-10" aria-labelledby="classes-map-heading">

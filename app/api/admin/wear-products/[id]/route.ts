@@ -156,3 +156,42 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 }
+
+export async function DELETE(_req: Request, ctx: Ctx) {
+  const user = await requireHyperAdminUser();
+  if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { id } = await ctx.params;
+
+  const existing = await prisma.wearProduct.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const orderLineCount = await prisma.wearOrderItem.count({
+    where: { wearProductId: id },
+  });
+  if (orderLineCount > 0) {
+    return NextResponse.json(
+      {
+        error:
+          "This product is linked to past wear orders and cannot be deleted. Archive it instead to hide it from the shop.",
+      },
+      { status: 409 },
+    );
+  }
+
+  try {
+    await prisma.wearProduct.delete({ where: { id } });
+
+    await logAdminAction({
+      actorUserId: user.id,
+      action: "wear_product.delete",
+      entityType: "wear_product",
+      entityId: id,
+      before: { slug: existing.slug, name: existing.name },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    logApiError("admin_wear_products_delete", e, { id }, _req);
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
+  }
+}

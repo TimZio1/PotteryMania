@@ -48,7 +48,7 @@ export default function StudioPanelShell({
         </div>
         <nav className="flex flex-col gap-0.5 p-2 lg:p-3" aria-label="Studio panel">
           {nav.map((item) => {
-            const active = pathname === item.href;
+            const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}

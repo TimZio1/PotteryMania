@@ -54,6 +54,28 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     await refresh();
   }
 
+  async function deleteProduct(id: string, name: string) {
+    if (
+      !window.confirm(
+        `Permanently delete “${name}”? This cannot be undone. Products with order history cannot be deleted — use Archive instead.`,
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setErr("");
+    setMsg("");
+    const r = await fetch(`/api/admin/wear-products/${id}`, { method: "DELETE" });
+    setBusy(false);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setErr((j as { error?: string }).error ?? "Delete failed");
+      return;
+    }
+    setMsg("Product deleted.");
+    await refresh();
+  }
+
   async function syncFromSpreadconnect() {
     setBusy(true);
     setErr("");
@@ -161,6 +183,14 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
                       className={`${ui.buttonGhost} min-h-9 px-3 text-xs`}
                     >
                       Toggle featured
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => deleteProduct(p.id, p.name)}
+                      className={`${ui.buttonGhost} min-h-9 px-3 text-xs text-red-800 hover:bg-red-50`}
+                    >
+                      Delete
                     </button>
                   </div>
                 </td>

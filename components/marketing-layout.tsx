@@ -31,33 +31,45 @@ export function MarketingLayout({ children, toolbar }: Props) {
                 and help serious studios grow with more presence.
               </p>
             </div>
-            <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-stone-700">
-              <Link href="/classes" className="transition hover:text-(--brand-ink)">
-                Classes
-              </Link>
-              <Link href="/marketplace" className="transition hover:text-(--brand-ink)">
-                Shop
-              </Link>
-              <Link href="/wear/shop" className="transition hover:text-(--brand-ink)">
-                Wearables
-              </Link>
-              <Link href="/early-access" className="transition hover:text-(--brand-ink)">
-                Early access
-              </Link>
-              <Link href="/terms" className="transition hover:text-(--brand-ink)">
-                Terms
-              </Link>
-              <Link href="/privacy" className="transition hover:text-(--brand-ink)">
-                Privacy
-              </Link>
-              <Link href="/vendor-terms" className="transition hover:text-(--brand-ink)">
-                Studio terms
-              </Link>
-              {!isPreregistrationOnly() ? (
-                <Link href="/login" className="transition hover:text-(--brand-ink)">
-                  Sign in
+            <div className="grid gap-x-12 gap-y-6 text-sm text-stone-700 sm:grid-cols-3">
+              <div className="space-y-2.5">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Product</p>
+                <Link href="/marketplace" className="block transition hover:text-(--brand-ink)">
+                  Shop
                 </Link>
-              ) : null}
+                <Link href="/classes" className="block transition hover:text-(--brand-ink)">
+                  Classes
+                </Link>
+                <Link href="/wear/shop" className="block transition hover:text-(--brand-ink)">
+                  Wearables
+                </Link>
+                <Link href="/early-access" className="block transition hover:text-(--brand-ink)">
+                  Early access
+                </Link>
+              </div>
+              <div className="space-y-2.5">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Legal</p>
+                <Link href="/terms" className="block transition hover:text-(--brand-ink)">
+                  Terms
+                </Link>
+                <Link href="/privacy" className="block transition hover:text-(--brand-ink)">
+                  Privacy
+                </Link>
+                <Link href="/vendor-terms" className="block transition hover:text-(--brand-ink)">
+                  Studio terms
+                </Link>
+              </div>
+              <div className="space-y-2.5">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Account</p>
+                {!isPreregistrationOnly() ? (
+                  <Link href="/login" className="block transition hover:text-(--brand-ink)">
+                    Sign in
+                  </Link>
+                ) : null}
+                <Link href="/early-access" className="block transition hover:text-(--brand-ink)">
+                  Register your studio
+                </Link>
+              </div>
             </div>
           </div>
           <div className="mt-8 flex flex-col gap-3 border-t border-(--brand-line) pt-6 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between">

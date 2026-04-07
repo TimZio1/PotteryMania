@@ -55,8 +55,15 @@ export type SpreadconnectCatalogSyncResult = {
   unknownImageHosts: string[];
 };
 
+function asString(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v.trim();
+  if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  return "";
+}
+
 function labelForVariant(variant: SpreadconnectArticleVariant) {
-  const parts = [variant.sizeName?.trim(), variant.appearanceName?.trim()].filter(Boolean);
+  const parts = [asString(variant.sizeName), asString(variant.appearanceName)].filter(Boolean);
   return parts.join(" · ") || "Default";
 }
 
@@ -81,6 +88,20 @@ function preferredCurrency() {
   return (process.env.SPREADCONNECT_CATALOG_CURRENCY?.trim().toUpperCase() || "EUR").slice(0, 8);
 }
 
+function articlesPageFromJson(json: unknown): SpreadconnectArticle[] {
+  if (json == null || typeof json !== "object") return [];
+  const o = json as Record<string, unknown>;
+  const rawItems = o.items;
+  if (Array.isArray(rawItems)) {
+    return rawItems.filter((row): row is SpreadconnectArticle => row != null && typeof row === "object");
+  }
+  // Some proxies or older responses may return a bare array.
+  if (Array.isArray(json)) {
+    return json.filter((row): row is SpreadconnectArticle => row != null && typeof row === "object");
+  }
+  return [];
+}
+
 async function fetchSpreadconnectArticles() {
   const cfg = getSpreadconnectConfig();
   if (!cfg) throw new Error("Spreadconnect not configured");
@@ -98,8 +119,17 @@ async function fetchSpreadconnectArticles() {
       throw new Error(`Spreadconnect articles fetch failed (${res.status}): ${text.slice(0, 300) || res.statusText}`);
     }
 
-    const json = (await res.json()) as { items?: SpreadconnectArticle[] };
-    const page = Array.isArray(json.items) ? json.items : [];
+    let json: unknown;
+    try {
+      json = await res.json();
+    } catch {
+      const text = await res.text().catch(() => "");
+      throw new Error(
+        `Spreadconnect articles response is not JSON (${text.slice(0, 200) || "empty body"})`,
+      );
+    }
+
+    const page = articlesPageFromJson(json);
     items.push(...page);
     if (page.length < limit) break;
   }

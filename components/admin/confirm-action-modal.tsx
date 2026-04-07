@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ui } from "@/lib/ui-styles";
 
 type Props = {
@@ -16,6 +16,8 @@ type Props = {
   onConfirm: (reason: string) => Promise<void> | void;
 };
 
+const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function ConfirmActionModal({
   open,
   title,
@@ -30,6 +32,9 @@ export function ConfirmActionModal({
 }: Props) {
   const [reason, setReason] = useState("");
   const [typed, setTyped] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   const canSubmit = useMemo(() => {
     const reasonOk = !requireReason || reason.trim().length > 0;
     const typedOk = !confirmationText || typed.trim() === confirmationText;
@@ -43,13 +48,65 @@ export function ConfirmActionModal({
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      requestAnimationFrame(() => {
+        const first = dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE);
+        first?.focus();
+      });
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+      previousFocusRef.current = null;
+    }
+  }, [open]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onCancel();
+        return;
+      }
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    },
+    [onCancel],
+  );
+
   if (!open) return null;
 
+  const titleId = "confirm-modal-title";
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-950/45 px-4 py-8">
-      <div className="w-full max-w-lg rounded-3xl border border-stone-200 bg-white p-6 shadow-2xl">
+    <div
+      className="fixed inset-0 z-100 flex items-center justify-center bg-stone-950/45 px-4 py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      onKeyDown={handleKeyDown}
+    >
+      <div
+        ref={dialogRef}
+        className="w-full max-w-lg rounded-3xl border border-stone-200 bg-white p-6 shadow-2xl"
+      >
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Critical action</p>
-        <h3 className="mt-3 text-2xl font-semibold tracking-tight text-amber-950">{title}</h3>
+        <h3 id={titleId} className="mt-3 text-2xl font-semibold tracking-tight text-amber-950">{title}</h3>
         <p className="mt-3 text-sm leading-7 text-stone-600">{description}</p>
 
         {requireReason ? (

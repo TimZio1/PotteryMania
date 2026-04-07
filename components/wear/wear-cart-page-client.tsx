@@ -59,6 +59,8 @@ export function WearCartPageClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
@@ -129,10 +131,22 @@ export function WearCartPageClient() {
 
   const onCheckout = useCallback(async () => {
     setCheckoutError(null);
-    if (!customerName.trim() || !customerEmail.trim()) {
-      setCheckoutError("Name and email are required.");
-      return;
+    setNameError(null);
+    setEmailError(null);
+    let hasFieldErr = false;
+    if (!customerName.trim()) {
+      setNameError("Full name is required.");
+      hasFieldErr = true;
     }
+    const emailVal = customerEmail.trim();
+    if (!emailVal) {
+      setEmailError("Email is required.");
+      hasFieldErr = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+      setEmailError("Enter a valid email address.");
+      hasFieldErr = true;
+    }
+    if (hasFieldErr) return;
     if (lines.length === 0) {
       setCheckoutError("Your cart is empty.");
       return;
@@ -267,10 +281,13 @@ export function WearCartPageClient() {
                   id="wear-cart-name"
                   autoComplete="name"
                   value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="mt-2 w-full border border-white/15 bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-600"
+                  onChange={(e) => { setCustomerName(e.target.value); setNameError(null); }}
+                  aria-invalid={!!nameError}
+                  aria-describedby={nameError ? "wear-cart-name-err" : undefined}
+                  className={`mt-2 w-full border bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-600 ${nameError ? "border-red-500" : "border-white/15"}`}
                   placeholder="Alex Maker"
                 />
+                {nameError ? <p id="wear-cart-name-err" className="mt-1 text-xs text-red-400">{nameError}</p> : null}
               </div>
               <div>
                 <label htmlFor="wear-cart-email" className="block text-xs font-medium uppercase tracking-wider text-neutral-500">
@@ -281,10 +298,13 @@ export function WearCartPageClient() {
                   type="email"
                   autoComplete="email"
                   value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  className="mt-2 w-full border border-white/15 bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-600"
+                  onChange={(e) => { setCustomerEmail(e.target.value); setEmailError(null); }}
+                  aria-invalid={!!emailError}
+                  aria-describedby={emailError ? "wear-cart-email-err" : undefined}
+                  className={`mt-2 w-full border bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-600 ${emailError ? "border-red-500" : "border-white/15"}`}
                   placeholder="you@example.com"
                 />
+                {emailError ? <p id="wear-cart-email-err" className="mt-1 text-xs text-red-400">{emailError}</p> : null}
               </div>
             </div>
 

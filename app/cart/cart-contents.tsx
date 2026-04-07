@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { depositChargedCents } from "@/lib/bookings/deposit";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
+import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 
 type Item = {
@@ -139,7 +140,11 @@ export function CartContents() {
     setCouponErr("");
   }
 
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+
   async function checkout(studioScopeId?: string) {
+    if (checkoutBusy) return;
+    setCheckoutBusy(true);
     setErr("");
     const r = await fetch("/api/checkout", {
       method: "POST",
@@ -154,6 +159,7 @@ export function CartContents() {
     });
     const j = await r.json();
     if (!r.ok) {
+      setCheckoutBusy(false);
       if (r.status === 409 && j?.priceChanged) {
         setErr("Prices were updated — refresh your cart and review line totals, then try again.");
         load();
@@ -312,9 +318,10 @@ export function CartContents() {
                     </div>
                   </div>
                   {seatKeys.length > 0 && (
-                    <label className="mt-4 block">
-                      <span className={ui.label}>Seat type</span>
+                    <div className="mt-4">
+                      <label className={ui.label} htmlFor={`seat-type-${i.id}`}>Seat type</label>
                       <select
+                        id={`seat-type-${i.id}`}
                         className={`${ui.input} mt-1 max-w-xs`}
                         value={i.seatType ?? ""}
                         onChange={(e) => updateSeatType(i.id, e.target.value)}
@@ -326,7 +333,7 @@ export function CartContents() {
                           </option>
                         ))}
                       </select>
-                    </label>
+                    </div>
                   )}
                 </li>
               );
@@ -509,16 +516,25 @@ export function CartContents() {
                     <button
                       key={g.studioId}
                       type="button"
+                      disabled={checkoutBusy}
                       onClick={() => checkout(g.studioId)}
                       className={`${ui.buttonPrimary} w-full`}
                     >
-                      Continue to payment — {g.displayName}
+                      {checkoutBusy ? (
+                        <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
+                      ) : (
+                        <>Continue to payment — {g.displayName}</>
+                      )}
                     </button>
                   ))}
                 </div>
               ) : (
-                <button type="button" onClick={() => checkout()} className={`${ui.buttonPrimary} mt-2 w-full`}>
-                  Continue to payment
+                <button type="button" disabled={checkoutBusy} onClick={() => checkout()} className={`${ui.buttonPrimary} mt-2 w-full`}>
+                  {checkoutBusy ? (
+                    <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
+                  ) : (
+                    "Continue to payment"
+                  )}
                 </button>
               )}
             </div>

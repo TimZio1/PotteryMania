@@ -69,8 +69,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} bg-stone-50 font-sans text-stone-900 antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} font-sans text-stone-900 antialiased`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only fixed left-4 top-4 z-200 rounded-lg bg-amber-950 px-4 py-2 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
+        >
+          Skip to content
+        </a>
         <GoogleAnalytics />
         <MetaPixel />
         {metaPixelId ? (
@@ -86,7 +92,7 @@ export default function RootLayout({
             />
           </noscript>
         ) : null}
-        <Providers>{children}</Providers>
+        <Providers><div id="main-content">{children}</div></Providers>
       </body>
     </html>
   );
