@@ -7,15 +7,19 @@ import { isReschedulable } from "@/lib/bookings/status";
 import { RescheduleBookingPanel } from "@/components/bookings/reschedule-booking-panel";
 
 export default function VendorBookingActions({
+  studioId,
   bookingId,
   bookingStatus,
   participantCount,
   seatType,
+  calendarSync,
 }: {
+  studioId: string;
   bookingId: string;
   bookingStatus: string;
   participantCount: number;
   seatType?: string | null;
+  calendarSync?: { status: string; message: string | null; at: string } | null;
 }) {
   const [msg, setMsg] = useState("");
   const router = useRouter();
@@ -75,6 +79,20 @@ export default function VendorBookingActions({
     }
   }
 
+  async function handleCalendarResync() {
+    setMsg("");
+    const res = await fetch(`/api/studios/${studioId}/bookings/${bookingId}/calendar-resync`, {
+      method: "POST",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) {
+      setMsg("Calendar sync OK.");
+      router.refresh();
+    } else {
+      setMsg(`Calendar sync: ${data.message ?? data.error ?? res.statusText}`);
+    }
+  }
+
   async function handleMarkCompleted() {
     if (!confirm("Mark this booking as completed (attended)?")) return;
     setMsg("");
@@ -94,6 +112,8 @@ export default function VendorBookingActions({
 
   const showBlock = needsApproval || isCancellable || canMarkCompleted;
   const showReschedule = isReschedulable(bookingStatus as BookingStatus);
+  const showCalVendor =
+    (bookingStatus === "confirmed" || bookingStatus === "completed") && Boolean(studioId);
 
   return (
     <div className="space-y-2">
@@ -103,6 +123,38 @@ export default function VendorBookingActions({
       >
         Calendar (.ics)
       </a>
+      {showCalVendor ? (
+        <div className="text-xs text-stone-600">
+          {calendarSync ? (
+            <>
+              <span>
+                Google Calendar sync: {calendarSync.status === "success" ? "OK" : "Failed or pending"}
+                {calendarSync.message ? ` — ${calendarSync.message}` : null}
+              </span>
+              {calendarSync.status !== "success" ? (
+                <button
+                  type="button"
+                  onClick={handleCalendarResync}
+                  className="ml-2 font-medium text-amber-900 underline underline-offset-2"
+                >
+                  Retry
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <span>No Google Calendar sync logged yet for this booking.</span>
+              <button
+                type="button"
+                onClick={handleCalendarResync}
+                className="ml-2 font-medium text-amber-900 underline underline-offset-2"
+              >
+                Sync now
+              </button>
+            </>
+          )}
+        </div>
+      ) : null}
       {showBlock || showReschedule ? (
         <div className="mt-3 space-y-2 border-t border-stone-100 pt-3">
           {showBlock && needsApproval && (

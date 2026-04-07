@@ -44,7 +44,7 @@ export type BuildLineRowsResult =
       productBps: number;
       bookingBps: number;
     }
-  | { ok: false; error: string; status: number }
+  | { ok: false; error: string; status: number; priceChanged?: boolean }
   | {
       ok: false;
       error: string;
@@ -115,6 +115,15 @@ export async function buildCheckoutLineRowsFromCart(
           status: 400,
         };
       }
+      const currentUnit = p.salePriceCents ?? p.priceCents;
+      if (currentUnit !== item.priceSnapshotCents) {
+        return {
+          ok: false,
+          error: `Price changed for "${p.title}". Refresh your cart and try again.`,
+          status: 409,
+          priceChanged: true,
+        };
+      }
       const unit = item.priceSnapshotCents;
       const lineCents = unit * item.quantity;
       const com = commissionCentsFromLine(lineCents, productBps);
@@ -173,6 +182,15 @@ export async function buildCheckoutLineRowsFromCart(
       reservedBySame,
     );
     if (seatErr) return { ok: false, error: seatErr, status: 400 };
+
+    if (experience.priceCents !== item.priceSnapshotCents) {
+      return {
+        ok: false,
+        error: `Price changed for "${experience.title}". Refresh your cart and try again.`,
+        status: 409,
+        priceChanged: true,
+      };
+    }
 
     const unit = item.priceSnapshotCents;
     const fullLine = unit * item.participantCount;

@@ -6,6 +6,7 @@ import { removeGoogleCalendarEventForBooking } from "@/lib/calendar/google-sync"
 import { stripeRefundForBooking } from "@/lib/bookings/stripe-refund-booking";
 import { sendBookingEmails } from "@/lib/email/booking-notify";
 import type { Prisma } from "@prisma/client";
+import { logApiError } from "@/lib/monitoring";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
 
@@ -51,7 +52,9 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  removeGoogleCalendarEventForBooking(bookingId).catch((e) => console.error("[google-calendar-remove]", bookingId, e));
+  removeGoogleCalendarEventForBooking(bookingId).catch((e) =>
+    logApiError("booking_cancel_google_calendar", e, { bookingId }),
+  );
 
   let stripeRefund: { refundId: string; amountCents: number } | null = null;
   let stripeRefundError: string | null = null;
@@ -108,7 +111,7 @@ export async function POST(req: Request, ctx: Ctx) {
       studioHtml: booking.studio.email ? `<h1>Booking cancelled</h1>${info}` : undefined,
     });
   } catch (e) {
-    console.error("[cancel-email]", e);
+    logApiError("booking_cancel_email", e, { bookingId }, req);
   }
 
   return NextResponse.json({

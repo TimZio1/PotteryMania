@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { writePlatformAnalyticsSnapshotForDay } from "@/lib/analytics-snapshot-populate";
 
 export const dynamic = "force-dynamic";
@@ -8,9 +9,7 @@ export const dynamic = "force-dynamic";
  * Optional ?day=YYYY-MM-DD (UTC) for backfill; default yesterday UTC.
  */
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET?.trim();
-  const auth = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
-  if (!secret || auth !== secret) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -4,6 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { WEAR_CHECKOUT_SHIPPING_COUNTRIES } from "@/lib/wear-shipping";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { logApiError } from "@/lib/monitoring";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -119,6 +120,7 @@ export async function POST(req: Request) {
       if (!variant) {
         return NextResponse.json({ error: "Invalid variant" }, { status: 400 });
       }
+      // POD / print-on-demand: `stockQuantity` null means not tracked (infinite). Only enforce when set.
       if (variant.stockQuantity != null && variant.stockQuantity < line.quantity) {
         return NextResponse.json({ error: `Insufficient stock: ${p.name}` }, { status: 409 });
       }
@@ -232,7 +234,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url, orderId });
   } catch (e) {
-    console.error("[wear checkout]", e);
+    logApiError("wear_checkout", e, { orderId }, req);
     try {
       await prisma.wearOrder.delete({ where: { id: orderId } });
     } catch {

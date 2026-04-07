@@ -1,6 +1,20 @@
 import { createHash } from "node:crypto";
 import { siteMetadata } from "@/lib/seo";
 
+async function recordMetaCapiError(status: number, detail: unknown) {
+  try {
+    const { prisma } = await import("@/lib/db");
+    await prisma.wearAnalyticsEvent.create({
+      data: {
+        kind: "meta_capi_error",
+        payload: { status, detail } as object,
+      },
+    });
+  } catch {
+    /* non-fatal */
+  }
+}
+
 const GRAPH_VERSION = "v21.0";
 
 function hashEmailForMeta(email: string): string {
@@ -73,9 +87,11 @@ export async function sendMetaConversionsLead(input: MetaLeadCapiInput): Promise
     const json: unknown = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.error("[meta-capi] Lead rejected", res.status, json);
+      void recordMetaCapiError(res.status, json);
     }
   } catch (e) {
     console.error("[meta-capi] Lead request failed", e);
+    void recordMetaCapiError(0, e instanceof Error ? e.message : String(e));
   }
 }
 

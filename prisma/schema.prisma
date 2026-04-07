@@ -25,6 +25,8 @@ model User {
   suspendedAt     DateTime? @map("suspended_at")
   suspendedReason String?   @map("suspended_reason")
   emailVerifiedAt DateTime? @map("email_verified_at")
+  /// Abandoned-cart / marketing emails (opt-in).
+  marketingConsent Boolean  @default(false) @map("marketing_consent")
   /// Hyperadmin-only labels (e.g. vip, at-risk). Lowercase slug segments; not shown to the user.
   adminTags       String[]  @default([]) @map("admin_tags")
   /// Opaque token for unauthenticated iCal/WebCal feed of this user’s bookings (`/api/calendar/feed/[token]`). Treat as secret.
@@ -378,6 +380,7 @@ enum ProductStatus {
 enum WearOrderStatus {
   pending
   paid
+  manual_review
   in_production
   fulfilled
   shipped
@@ -2116,4 +2119,37 @@ model AdminNotification {
   @@index([readAt])
   @@index([createdAt(sort: Desc)])
   @@map("admin_notifications")
+}
+
+/// Stripe webhook delivery deduplication (`evt_…` id). `processedAt` set after handler succeeds.
+model StripeWebhookEvent {
+  id          String    @id
+  eventType   String    @map("event_type")
+  receivedAt  DateTime  @default(now()) @map("received_at")
+  processedAt DateTime? @map("processed_at")
+  failedAt    DateTime? @map("failed_at")
+  retryCount  Int       @default(0) @map("retry_count")
+  payload     Json?
+
+  tasks StripeWebhookEventTask[]
+
+  @@index([processedAt])
+  @@index([failedAt])
+  @@index([receivedAt(sort: Desc)])
+  @@map("stripe_webhook_events")
+}
+
+model StripeWebhookEventTask {
+  id                    String    @id @default(uuid()) @db.Uuid
+  stripeWebhookEventId  String    @map("stripe_webhook_event_id")
+  concern               String
+  failedAt              DateTime? @map("failed_at")
+  failureReason         String?   @map("failure_reason") @db.Text
+  resolvedAt            DateTime? @map("resolved_at")
+
+  event StripeWebhookEvent @relation(fields: [stripeWebhookEventId], references: [id], onDelete: Cascade)
+
+  @@index([stripeWebhookEventId])
+  @@index([failedAt])
+  @@map("stripe_webhook_event_tasks")
 }

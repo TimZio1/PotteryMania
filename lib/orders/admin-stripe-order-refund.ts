@@ -1,6 +1,9 @@
 import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
+import { upsertLedgerEntry } from "@/lib/finance/ledger";
+import { LEDGER_SOURCE_SYSTEM } from "@/lib/finance/constants";
+import { logApiError } from "@/lib/monitoring";
 
 export type OrderRefundSnapshot =
   | { ok: false; error: string }
@@ -103,6 +106,11 @@ export async function executeAdminStripeOrderRefund(opts: {
     return { ok: false, error: "Refund amount must be at least 1 cent." };
   }
 
+  const orderForLedger = await prisma.order.findUnique({
+    where: { id: opts.orderId },
+    select: { customerUserId: true, currency: true, shippingAddressJson: true },
+  });
+
   try {
     const stripe = getStripe();
     const refund = await stripe.refunds.create({
@@ -136,6 +144,46 @@ export async function executeAdminStripeOrderRefund(opts: {
         },
       }),
     ]);
+
+    const ship = orderForLedger?.shippingAddressJson;
+    const country =
+      ship &&
+      typeof ship === "object" &&
+      ship !== null &&
+      "country" in ship &&
+      typeof (ship as { country: unknown }).country === "string"
+        ? (ship as { country: string }).country.trim() || null
+        : null;
+    const createdSec = typeof refund.created === "number" ? refund.created : Math.floor(Date.now() / 1000);
+    const created = new Date(createdSec * 1000);
+    const entryDate = new Date(
+      Date.UTC(created.getUTCFullYear(), created.getUTCMonth(), created.getUTCDate()),
+    );
+    try {
+      await upsertLedgerEntry({
+        dedupeKey: `stripe_refund:${refund.id}`,
+        entryDate,
+        entryType: "refund",
+        amountCents: amount,
+        currency: orderForLedger?.currency ?? snap.currency,
+        direction: "debit",
+        sourceSystem: LEDGER_SOURCE_SYSTEM.stripe,
+        sourceType: "stripe_refund",
+        sourceId: refund.id,
+        orderId: opts.orderId,
+        userId: orderForLedger?.customerUserId ?? null,
+        country,
+        notes: `Admin refund: ${reason.slice(0, 240)}`,
+        metadata: {
+          adminUserId: opts.adminUserId,
+          orderId: opts.orderId,
+          paymentIntentId: snap.paymentIntentId,
+          fullyRefunded,
+        },
+      });
+    } catch (e) {
+      logApiError("admin_refund_ledger_upsert", e, { orderId: opts.orderId, refundId: refund.id });
+    }
 
     return { ok: true, refundId: refund.id, amountCents: amount, fullyRefunded };
   } catch (e) {

@@ -14,6 +14,7 @@ import {
   tryAddStudioFeatureViaSubscriptionItem,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
+import { logApiError } from "@/lib/monitoring";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -346,7 +347,7 @@ export async function POST(req: Request, ctx: Ctx) {
       message: "Complete payment in Stripe to activate this add-on.",
     });
   } catch (e) {
-    console.error("[feature-requests] checkout", e);
+    logApiError("feature_requests_checkout", e, { studioId, slug }, req);
     return NextResponse.json({ error: "Could not start billing checkout" }, { status: 503 });
   }
 }

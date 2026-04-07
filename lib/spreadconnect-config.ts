@@ -9,7 +9,11 @@ export type SpreadconnectConfig = {
 
 export function getSpreadconnectConfig(): SpreadconnectConfig | null {
   const apiKey = process.env.SPREADCONNECT_API_KEY?.trim() ?? "";
-  if (!apiKey || apiKey === "__PENDING__") return null;
+  if (apiKey === "__PENDING__") {
+    console.warn("[spreadconnect] SPREADCONNECT_API_KEY is __PENDING__ — catalog sync and POD submit are disabled.");
+    return null;
+  }
+  if (!apiKey) return null;
 
   const baseUrl = (
     process.env.SPREADCONNECT_API_BASE_URL?.trim() || "https://api.spreadconnect.app"

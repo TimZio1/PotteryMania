@@ -96,6 +96,10 @@ export default async function AdminOperationsPage() {
     { name: "booking-reminders", path: "/api/cron/booking-reminders" },
     { name: "expire-pending-bookings", path: "/api/cron/expire-pending-bookings" },
     { name: "finance-reconcile", path: "/api/cron/finance-reconcile" },
+    { name: "analytics-snapshots", path: "/api/cron/analytics-snapshots" },
+    { name: "feature-billing-reconcile", path: "/api/cron/feature-billing-reconcile" },
+    { name: "studio-feature-billing-reconcile", path: "/api/cron/studio-feature-billing-reconcile" },
+    { name: "wear-catalog-sync", path: "/api/cron/wear-catalog-sync" },
     { name: "ranking-update", path: "/api/cron/ranking-update" },
   ] as const;
 
@@ -262,7 +266,11 @@ export default async function AdminOperationsPage() {
           <Link href="/admin/audit" className="font-medium text-amber-900 underline-offset-2 hover:underline">
             Audit
           </Link>{" "}
-          for full history.
+          for full history ·{" "}
+          <Link href="/admin/webhook-events" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+            Stripe webhook failures
+          </Link>
+          .
         </p>
       </section>
 

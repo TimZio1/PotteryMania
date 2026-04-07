@@ -52,6 +52,13 @@ export default async function AdminWearProductsPage({
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
 
+      {health.spreadconnectWarning ? (
+        <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-100/80 px-4 py-3 text-sm text-amber-950">
+          <p className="font-semibold">Spreadconnect</p>
+          <p className="mt-1">{health.spreadconnectWarning}</p>
+        </div>
+      ) : null}
+
       <div
         className={`mt-6 rounded-2xl border px-4 py-4 text-sm ${
           health.shopVisibleCount > 0
@@ -71,6 +78,17 @@ export default async function AdminWearProductsPage({
             ? ` · SC failures (24h): ${health.spreadconnectFailuresLast24h}, successes: ${health.spreadconnectSubmissionsLast24h}`
             : null}
         </p>
+        {health.unknownImageHosts?.length ? (
+          <p className="mt-2 text-xs text-amber-900">
+            Image hosts not in Next image config: {health.unknownImageHosts.join(", ")} — add to{" "}
+            <span className="font-mono">next.config.ts</span> and redeploy.
+          </p>
+        ) : null}
+        {health.brokenImages?.length ? (
+          <p className="mt-2 text-xs text-red-800">
+            Sampled product images returned non-OK HEAD: {health.brokenImages.length} (see API JSON for details).
+          </p>
+        ) : null}
         <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-600">
           <Link href="/wear/shop" className="font-medium text-amber-900 underline">
             Open public shop

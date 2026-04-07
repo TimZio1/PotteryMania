@@ -4,6 +4,7 @@ import {
   getWearSpreadshopUrl,
   WEAR_PREVIEW_ITEMS,
   WEAR_VISUAL_IMAGES,
+  type WearPreviewItem,
 } from "@/lib/wear-config";
 import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
@@ -17,8 +18,9 @@ const sectionCtaClass =
 const bridgeLinkClass =
   "text-sm font-medium text-neutral-600 underline decoration-neutral-400/60 underline-offset-4 transition hover:text-neutral-950 hover:decoration-neutral-950";
 
-export function WearPage() {
+export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] }) {
   const spreadshopUrl = getWearSpreadshopUrl();
+  const tiles = previewItems?.length ? previewItems : WEAR_PREVIEW_ITEMS;
 
   return (
     <>
@@ -28,12 +30,11 @@ export function WearPage() {
         <section className="border-b border-white/10 px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
           <div className="mx-auto max-w-4xl text-center">
             <p className="font-serif text-3xl leading-snug tracking-tight text-white sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
-              Not another platform.
-              <br />
-              Not another product.
+              Wear the work you actually ship.
             </p>
             <p className="mt-8 font-serif text-xl text-neutral-300 sm:text-2xl">
-              This is for creators who never fit anywhere.
+              Studio-grade merch without handing your story to another marketplace. Built for makers who outgrew
+              templates.
             </p>
             <p className="mt-12 text-sm font-medium uppercase tracking-[0.35em] text-neutral-500">Wear what you build.</p>
             <div className="mt-10 flex flex-col items-center gap-4">
@@ -83,7 +84,7 @@ export function WearPage() {
           <div className="mx-auto max-w-5xl">
             <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-neutral-500">A glimpse</p>
             <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {WEAR_PREVIEW_ITEMS.map((item) => {
+              {tiles.map((item) => {
                 const inner = (
                   <>
                     <div className="relative aspect-[3/4] overflow-hidden bg-neutral-200">

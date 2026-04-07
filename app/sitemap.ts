@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { isPreregistrationOnly } from "@/lib/preregistration";
+import { captureError } from "@/lib/monitoring";
 import { siteMetadata } from "@/lib/seo";
 
 /** Lets `next build` succeed when no DB is reachable (CI, fresh clone). */
@@ -65,7 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ];
   } catch (e) {
-    console.warn("[sitemap] database unavailable, emitting static URLs only:", e);
+    captureError(e, { tag: "sitemap_db_fallback" });
     return staticSitemapFallback();
   }
 }

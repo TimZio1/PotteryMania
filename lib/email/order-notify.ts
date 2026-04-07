@@ -51,11 +51,12 @@ export function orderConfirmationCopy(input: {
 }
 
 export function abandonedCartCopy(input: { recoveryUrl: string; itemCount: number }) {
+  const site = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "https://potterymania.com";
   return renderEmailShell({
     eyebrow: "Cart reminder",
     title: "Your cart is still waiting",
     intro: `You still have ${input.itemCount} item(s) saved in PotteryMania.`,
-    bodyHtml: "<p>Return whenever you are ready and complete your order.</p>",
+    bodyHtml: `<p>Return whenever you are ready and complete your order.</p><p style="margin-top:20px;font-size:13px;color:#8b7a6d;">You received this because you opted in to cart reminders. To opt out, sign in at ${escapeHtml(site.replace(/\/+$/, ""))} and disable marketing email in your account (or contact support).</p>`,
     ctaLabel: "Return to your cart",
     ctaUrl: input.recoveryUrl,
   });

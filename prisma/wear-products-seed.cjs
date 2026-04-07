@@ -24,7 +24,7 @@ async function upsertWearProducts(prisma) {
       priceCents: 3400,
       currency: "EUR",
       images: [
-        "https://images.unsplash.com/photo-1610701596007-1150281fbcdd?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=800&q=80",
       ],
       sortOrder: 20,
     },

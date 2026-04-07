@@ -80,21 +80,44 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
   const { performance: PERF_WEIGHT, activity: ACTIVITY_WEIGHT, manual: MANUAL_WEIGHT } =
     await getRankingScoreWeights();
 
-  const studios = await prisma.studio.findMany({
-    where: { status: "approved" },
-    select: {
-      id: true,
-      marketplaceRankWeight: true,
-      createdAt: true,
-      shortDescription: true,
-      longDescription: true,
-      logoUrl: true,
-      coverImageUrl: true,
-      latitude: true,
-      longitude: true,
-      stripeAccount: { select: { chargesEnabled: true } },
-    },
-  });
+  const PAGE = 500;
+  const studios: {
+    id: string;
+    marketplaceRankWeight: number;
+    createdAt: Date;
+    shortDescription: string | null;
+    longDescription: string | null;
+    logoUrl: string | null;
+    coverImageUrl: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    stripeAccount: { chargesEnabled: boolean } | null;
+  }[] = [];
+  for (let skip = 0; ; skip += PAGE) {
+    const batch = await prisma.studio.findMany({
+      where: { status: "approved" },
+      select: {
+        id: true,
+        marketplaceRankWeight: true,
+        createdAt: true,
+        shortDescription: true,
+        longDescription: true,
+        logoUrl: true,
+        coverImageUrl: true,
+        latitude: true,
+        longitude: true,
+        stripeAccount: { select: { chargesEnabled: true } },
+      },
+      skip,
+      take: PAGE,
+      orderBy: { id: "asc" },
+    });
+    studios.push(...batch);
+    if (batch.length < PAGE) break;
+    if (skip > 0 && skip % 2000 === 0) {
+      console.info(`[ranking] loaded ${studios.length} approved studios…`);
+    }
+  }
 
   const deleted = await prisma.studioRankingScore.deleteMany({
     where: { studio: { status: { not: "approved" } } },
@@ -324,9 +347,12 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
   }
 
   const calculatedAt = new Date();
-  const CHUNK = 20;
+  const CHUNK = 80;
   for (let i = 0; i < draft.length; i += CHUNK) {
     const slice = draft.slice(i, i + CHUNK);
+    if (i > 0 && i % 500 === 0) {
+      console.info(`[ranking] upsert checkpoint ${i}/${draft.length}`);
+    }
     await prisma.$transaction(
       slice.map((r) =>
         prisma.studioRankingScore.upsert({

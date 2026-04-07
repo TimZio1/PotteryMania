@@ -31,7 +31,7 @@ export const WEAR_PREVIEW_ITEMS: WearPreviewItem[] = [
     name: "Hands in the clay · longsleeve",
     priceLabel: "from €34",
     imageSrc:
-      "https://images.unsplash.com/photo-1610701596007-1150281fbcdd?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=800&q=80",
     imageAlt: "Hands shaping wet clay on a wheel",
   },
   {

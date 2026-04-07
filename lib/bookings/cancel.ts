@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { isCancellable, cancelStatusForRole, isCancelled } from "./status";
 import { safeReleaseCapacity } from "./slot-lock";
+import { refundEligibilityFromPolicySnapshot } from "./cancellation-policy";
 import type { Booking, Prisma } from "@prisma/client";
 
 function amountCollectedCents(booking: Pick<Booking, "paymentStatus" | "totalAmountCents" | "depositAmountCents">): number {
@@ -38,46 +39,16 @@ export async function cancelBooking(opts: {
 
     if (paid > 0) {
       const snap = booking.cancellationPolicySnapshot as Record<string, unknown> | null;
-      if (snap) {
-        const policyType = snap.policyType as string | undefined;
-        const hoursBeforeStart = (snap.hoursBeforeStart as number) ?? 0;
-        const refundPercentage = (snap.refundPercentage as number) ?? 100;
-
-        const slotStart = new Date(booking.slot.slotDate);
-        const [h, m] = (booking.slot.startTime || "00:00").split(":").map(Number);
-        slotStart.setHours(h || 0, m || 0, 0, 0);
-        const hoursUntil = (slotStart.getTime() - Date.now()) / (1000 * 60 * 60);
-
-        if (policyType === "non_refundable") {
-          refundOutcome = "non_refundable";
-          refundAmountCents = 0;
-        } else if (policyType === "refundable_until_hours") {
-          if (hoursUntil >= hoursBeforeStart) {
-            refundOutcome = "full_refund_eligible";
-            refundAmountCents = paid;
-          } else {
-            refundOutcome = "past_deadline";
-            refundAmountCents = 0;
-          }
-        } else if (policyType === "partial_refund_until_hours") {
-          if (hoursUntil >= hoursBeforeStart) {
-            refundOutcome = "partial_refund_eligible";
-            const fromPolicy = Math.floor((booking.totalAmountCents * refundPercentage) / 100);
-            refundAmountCents = Math.min(paid, fromPolicy);
-          } else {
-            refundOutcome = "past_deadline";
-            refundAmountCents = 0;
-          }
-        } else {
-          refundOutcome = "custom_review_needed";
-          refundAmountCents = 0;
-        }
+      if (opts.role === "customer") {
+        const { refundOutcome: ro, refundAmountCents: ra } = refundEligibilityFromPolicySnapshot(snap, {
+          slotDate: booking.slot.slotDate,
+          startTime: booking.slot.startTime || "00:00",
+          totalAmountCents: booking.totalAmountCents,
+          paidCents: paid,
+        });
+        refundOutcome = ro;
+        refundAmountCents = ra;
       } else {
-        refundOutcome = "no_policy_full_refund";
-        refundAmountCents = paid;
-      }
-
-      if (opts.role === "vendor" || opts.role === "admin") {
         refundOutcome = `${opts.role}_initiated_refund`;
         refundAmountCents = paid;
       }

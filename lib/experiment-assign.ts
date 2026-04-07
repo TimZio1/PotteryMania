@@ -1,5 +1,8 @@
 /**
  * Tier 4F: deterministic A/B assignment without storing rows (good enough for flagging UI copy).
+ *
+ * **PII:** Pass an opaque id (e.g. `user.id` UUID). Do not pass email, phone, or free-text PII as `subjectId`
+ * — it would fingerprint users in logs/analytics if those strings appear elsewhere.
  */
 export function experimentVariantForSubject(
   experimentSlug: string,

@@ -1,3 +1,7 @@
+/**
+ * In-process fixed-window rate limiting. Fine for a single Node instance (e.g. one Railway dyno).
+ * For horizontally scaled production, move counters to Redis / Upstash or edge middleware with a shared store.
+ */
 type Bucket = {
   count: number;
   resetAt: number;

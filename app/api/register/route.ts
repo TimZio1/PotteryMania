@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import type { UserRole } from "@prisma/client";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { issueEmailVerificationToken } from "@/lib/email-verification-flow";
+import { logApiError } from "@/lib/monitoring";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many registration attempts" }, { status: 429 });
   }
-  let body: { email?: string; password?: string; role?: string };
+  let body: { email?: string; password?: string; role?: string; marketingConsent?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -28,19 +29,20 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+  const marketingConsent = body.marketingConsent === true;
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    return NextResponse.json({ error: "Email already registered" }, { status: 409 });
+    return NextResponse.json({ ok: true });
   }
   const passwordHash = await hash(password, 12);
   const user = await prisma.user.create({
-    data: { email, passwordHash, role },
+    data: { email, passwordHash, role, marketingConsent },
     select: { id: true, email: true, role: true, createdAt: true },
   });
   try {
     await issueEmailVerificationToken(user.id, user.email);
   } catch (e) {
-    console.error("[register] verification token failed", e);
+    logApiError("register_verification_token", e, { userId: user.id }, req);
   }
-  return NextResponse.json({ user }, { status: 201 });
+  return NextResponse.json({ ok: true, user }, { status: 201 });
 }

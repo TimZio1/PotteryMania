@@ -130,6 +130,14 @@ export default function KilnManager({ studioId }: { studioId: string }) {
       </div>
 
       <div className="space-y-4">
+        {firings.length === 0 ? (
+          <div className={`${ui.card} text-center`}>
+            <p className="font-medium text-amber-950">No firings logged yet</p>
+            <p className="mt-2 text-sm text-stone-600">
+              Create your first firing above to track kiln loads and pieces from queue through complete.
+            </p>
+          </div>
+        ) : null}
         {firings.map((f) => (
           <div key={f.id} className={ui.card}>
             <div className="flex flex-wrap items-start justify-between gap-3">

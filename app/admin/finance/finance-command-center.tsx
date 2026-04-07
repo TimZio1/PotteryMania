@@ -71,6 +71,12 @@ export function FinanceCommandCenter() {
               Ledger 90d
             </a>
             <a
+              href="/api/admin/finance/ledger-export?days=90"
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-amber-950 hover:bg-stone-50"
+            >
+              Ledger export (range API)
+            </a>
+            <a
               href="/api/admin/finance/exports?type=snapshots&days=90"
               className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-amber-950 hover:bg-stone-50"
             >

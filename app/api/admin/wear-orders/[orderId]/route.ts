@@ -8,10 +8,11 @@ import {
   isWearOrderTerminal,
   validateWearOrderTransitionReason,
 } from "@/lib/wear-order-lifecycle";
-import { scheduleWearOrderNotification } from "@/lib/wear-order-notification-stubs";
+import { scheduleWearOrderNotification } from "@/lib/wear-order-notifications";
 import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
 import { getStripe } from "@/lib/stripe";
 import { submitPaidWearOrderToSpreadconnect } from "@/lib/wear-order-spreadconnect";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ type Ctx = { params: Promise<{ orderId: string }> };
 const STATUSES: WearOrderStatus[] = [
   "pending",
   "paid",
+  "manual_review",
   "in_production",
   "fulfilled",
   "shipped",
@@ -294,7 +296,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       });
       await submitPaidWearOrderToSpreadconnect({ wearOrderId: orderId, stripeSession: sess });
     } catch (e) {
-      console.error("[admin wear-order] spreadconnect", e);
+      logApiError("admin_wear_order_spreadconnect", e, { orderId }, req);
     }
   }
 

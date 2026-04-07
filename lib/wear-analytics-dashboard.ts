@@ -95,9 +95,15 @@ export type WearRevenueWindows = {
   last30Cents: number;
 };
 
+export type WearIntegrationSignals = {
+  spreadconnectFailures: number;
+  metaCapiErrors: number;
+};
+
 export type WearDashboardData = {
   range: WearDateRange;
   revenueWindows: WearRevenueWindows;
+  integrationSignals: WearIntegrationSignals;
   overview: {
     revenueCents: number;
     orderCount: number;
@@ -249,6 +255,8 @@ export async function loadWearDashboard(range: WearDateRange): Promise<WearDashb
   const views = eventCount(WEAR_EVENT_KINDS.productView);
   const addToCart = eventCount(WEAR_EVENT_KINDS.addToCart);
   const checkoutStartedEvents = eventCount(WEAR_EVENT_KINDS.checkoutStarted);
+  const spreadconnectFailures = eventCount("wear_spreadconnect_failed");
+  const metaCapiErrors = eventCount("meta_capi_error");
   const orderCount = paidOrders.length;
 
   const revenueCents = paidOrders.reduce((s, o) => s + revenueForOrder(o), 0);
@@ -413,6 +421,10 @@ export async function loadWearDashboard(range: WearDateRange): Promise<WearDashb
   return {
     range,
     revenueWindows,
+    integrationSignals: {
+      spreadconnectFailures,
+      metaCapiErrors,
+    },
     overview: {
       revenueCents,
       orderCount,

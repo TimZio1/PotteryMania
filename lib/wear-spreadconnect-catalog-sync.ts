@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 import { normalizeWearSlug } from "@/lib/wear-slug";
+import { listUnknownWearImageHostsForActiveCatalog } from "@/lib/wear-catalog-health";
 
 type SpreadconnectArticleVariant = {
   sku?: string | null;
@@ -50,6 +51,8 @@ export type SpreadconnectCatalogSyncResult = {
   archivedProducts: number;
   skippedArticles: number;
   syncedVariants: number;
+  /** Image hostnames not in Next.js `remotePatterns` — add to `next.config.ts` if legitimate. */
+  unknownImageHosts: string[];
 };
 
 function labelForVariant(variant: SpreadconnectArticleVariant) {
@@ -309,6 +312,8 @@ export async function syncSpreadconnectCatalogToWearProducts(): Promise<Spreadco
 
   const archivedProducts = await archiveUnsyncedPlaceholderProducts(syncedIds);
 
+  const unknownImageHosts = await listUnknownWearImageHostsForActiveCatalog();
+
   return {
     fetchedArticles: articles.length,
     syncedProducts: syncedIds.length,
@@ -317,5 +322,6 @@ export async function syncSpreadconnectCatalogToWearProducts(): Promise<Spreadco
     archivedProducts,
     skippedArticles,
     syncedVariants,
+    unknownImageHosts,
   };
 }

@@ -3,6 +3,7 @@ import type { WearOrderStatus } from "@prisma/client";
 /** Payment captured — counts as revenue / analytics “paid order”. */
 export const WEAR_ORDER_PAID_LIKE: readonly WearOrderStatus[] = [
   "paid",
+  "manual_review",
   "in_production",
   "fulfilled",
   "shipped",
@@ -26,6 +27,8 @@ export function allowedWearOrderTransitions(from: WearOrderStatus): WearOrderSta
     case "pending":
       return ["paid", "cancelled"];
     case "paid":
+      return ["manual_review", "in_production", "fulfilled", "cancelled", "refunded"];
+    case "manual_review":
       return ["in_production", "fulfilled", "cancelled", "refunded"];
     case "in_production":
       return ["fulfilled", "cancelled", "refunded"];
@@ -46,7 +49,13 @@ export function canWearOrderTransition(from: WearOrderStatus, to: WearOrderStatu
 }
 
 export function wearOrderNeedsOpsAttention(status: WearOrderStatus): boolean {
-  return status === "pending" || status === "paid" || status === "in_production" || status === "fulfilled";
+  return (
+    status === "pending" ||
+    status === "paid" ||
+    status === "manual_review" ||
+    status === "in_production" ||
+    status === "fulfilled"
+  );
 }
 
 const REASON_MIN = 8;

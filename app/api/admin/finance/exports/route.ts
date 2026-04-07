@@ -20,10 +20,14 @@ export async function GET(req: Request) {
       orderBy: [{ entryDate: "asc" }, { createdAt: "asc" }],
     });
     const header =
-      "entryDate,entryType,amountCents,currency,direction,sourceSystem,sourceType,userId,orderId,dedupeKey\n";
+      "entryDate,entryType,amountCents,currency,direction,sourceSystem,sourceType,sourceId,userId,orderId,bookingId,dedupeKey,notes\n";
+    const esc = (s: string | null | undefined) => {
+      const t = (s ?? "").replace(/"/g, '""');
+      return `"${t}"`;
+    };
     const lines = entries.map(
       (e) =>
-        `${e.entryDate.toISOString().slice(0, 10)},${e.entryType},${e.amountCents},${e.currency},${e.direction},${e.sourceSystem},${e.sourceType},${e.userId ?? ""},${e.orderId ?? ""},${e.dedupeKey ?? ""}`
+        `${e.entryDate.toISOString().slice(0, 10)},${e.entryType},${e.amountCents},${e.currency},${e.direction},${e.sourceSystem},${e.sourceType},${esc(e.sourceId)},${e.userId ?? ""},${e.orderId ?? ""},${e.bookingId ?? ""},${esc(e.dedupeKey)},${esc(e.notes)}`,
     );
     return new NextResponse(header + lines.join("\n"), {
       headers: {

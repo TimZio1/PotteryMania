@@ -19,6 +19,7 @@ import {
   recomputeTotalsFromLineRows,
   validateCouponState,
 } from "@/lib/coupon-checkout";
+import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 }
@@ -70,6 +71,9 @@ export async function POST(req: Request) {
         { error: built.error, multiVendorStudios: built.multiVendorStudios },
         { status: 409 },
       );
+    }
+    if (built.status === 409 && "priceChanged" in built && built.priceChanged) {
+      return NextResponse.json({ error: built.error, priceChanged: true }, { status: 409 });
     }
     return NextResponse.json({ error: built.error }, { status: built.status });
   }
@@ -171,7 +175,17 @@ export async function POST(req: Request) {
     : 0;
   const grandTotal = subtotal + shippingQuote.shippingCents + estimatedTaxCents;
 
-  const order = await prisma.$transaction(async (tx) => {
+  let order;
+  try {
+    order = await prisma.$transaction(async (tx) => {
+    if (couponIdForMeta) {
+      await lockCouponRow(tx, couponIdForMeta);
+      const cap = await couponHasRedemptionCapacity(tx, couponIdForMeta);
+      if (!cap) {
+        throw new Error("COUPON_EXHAUSTED");
+      }
+    }
+
     const createdOrder = await tx.order.create({
       data: {
         customerUserId: user?.id ?? null,
@@ -268,6 +282,15 @@ export async function POST(req: Request) {
 
     return createdOrder;
   });
+  } catch (e) {
+    if (e instanceof Error && e.message === "COUPON_EXHAUSTED") {
+      return NextResponse.json(
+        { error: "This coupon has reached its maximum redemptions." },
+        { status: 409 },
+      );
+    }
+    throw e;
+  }
 
   const stripe = getStripe();
   const useFlattenedStripe = discountAppliedCents > 0;

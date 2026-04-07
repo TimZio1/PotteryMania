@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { syncSpreadconnectCatalogToWearProducts } from "@/lib/wear-spreadconnect-catalog-sync";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(req: Request) {
   const user = await requireHyperAdminUser();
   if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -12,7 +13,7 @@ export async function POST() {
     const result = await syncSpreadconnectCatalogToWearProducts();
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
-    console.error("[admin wear-products sync-spreadconnect]", error);
+    logApiError("admin_wear_products_sync_spreadconnect", error, {}, req);
     const message = error instanceof Error ? error.message : "Sync failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }

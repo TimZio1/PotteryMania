@@ -154,6 +154,11 @@ export function CartContents() {
     });
     const j = await r.json();
     if (!r.ok) {
+      if (r.status === 409 && j?.priceChanged) {
+        setErr("Prices were updated — refresh your cart and review line totals, then try again.");
+        load();
+        return;
+      }
       setErr(j.error || "Checkout failed");
       return;
     }

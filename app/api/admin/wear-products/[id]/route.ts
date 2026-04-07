@@ -6,6 +6,7 @@ import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeWearSlug, isValidWearSlug } from "@/lib/wear-slug";
 import { parseWearImageUrlsFromMultiline } from "@/lib/wear-admin-helpers";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -151,7 +152,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (code === "P2002") {
       return NextResponse.json({ error: "Slug already in use" }, { status: 409 });
     }
-    console.error("[admin wear-products PATCH]", e);
+    logApiError("admin_wear_products_patch", e, { id }, req);
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 }

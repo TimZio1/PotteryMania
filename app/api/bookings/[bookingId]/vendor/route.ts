@@ -5,6 +5,7 @@ import { safeReleaseCapacity } from "@/lib/bookings/slot-lock";
 import { sendBookingEmails, bookingConfirmationCopy, bookingRejectedCopy } from "@/lib/email/booking-notify";
 import type { Prisma } from "@prisma/client";
 import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
+import { logApiError } from "@/lib/monitoring";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
 
@@ -109,10 +110,12 @@ export async function POST(req: Request, ctx: Ctx) {
         studioHtml: copy.studio,
       });
     } catch (e) {
-      console.error("[vendor-approve-email]", e);
+      logApiError("booking_vendor_approve_email", e, { bookingId }, req);
     }
 
-    syncBookingToGoogleCalendar(bookingId).catch((e) => console.error("[google-calendar-sync]", bookingId, e));
+    syncBookingToGoogleCalendar(bookingId).catch((e) =>
+      logApiError("booking_vendor_approve_google_calendar", e, { bookingId }),
+    );
 
     return NextResponse.json({ ok: true, bookingStatus: "confirmed" });
   }
@@ -169,7 +172,7 @@ export async function POST(req: Request, ctx: Ctx) {
         : undefined,
     });
   } catch (e) {
-    console.error("[vendor-reject-email]", e);
+    logApiError("booking_vendor_reject_email", e, { bookingId }, req);
   }
 
   return NextResponse.json({ ok: true, bookingStatus: "cancelled_by_vendor" });

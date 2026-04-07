@@ -189,8 +189,8 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
           </button>
           <button
             type="button"
-            className={presetClass(action === "user.impersonate_grant" && !entityType && !q && !from && !to)}
-            onClick={() => applyAuditPreset({ action: "user.impersonate_grant" })}
+            className={presetClass(action === "user.impersonation_start" && !entityType && !q && !from && !to)}
+            onClick={() => applyAuditPreset({ action: "user.impersonation_start" })}
           >
             Impersonation
           </button>

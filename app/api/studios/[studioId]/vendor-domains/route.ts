@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import {
-  isPlausiblePublicHostname,
   newVerificationToken,
-  normalizeDomainName,
+  parseVendorDomainInput,
   vendorDomainTxtHostname,
   expectedVendorDomainTxtValue,
 } from "@/lib/vendor-domain";
@@ -72,8 +71,8 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const domainName = normalizeDomainName(typeof body.domainName === "string" ? body.domainName : "");
-  if (!isPlausiblePublicHostname(domainName)) {
+  const domainName = parseVendorDomainInput(typeof body.domainName === "string" ? body.domainName : "");
+  if (!domainName) {
     return NextResponse.json({ error: "Invalid domain name" }, { status: 400 });
   }
 

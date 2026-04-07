@@ -7,6 +7,7 @@ import {
   hashResetToken,
   PASSWORD_RESET_TTL_MS,
 } from "@/lib/password-reset-token";
+import { logApiError } from "@/lib/monitoring";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
   try {
     await sendPasswordResetEmail({ to: email, resetToken: raw });
   } catch (e) {
-    console.error("[password-reset] send failed", e);
+    logApiError("forgot_password_send", e, { userId: user.id }, req);
   }
   return NextResponse.json({ ok: true });
 }

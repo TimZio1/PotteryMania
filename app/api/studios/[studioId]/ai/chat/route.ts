@@ -4,6 +4,8 @@ import { getSessionUser } from "@/lib/auth-session";
 import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
 import { hasStudioFeature } from "@/lib/studio-features";
 import { buildStudioAdvisorSystemPrompt, completeStudioAdvisorChat } from "@/lib/openai-studio-advisor";
+import { logAdminAction } from "@/lib/admin-audit";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -93,9 +95,17 @@ export async function POST(req: Request, ctx: Ctx) {
 
   try {
     const reply = await completeStudioAdvisorChat(systemPrompt, message);
+    void logAdminAction({
+      actorUserId: user.id,
+      action: "studio.ai_chat",
+      entityType: "studio",
+      entityId: studioId,
+      after: { inputLength: message.length, replyLength: reply.length },
+      reason: "Cost / usage monitoring (no message content stored)",
+    });
     return NextResponse.json({ reply });
   } catch (e) {
-    console.error("[studio-ai-chat]", e);
+    logApiError("studio_ai_chat", e, { studioId }, req);
     return NextResponse.json({ error: "Could not get a response from the model." }, { status: 502 });
   }
 }

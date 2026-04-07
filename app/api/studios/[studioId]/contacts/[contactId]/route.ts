@@ -80,3 +80,25 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
   return NextResponse.json({ contact: updated });
 }
+
+export async function DELETE(_req: Request, ctx: Ctx) {
+  const { studioId, contactId } = await ctx.params;
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const studio = await prisma.studio.findUnique({
+    where: { id: studioId },
+    select: { ownerUserId: true },
+  });
+  if (!studio || studio.ownerUserId !== user.id) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const existing = await prisma.studioContact.findFirst({
+    where: { id: contactId, studioId },
+  });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await prisma.studioContact.delete({ where: { id: contactId } });
+  return NextResponse.json({ ok: true });
+}

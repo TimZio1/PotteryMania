@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const ALL_STATUSES: WearOrderStatus[] = [
   "pending",
   "paid",
+  "manual_review",
   "in_production",
   "fulfilled",
   "shipped",
@@ -82,7 +83,9 @@ export default async function AdminWearOrdersPage({
       },
     }),
     prisma.wearOrder.count({ where: { status: "pending" } }),
-    prisma.wearOrder.count({ where: { status: { in: ["paid", "in_production"] } } }),
+    prisma.wearOrder.count({
+      where: { status: { in: ["paid", "manual_review", "in_production"] } },
+    }),
     prisma.wearOrder.count({ where: { status: "fulfilled" } }),
     prisma.wearOrder.count({ where: { status: { in: ["cancelled", "refunded"] } } }),
   ]);

@@ -3,6 +3,7 @@ import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { logAdminAction } from "@/lib/admin-audit";
 
 /** Thrown from authorize so the client can show a specific message (code in Auth.js JSON error URL). */
 class AccountSuspendedSignin extends CredentialsSignin {
@@ -60,9 +61,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === "update" && updatePayload && typeof updatePayload === "object") {
         const payload = updatePayload as Record<string, unknown>;
         if (payload.endImpersonation === true && typeof token.impersonatorSub === "string") {
+          const adminId = token.impersonatorSub;
+          const targetUserId = typeof token.sub === "string" ? token.sub : null;
           token.sub = token.impersonatorSub;
           delete token.impersonatorSub;
           delete token.impersonatorEmail;
+          if (targetUserId) {
+            void logAdminAction({
+              actorUserId: adminId,
+              action: "user.impersonate_end",
+              entityType: "user",
+              entityId: targetUserId,
+              after: { targetUserId },
+              reason: null,
+            });
+          }
         } else if (typeof payload.impersonationGrantId === "string" && token.sub) {
           const grantId = payload.impersonationGrantId;
           try {
@@ -73,6 +86,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               token.impersonatorEmail = typeof token.email === "string" ? token.email : undefined;
               token.sub = grant.targetUserId;
               await prisma.impersonationGrant.delete({ where: { id: grant.id } });
+              void logAdminAction({
+                actorUserId: grant.adminUserId,
+                action: "user.impersonate_consumed",
+                entityType: "user",
+                entityId: grant.targetUserId,
+                after: { targetUserId: grant.targetUserId, grantId: grant.id },
+                reason: null,
+              });
             }
           } catch (e) {
             console.error("[auth jwt] impersonation grant failed", e);

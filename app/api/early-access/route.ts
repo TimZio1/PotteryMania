@@ -12,6 +12,7 @@ import {
   sanitizeMetaEventId,
   sendMetaConversionsLead,
 } from "@/lib/meta-conversions-api";
+import { logApiError } from "@/lib/monitoring";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_PHOTOS = 3;
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
       wantBoth: signup.wantBoth,
     });
   } catch (error) {
-    console.error("[early-access-email]", error);
+    logApiError("early_access_email", error, { signupId: signup.id }, req);
   }
 
   void sendMetaConversionsLead({

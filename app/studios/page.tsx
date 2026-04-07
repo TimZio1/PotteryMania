@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
@@ -16,6 +17,13 @@ import { cn } from "@/lib/cn";
 import { NearPointFields } from "@/components/discovery/near-point-fields";
 import { NearResultsMap } from "@/components/discovery/near-results-map";
 import { sortStudiosByMarketplaceRanking } from "@/lib/ranking/score-engine";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Studios",
+  description: "Discover pottery studios, classes, and makers on PotteryMania.",
+  path: "/studios",
+});
 
 export const dynamic = "force-dynamic";
 

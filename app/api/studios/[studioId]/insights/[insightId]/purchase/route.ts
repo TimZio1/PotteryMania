@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { createInsightPurchaseCheckout } from "@/lib/ai/insight-checkout";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ studioId: string; insightId: string }> };
 
-export async function POST(_req: Request, ctx: Ctx) {
+export async function POST(req: Request, ctx: Ctx) {
   const { studioId, insightId } = await ctx.params;
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,7 +53,7 @@ export async function POST(_req: Request, ctx: Ctx) {
     }
     return NextResponse.json({ checkoutUrl: session.url });
   } catch (e) {
-    console.error(e);
+    logApiError("insight_purchase_checkout", e, { studioId, insightId }, req);
     return NextResponse.json({ error: "Checkout failed." }, { status: 500 });
   }
 }

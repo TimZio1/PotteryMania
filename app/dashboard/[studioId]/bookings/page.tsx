@@ -34,6 +34,22 @@ export default async function StudioPanelBookingsPage({ params }: Props) {
   const rows = serializeStudioBookingsList(bookings);
   const pendingApprovalCount = bookings.filter((b) => b.bookingStatus === "awaiting_vendor_approval").length;
 
+  const calLogs = await prisma.calendarSyncLog.findMany({
+    where: { connection: { studioId }, bookingId: { not: null } },
+    orderBy: { createdAt: "desc" },
+    take: 400,
+    select: { bookingId: true, status: true, message: true, createdAt: true },
+  });
+  const calendarSyncByBooking: Record<string, { status: string; message: string | null; at: string }> = {};
+  for (const l of calLogs) {
+    if (!l.bookingId || calendarSyncByBooking[l.bookingId]) continue;
+    calendarSyncByBooking[l.bookingId] = {
+      status: l.status,
+      message: l.message,
+      at: l.createdAt.toISOString(),
+    };
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
@@ -45,7 +61,12 @@ export default async function StudioPanelBookingsPage({ params }: Props) {
         </p>
       </div>
 
-      <StudioBookingsClient studioId={studioId} bookings={rows} pendingApprovalCount={pendingApprovalCount} />
+      <StudioBookingsClient
+        studioId={studioId}
+        bookings={rows}
+        pendingApprovalCount={pendingApprovalCount}
+        calendarSyncByBooking={calendarSyncByBooking}
+      />
     </div>
   );
 }

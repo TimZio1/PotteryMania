@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { featureBundleToDto } from "@/lib/admin-feature-bundle-dto";
+import { getStripe } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,18 @@ export async function POST(req: Request) {
     else if (typeof body.stripePriceId === "string") {
       const t = body.stripePriceId.trim();
       stripePriceId = t.length ? t : null;
+    }
+  }
+
+  if (stripePriceId?.startsWith("price_")) {
+    try {
+      const stripe = getStripe();
+      const p = await stripe.prices.retrieve(stripePriceId);
+      if (!p.active) {
+        return NextResponse.json({ error: "Stripe price is inactive" }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: "Stripe price id not found or invalid" }, { status: 400 });
     }
   }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { logCronRun } from "@/lib/cron-audit";
 import { abandonedCartCopy, sendOrderEmails } from "@/lib/email/order-notify";
@@ -8,10 +9,7 @@ function baseUrl() {
 }
 
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  const auth = req.headers.get("authorization") || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (!secret || token !== secret) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -20,7 +18,7 @@ export async function GET(req: Request) {
     where: {
       updatedAt: { lt: cutoff },
       lastRecoveryEmailSentAt: null,
-      user: { email: { not: "" } },
+      user: { email: { not: "" }, marketingConsent: true },
       items: { some: {} },
     },
     include: {

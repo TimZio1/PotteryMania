@@ -27,7 +27,7 @@ export default async function WearShopPage() {
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-neutral-500">Shop</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-white sm:text-4xl">The drop</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-neutral-400">
-          Same story as the identity page — now checkout stays on PotteryMania, with our layout and typography.
+          Checkout on PotteryMania — same studio story, shipped by our fulfilment partner when you order.
         </p>
 
         {products.length === 0 ? (

@@ -10,9 +10,15 @@ export const metadata: Metadata = buildMetadata({
   path: "/vendor-terms",
 });
 
+const LAST_UPDATED = "2026-04-07";
+
 export default function VendorTermsPage() {
   return (
     <LegalPageShell title="Studio & vendor terms">
+      <p className="text-sm text-stone-500">
+        Last updated: <time dateTime={LAST_UPDATED}>{LAST_UPDATED}</time>
+      </p>
+      {/* TODO (counsel): fee schedule, payout timing, dispute resolution, IP licence scope, liability caps, insight purchase terms cross-ref (ID 0035). */}
       <p>
         These terms apply when you register as a <strong>studio / vendor</strong> on PotteryMania and use seller tools
         (shop, classes, bookings, payouts). They supplement our general{" "}

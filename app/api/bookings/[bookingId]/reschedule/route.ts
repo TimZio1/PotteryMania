@@ -4,6 +4,7 @@ import { getSessionUser, isAdminRole } from "@/lib/auth-session";
 import { rescheduleBooking } from "@/lib/bookings/reschedule";
 import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 import { sendBookingEmails } from "@/lib/email/booking-notify";
+import { logApiError } from "@/lib/monitoring";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
 
@@ -57,7 +58,9 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  syncBookingToGoogleCalendar(bookingId).catch((e) => console.error("[google-calendar-sync]", bookingId, e));
+  syncBookingToGoogleCalendar(bookingId).catch((e) =>
+    logApiError("booking_reschedule_google_calendar", e, { bookingId }),
+  );
 
   try {
     const newSlot = await prisma.bookingSlot.findUnique({ where: { id: newSlotId } });
@@ -79,7 +82,7 @@ export async function POST(req: Request, ctx: Ctx) {
       });
     }
   } catch (e) {
-    console.error("[reschedule-email]", e);
+    logApiError("booking_reschedule_email", e, { bookingId }, req);
   }
 
   return NextResponse.json(result);

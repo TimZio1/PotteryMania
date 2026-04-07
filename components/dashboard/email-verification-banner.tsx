@@ -34,7 +34,9 @@ export function EmailVerificationBanner({ email }: { email: string }) {
         <p className="leading-relaxed">
           <strong>Verify your email</strong> — We sent a link to{" "}
           <span className="rounded bg-white/60 px-1 font-mono text-xs">{email}</span>. Confirm it so we can reliably
-          reach you about orders and bookings.
+          reach you about orders and bookings.{" "}
+          <span className="text-amber-900/85">Didn&apos;t receive it?</span> Use the button — we rate-limit resends to
+          protect your inbox.
         </p>
         <button type="button" onClick={resend} disabled={pending} className={`${ui.buttonSecondary} shrink-0`}>
           {pending ? "Sending…" : "Resend email"}

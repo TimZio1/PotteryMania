@@ -464,6 +464,57 @@ export async function resumeStudioFeatureStripeSubscription(subscriptionId: stri
   return { ok: true as const };
 }
 
+/** When DB activation rows disagree with Stripe before reconcile, log one FinancialAlert per sub per UTC day. */
+async function maybeRecordBillingDriftAlert(
+  sub: Stripe.Subscription,
+  before: { status: string; deactivatesAt: Date | null } | null,
+) {
+  if (!before) return;
+  const periodEndSec = subscriptionBillingPeriodEndUnix(sub);
+  const periodEnd = periodEndSec != null ? new Date(periodEndSec * 1000) : null;
+  const expectsPending = Boolean(sub.cancel_at_period_end && periodEnd);
+  const expectedStatus = expectsPending ? "pending_cancel" : "active";
+  const expectedDeact = expectsPending ? periodEnd : null;
+
+  let drift = false;
+  if (before.status !== expectedStatus) drift = true;
+  else if (expectedDeact && before.deactivatesAt) {
+    if (Math.abs(expectedDeact.getTime() - before.deactivatesAt.getTime()) > 120_000) drift = true;
+  } else if (Boolean(expectedDeact) !== Boolean(before.deactivatesAt)) drift = true;
+
+  if (!drift) return;
+
+  const subId = sub.id?.trim() ?? "";
+  if (!subId) return;
+  const day = new Date().toISOString().slice(0, 10);
+  const dedupeKey = `billing_drift:${subId}:${day}`;
+  const exists = await prisma.financialAlert.findUnique({ where: { dedupeKey } });
+  if (exists) return;
+
+  await prisma.financialAlert.create({
+    data: {
+      alertType: "billing_drift",
+      severity: "medium",
+      title: "Studio feature billing drift",
+      summary: `Subscription ${subId} did not match feature activation rows before nightly reconcile.`,
+      whyItMatters:
+        "Studios may see wrong add-on access or cancel dates until the database matches Stripe; revenue views may be off.",
+      likelyCause: "Missed webhook, Stripe Dashboard edits, or clock/skew edge cases.",
+      recommendedAction:
+        "Confirm rows after reconcile; check Stripe subscription and studio Features in admin; resolve or dismiss this alert.",
+      scopeType: "stripe_subscription",
+      scopeId: subId,
+      dedupeKey,
+      metrics: {
+        dbStatus: before.status,
+        dbDeactivatesAt: before.deactivatesAt?.toISOString() ?? null,
+        stripeCancelAtPeriodEnd: sub.cancel_at_period_end,
+        stripeStatus: sub.status,
+      } as object,
+    },
+  });
+}
+
 /** Sync DB rows from Stripe when cancel_at_period_end or period changes (portal, retries). */
 export async function syncStudioBillingSubscriptionFromStripe(sub: Stripe.Subscription) {
   const subId = sub.id?.trim();
@@ -494,4 +545,43 @@ export async function syncStudioBillingSubscriptionFromStripe(sub: Stripe.Subscr
     where: { stripeSubscriptionId: subId },
     data: { status: "active", deactivatesAt: null },
   });
+}
+
+/** Nightly safety net: refresh DB from Stripe for distinct platform feature subscriptions. */
+export async function reconcileStudioFeatureSubscriptionsWithStripe(opts?: {
+  limit?: number;
+}): Promise<{ checked: number; synced: number; skipped: number; errors: number }> {
+  const limit = Math.min(500, Math.max(1, opts?.limit ?? 300));
+  const groups = await prisma.studioFeatureActivation.groupBy({
+    by: ["stripeSubscriptionId"],
+    where: { stripeSubscriptionId: { not: null } },
+    orderBy: { stripeSubscriptionId: "asc" },
+    take: limit,
+  });
+  const stripe = getStripe();
+  let synced = 0;
+  let skipped = 0;
+  let errors = 0;
+  for (const g of groups) {
+    const sid = g.stripeSubscriptionId?.trim();
+    if (!sid) continue;
+    try {
+      const sub = await stripe.subscriptions.retrieve(sid, { expand: ["items.data"] });
+      if (!isStudioBillingSubscription(sub)) {
+        skipped += 1;
+        continue;
+      }
+      const sample = await prisma.studioFeatureActivation.findFirst({
+        where: { stripeSubscriptionId: sid },
+        select: { status: true, deactivatesAt: true },
+      });
+      await maybeRecordBillingDriftAlert(sub, sample);
+      await syncStudioBillingSubscriptionFromStripe(sub);
+      synced += 1;
+    } catch (e) {
+      console.error("[studio-feature-billing] reconcile subscription", sid, e);
+      errors += 1;
+    }
+  }
+  return { checked: groups.length, synced, skipped, errors };
 }

@@ -11,6 +11,7 @@ export function RegisterForm() {
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [pending, setPending] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,17 +22,23 @@ export function RegisterForm() {
       const r = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password, role, marketingConsent }),
       });
-      const j = await r.json();
+      const j = (await r.json()) as { ok?: boolean; error?: string; user?: unknown };
       if (!r.ok) {
         setErr(j.error || "Registration failed");
         setPending(false);
         return;
       }
-      setOk(
-        "Account created. We sent a verification link to your email — confirm it when you can. You can sign in right away.",
-      );
+      if (j.user) {
+        setOk(
+          "Account created. We sent a verification link to your email — confirm it when you can. You can sign in right away.",
+        );
+      } else {
+        setOk(
+          "If this email is new, check your inbox for a verification link. If you already have an account, sign in instead.",
+        );
+      }
       setPending(false);
     } catch {
       setErr("Something went wrong. Please try again.");
@@ -89,6 +96,18 @@ export function RegisterForm() {
           disabled={pending}
         />
       </div>
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-stone-700">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 rounded border-stone-300"
+          checked={marketingConsent}
+          onChange={(e) => setMarketingConsent(e.target.checked)}
+          disabled={pending}
+        />
+        <span>
+          Email me occasional product updates and abandoned-cart reminders (you can opt out anytime). Optional.
+        </span>
+      </label>
       <div>
         <label className={ui.label} htmlFor="reg-password">
           Password

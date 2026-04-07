@@ -10,6 +10,7 @@ export {
   expectedVendorDomainTxtValue,
   isPlausiblePublicHostname,
   normalizeDomainName,
+  parseVendorDomainInput,
   primaryAppHostname,
   stripPortFromHost,
   vendorDomainResolveFetchBaseUrl,
@@ -29,7 +30,7 @@ export async function dnsTxtContainsVerifyToken(domainName: string, token: strin
   try {
     const records = await dns.resolveTxt(name);
     const flat = records.flat().map((s) => s.trim());
-    return flat.some((txt) => txt === needle || txt.includes(needle));
+    return flat.some((txt) => txt === needle);
   } catch {
     return false;
   }

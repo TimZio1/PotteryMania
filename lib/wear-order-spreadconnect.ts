@@ -6,21 +6,11 @@
  * Request body aligns with `docs/reference/spreadconnect-openapi.json` → `CreateOrder`, `CreateOrderItem`, `Address`, `CustomerPrice`.
  */
 import type Stripe from "stripe";
-import { prisma as prismaSingleton } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/db";
 
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
-
-/**
- * Cursor/TS sometimes resolves the app singleton against a stale Prisma client in multi-root workspaces,
- * even though the generated client includes the wear_* delegates and `tsc --noEmit` passes.
- * Keep runtime behavior identical and force local delegate access to avoid editor false-positives here.
- */
-type WearOrderDb = typeof prismaSingleton & {
-  wearAnalyticsEvent: typeof prismaSingleton.wearAnalyticsEvent;
-  wearOrder: typeof prismaSingleton.wearOrder;
-};
-
-const prisma: WearOrderDb = prismaSingleton as WearOrderDb;
+import { escalateWearOrderSpreadconnectFailure } from "@/lib/wear-order-escalate";
 
 /**
  * Resolve ship-to for Spreadconnect from a completed Checkout Session.
@@ -289,21 +279,32 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
 
   if (orderRow.externalFulfillmentRef?.startsWith("sc:")) return;
 
-  const session = opts.stripeSession;
-  const shippingDetails = checkoutShippingDetails(session, orderRow.customerName);
-  const addr = shippingDetails?.address;
-  if (!shippingDetails || !addr?.line1 || !addr.country) {
+  const recordFailure = async (reasonCode: string, payload: Record<string, unknown>) => {
     await prisma.wearAnalyticsEvent.create({
       data: {
         kind: FAILED_KIND,
         orderId: opts.wearOrderId,
-        payload: {
-          reason: "missing_stripe_shipping",
-          sessionId: session.id,
-        },
+        payload: payload as Prisma.InputJsonValue,
       },
     });
-    console.error("[spreadconnect] wear order missing shipping on Stripe session", opts.wearOrderId);
+    await escalateWearOrderSpreadconnectFailure({
+      wearOrderId: opts.wearOrderId,
+      customerEmail: orderRow.customerEmail,
+      customerName: orderRow.customerName,
+      reasonCode,
+      detail: payload,
+    });
+    console.error("[spreadconnect] wear order failure", opts.wearOrderId, reasonCode, payload);
+  };
+
+  const session = opts.stripeSession;
+  const shippingDetails = checkoutShippingDetails(session, orderRow.customerName);
+  const addr = shippingDetails?.address;
+  if (!shippingDetails || !addr?.line1 || !addr.country) {
+    await recordFailure("missing_stripe_shipping", {
+      reason: "missing_stripe_shipping",
+      sessionId: session.id,
+    });
     return;
   }
 
@@ -311,18 +312,11 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
   const country = (addr.country || "").toUpperCase() || "DE";
   const stateNorm = spreadconnectStateForCountry(country, addr.state);
   if (!stateNorm.ok) {
-    await prisma.wearAnalyticsEvent.create({
-      data: {
-        kind: FAILED_KIND,
-        orderId: opts.wearOrderId,
-        payload: {
-          reason: "invalid_us_ca_state",
-          country,
-          hint: "Spreadconnect requires a 2-letter state/province for US/CA. Set SPREADCONNECT_FALLBACK_US_STATE or SPREADCONNECT_FALLBACK_CA_PROVINCE, or ensure Stripe collects subdivision.",
-        },
-      },
+    await recordFailure("invalid_us_ca_state", {
+      reason: "invalid_us_ca_state",
+      country,
+      hint: "Spreadconnect requires a 2-letter state/province for US/CA. Set SPREADCONNECT_FALLBACK_US_STATE or SPREADCONNECT_FALLBACK_CA_PROVINCE, or ensure Stripe collects subdivision.",
     });
-    console.error("[spreadconnect] US/CA order missing valid state for Spreadconnect", opts.wearOrderId);
     return;
   }
 
@@ -348,17 +342,10 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
   const email =
     orderRow.customerEmail.trim() || session.customer_details?.email?.trim() || "";
   if (!email) {
-    await prisma.wearAnalyticsEvent.create({
-      data: {
-        kind: FAILED_KIND,
-        orderId: opts.wearOrderId,
-        payload: {
-          reason: "missing_customer_email",
-          sessionId: session.id,
-        },
-      },
+    await recordFailure("missing_customer_email", {
+      reason: "missing_customer_email",
+      sessionId: session.id,
     });
-    console.error("[spreadconnect] wear order missing email for Spreadconnect", opts.wearOrderId);
     return;
   }
 
@@ -366,17 +353,11 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
   for (const it of orderRow.items) {
     const sku = resolveSpreadconnectSku(it);
     if (!sku) {
-      await prisma.wearAnalyticsEvent.create({
-        data: {
-          kind: FAILED_KIND,
-          orderId: opts.wearOrderId,
-          payload: {
-            reason: "missing_spreadconnect_sku",
-            wearOrderItemId: it.id,
-            productNameSnapshot: it.productNameSnapshot,
-            hint: "Every line needs a Spreadconnect SKU: variant.sku, or product field when there are no variants.",
-          },
-        },
+      await recordFailure("missing_spreadconnect_sku", {
+        reason: "missing_spreadconnect_sku",
+        wearOrderItemId: it.id,
+        productNameSnapshot: it.productNameSnapshot,
+        hint: "Every line needs a Spreadconnect SKU: variant.sku, or product field when there are no variants.",
       });
       return;
     }
@@ -411,18 +392,11 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
 
   const result = await postSpreadconnectOrder(cfg, body);
   if (!result.ok) {
-    await prisma.wearAnalyticsEvent.create({
-      data: {
-        kind: FAILED_KIND,
-        orderId: opts.wearOrderId,
-        payload: {
-          reason: "api_error",
-          status: result.status,
-          message: result.message,
-        },
-      },
+    await recordFailure("api_error", {
+      reason: "api_error",
+      status: result.status,
+      message: result.message,
     });
-    console.error("[spreadconnect] order create failed", opts.wearOrderId, result);
     return;
   }
 

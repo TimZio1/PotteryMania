@@ -104,4 +104,49 @@ describe("rescheduleBooking", () => {
     expect(mocks.safeReleaseCapacity).not.toHaveBeenCalled();
     expect(mocks.tx.booking.update).not.toHaveBeenCalled();
   });
+
+  it("parallel reschedules into the same slot: one succeeds when the second reserve fails (contention)", async () => {
+    mocks.tx.booking.findUnique.mockImplementation(async ({ where }: { where: { id: string } }) => ({
+      id: where.id,
+      bookingStatus: "confirmed",
+      paymentStatus: "paid",
+      experienceId: "exp-1",
+      slotId: `old-${where.id}`,
+      participantCount: 1,
+      seatType: null,
+      slot: {},
+    }));
+    mocks.tx.bookingSlot.findUnique.mockResolvedValue({
+      id: "slot-hot",
+      experienceId: "exp-1",
+    });
+    let reserveCalls = 0;
+    mocks.safeReserveCapacity.mockImplementation(async () => {
+      reserveCalls += 1;
+      if (reserveCalls >= 2) {
+        throw new Error("Not enough capacity");
+      }
+    });
+
+    const [a, b] = await Promise.all([
+      rescheduleBooking({
+        bookingId: "booking-a",
+        newSlotId: "slot-hot",
+        role: "customer",
+        userId: "user-a",
+      }),
+      rescheduleBooking({
+        bookingId: "booking-b",
+        newSlotId: "slot-hot",
+        role: "customer",
+        userId: "user-b",
+      }),
+    ]);
+
+    const successes = [a, b].filter((r) => r.ok);
+    const failures = [a, b].filter((r) => !r.ok);
+    expect(successes).toHaveLength(1);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toMatchObject({ ok: false, error: "Not enough capacity" });
+  });
 });

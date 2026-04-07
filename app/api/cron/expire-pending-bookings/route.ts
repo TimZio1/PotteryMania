@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { logCronRun } from "@/lib/cron-audit";
 import type { Prisma } from "@prisma/client";
@@ -10,13 +11,10 @@ export const dynamic = "force-dynamic";
  * Cancels unpaid pending orders and their pending bookings (no capacity was reserved).
  */
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
+  if (!process.env.CRON_SECRET?.trim()) {
     return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
   }
-  const auth = req.headers.get("authorization") || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (token !== secret) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

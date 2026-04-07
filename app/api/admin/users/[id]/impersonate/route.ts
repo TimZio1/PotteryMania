@@ -2,14 +2,26 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isAdminRole, requireHyperAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-const TTL_MS = 60_000;
+/** Plan max: 4 hours; env may not exceed this. */
+const MAX_TTL_MS = 4 * 60 * 60 * 1000;
+const envTtl = Number(process.env.IMPERSONATION_GRANT_TTL_MS);
+const TTL_MS = Math.min(
+  MAX_TTL_MS,
+  Number.isFinite(envTtl) && envTtl > 0 ? envTtl : 15 * 60 * 1000,
+);
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function POST(_req: Request, ctx: Ctx) {
+export async function POST(req: Request, ctx: Ctx) {
+  const rate = assertRateLimit(req, "admin:impersonate", 20, 60 * 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many impersonation attempts" }, { status: 429 });
+  }
+
   const admin = await requireHyperAdminUser();
   if (!admin) {
     return NextResponse.json({ error: "Forbidden — hyper_admin only" }, { status: 403 });
@@ -47,7 +59,7 @@ export async function POST(_req: Request, ctx: Ctx) {
 
   await logAdminAction({
     actorUserId: admin.id,
-    action: "user.impersonate_grant",
+    action: "user.impersonation_start",
     entityType: "user",
     entityId: target.id,
     before: null,

@@ -31,10 +31,12 @@ export default function StudioBookingsClient({
   studioId,
   bookings,
   pendingApprovalCount,
+  calendarSyncByBooking = {},
 }: {
   studioId: string;
   bookings: StudioBookingListRow[];
   pendingApprovalCount: number;
+  calendarSyncByBooking?: Record<string, { status: string; message: string | null; at: string }>;
 }) {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -379,10 +381,12 @@ export default function StudioBookingsClient({
 
           <div className="border-t border-stone-100 pt-3">
             <VendorBookingActions
+              studioId={studioId}
               bookingId={selected.id}
               bookingStatus={selected.bookingStatus}
               participantCount={selected.participantCount}
               seatType={selected.seatType}
+              calendarSync={calendarSyncByBooking[selected.id] ?? null}
             />
           </div>
         </aside>

@@ -42,6 +42,7 @@ const STATUS_OPTIONS = [
   { value: "all", label: "All statuses" },
   { value: "pending", label: "Pending payment" },
   { value: "paid", label: "Paid" },
+  { value: "manual_review", label: "Manual review" },
   { value: "in_production", label: "In production" },
   { value: "fulfilled", label: "Fulfilled" },
   { value: "shipped", label: "Shipped" },
@@ -59,6 +60,8 @@ function statusBadgeClass(status: string) {
       return "bg-amber-100 text-amber-950";
     case "paid":
       return "bg-emerald-100 text-emerald-900";
+    case "manual_review":
+      return "bg-orange-100 text-orange-950";
     case "in_production":
       return "bg-sky-100 text-sky-950";
     case "fulfilled":

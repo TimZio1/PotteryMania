@@ -25,6 +25,15 @@ export function isPlausiblePublicHostname(domain: string): boolean {
   return HOSTNAME_RE.test(d);
 }
 
+/** Reject path/query injection and obviously invalid host shapes before DNS. */
+export function parseVendorDomainInput(raw: string): string | null {
+  const t = raw.trim();
+  if (!t || /[\s/?#\\]/.test(t)) return null;
+  const d = normalizeDomainName(t);
+  if (!isPlausiblePublicHostname(d)) return null;
+  return d;
+}
+
 export function stripPortFromHost(host: string | null | undefined): string | null {
   if (!host) return null;
   const h = host.split(":")[0]?.trim().toLowerCase();

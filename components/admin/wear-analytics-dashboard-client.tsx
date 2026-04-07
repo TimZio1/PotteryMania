@@ -160,6 +160,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
     hasPurchases,
     revenueWindows,
     range,
+    integrationSignals,
   } = props;
 
   const qp = (r: string, extra?: Record<string, string>) => {
@@ -183,6 +184,26 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
           <p className="mt-1 text-xs text-stone-500">
             Funnel, table, and chart below use this range. Revenue strip uses rolling calendar windows (UTC).
           </p>
+          {(integrationSignals.spreadconnectFailures > 0 || integrationSignals.metaCapiErrors > 0) && (
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-xs text-amber-950">
+              <p className="font-semibold">Integration signals (this range)</p>
+              <ul className="mt-1 list-inside list-disc text-amber-900/90">
+                {integrationSignals.spreadconnectFailures > 0 ? (
+                  <li>
+                    Spreadconnect submit failures logged:{" "}
+                    <span className="font-mono">{integrationSignals.spreadconnectFailures}</span> (
+                    <code className="text-[11px]">wear_spreadconnect_failed</code>)
+                  </li>
+                ) : null}
+                {integrationSignals.metaCapiErrors > 0 ? (
+                  <li>
+                    Meta CAPI errors: <span className="font-mono">{integrationSignals.metaCapiErrors}</span> (
+                    <code className="text-[11px]">meta_capi_error</code>)
+                  </li>
+                ) : null}
+              </ul>
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Link

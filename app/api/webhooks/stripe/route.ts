@@ -20,6 +20,14 @@ import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activat
 import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
 import { submitPaidWearOrderToSpreadconnect } from "@/lib/wear-order-spreadconnect";
+import {
+  claimStripeWebhookEvent,
+  markStripeWebhookProcessed,
+} from "@/lib/stripe-webhook-dedup";
+import { runStripeWebhookSideEffect } from "@/lib/webhook-event-store";
+import { scheduleWearOrderNotification } from "@/lib/wear-order-notifications";
+import { logApiError } from "@/lib/monitoring";
+import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -40,20 +48,32 @@ export async function POST(req: Request) {
   try {
     event = getStripe().webhooks.constructEvent(body, sig, secret);
   } catch (e) {
-    console.error(e);
+    logApiError("stripe_webhook_signature", e, {}, req);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
+
+  const claim = await claimStripeWebhookEvent(event.id, event.type, {
+    type: event.type,
+    livemode: event.livemode,
+  });
+  if (claim === "duplicate_done") {
+    return NextResponse.json({ received: true, idempotent: true });
+  }
+  const ack = async () => {
+    await markStripeWebhookProcessed(event.id);
+    return NextResponse.json({ received: true });
+  };
 
   if (event.type === "customer.subscription.deleted") {
     const sub = event.data.object as Stripe.Subscription;
     await markActivationsEndedForStripeSubscription(sub.id);
-    return NextResponse.json({ received: true });
+    return ack();
   }
 
   if (event.type === "customer.subscription.updated") {
     const sub = event.data.object as Stripe.Subscription;
     await syncStudioBillingSubscriptionFromStripe(sub);
-    return NextResponse.json({ received: true });
+    return ack();
   }
 
   if (event.type === "checkout.session.completed") {
@@ -91,7 +111,7 @@ export async function POST(req: Request) {
               });
               stripeSubscriptionItemId = match?.id ?? null;
             } catch (e) {
-              console.error("[stripe webhook] resolve subscription item for feature", e);
+              logApiError("stripe_webhook_feature_sub_item", e, { subscriptionId, priceId }, req);
             }
           }
           const now = new Date();
@@ -128,7 +148,7 @@ export async function POST(req: Request) {
           });
         }
       }
-      return NextResponse.json({ received: true });
+      return ack();
     }
 
     if (session.metadata?.type === "studio_feature_bundle") {
@@ -186,7 +206,7 @@ export async function POST(req: Request) {
           });
         }
       }
-      return NextResponse.json({ received: true });
+      return ack();
     }
 
     // --- Studio activation (platform-level, no Connect) ---
@@ -198,7 +218,7 @@ export async function POST(req: Request) {
           data: { activationPaidAt: new Date(), activationSessionId: session.id },
         });
       }
-      return NextResponse.json({ received: true });
+      return ack();
     }
 
     // --- AI insight one-time purchase (platform account) ---
@@ -235,10 +255,10 @@ export async function POST(req: Request) {
             }
           });
         } catch (e) {
-          console.error("insight_purchase webhook", e);
+          logApiError("stripe_webhook_insight_purchase", e, { insightId, studioId }, req);
         }
       }
-      return NextResponse.json({ received: true });
+      return ack();
     }
 
     // --- PotteryMania native wear (platform Checkout, no Connect) ---
@@ -296,7 +316,8 @@ export async function POST(req: Request) {
           });
 
           if (applied) {
-            try {
+            scheduleWearOrderNotification("order_confirmed", wearOrderId);
+            await runStripeWebhookSideEffect(event.id, `wear_spreadconnect:${wearOrderId}`, async () => {
               const stripe = getStripe();
               const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
                 expand: ["shipping_cost.shipping_rate"],
@@ -305,20 +326,18 @@ export async function POST(req: Request) {
                 wearOrderId,
                 stripeSession: fullSession,
               });
-            } catch (scErr) {
-              console.error("[stripe webhook] wear_order spreadconnect", scErr);
-            }
+            });
           }
         } catch (e) {
-          console.error("[stripe webhook] wear_order", e);
+          logApiError("stripe_webhook_wear_order", e, { wearOrderId }, req);
         }
       }
-      return NextResponse.json({ received: true });
+      return ack();
     }
 
     // --- Order / booking checkout (via Connect) ---
     const orderId = session.metadata?.orderId;
-    if (!orderId) return NextResponse.json({ received: true });
+    if (!orderId) return ack();
     const pi = session.payment_intent;
     const piId = typeof pi === "string" ? pi : pi?.id ?? null;
     const processed = await prisma.$transaction(async (tx) => {
@@ -362,18 +381,29 @@ export async function POST(req: Request) {
         if (!Number.isNaN(dc) && dc > 0) {
           const dup = await tx.discountRedemption.findFirst({ where: { orderId } });
           if (!dup) {
-            await tx.discountRedemption.create({
-              data: {
-                couponId: metaCouponId,
-                orderId,
-                userId: rows[0].customer_user_id,
-                amountCents: dc,
-              },
-            });
-            await tx.coupon.update({
-              where: { id: metaCouponId },
-              data: { redeemedCount: { increment: 1 } },
-            });
+            await lockCouponRow(tx, metaCouponId);
+            const cap = await couponHasRedemptionCapacity(tx, metaCouponId);
+            if (cap) {
+              await tx.discountRedemption.create({
+                data: {
+                  couponId: metaCouponId,
+                  orderId,
+                  userId: rows[0].customer_user_id,
+                  amountCents: dc,
+                },
+              });
+              await tx.coupon.update({
+                where: { id: metaCouponId },
+                data: { redeemedCount: { increment: 1 } },
+              });
+            } else {
+              logApiError(
+                "stripe_webhook_coupon_cap",
+                new Error("Coupon max redemptions exceeded after payment"),
+                { orderId, couponId: metaCouponId },
+                req,
+              );
+            }
           }
         }
       }
@@ -491,7 +521,7 @@ export async function POST(req: Request) {
       return { skip: false, confirmedBookingIds, pendingApprovalIds, autoCancelledIds };
     });
     if (processed.skip) {
-      return NextResponse.json({ received: true });
+      return ack();
     }
 
     const loadBookingEmailContext = async (bookingIds: string[]) => {
@@ -536,7 +566,7 @@ export async function POST(req: Request) {
       if (!base) continue;
       base.studioName = it.vendor.displayName;
       const { customer, studio } = bookingConfirmationCopy(base);
-      try {
+      await runStripeWebhookSideEffect(event.id, `booking_email_confirmed:${b.id}`, async () => {
         await sendBookingEmails({
           customerEmail: b.customerEmail,
           studioEmail: it.vendor.email,
@@ -544,13 +574,13 @@ export async function POST(req: Request) {
           customerHtml: customer,
           studioHtml: studio,
         });
-      } catch (e) {
-        console.error("[booking-email]", e);
-      }
+      });
     }
 
     for (const bid of processed.confirmedBookingIds) {
-      syncBookingToGoogleCalendar(bid).catch((e) => console.error("[google-calendar-sync]", bid, e));
+      await runStripeWebhookSideEffect(event.id, `calendar_sync:${bid}`, async () => {
+        await syncBookingToGoogleCalendar(bid);
+      });
     }
 
     for (const it of pendingRows) {
@@ -560,7 +590,7 @@ export async function POST(req: Request) {
       if (!base) continue;
       base.studioName = it.vendor.displayName;
       const { customer, studio } = bookingPendingApprovalCopy(base);
-      try {
+      await runStripeWebhookSideEffect(event.id, `booking_email_pending:${b.id}`, async () => {
         await sendBookingEmails({
           customerEmail: b.customerEmail,
           studioEmail: it.vendor.email,
@@ -568,9 +598,7 @@ export async function POST(req: Request) {
           customerHtml: customer,
           studioHtml: studio,
         });
-      } catch (e) {
-        console.error("[booking-email]", e);
-      }
+      });
     }
 
     // Notify customers whose bookings were auto-cancelled due to capacity
@@ -578,7 +606,7 @@ export async function POST(req: Request) {
     for (const it of cancelledRows) {
       const b = it.booking;
       if (!b) continue;
-      try {
+      await runStripeWebhookSideEffect(event.id, `booking_email_cancelled:${b.id}`, async () => {
         await sendBookingEmails({
           customerEmail: b.customerEmail,
           studioEmail: it.vendor?.email ?? "",
@@ -586,9 +614,7 @@ export async function POST(req: Request) {
           customerHtml: `<p>Hi ${b.customerName},</p><p>Unfortunately your booking for <strong>${b.experience.title}</strong> was automatically cancelled because the session reached capacity before your payment could be confirmed.</p><p>A refund of €${((b.depositAmountCents || b.totalAmountCents) / 100).toFixed(2)} will be processed. If you have questions, contact the studio directly.</p>`,
           studioHtml: `<p>Booking for <strong>${b.customerName}</strong> (${b.customerEmail}) was auto-cancelled for <strong>${b.experience.title}</strong> due to capacity. A refund review is required.</p>`,
         });
-      } catch (e) {
-        console.error("[booking-email-cancel]", e);
-      }
+      });
     }
 
     const productEmailItems = await prisma.orderItem.findMany({
@@ -618,15 +644,13 @@ export async function POST(req: Request) {
           trackingNumber: null,
         });
 
-        try {
+        await runStripeWebhookSideEffect(event.id, `order_email_customer:${orderId}`, async () => {
           await sendOrderEmails({
             customerEmail: order.customerEmail,
             subject: `Order confirmed — PotteryMania`,
             customerHtml: customer,
           });
-        } catch (e) {
-          console.error("[order-email]", e);
-        }
+        });
 
         const byVendor = new Map<string, typeof productEmailItems>();
         for (const it of productEmailItems) {
@@ -649,15 +673,13 @@ export async function POST(req: Request) {
             shippingMethod: null,
             trackingNumber: null,
           });
-          try {
+          await runStripeWebhookSideEffect(event.id, `order_email_vendor:${v.id}:${orderId}`, async () => {
             await sendOrderEmails({
               vendorEmail: v.email,
               subject: `New order — ${order.customerName}`,
               vendorHtml,
             });
-          } catch (e) {
-            console.error("[order-email-vendor]", e);
-          }
+          });
         }
 
         await prisma.order.update({
@@ -667,8 +689,8 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ received: true });
+    return ack();
   }
 
-  return NextResponse.json({ received: true });
+  return ack();
 }

@@ -4,6 +4,35 @@ import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 const SC_FAIL = "wear_spreadconnect_failed";
 const SC_OK = "wear_spreadconnect_submitted";
 
+export function isKnownWearImageHost(host: string): boolean {
+  const h = host.toLowerCase();
+  if (h === "images.unsplash.com") return true;
+  if (h.endsWith(".spreadshirtmedia.net")) return true;
+  return false;
+}
+
+/** Hosts on product images not covered by `next.config.ts` remotePatterns (post-sync / ops checklist). */
+export async function listUnknownWearImageHostsForActiveCatalog(): Promise<string[]> {
+  const products = await prisma.wearProduct.findMany({
+    where: { isActive: true, archivedAt: null },
+    select: { images: true },
+  });
+  const unknown = new Set<string>();
+  for (const p of products) {
+    const arr = Array.isArray(p.images) ? p.images : [];
+    for (const x of arr) {
+      if (typeof x !== "string" || !x.startsWith("http")) continue;
+      try {
+        const h = new URL(x).hostname;
+        if (!isKnownWearImageHost(h)) unknown.add(h.toLowerCase());
+      } catch {
+        /* invalid URL */
+      }
+    }
+  }
+  return [...unknown].sort();
+}
+
 /**
  * Same filter as `/wear/shop` and `GET /api/wear/products`.
  */
@@ -41,7 +70,12 @@ export async function getWearCatalogHealthSnapshot() {
     }),
   ]);
 
+  const rawKey = process.env.SPREADCONNECT_API_KEY?.trim() ?? "";
+  const spreadconnectPendingPlaceholder = rawKey === "__PENDING__";
   const spreadconnectConfigured = getSpreadconnectConfig() !== null;
+  const spreadconnectWarning = spreadconnectPendingPlaceholder
+    ? "API key is __PENDING__ (catalog sync and POD submit disabled)"
+    : null;
 
   let emptyDiagnosis: string | null = null;
   if (shopVisibleCount === 0) {
@@ -54,6 +88,33 @@ export async function getWearCatalogHealthSnapshot() {
     }
   }
 
+  const productsWithImages = await prisma.wearProduct.findMany({
+    where: { isActive: true, archivedAt: null },
+    select: { id: true, images: true },
+    take: 40,
+  });
+
+  const unknownImageHosts = new Set<string>();
+  const brokenImages: { productId: string; url: string; status: number | string }[] = [];
+
+  for (const p of productsWithImages) {
+    const arr = Array.isArray(p.images) ? p.images : [];
+    const first = arr.find((x) => typeof x === "string" && x.startsWith("http"));
+    if (typeof first !== "string") continue;
+    try {
+      const u = new URL(first);
+      if (!isKnownWearImageHost(u.hostname)) unknownImageHosts.add(u.hostname);
+      const ac = new AbortController();
+      const to = setTimeout(() => ac.abort(), 4000);
+      const res = await fetch(first, { method: "HEAD", signal: ac.signal, redirect: "follow" }).catch(() => null);
+      clearTimeout(to);
+      const st = res?.status ?? "fetch_error";
+      if (!res || !res.ok) brokenImages.push({ productId: p.id, url: first.slice(0, 240), status: st });
+    } catch {
+      brokenImages.push({ productId: p.id, url: first.slice(0, 240), status: "bad_url" });
+    }
+  }
+
   return {
     shopVisibleCount,
     totalProducts,
@@ -62,13 +123,18 @@ export async function getWearCatalogHealthSnapshot() {
     visibleSlugs: visibleSample.map((p) => p.slug),
     visibleSample: visibleSample.map((p) => ({ slug: p.slug, name: p.name, featured: p.isFeatured })),
     spreadconnectConfigured,
+    spreadconnectWarning,
     spreadconnectFailuresLast24h: spreadconnectFailures24h,
     spreadconnectSubmissionsLast24h: spreadconnectSuccess24h,
+    unknownImageHosts: [...unknownImageHosts].sort(),
+    brokenImages,
     emptyDiagnosis,
     checklist: {
       sameQueryAsPublicShop: true,
       migrateCommand: "npx prisma migrate deploy",
       catalogMigrationId: "20260423100000_wear_catalog_seed_data",
+      imageHostsNote:
+        "Add any hosts listed in unknownImageHosts to next.config.ts remotePatterns, then redeploy.",
     },
   };
 }
