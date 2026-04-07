@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { WearPreviewItem } from "@/lib/wear-config";
+import { normalizeWearCatalogImageUrl } from "@/lib/wear-product-json";
 
 const PLACEHOLDER_IMG =
   "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80";
@@ -7,7 +8,7 @@ const PLACEHOLDER_IMG =
 function firstImageUrl(images: unknown): string | null {
   if (!Array.isArray(images)) return null;
   for (const x of images) {
-    if (typeof x === "string" && x.startsWith("http")) return x;
+    if (typeof x === "string" && x.startsWith("http")) return normalizeWearCatalogImageUrl(x.trim());
   }
   return null;
 }
