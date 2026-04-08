@@ -30,6 +30,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [fullSpreadconnectDiscovery, setFullSpreadconnectDiscovery] = useState(false);
 
   const refresh = useCallback(async () => {
     const q = includeArchived ? "?includeArchived=1" : "";
@@ -83,27 +84,49 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     setSyncing(true);
     setErr("");
     setMsg("");
-    const r = await fetch("/api/admin/wear-products/sync-spreadconnect", {
-      method: "POST",
-    });
-    setBusy(false);
-    setSyncing(false);
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) {
-      setErr((j as { error?: string }).error ?? "Spreadconnect sync failed");
-      return;
+    const ac = new AbortController();
+    const timeoutMs = fullSpreadconnectDiscovery ? 600_000 : 120_000;
+    const t = window.setTimeout(() => ac.abort(), timeoutMs);
+    try {
+      const r = await fetch("/api/admin/wear-products/sync-spreadconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullDiscovery: fullSpreadconnectDiscovery }),
+        signal: ac.signal,
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setErr((j as { error?: string }).error ?? "Spreadconnect sync failed");
+        return;
+      }
+      const result = j as {
+        syncedProducts?: number;
+        createdProducts?: number;
+        updatedProducts?: number;
+        skippedUnchangedProducts?: number;
+        archivedProducts?: number;
+        skippedArticles?: number;
+        refreshedByArticleId?: number;
+        discoveryListPages?: number;
+        fullCatalogScanCompleted?: boolean;
+      };
+      setMsg(
+        `Spreadconnect sync complete: ${result.syncedProducts ?? 0} checked · ${result.createdProducts ?? 0} created · ${result.updatedProducts ?? 0} updated · ${result.skippedUnchangedProducts ?? 0} unchanged · ${result.archivedProducts ?? 0} archived · ${result.skippedArticles ?? 0} skipped (API) · ${result.refreshedByArticleId ?? 0} refreshed by id · ${result.discoveryListPages ?? 0} list page(s)${
+          result.fullCatalogScanCompleted ? " (list end reached)" : ""
+        }`,
+      );
+      await refresh();
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") {
+        setErr(`Spreadconnect sync timed out after ${timeoutMs / 1000}s. Try again or check server logs.`);
+      } else {
+        setErr(e instanceof Error ? e.message : "Spreadconnect sync failed");
+      }
+    } finally {
+      window.clearTimeout(t);
+      setBusy(false);
+      setSyncing(false);
     }
-    const result = j as {
-      syncedProducts?: number;
-      createdProducts?: number;
-      updatedProducts?: number;
-      archivedProducts?: number;
-      skippedArticles?: number;
-    };
-    setMsg(
-      `Spreadconnect sync complete: ${result.syncedProducts ?? 0} synced · ${result.createdProducts ?? 0} created · ${result.updatedProducts ?? 0} updated · ${result.archivedProducts ?? 0} archived · ${result.skippedArticles ?? 0} skipped`,
-    );
-    await refresh();
   }
 
   return (
@@ -111,7 +134,22 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
       {err ? <p className={ui.errorText}>{err}</p> : null}
       {msg ? <p className={ui.successText}>{msg}</p> : null}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3">
+        <label className="flex max-w-xl cursor-pointer items-start gap-2 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={fullSpreadconnectDiscovery}
+            disabled={busy}
+            onChange={(e) => setFullSpreadconnectDiscovery(e.target.checked)}
+          />
+          <span>
+            <span className="font-medium text-amber-950">Full catalog scan</span> — list every Spreadconnect page
+            (slow, heavy on their API). Leave off for routine updates: we refresh each known article by id, list only the
+            first page to discover new ones, and skip database writes when nothing changed.
+          </span>
+        </label>
+        <div className="flex flex-wrap items-center gap-3">
         <Link href="/admin/wear-products/new" className={ui.buttonPrimary}>
           New wear product
         </Link>
@@ -134,6 +172,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
         <Link href="/admin/wear-orders" className={ui.buttonGhost}>
           Wear orders
         </Link>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white">

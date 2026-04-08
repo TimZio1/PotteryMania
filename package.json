@@ -15,7 +15,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "import:wear-csv": "node scripts/import-spod-wear-csv.cjs"
   },
   "prisma": {
     "seed": "node prisma/seed.cjs"

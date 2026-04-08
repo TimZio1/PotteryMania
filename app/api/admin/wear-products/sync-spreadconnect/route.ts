@@ -10,7 +10,9 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
-    const result = await syncSpreadconnectCatalogToWearProducts();
+    const body = (await req.json().catch(() => ({}))) as { fullDiscovery?: boolean };
+    const fullDiscovery = body.fullDiscovery === true;
+    const result = await syncSpreadconnectCatalogToWearProducts({ fullDiscovery });
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     logApiError("admin_wear_products_sync_spreadconnect", error, {}, req);

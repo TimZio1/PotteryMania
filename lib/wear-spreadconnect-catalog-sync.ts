@@ -1,3 +1,6 @@
+import { createHash } from "crypto";
+import type { Prisma } from "@prisma/client";
+import type { SpreadconnectConfig } from "@/lib/spreadconnect-config";
 import { prisma } from "@/lib/db";
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 import { normalizeWearSlug } from "@/lib/wear-slug";
@@ -43,14 +46,29 @@ type PreparedArticle = {
   variants: SyncedVariant[];
 };
 
+export type SpreadconnectCatalogSyncOptions = {
+  /**
+   * List every page of GET /articles until the catalog ends. Heavy — use only when onboarding or reconciling.
+   * Default sync refreshes known articles by id and scans only the first discovery page(s).
+   */
+  fullDiscovery?: boolean;
+};
+
 export type SpreadconnectCatalogSyncResult = {
   fetchedArticles: number;
   syncedProducts: number;
   createdProducts: number;
   updatedProducts: number;
+  skippedUnchangedProducts: number;
   archivedProducts: number;
   skippedArticles: number;
   syncedVariants: number;
+  /** GET /articles/{id} refreshes (excludes discovery-only rows). */
+  refreshedByArticleId: number;
+  /** GET /articles pages fetched for discovery. */
+  discoveryListPages: number;
+  /** True when fullDiscovery ran through the end of the list (short/empty last page). */
+  fullCatalogScanCompleted: boolean;
   /** Image hostnames not in Next.js `remotePatterns` — add to `next.config.ts` if legitimate. */
   unknownImageHosts: string[];
 };
@@ -88,6 +106,35 @@ function preferredCurrency() {
   return (process.env.SPREADCONNECT_CATALOG_CURRENCY?.trim().toUpperCase() || "EUR").slice(0, 8);
 }
 
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n));
+}
+
+function catalogFingerprint(prepared: PreparedArticle): string {
+  const payload = {
+    id: prepared.articleId,
+    name: prepared.name,
+    description: prepared.description,
+    images: [...prepared.images].sort(),
+    priceCents: prepared.priceCents,
+    variants: prepared.variants
+      .map((v) => ({
+        sku: v.sku,
+        label: v.label,
+        optionSize: v.optionSize,
+        optionColor: v.optionColor,
+        priceCents: v.priceCents,
+        sortOrder: v.sortOrder,
+      }))
+      .sort((a, b) => a.sku.localeCompare(b.sku)),
+  };
+  return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+}
+
 function articlesPageFromJson(json: unknown): SpreadconnectArticle[] {
   if (json == null || typeof json !== "object") return [];
   const o = json as Record<string, unknown>;
@@ -95,46 +142,113 @@ function articlesPageFromJson(json: unknown): SpreadconnectArticle[] {
   if (Array.isArray(rawItems)) {
     return rawItems.filter((row): row is SpreadconnectArticle => row != null && typeof row === "object");
   }
-  // Some proxies or older responses may return a bare array.
   if (Array.isArray(json)) {
     return json.filter((row): row is SpreadconnectArticle => row != null && typeof row === "object");
   }
   return [];
 }
 
-async function fetchSpreadconnectArticles() {
-  const cfg = getSpreadconnectConfig();
-  if (!cfg) throw new Error("Spreadconnect not configured");
+/** Parse Spreadconnect RFC7807-style JSON errors so support references are visible in logs and admin UI. */
+function formatSpreadconnectArticlesFetchError(status: number, bodyText: string, statusText: string) {
+  const raw = bodyText.replace(/^\uFEFF/, "").trim();
 
-  const limit = 100;
-  const items: SpreadconnectArticle[] = [];
-
-  for (let offset = 0; ; offset += limit) {
-    const res = await fetch(`${cfg.baseUrl}/articles?limit=${limit}&offset=${offset}`, {
-      headers: { "X-SPOD-ACCESS-TOKEN": cfg.apiKey },
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Spreadconnect articles fetch failed (${res.status}): ${text.slice(0, 300) || res.statusText}`);
+  function fromParsed(ref: string, title: string) {
+    if (!title && !ref) return null;
+    let msg = `Spreadconnect articles fetch failed (${status})`;
+    if (title) msg += `: ${title}`;
+    if (ref) msg += ` — reference ${ref}`;
+    if (status >= 500) {
+      return `${msg}. This is an error on Spreadconnect’s side; retry later or contact their support with the reference.`;
     }
-
-    let json: unknown;
-    try {
-      json = await res.json();
-    } catch {
-      const text = await res.text().catch(() => "");
-      throw new Error(
-        `Spreadconnect articles response is not JSON (${text.slice(0, 200) || "empty body"})`,
-      );
-    }
-
-    const page = articlesPageFromJson(json);
-    items.push(...page);
-    if (page.length < limit) break;
+    return msg;
   }
 
-  return items;
+  try {
+    const j = JSON.parse(raw) as { reference?: unknown; title?: unknown };
+    const ref = typeof j.reference === "string" ? j.reference.trim() : "";
+    const title = typeof j.title === "string" ? j.title.trim() : "";
+    const formatted = fromParsed(ref, title);
+    if (formatted) return formatted;
+  } catch {
+    /* fall through: regex fallback for malformed / wrapped JSON */
+  }
+
+  const refMatch = raw.match(/"reference"\s*:\s*"([0-9a-f-]{36})"/i);
+  const titleMatch = raw.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  const ref = refMatch?.[1]?.trim() ?? "";
+  const title = titleMatch?.[1]?.replace(/\\"/g, '"').trim() ?? "";
+  const formatted = fromParsed(ref, title);
+  if (formatted) return formatted;
+
+  const snippet = raw.slice(0, 600) || statusText;
+  return `Spreadconnect articles fetch failed (${status}): ${snippet}`;
+}
+
+function formatSpreadconnectArticleFetchError(
+  articleId: number,
+  status: number,
+  bodyText: string,
+  statusText: string,
+) {
+  return formatSpreadconnectArticlesFetchError(status, bodyText, statusText).replace(
+    "Spreadconnect articles fetch failed",
+    `Spreadconnect article ${articleId} fetch failed`,
+  );
+}
+
+async function fetchSpreadconnectArticlesPage(
+  cfg: SpreadconnectConfig,
+  limit: number,
+  offset: number,
+): Promise<SpreadconnectArticle[]> {
+  const res = await fetch(`${cfg.baseUrl}/articles?limit=${limit}&offset=${offset}`, {
+    headers: { "X-SPOD-ACCESS-TOKEN": cfg.apiKey },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(formatSpreadconnectArticlesFetchError(res.status, text, res.statusText));
+  }
+
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      `Spreadconnect articles response is not JSON (${text.slice(0, 200) || "empty body"})`,
+    );
+  }
+
+  return articlesPageFromJson(json);
+}
+
+async function fetchSpreadconnectArticleById(
+  cfg: SpreadconnectConfig,
+  articleId: number,
+): Promise<SpreadconnectArticle | null> {
+  const res = await fetch(`${cfg.baseUrl}/articles/${articleId}`, {
+    headers: { "X-SPOD-ACCESS-TOKEN": cfg.apiKey },
+    cache: "no-store",
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(formatSpreadconnectArticleFetchError(articleId, res.status, text, res.statusText));
+  }
+
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      `Spreadconnect article ${articleId} response is not JSON (${text.slice(0, 200) || "empty body"})`,
+    );
+  }
+
+  if (json == null || typeof json !== "object") return null;
+  return json as SpreadconnectArticle;
 }
 
 function prepareArticle(article: SpreadconnectArticle): PreparedArticle | null {
@@ -178,14 +292,17 @@ function prepareArticle(article: SpreadconnectArticle): PreparedArticle | null {
 
 async function findExistingProduct(prepared: PreparedArticle) {
   const skus = prepared.variants.map((variant) => variant.sku);
+  const orClause: Prisma.WearProductWhereInput[] = [
+    { slug: prepared.slugBase },
+    { externalFulfillmentId: { in: skus } },
+    { variants: { some: { sku: { in: skus } } } },
+  ];
+  if (prepared.articleId != null) {
+    orClause.push({ spreadconnectArticleId: prepared.articleId });
+  }
+
   return prisma.wearProduct.findFirst({
-    where: {
-      OR: [
-        { slug: prepared.slugBase },
-        { externalFulfillmentId: { in: skus } },
-        { variants: { some: { sku: { in: skus } } } },
-      ],
-    },
+    where: { OR: orClause },
     include: {
       variants: {
         orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
@@ -213,7 +330,27 @@ async function ensureUniqueSlug(base: string, existingProductId: string | null) 
 
 async function syncPreparedArticle(prepared: PreparedArticle) {
   const existing = await findExistingProduct(prepared);
+  const fp = catalogFingerprint(prepared);
+
+  if (
+    existing &&
+    prepared.articleId != null &&
+    existing.spreadconnectArticleId === prepared.articleId &&
+    existing.spreadconnectCatalogFingerprint != null &&
+    existing.spreadconnectCatalogFingerprint === fp
+  ) {
+    return {
+      id: existing.id,
+      created: false,
+      variantCount: prepared.variants.length,
+      unchanged: true as const,
+    };
+  }
+
   const slug = await ensureUniqueSlug(prepared.slugBase, existing?.id ?? null);
+
+  const articleIdData =
+    prepared.articleId != null ? { spreadconnectArticleId: prepared.articleId } : {};
 
   const product = existing
     ? await prisma.wearProduct.update({
@@ -228,6 +365,8 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           isActive: true,
           archivedAt: null,
           externalFulfillmentId: prepared.externalFulfillmentId,
+          spreadconnectCatalogFingerprint: fp,
+          ...articleIdData,
         },
       })
     : await prisma.wearProduct.create({
@@ -241,6 +380,8 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           isActive: true,
           archivedAt: null,
           externalFulfillmentId: prepared.externalFulfillmentId,
+          spreadconnectCatalogFingerprint: fp,
+          ...articleIdData,
         },
       });
 
@@ -290,6 +431,7 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
     id: product.id,
     created: !existing,
     variantCount: prepared.variants.length,
+    unchanged: false as const,
   };
 }
 
@@ -317,16 +459,89 @@ async function archiveUnsyncedPlaceholderProducts(syncedIds: string[]) {
   return result.count;
 }
 
-export async function syncSpreadconnectCatalogToWearProducts(): Promise<SpreadconnectCatalogSyncResult> {
-  const articles = await fetchSpreadconnectArticles();
+export async function syncSpreadconnectCatalogToWearProducts(
+  options?: SpreadconnectCatalogSyncOptions,
+): Promise<SpreadconnectCatalogSyncResult> {
+  const cfg = getSpreadconnectConfig();
+  if (!cfg) throw new Error("Spreadconnect not configured");
+
+  const fullDiscovery =
+    options?.fullDiscovery === true || process.env.SPREADCONNECT_SYNC_FULL_DISCOVERY === "1";
+
+  const pageLimit = clamp(parseInt(process.env.SPREADCONNECT_SYNC_PAGE_LIMIT || "25", 10), 5, 100);
+  const maxDiscoveryPages = fullDiscovery
+    ? Number.MAX_SAFE_INTEGER
+    : clamp(parseInt(process.env.SPREADCONNECT_SYNC_DISCOVER_MAX_PAGES || "1", 10), 0, 500);
+  const gapArticleMs = clamp(parseInt(process.env.SPREADCONNECT_REQUEST_GAP_MS || "250", 10), 0, 5000);
+  const gapPageMs = clamp(parseInt(process.env.SPREADCONNECT_PAGE_GAP_MS || "400", 10), 0, 10000);
+
+  const knownRows = await prisma.wearProduct.findMany({
+    where: { spreadconnectArticleId: { not: null } },
+    select: { spreadconnectArticleId: true },
+  });
+  const knownIds = [...new Set(knownRows.map((r) => r.spreadconnectArticleId).filter((id): id is number => id != null))].sort(
+    (a, b) => a - b,
+  );
+
+  const articlesToProcess: SpreadconnectArticle[] = [];
+  const seenArticleIds = new Set<number>();
+  let refreshedByArticleId = 0;
+  let discoveryListPages = 0;
+  let fullCatalogScanCompleted = false;
+
+  for (const articleId of knownIds) {
+    if (gapArticleMs > 0) await sleep(gapArticleMs);
+    const article = await fetchSpreadconnectArticleById(cfg, articleId);
+    if (article) {
+      articlesToProcess.push(article);
+      if (typeof article.id === "number") seenArticleIds.add(article.id);
+      refreshedByArticleId += 1;
+    }
+  }
+
+  let discoveryOffset = 0;
+  let pagesDone = 0;
+
+  for (;;) {
+    if (!fullDiscovery && pagesDone >= maxDiscoveryPages) break;
+
+    if (discoveryListPages > 0 && gapPageMs > 0) await sleep(gapPageMs);
+
+    const page = await fetchSpreadconnectArticlesPage(cfg, pageLimit, discoveryOffset);
+    discoveryListPages += 1;
+    pagesDone += 1;
+
+    if (page.length === 0) {
+      fullCatalogScanCompleted = true;
+      break;
+    }
+
+    for (const a of page) {
+      const aid = typeof a.id === "number" ? a.id : null;
+      if (aid == null) continue;
+      if (seenArticleIds.has(aid)) continue;
+      seenArticleIds.add(aid);
+      articlesToProcess.push(a);
+    }
+
+    discoveryOffset += pageLimit;
+
+    if (page.length < pageLimit) {
+      fullCatalogScanCompleted = true;
+      break;
+    }
+
+    if (!fullDiscovery && pagesDone >= maxDiscoveryPages) break;
+  }
 
   let createdProducts = 0;
   let updatedProducts = 0;
+  let skippedUnchangedProducts = 0;
   let skippedArticles = 0;
   let syncedVariants = 0;
   const syncedIds: string[] = [];
 
-  for (const article of articles) {
+  for (const article of articlesToProcess) {
     const prepared = prepareArticle(article);
     if (!prepared) {
       skippedArticles += 1;
@@ -334,24 +549,37 @@ export async function syncSpreadconnectCatalogToWearProducts(): Promise<Spreadco
     }
 
     const synced = await syncPreparedArticle(prepared);
-    syncedIds.push(synced.id);
     syncedVariants += synced.variantCount;
+
+    if (synced.unchanged) {
+      skippedUnchangedProducts += 1;
+      continue;
+    }
+
+    syncedIds.push(synced.id);
     if (synced.created) createdProducts += 1;
     else updatedProducts += 1;
   }
 
-  const archivedProducts = await archiveUnsyncedPlaceholderProducts(syncedIds);
+  const archivedProducts =
+    fullDiscovery && fullCatalogScanCompleted ? await archiveUnsyncedPlaceholderProducts(syncedIds) : 0;
 
   const unknownImageHosts = await listUnknownWearImageHostsForActiveCatalog();
 
+  const syncedProducts = createdProducts + updatedProducts + skippedUnchangedProducts;
+
   return {
-    fetchedArticles: articles.length,
-    syncedProducts: syncedIds.length,
+    fetchedArticles: articlesToProcess.length,
+    syncedProducts,
     createdProducts,
     updatedProducts,
+    skippedUnchangedProducts,
     archivedProducts,
     skippedArticles,
     syncedVariants,
+    refreshedByArticleId,
+    discoveryListPages,
+    fullCatalogScanCompleted,
     unknownImageHosts,
   };
 }

@@ -406,6 +406,10 @@ model WearProduct {
   archivedAt            DateTime? @map("archived_at")
   /// When the product has no variants: Spreadconnect article variant SKU for auto-fulfilment. Otherwise use variant.sku.
   externalFulfillmentId String?  @map("external_fulfillment_id")
+  /// Spreadconnect `Article.id` — used for GET /articles/{id} refresh without listing the full catalog.
+  spreadconnectArticleId            Int?    @unique @map("spreadconnect_article_id")
+  /// SHA-256 (hex) of synced catalog fields; unchanged fingerprints skip DB writes.
+  spreadconnectCatalogFingerprint   String? @map("spreadconnect_catalog_fingerprint") @db.VarChar(64)
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
