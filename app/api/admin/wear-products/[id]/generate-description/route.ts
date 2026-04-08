@@ -11,8 +11,12 @@ export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-function uniqueStrings(values: Array<string | null | undefined>) {
-  return [...new Set(values.map((value) => value?.trim()).filter(Boolean))];
+function uniqueStrings(values: Array<string | null | undefined>): string[] {
+  const cleaned = values
+    .map((value) => value?.trim())
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
+
+  return [...new Set(cleaned)];
 }
 
 export async function POST(req: Request, ctx: Ctx) {

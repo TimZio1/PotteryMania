@@ -4,7 +4,7 @@ import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function GET() {
   const user = await requireHyperAdminUser();
   if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
