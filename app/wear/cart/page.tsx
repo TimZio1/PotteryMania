@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { WearCartPageClient } from "@/components/wear/wear-cart-page-client";
+import { Spinner } from "@/components/ui/spinner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
@@ -11,8 +12,13 @@ export const metadata: Metadata = buildMetadata({
 
 function CartFallback() {
   return (
-    <main className="min-h-[40vh] bg-neutral-950 px-4 py-16 text-neutral-100">
-      <p className="text-center text-sm text-neutral-500">Loading cart…</p>
+    <main
+      className="flex min-h-[40vh] flex-col items-center justify-center gap-4 bg-neutral-950 px-4 py-16 text-neutral-100"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading cart"
+    >
+      <Spinner className="text-neutral-400" size="lg" />
     </main>
   );
 }

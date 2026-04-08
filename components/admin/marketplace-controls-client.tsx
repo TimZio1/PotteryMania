@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SkeletonText } from "@/components/ui/skeleton";
 import { ui } from "@/lib/ui-styles";
 
 type StudioOpt = { id: string; displayName: string };
@@ -163,11 +164,20 @@ export default function MarketplaceControlsClient() {
     router.refresh();
   }
 
-  if (loading) return <p className="text-sm text-stone-500">Loading marketplace controls…</p>;
+  if (loading) {
+    return (
+      <div className="space-y-3" role="status" aria-busy="true" aria-label="Loading marketplace controls">
+        <SkeletonText className="max-w-md" lines={2} />
+        <SkeletonText className="max-w-xl" lines={4} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
-      {err ? <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">{err}</p> : null}
+      {err ? (
+        <p className={`rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 ${ui.errorText}`}>{err}</p>
+      ) : null}
 
       <section className={`${ui.card} space-y-4`}>
         <h2 className="text-lg font-semibold text-amber-950">Featured placements</h2>
@@ -175,13 +185,9 @@ export default function MarketplaceControlsClient() {
           Curated rails (e.g. homepage hero). Public pages read active rows in-window; run ranking cron after large changes.
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="text-sm text-stone-700">
+          <label className={ui.label}>
             Studio
-            <select
-              className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2"
-              value={pStudio}
-              onChange={(e) => setPStudio(e.target.value)}
-            >
+            <select className={`${ui.select} mt-1`} value={pStudio} onChange={(e) => setPStudio(e.target.value)}>
               <option value="">—</option>
               {studios.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -190,19 +196,19 @@ export default function MarketplaceControlsClient() {
               ))}
             </select>
           </label>
-          <label className="text-sm text-stone-700">
+          <label className={ui.label}>
             Slot
-            <select className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2" value={pSlot} onChange={(e) => setPSlot(e.target.value)}>
+            <select className={`${ui.select} mt-1`} value={pSlot} onChange={(e) => setPSlot(e.target.value)}>
               <option value="homepage_hero">homepage_hero</option>
               <option value="category_top">category_top</option>
               <option value="trending">trending</option>
               <option value="seasonal">seasonal</option>
             </select>
           </label>
-          <label className="text-sm text-stone-700 sm:col-span-2">
+          <label className={`${ui.label} sm:col-span-2`}>
             Reason (audit)
             <input
-              className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2"
+              className={`${ui.input} mt-1`}
               value={pReason}
               onChange={(e) => setPReason(e.target.value)}
               placeholder="Why add this placement? (min 8 chars)"
@@ -233,9 +239,9 @@ export default function MarketplaceControlsClient() {
         <h2 className="text-lg font-semibold text-amber-950">Ranking boosts</h2>
         <p className="text-sm text-stone-600">Time-bounded lift to the manual component of the composite score (see ranking cron).</p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="text-sm text-stone-700">
+          <label className={ui.label}>
             Studio
-            <select className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2" value={bStudio} onChange={(e) => setBStudio(e.target.value)}>
+            <select className={`${ui.select} mt-1`} value={bStudio} onChange={(e) => setBStudio(e.target.value)}>
               <option value="">—</option>
               {studios.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -244,27 +250,23 @@ export default function MarketplaceControlsClient() {
               ))}
             </select>
           </label>
-          <label className="text-sm text-stone-700">
+          <label className={ui.label}>
             Type
-            <select className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2" value={bType} onChange={(e) => setBType(e.target.value)}>
+            <select className={`${ui.select} mt-1`} value={bType} onChange={(e) => setBType(e.target.value)}>
               <option value="manual">manual</option>
               <option value="featured">featured</option>
               <option value="seasonal">seasonal</option>
               <option value="paid">paid</option>
             </select>
           </label>
-          <label className="text-sm text-stone-700">
+          <label className={ui.label}>
             Value (0–100 scale)
-            <input
-              className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2"
-              value={bValue}
-              onChange={(e) => setBValue(e.target.value)}
-            />
+            <input className={`${ui.input} mt-1`} value={bValue} onChange={(e) => setBValue(e.target.value)} />
           </label>
-          <label className="text-sm text-stone-700 sm:col-span-2">
+          <label className={`${ui.label} sm:col-span-2`}>
             Reason (audit)
             <input
-              className="mt-1 w-full rounded-lg border border-stone-200 px-2 py-2"
+              className={`${ui.input} mt-1`}
               value={bReason}
               onChange={(e) => setBReason(e.target.value)}
               placeholder="Campaign / note (min 8 chars)"

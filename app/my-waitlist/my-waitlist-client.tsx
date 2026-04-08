@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { SkeletonText } from "@/components/ui/skeleton";
 import { ui } from "@/lib/ui-styles";
 
 type Entry = {
@@ -33,8 +34,11 @@ export function MyWaitlistClient() {
 
   if (loading) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-stone-500">Loading waitlist…</p>
+      <div className="mx-auto max-w-3xl py-10" role="status" aria-busy="true" aria-label="Loading waitlist">
+        <div className={`${ui.card} space-y-4`}>
+          <SkeletonText lines={1} className="max-w-xs" />
+          <SkeletonText lines={3} />
+        </div>
       </div>
     );
   }

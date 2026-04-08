@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { BookingStatus } from "@prisma/client";
 import { isReschedulable } from "@/lib/bookings/status";
 import { ui } from "@/lib/ui-styles";
+import { Spinner } from "@/components/ui/spinner";
 
 type SlotOption = {
   id: string;
@@ -153,7 +154,12 @@ export function RescheduleBookingPanel({
             </p>
           ) : null}
 
-          {loading ? <p className="mt-3 text-sm text-stone-500">Loading sessions…</p> : null}
+          {loading ? (
+            <div className="mt-3 flex items-center gap-2 text-sm text-stone-500" role="status" aria-busy="true">
+              <Spinner size="sm" />
+              <span className="sr-only">Loading sessions</span>
+            </div>
+          ) : null}
 
           {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
           {msg ? <p className="mt-3 text-sm text-emerald-800">{msg}</p> : null}

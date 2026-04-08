@@ -1,12 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Payments", "payments", "Payouts and payment history.");
+}
 
 export default async function StudioPaymentsPage({ params }: Props) {
   const user = await getSessionUser();

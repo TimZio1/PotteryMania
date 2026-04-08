@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
@@ -7,10 +8,16 @@ import {
 } from "@/lib/business-templates";
 import { resolveStudioRecommendedTemplateSlug } from "@/lib/business-template-recommendation";
 import StudioTemplateGalleryClient from "@/components/dashboard/studio-template-gallery-client";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Studio template", "template", "Choose your business template.");
+}
 
 export default async function StudioTemplatePage({ params }: Props) {
   const user = await getSessionUser();

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
@@ -5,6 +6,7 @@ import { ui } from "@/lib/ui-styles";
 import StudioCalendarClient, {
   type CalendarSlotPayload,
 } from "@/components/dashboard/studio-calendar-client";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,11 @@ type Props = {
   params: Promise<{ studioId: string }>;
   searchParams?: Promise<{ week?: string }>;
 };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Calendar", "calendar", "Studio calendar and slot availability.");
+}
 
 /** Monday UTC of the week containing `d` (Date at UTC noon). */
 function startOfWeekMondayUtc(d: Date): Date {

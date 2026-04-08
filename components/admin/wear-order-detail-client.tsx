@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/cn";
+import {
+  modalBackdropVariants,
+  modalPanelVariants,
+  modalPanelVariantsReduced,
+  modalTransition,
+} from "@/lib/motion-ui";
 import { ui } from "@/lib/ui-styles";
 
 export type WearOrderDetailPayload = {
@@ -93,6 +100,9 @@ const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export default function WearOrderDetailClient({ initial }: Props) {
+  const reduced = useReducedMotion();
+  const panelVariants = reduced ? modalPanelVariantsReduced : modalPanelVariants;
+  const transition = modalTransition(reduced);
   const router = useRouter();
   const [notes, setNotes] = useState(initial.internalNotes ?? "");
   const [notesBusy, setNotesBusy] = useState(false);
@@ -433,36 +443,49 @@ export default function WearOrderDetailClient({ initial }: Props) {
         <p className="text-sm text-stone-600">This order is closed — no further status transitions.</p>
       )}
 
-      {modalNext ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="wear-order-lifecycle-title"
-          aria-describedby="wear-order-lifecycle-description"
-          onKeyDown={(e) => {
-            if (e.key === "Escape" && !actionBusy) {
-              setModalNext(null);
-              return;
-            }
-            if (e.key !== "Tab" || !modalRef.current) return;
-            const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
-            if (focusable.length === 0) return;
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-            if (e.shiftKey && document.activeElement === first) {
-              e.preventDefault();
-              last.focus();
-            } else if (!e.shiftKey && document.activeElement === last) {
-              e.preventDefault();
-              first.focus();
-            }
-          }}
-        >
-          <div
-            ref={modalRef}
-            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
+      <AnimatePresence>
+        {modalNext ? (
+          <motion.div
+            key="wear-lifecycle-modal"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wear-order-lifecycle-title"
+            aria-describedby="wear-order-lifecycle-description"
+            variants={modalBackdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            transition={transition}
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && !actionBusy) {
+                setModalNext(null);
+                return;
+              }
+              if (e.key !== "Tab" || !modalRef.current) return;
+              const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+              if (focusable.length === 0) return;
+              const first = focusable[0];
+              const last = focusable[focusable.length - 1];
+              if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+              } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+              }
+            }}
           >
+            <motion.div
+              ref={modalRef}
+              className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-stone-200 bg-white p-6 shadow-xl"
+              variants={panelVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              transition={transition}
+              onClick={(e) => e.stopPropagation()}
+            >
             <h3 id="wear-order-lifecycle-title" className="text-lg font-semibold text-amber-950">
               {ACTION_LABEL[modalNext] ?? humanStatus(modalNext)}
             </h3>
@@ -520,9 +543,10 @@ export default function WearOrderDetailClient({ initial }: Props) {
                 Confirm
               </button>
             </div>
-          </div>
-        </div>
-      ) : null}
+          </motion.div>
+        </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

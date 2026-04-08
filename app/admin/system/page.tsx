@@ -5,6 +5,15 @@ import { StatCard } from "@/components/admin/stat-card";
 import { SystemHealthPings } from "@/components/admin/system-health-pings";
 import { FeatureFlagsPanel } from "./feature-flags-panel";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "System",
+  "/admin/system",
+  "System status and diagnostics.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminSystemPage() {

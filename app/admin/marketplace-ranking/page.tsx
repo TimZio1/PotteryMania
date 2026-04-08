@@ -3,6 +3,15 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import MarketplaceRankAdmin from "@/components/admin/marketplace-rank-admin";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Marketplace ranking",
+  "/admin/marketplace-ranking",
+  "Search ranking weights and boosts.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminMarketplaceRankingPage() {

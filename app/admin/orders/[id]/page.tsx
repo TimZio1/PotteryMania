@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AdminOrderRefundPanel } from "@/components/admin/admin-order-refund-panel";
@@ -5,10 +6,16 @@ import { requireAdminUser } from "@/lib/auth-session";
 import { findAdminOrderById } from "@/lib/admin-orders-query";
 import { getStripeOrderRefundSnapshot } from "@/lib/orders/admin-stripe-order-refund";
 import { ui } from "@/lib/ui-styles";
+import { metaAdminPage } from "@/lib/seo-routes";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  return metaAdminPage("Order detail", `/admin/orders/${id}`, "Marketplace order detail, refunds, and Stripe links.");
+}
 
 function formatOrderMoney(cents: number, currency: string) {
   return new Intl.NumberFormat(undefined, {

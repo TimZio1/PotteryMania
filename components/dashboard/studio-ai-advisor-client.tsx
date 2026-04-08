@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function StudioAiAdvisorClient({
   studioId,
@@ -83,7 +84,14 @@ export default function StudioAiAdvisorClient({
           disabled={loading || !openAiConfigured || !message.trim()}
           className={cn(ui.buttonPrimary, "mt-4")}
         >
-          {loading ? "Thinking…" : "Get advice"}
+          {loading ? (
+            <span className="inline-flex items-center gap-2">
+              <Spinner size="sm" className="text-white" />
+              Thinking…
+            </span>
+          ) : (
+            "Get advice"
+          )}
         </button>
       </div>
 

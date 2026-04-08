@@ -6,6 +6,15 @@ import { getRankingScoreWeights } from "@/lib/ranking-weights-config";
 import { RankingWeightsForm } from "@/components/admin/ranking-weights-form";
 import { CommissionForm } from "./commission-form";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Admin settings",
+  "/admin/settings",
+  "Hyperadmin configuration.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {

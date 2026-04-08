@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -6,10 +7,16 @@ import { StatCard } from "@/components/admin/stat-card";
 import { UserAdminActions } from "./user-admin-actions";
 import { UserAdminNotesForm } from "./user-admin-notes";
 import { UserAdminTagsPanel } from "./user-admin-tags";
+import { metaAdminPage } from "@/lib/seo-routes";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  return metaAdminPage("User detail", `/admin/users/${id}`, "Account detail, tags, notes, and admin actions.");
+}
 
 function formatEur(cents: number) {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(cents / 100);

@@ -7,6 +7,15 @@ import { Spinner } from "@/components/ui/spinner";
 import { getWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Wear products",
+  "/admin/wear-products",
+  "Manage PotteryMania wear catalog and sync.",
+);
+
 export const dynamic = "force-dynamic";
 
 function ListFallback() {

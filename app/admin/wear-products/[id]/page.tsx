@@ -1,12 +1,21 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import WearProductEditorClient from "@/components/admin/wear-product-editor-client";
+import { metaAdminPage } from "@/lib/seo-routes";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminWearProductEditPage({ params }: { params: Promise<{ id: string }> }) {
+type WearProductParams = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: WearProductParams): Promise<Metadata> {
+  const { id } = await params;
+  return metaAdminPage("Edit wear product", `/admin/wear-products/${id}`, "Edit wear product, variants, and imagery.");
+}
+
+export default async function AdminWearProductEditPage({ params }: WearProductParams) {
   const user = await requireHyperAdminUser();
   if (!user) redirect("/unauthorized-admin");
 

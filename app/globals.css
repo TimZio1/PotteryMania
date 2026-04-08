@@ -62,7 +62,7 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Respect reduced motion */
+/* UXA-033: respect reduced motion (CSS utilities + framer-motion useReducedMotion in components). */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

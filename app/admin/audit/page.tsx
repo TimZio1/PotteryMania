@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AuditLogClient } from "./audit-log-client";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Audit log",
+  "/admin/audit",
+  "Immutable admin action log with filters and CSV export.",
+);
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +79,13 @@ export default async function AdminAuditPage({ searchParams }: Props) {
         Every sensitive mutation should appear here with before/after JSON. Filter, inspect diffs, or export CSV.
       </p>
       <div className="mt-8">
-        <Suspense fallback={<p className="text-sm text-stone-500">Loading audit filters…</p>}>
+        <Suspense
+          fallback={
+            <div className="py-2" role="status" aria-busy="true" aria-label="Loading audit filters">
+              <Skeleton className="h-10 w-full max-w-lg rounded-xl" />
+            </div>
+          }
+        >
           <AuditLogClient initialRows={initialRows} page={page} total={total} pageSize={PAGE_SIZE} />
         </Suspense>
       </div>

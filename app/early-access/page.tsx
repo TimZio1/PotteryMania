@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { PromoCountdown } from "@/components/promo-countdown";
 import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { isPromoActive } from "@/lib/promo";
+import { STUDIO_TESTIMONIALS, testimonialAttribution } from "@/lib/marketing-testimonials";
 import { buildMetadata } from "@/lib/seo";
 import { PREREG_STUDIO_CAP } from "@/lib/brand";
 import { EarlyAccessForm } from "./early-access-form";
@@ -130,14 +131,8 @@ export default async function EarlyAccessPage() {
       <section className="border-t border-(--brand-line) bg-(--warm-surface)">
         <div className="mx-auto max-w-3xl px-5 py-16 sm:px-6 sm:py-20">
           <div className="grid gap-6 sm:grid-cols-2">
-            <Testimonial
-              quote="Finally, a platform that understands pottery is not just e-commerce. It is atmosphere, teaching, and trust."
-              author="Studio owner, Athens"
-            />
-            <Testimonial
-              quote="I have been managing classes across calendars and spreadsheets. This feels like something real."
-              author="Workshop instructor, Barcelona"
-            />
+            <Testimonial quote={STUDIO_TESTIMONIALS[0].quote} author={testimonialAttribution(STUDIO_TESTIMONIALS[0])} />
+            <Testimonial quote={STUDIO_TESTIMONIALS[1].quote} author={testimonialAttribution(STUDIO_TESTIMONIALS[1])} />
           </div>
         </div>
       </section>

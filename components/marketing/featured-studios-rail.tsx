@@ -1,5 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import type { FeaturedStudioCard } from "@/lib/featured-studios-public";
+import {
+  modalTransition,
+  staggerContainerVariants,
+  staggerItemVariants,
+  staggerItemVariantsReduced,
+} from "@/lib/motion-ui";
 import { ui } from "@/lib/ui-styles";
 
 type Props = {
@@ -8,6 +17,10 @@ type Props = {
 };
 
 export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Props) {
+  const reduced = useReducedMotion();
+  const itemVars = reduced ? staggerItemVariantsReduced : staggerItemVariants;
+  const containerVars = reduced ? { hidden: {}, visible: {} } : staggerContainerVariants;
+
   if (studios.length === 0) return null;
 
   return (
@@ -22,13 +35,19 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
             Browse all studios →
           </Link>
         </div>
-        <div className="mt-8 flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <motion.div
+          className="mt-8 flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          variants={containerVars}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-20px" }}
+        >
           {studios.map((s) => (
-            <Link
-              key={s.placementId}
-              href={`/studios/${s.studioId}`}
-              className="group relative flex w-[min(100%,280px)] shrink-0 flex-col overflow-hidden rounded-2xl border border-(--brand-line) bg-(--warm-surface) shadow-sm transition hover:border-amber-200/80 hover:shadow-md"
-            >
+            <motion.div key={s.placementId} variants={itemVars} transition={modalTransition(reduced)} className="shrink-0">
+              <Link
+                href={`/studios/${s.studioId}`}
+                className="group relative flex w-[min(100%,280px)] flex-col overflow-hidden rounded-2xl border border-(--brand-line) bg-(--warm-surface) shadow-sm transition hover:border-amber-200/80 hover:shadow-md"
+              >
               <div className="relative aspect-[16/10] w-full bg-stone-200">
                 {s.coverImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- remote studio URLs from Connect / uploads
@@ -59,8 +78,9 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
                 ) : null}
               </div>
             </Link>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

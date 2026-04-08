@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { StudioPanelNavItem } from "@/lib/studio-panel-nav";
 import { studioPanelNav } from "@/lib/studio-panel-nav";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 
 export default function StudioPanelShell({
   studioId,
@@ -24,6 +25,34 @@ export default function StudioPanelShell({
   const pathname = usePathname();
   const nav = navItems ?? studioPanelNav(studioId);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const breadcrumbItems = useMemo(() => {
+    const base = `/dashboard/${studioId}`;
+    const items: { label: string; href?: string }[] = [
+      { label: "Home", href: "/" },
+      { label: "Dashboard", href: "/dashboard" },
+    ];
+    if (pathname === base) {
+      items.push({ label: studioName });
+      return items;
+    }
+    items.push({ label: studioName, href: base });
+    const candidates = nav.filter(
+      (i) => i.href.length > base.length && (pathname === i.href || pathname.startsWith(`${i.href}/`)),
+    );
+    const match = candidates.sort((a, b) => b.href.length - a.href.length)[0];
+    if (match) {
+      items.push({ label: match.label });
+      return items;
+    }
+    const tail = pathname.slice(base.length + 1).split("/")[0];
+    if (tail) {
+      items.push({
+        label: tail.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      });
+    }
+    return items;
+  }, [pathname, studioId, studioName, nav]);
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] w-full max-w-none flex-col sm:min-h-[calc(100vh-4rem)] lg:flex-row">
@@ -101,6 +130,7 @@ export default function StudioPanelShell({
             </Link>
           </div>
         ) : null}
+        <Breadcrumbs items={breadcrumbItems} className="mb-5" />
         {children}
       </main>
     </div>

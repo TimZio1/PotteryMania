@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
+import { metaDashboardPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaDashboardPage(
+  "Billing",
+  "/dashboard/billing",
+  "Platform subscription, invoices, and pointers to studio add-on billing.",
+);
 
 export const dynamic = "force-dynamic";
 

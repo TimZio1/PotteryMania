@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -5,10 +6,16 @@ import { getSessionUser } from "@/lib/auth-session";
 import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 import StudioFeaturesClient from "@/components/dashboard/studio-features-client";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Features", "features", "Add-ons and subscriptions.");
+}
 
 export default async function StudioFeaturesPage({ params }: Props) {
   const user = await getSessionUser();

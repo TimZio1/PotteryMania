@@ -1,5 +1,8 @@
 /** Shared class strings — design system surface. Prefer these over one-off duplicates. */
 
+const fieldControl =
+  "min-h-11 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-base text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-amber-600/40 focus:outline-none focus:ring-2 focus:ring-amber-900/15";
+
 export const ui = {
   /** Primary actions: checkout, submit auth, pay */
   buttonPrimary:
@@ -13,8 +16,21 @@ export const ui = {
   buttonGhost:
     "inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 hover:text-amber-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-800",
 
-  input:
-    "min-h-11 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-base text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-amber-600/40 focus:outline-none focus:ring-2 focus:ring-amber-900/15",
+  input: fieldControl,
+
+  /** Native `<select>` — same surface as inputs */
+  select: fieldControl,
+
+  /** Pill toggles (e.g. kiln firing status) */
+  chip: "rounded-full px-3 py-1 text-xs font-medium transition",
+  chipOff: "bg-stone-100 text-stone-700 hover:bg-stone-200",
+  chipOn: "bg-amber-950 text-white",
+  chipDanger: "rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-800 transition hover:bg-red-100",
+
+  /** Compact status chips (e.g. kiln piece queue) */
+  chipSm: "rounded px-2 py-0.5 text-xs transition",
+  chipSmOff: "bg-white text-stone-600 ring-1 ring-stone-200",
+  chipSmOn: "bg-amber-800 text-white",
 
   label: "block text-sm font-medium text-stone-700",
 

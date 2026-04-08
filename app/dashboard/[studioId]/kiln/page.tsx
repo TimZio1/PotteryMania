@@ -1,13 +1,20 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { hasStudioFeature } from "@/lib/studio-features";
 import { ui } from "@/lib/ui-styles";
 import KilnManager from "@/components/dashboard/kiln-manager";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Kiln", "kiln", "Kiln firings and production queue.");
+}
 
 export default async function StudioKilnPage({ params }: Props) {
   const user = await getSessionUser();

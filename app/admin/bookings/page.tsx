@@ -10,6 +10,15 @@ import { DataTable } from "@/components/admin/data-table";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Bookings",
+  "/admin/bookings",
+  "Class and experience bookings.",
+);
+
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };

@@ -1,13 +1,20 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { buildStudentCrmRows } from "@/lib/studio-student-crm";
 import StudioStudentsClient from "@/components/dashboard/studio-students-client";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Students", "students", "Students and roster.");
+}
 
 export default async function StudioStudentsPage({ params }: Props) {
   const user = await getSessionUser();

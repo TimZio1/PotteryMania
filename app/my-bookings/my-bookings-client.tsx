@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { SkeletonText } from "@/components/ui/skeleton";
 import { ui } from "@/lib/ui-styles";
 import { RescheduleBookingPanel } from "@/components/bookings/reschedule-booking-panel";
 
@@ -81,8 +82,11 @@ export function MyBookingsClient() {
 
   if (loading) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-stone-500">Loading bookings…</p>
+      <div className="mx-auto max-w-3xl py-10" role="status" aria-busy="true" aria-label="Loading bookings">
+        <div className={`${ui.card} space-y-4`}>
+          <SkeletonText lines={1} className="max-w-xs" />
+          <SkeletonText lines={4} />
+        </div>
       </div>
     );
   }

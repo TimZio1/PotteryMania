@@ -4,6 +4,15 @@ import { requireAdminUser } from "@/lib/auth-session";
 import { StatCard } from "@/components/admin/stat-card";
 import { DataTable } from "@/components/admin/data-table";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Content",
+  "/admin/content",
+  "CMS and public content tooling.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminContentPage() {

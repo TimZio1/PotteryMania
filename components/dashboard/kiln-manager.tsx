@@ -198,9 +198,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
                     type="button"
                     disabled={busyId !== null}
                     onClick={() => setFiringStatus(f.id, s)}
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      f.status === s ? "bg-amber-950 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                    }`}
+                    className={`${ui.chip} ${f.status === s ? ui.chipOn : ui.chipOff}`}
                   >
                     {s}
                   </button>
@@ -209,7 +207,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
                   type="button"
                   disabled={busyId !== null}
                   onClick={() => removeFiring(f.id)}
-                  className="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-800 hover:bg-red-100"
+                  className={ui.chipDanger}
                 >
                   Delete
                 </button>
@@ -228,9 +226,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
                           type="button"
                           disabled={busyId !== null}
                           onClick={() => updateItem(it.id, s)}
-                          className={`rounded px-2 py-0.5 text-xs ${
-                            it.status === s ? "bg-amber-800 text-white" : "bg-white text-stone-600 ring-1 ring-stone-200"
-                          }`}
+                          className={`${ui.chipSm} ${it.status === s ? ui.chipSmOn : ui.chipSmOff}`}
                         >
                           {s.replace(/_/g, " ")}
                         </button>

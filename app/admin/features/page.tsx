@@ -20,6 +20,15 @@ import { TimeSeriesChart } from "@/components/admin/time-series-chart";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Features",
+  "/admin/features",
+  "Platform feature flags and add-on catalog.",
+);
+
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };

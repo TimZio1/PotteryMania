@@ -13,6 +13,15 @@ import { TimeSeriesChart } from "@/components/admin/time-series-chart";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Revenue",
+  "/admin/revenue",
+  "Platform revenue and payout visibility.",
+);
+
 export const dynamic = "force-dynamic";
 
 const DAY_MS = 24 * 60 * 60 * 1000;

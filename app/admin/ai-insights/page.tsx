@@ -6,6 +6,15 @@ import { ui } from "@/lib/ui-styles";
 import { InsightTemplateActiveCell, InsightTemplatePriceCell } from "@/components/admin/insight-template-admin-cells";
 import AdminInsightForceUnlockButton from "@/components/admin/admin-insight-force-unlock-button";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "AI insights",
+  "/admin/ai-insights",
+  "AI-assisted operational insights.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminAiInsightsPage() {

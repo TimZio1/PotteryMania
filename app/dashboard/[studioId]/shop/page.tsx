@@ -1,13 +1,20 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { loadStudioShopPageData } from "@/lib/studio-shop-page-data";
 import StudioShopClient from "@/components/dashboard/studio-shop-client";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Shop", "shop", "Products and storefront management.");
+}
 
 export default async function StudioShopPage({ params }: Props) {
   const user = await getSessionUser();

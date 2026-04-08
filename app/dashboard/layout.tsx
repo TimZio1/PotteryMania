@@ -1,7 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
+import { metaDashboardPage } from "@/lib/seo-routes";
 import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
+import { DashboardRouteBreadcrumbs } from "@/components/dashboard/dashboard-route-breadcrumbs";
+
+export const metadata: Metadata = metaDashboardPage(
+  "Dashboard",
+  "/dashboard",
+  "Manage your ceramic studio: listings, classes, bookings, and Stripe payouts on PotteryMania.",
+);
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await auth();
@@ -37,6 +46,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </nav>
         </div>
       </header>
+      <DashboardRouteBreadcrumbs />
       <div className="mx-auto w-full max-w-none px-0 py-0 sm:px-0 sm:py-0">{children}</div>
     </div>
   );

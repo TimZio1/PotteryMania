@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing-layout";
+import { metaPublicPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaPublicPage(
+  "Cart",
+  "/cart",
+  "Review marketplace and class items before secure Stripe checkout.",
+);
 import { ui } from "@/lib/ui-styles";
 import { CartContents } from "./cart-contents";
 

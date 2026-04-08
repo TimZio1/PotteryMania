@@ -7,6 +7,15 @@ import { requireAdminUser } from "@/lib/auth-session";
 import { DataTable } from "@/components/admin/data-table";
 import { ui } from "@/lib/ui-styles";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Users",
+  "/admin/users",
+  "Customer and vendor accounts.",
+);
+
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 30;

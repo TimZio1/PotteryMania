@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { metaPublicPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaPublicPage(
+  "Access restricted",
+  "/unauthorized-admin",
+  "This PotteryMania area requires hyperadmin access.",
+);
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { isAdminRole } from "@/lib/auth-session";

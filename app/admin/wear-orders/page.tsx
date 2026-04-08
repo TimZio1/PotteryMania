@@ -5,6 +5,15 @@ import { requireHyperAdminUser } from "@/lib/auth-session";
 import WearOrdersAdminClient from "@/components/admin/wear-orders-admin-client";
 import { wearOrderNeedsOpsAttention } from "@/lib/wear-order-lifecycle";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Wear orders",
+  "/admin/wear-orders",
+  "Wear fulfillment orders and lifecycle.",
+);
+
 export const dynamic = "force-dynamic";
 
 const ALL_STATUSES: WearOrderStatus[] = [

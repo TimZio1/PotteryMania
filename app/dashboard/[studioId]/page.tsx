@@ -1,12 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 import StudioMonetizedInsightsPanel from "@/components/dashboard/studio-monetized-insights-panel";
 import { listStudioInsightsPayload } from "@/lib/ai/ensure-studio-insights";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Studio overview", "", "Owner home: bookings, revenue snapshot, and quick actions.");
+}
 
 export default async function StudioPanelHomePage({ params }: Props) {
   const { studioId } = await params;

@@ -3,6 +3,15 @@ import { requireHyperAdminUser } from "@/lib/auth-session";
 import { loadWearDashboard, parseWearAnalyticsRange } from "@/lib/wear-analytics-dashboard";
 import WearAnalyticsDashboardClient from "@/components/admin/wear-analytics-dashboard-client";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Wear analytics",
+  "/admin/wear-analytics",
+  "Wear shop performance and conversion metrics.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminWearAnalyticsPage({

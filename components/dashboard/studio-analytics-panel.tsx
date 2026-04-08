@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
 import { formatMoneyEur } from "@/lib/i18n";
@@ -56,7 +57,24 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
     : 1;
 
   if (err) return <p className={ui.errorText}>{err}</p>;
-  if (!metrics) return <p className="text-sm text-stone-500">Loading analytics…</p>;
+  if (!metrics) {
+    return (
+      <div className="space-y-6" role="status" aria-busy="true" aria-label="Loading analytics">
+        <div className="flex flex-wrap justify-between gap-3">
+          <Skeleton className="h-4 w-48" />
+          <div className="flex gap-1">
+            <Skeleton className="h-8 w-12 rounded-full" />
+            <Skeleton className="h-8 w-12 rounded-full" />
+            <Skeleton className="h-8 w-12 rounded-full" />
+          </div>
+        </div>
+        <div className={`${ui.card} space-y-3`}>
+          <SkeletonText lines={2} />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

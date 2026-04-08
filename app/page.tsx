@@ -7,9 +7,12 @@ import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
 import { isPreregistrationOnly } from "@/lib/preregistration";
+import { ClarityCardsStagger } from "@/components/marketing/clarity-cards-stagger";
 import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rail";
+import { HeroPhotography } from "@/components/marketing/hero-photography";
 import { getFeaturedStudiosForSlot } from "@/lib/featured-studios-public";
 import { displayedPreRegTotal, PREREG_STUDIO_CAP } from "@/lib/brand";
+import { STUDIO_TESTIMONIALS, testimonialAttribution } from "@/lib/marketing-testimonials";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
@@ -100,7 +103,7 @@ export default async function Home() {
           tone="hero"
           minHeight="min-h-[84vh] sm:min-h-[90vh]"
           align="bottom"
-          artwork={<HeroArtwork />}
+          artwork={<HeroPhotography />}
           priority
         >
           <p className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-stone-100 backdrop-blur-sm">
@@ -155,20 +158,7 @@ export default async function Home() {
                 more presence.
               </p>
             </div>
-            <div className="mt-12 grid gap-5 md:grid-cols-3">
-              {clarityItems.map((item, index) => (
-                <article
-                  key={item.title}
-                  className="rounded-[1.75rem] border border-(--brand-line) bg-white/80 p-7 shadow-[0_20px_60px_rgba(61,36,23,0.06)] backdrop-blur-sm"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-(--brand-soft) text-sm font-semibold text-(--brand-ink)">
-                    0{index + 1}
-                  </div>
-                  <h3 className="mt-5 font-serif text-2xl text-(--brand-ink)">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">{item.body}</p>
-                </article>
-              ))}
-            </div>
+            <ClarityCardsStagger items={clarityItems} />
           </div>
         </section>
 
@@ -267,14 +257,8 @@ export default async function Home() {
               </p>
             </div>
             <div className="grid gap-4">
-              <TestimonialCard
-                quote="Finally, a platform that understands pottery is not just ecommerce. It is also atmosphere, teaching, and trust."
-                author="Studio owner, Athens"
-              />
-              <TestimonialCard
-                quote="I have been piecing together classes across calendars, messages, and spreadsheets. This feels far more serious."
-                author="Workshop instructor, Barcelona"
-              />
+              <TestimonialCard quote={STUDIO_TESTIMONIALS[0].quote} author={testimonialAttribution(STUDIO_TESTIMONIALS[0])} />
+              <TestimonialCard quote={STUDIO_TESTIMONIALS[1].quote} author={testimonialAttribution(STUDIO_TESTIMONIALS[1])} />
             </div>
           </div>
         </ImageSection>
@@ -387,7 +371,7 @@ function ImageSection({
 
   return (
     <section className={`relative isolate overflow-hidden ${minHeight}`}>
-      <div className="absolute inset-0">{artwork}</div>
+      <div className="absolute inset-0 min-h-0">{artwork}</div>
       <div className={`absolute inset-0 bg-linear-to-t ${overlayClass}`} aria-hidden />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(255,214,170,0.12),transparent_28%)]" aria-hidden />
       <div className={`relative z-10 mx-auto flex ${minHeight} ${justifyClass} ${ui.pageContainer} ${paddingClass}`}>
@@ -404,37 +388,6 @@ function TestimonialCard({ quote, author }: { quote: string; author: string }) {
       <p className="text-base leading-7 text-stone-100">“{quote}”</p>
       <p className="mt-4 text-sm font-medium uppercase tracking-[0.16em] text-stone-300">{author}</p>
     </article>
-  );
-}
-
-function HeroArtwork() {
-  return (
-    <svg viewBox="0 0 1600 1100" className="h-full w-full object-cover" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <defs>
-        <linearGradient id="heroBg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="#f5e7d8" />
-          <stop offset="38%" stopColor="#d4a984" />
-          <stop offset="68%" stopColor="#8a5b3d" />
-          <stop offset="100%" stopColor="#38261d" />
-        </linearGradient>
-        <radialGradient id="heroLight" cx="35%" cy="28%" r="40%">
-          <stop offset="0%" stopColor="#fff8ef" stopOpacity="0.95" />
-          <stop offset="100%" stopColor="#fff8ef" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="1600" height="1100" fill="url(#heroBg)" />
-      <rect width="1600" height="1100" fill="url(#heroLight)" />
-      <ellipse cx="1220" cy="760" rx="340" ry="220" fill="#31211b" fillOpacity="0.72" />
-      <ellipse cx="1120" cy="760" rx="235" ry="155" fill="#795640" fillOpacity="0.95" />
-      <ellipse cx="1120" cy="760" rx="130" ry="95" fill="#c59873" fillOpacity="0.95" />
-      <ellipse cx="1120" cy="748" rx="88" ry="58" fill="#d7b192" />
-      <path d="M900 510c74-80 152-108 212-95 36 7 64 30 73 54 10 25-5 42-29 46-57 8-117-18-181 8-45 18-78 47-112 95l-64-48c28-20 63-42 101-60Z" fill="#8d6046" fillOpacity="0.9" />
-      <path d="M1235 460c58-54 115-73 157-64 29 7 50 28 57 49 7 19-4 31-22 34-42 6-87-13-134 8-33 14-57 36-81 72l-48-41c21-17 46-36 71-58Z" fill="#a77759" fillOpacity="0.82" />
-      <rect x="136" y="156" width="274" height="30" rx="15" fill="#fff5ea" fillOpacity="0.42" />
-      <rect x="136" y="204" width="216" height="20" rx="10" fill="#fff5ea" fillOpacity="0.18" />
-      <rect x="1260" y="190" width="184" height="184" rx="34" fill="#f4e3d4" fillOpacity="0.12" />
-      <ellipse cx="1362" cy="285" rx="66" ry="74" fill="#e6c2a2" fillOpacity="0.18" />
-    </svg>
   );
 }
 

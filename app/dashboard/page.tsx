@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -5,6 +6,13 @@ import { getSessionUser, requireAdminUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
 import { PromoCountdownCompact } from "@/components/promo-countdown";
+import { metaDashboardPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaDashboardPage(
+  "Studio dashboard",
+  "/dashboard",
+  "Your studios, activation, Stripe Connect, and quick links to products and bookings.",
+);
 
 export const dynamic = "force-dynamic";
 

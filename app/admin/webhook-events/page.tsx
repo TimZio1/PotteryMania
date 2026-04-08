@@ -7,6 +7,15 @@ import ResolveWebhookTaskButton from "@/components/admin/resolve-webhook-task-bu
 
 type TaskWithEvent = StripeWebhookEventTask & { event: StripeWebhookEvent | null };
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Webhook events",
+  "/admin/webhook-events",
+  "Stripe and integration webhook delivery history.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminWebhookEventsPage() {

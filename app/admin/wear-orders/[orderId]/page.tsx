@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import type { WearOrderStatus } from "@prisma/client";
@@ -5,10 +6,18 @@ import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { allowedWearOrderTransitions, isWearOrderTerminal } from "@/lib/wear-order-lifecycle";
 import WearOrderDetailClient from "@/components/admin/wear-order-detail-client";
+import { metaAdminPage } from "@/lib/seo-routes";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminWearOrderDetailPage({ params }: { params: Promise<{ orderId: string }> }) {
+type OrderPageParams = { params: Promise<{ orderId: string }> };
+
+export async function generateMetadata({ params }: OrderPageParams): Promise<Metadata> {
+  const { orderId } = await params;
+  return metaAdminPage("Wear order", `/admin/wear-orders/${orderId}`, "Inspect and transition a wear fulfillment order.");
+}
+
+export default async function AdminWearOrderDetailPage({ params }: OrderPageParams) {
   const user = await requireHyperAdminUser();
   if (!user) redirect("/unauthorized-admin");
 

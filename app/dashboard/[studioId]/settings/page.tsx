@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -7,6 +8,7 @@ import StudioSettingsClient from "@/components/dashboard/studio-settings-client"
 import GoogleCalendarSettingsCard from "@/components/dashboard/google-calendar-settings-card";
 import VendorDomainsSettingsCard from "@/components/dashboard/vendor-domains-settings-card";
 import { googleCalendarOAuthConfigured } from "@/lib/calendar/google-oauth";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,11 @@ type Props = {
   params: Promise<{ studioId: string }>;
   searchParams: Promise<{ calendar_connected?: string; calendar_error?: string }>;
 };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Studio settings", "settings", "Profile, integrations, and studio preferences.");
+}
 
 export default async function StudioSettingsPage({ params, searchParams }: Props) {
   const user = await getSessionUser();

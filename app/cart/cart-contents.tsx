@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { depositChargedCents } from "@/lib/bookings/deposit";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 
@@ -207,8 +208,14 @@ export function CartContents() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl py-16 text-center">
-        <p className="text-sm text-stone-500">Loading your cart…</p>
+      <div className="mx-auto max-w-2xl py-10" role="status" aria-busy="true" aria-label="Loading cart">
+        <div className={`${ui.card} space-y-4`}>
+          <div className="flex items-center gap-3">
+            <Spinner />
+            <Skeleton className="h-5 w-40" />
+          </div>
+          <SkeletonText lines={3} />
+        </div>
       </div>
     );
   }

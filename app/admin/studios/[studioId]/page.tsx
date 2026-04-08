@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -7,10 +8,16 @@ import { StudioAdminFeatureEntitlements } from "@/components/admin/studio-admin-
 import { activationGrantsAccess } from "@/lib/studio-features";
 import { platformFeatureRequiresStripeSubscription } from "@/lib/studio-feature-billing";
 import { ui } from "@/lib/ui-styles";
+import { metaAdminPage } from "@/lib/seo-routes";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { studioId } = await params;
+  return metaAdminPage("Studio detail", `/admin/studios/${studioId}`, "Studio profile, Stripe, features, and admin actions.");
+}
 
 export default async function AdminStudioDetailPage({ params }: Props) {
   const user = await requireAdminUser();

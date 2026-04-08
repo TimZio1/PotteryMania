@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { metaAdminPage } from "@/lib/seo-routes";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
@@ -36,6 +38,12 @@ const adminLinks = [
 ] as const;
 
 export { adminLinks };
+
+export const metadata: Metadata = metaAdminPage(
+  "Hyperadmin",
+  "/admin",
+  "PotteryMania internal console for operations, studios, orders, bookings, and platform tools. Not indexed in search engines.",
+);
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (

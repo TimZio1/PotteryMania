@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
+import { MarketingPageTransition } from "@/components/marketing/marketing-page-transition";
 import { SiteHeader } from "@/components/site-header";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { ui } from "@/lib/ui-styles";
@@ -20,7 +21,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
           <div className={`${ui.pageContainer} py-3`}>{toolbar}</div>
         </div>
       ) : null}
-      {children}
+      <MarketingPageTransition>{children}</MarketingPageTransition>
       <footer className="mt-auto border-t border-(--brand-line) bg-(--brand-soft)">
         <div className={`${ui.pageContainer} py-12 sm:py-14`}>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">

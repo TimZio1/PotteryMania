@@ -2,6 +2,15 @@ import { redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/auth-session";
 import ExperimentsAdminClient from "@/components/admin/experiments-admin-client";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Experiments",
+  "/admin/experiments",
+  "A/B experiments and rollout controls.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminExperimentsPage() {

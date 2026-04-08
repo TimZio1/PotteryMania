@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function eur(cents: number) {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(cents / 100);
@@ -46,7 +47,19 @@ export function FinanceCommandCenter() {
   }
 
   if (!overview) {
-    return <p className="text-sm text-stone-500">Loading financial intelligence…</p>;
+    return (
+      <div className="space-y-8" role="status" aria-busy="true" aria-label="Loading finance overview">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="mt-3 h-9 w-24" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-36 w-full max-w-3xl rounded-2xl" />
+      </div>
+    );
   }
 
   return (

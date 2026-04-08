@@ -1,13 +1,20 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { serializeStudioBookingsList } from "@/lib/serialize-studio-bookings-list";
 import StudioBookingsClient from "@/components/dashboard/studio-bookings-client";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Bookings", "bookings", "Review and manage class bookings.");
+}
 
 export default async function StudioPanelBookingsPage({ params }: Props) {
   const user = await getSessionUser();

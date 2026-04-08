@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/auth-session";
@@ -5,10 +6,16 @@ import { findAdminBookingById } from "@/lib/admin-bookings-query";
 import { isReschedulable } from "@/lib/bookings/status";
 import { RescheduleBookingPanel } from "@/components/bookings/reschedule-booking-panel";
 import { ui } from "@/lib/ui-styles";
+import { metaAdminPage } from "@/lib/seo-routes";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  return metaAdminPage("Booking detail", `/admin/bookings/${id}`, "Class booking detail, reschedule, and refunds.");
+}
 
 function eur(cents: number) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(cents / 100);

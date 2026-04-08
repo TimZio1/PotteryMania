@@ -8,6 +8,15 @@ import { AdminEarlyAccessList } from "../admin-early-access";
 import { AdminStudios } from "../admin-studios";
 import { ui } from "@/lib/ui-styles";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Operations",
+  "/admin/operations",
+  "Operational queues, retries, and platform tasks.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminOperationsPage() {

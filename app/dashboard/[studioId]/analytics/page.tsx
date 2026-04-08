@@ -1,13 +1,20 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import StudioAnalyticsPanel from "@/components/dashboard/studio-analytics-panel";
 import StudioMarketplaceVisibility from "@/components/dashboard/studio-marketplace-visibility";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Studio analytics", "analytics", "Revenue and booking analytics.");
+}
 
 export default async function StudioPanelAnalyticsPage({ params }: Props) {
   const user = await getSessionUser();

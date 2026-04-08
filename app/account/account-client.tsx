@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { SkeletonText } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 
@@ -83,8 +84,11 @@ export function AccountClient() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-16">
-        <Spinner />
+      <div className="mx-auto max-w-lg py-12" role="status" aria-busy="true" aria-label="Loading account">
+        <div className="flex flex-col items-center gap-6">
+          <Spinner />
+          <SkeletonText className="w-full max-w-sm" lines={3} />
+        </div>
       </div>
     );
   }

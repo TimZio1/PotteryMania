@@ -5,6 +5,15 @@ import { ADMIN_ORDER_STATUSES, findAdminOrdersForList } from "@/lib/admin-orders
 import { DataTable } from "@/components/admin/data-table";
 import { ui } from "@/lib/ui-styles";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Orders",
+  "/admin/orders",
+  "Marketplace and checkout orders.",
+);
+
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };

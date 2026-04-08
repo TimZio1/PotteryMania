@@ -125,14 +125,14 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
       ) : (
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <label className="block flex-1 text-sm text-stone-700">
+            <label className={`${ui.label} flex-1`}>
               <span className="mb-1 block font-medium">Domain</span>
               <input
                 type="text"
                 value={domainInput}
                 onChange={(e) => setDomainInput(e.target.value)}
                 placeholder="shop.example.com"
-                className="w-full rounded-lg border border-stone-200 px-3 py-2 text-stone-900 outline-none ring-amber-900/20 focus:ring-2"
+                className={ui.input}
                 autoComplete="off"
               />
             </label>
@@ -146,7 +146,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
             </button>
           </div>
 
-          {error ? <p className="text-sm text-rose-700">{error}</p> : null}
+          {error ? <p className={ui.errorText}>{error}</p> : null}
 
           {loading ? (
             <div className="flex py-2">

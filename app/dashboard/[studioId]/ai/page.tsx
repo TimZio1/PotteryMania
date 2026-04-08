@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -7,10 +8,16 @@ import { ui } from "@/lib/ui-styles";
 import StudioAiAdvisorClient from "@/components/dashboard/studio-ai-advisor-client";
 import StudioMonetizedInsightsPanel from "@/components/dashboard/studio-monetized-insights-panel";
 import { listStudioInsightsPayload } from "@/lib/ai/ensure-studio-insights";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "AI advisor", "ai", "Studio AI assistant.");
+}
 
 export default async function StudioAiPage({ params }: Props) {
   const user = await getSessionUser();

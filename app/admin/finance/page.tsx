@@ -2,6 +2,15 @@ import { redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/auth-session";
 import { FinanceCommandCenter } from "./finance-command-center";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Finance engine",
+  "/admin/finance",
+  "Ledger, exports, and financial intelligence.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminFinancePage() {

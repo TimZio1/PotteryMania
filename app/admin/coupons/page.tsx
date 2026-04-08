@@ -3,6 +3,15 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import CouponsAdminClient from "@/components/admin/coupons-admin-client";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Coupons",
+  "/admin/coupons",
+  "Discount and coupon management.",
+);
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminCouponsPage() {

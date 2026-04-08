@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import { metaPublicPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaPublicPage(
+  "Reset password",
+  "/reset-password",
+  "Set a new password for your PotteryMania account.",
+);
 import { AuthShell } from "@/components/auth-shell";
 import { Spinner } from "@/components/ui/spinner";
 import ResetPasswordInner from "./reset-password-inner";

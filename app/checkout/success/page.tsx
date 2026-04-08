@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { metaPublicPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaPublicPage(
+  "Checkout complete",
+  "/checkout/success",
+  "Your PotteryMania payment was received. View next steps and receipts.",
+);
 import { MarketingLayout } from "@/components/marketing-layout";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";

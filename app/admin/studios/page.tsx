@@ -7,6 +7,15 @@ import { DataTable } from "@/components/admin/data-table";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
 
+import type { Metadata } from "next";
+import { metaAdminPage } from "@/lib/seo-routes";
+
+export const metadata: Metadata = metaAdminPage(
+  "Studios",
+  "/admin/studios",
+  "Approve and manage ceramic studios.",
+);
+
 export const dynamic = "force-dynamic";
 
 const STATUSES: { value: StudioStatus | "all"; label: string }[] = [

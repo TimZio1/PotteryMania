@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ui } from "@/lib/ui-styles";
+import { Spinner } from "@/components/ui/spinner";
 
 export type SlotOption = {
   id: string;
@@ -201,9 +203,16 @@ export function ClassBookingForm(props: {
           <button
             type="submit"
             disabled={loading || !slotId || (seatKeys.length > 0 && !seatType)}
-            className="min-h-11 w-full rounded-full bg-amber-950 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 disabled:pointer-events-none disabled:opacity-45"
+            className={ui.buttonPrimary}
           >
-            {loading ? "Adding…" : "Add class to cart"}
+            {loading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Spinner size="sm" className="text-white" />
+                Adding…
+              </span>
+            ) : (
+              "Add class to cart"
+            )}
           </button>
         </form>
       )}
@@ -292,9 +301,16 @@ export function ClassBookingForm(props: {
               !wlName.trim() ||
               !wlEmail.trim()
             }
-            className="w-full rounded border border-amber-800 bg-white py-2 text-amber-950 disabled:opacity-50"
+            className={`${ui.buttonSecondary} w-full`}
           >
-            {wlLoading ? "Joining…" : "Join waitlist"}
+            {wlLoading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Spinner size="sm" />
+                Joining…
+              </span>
+            ) : (
+              "Join waitlist"
+            )}
           </button>
         </form>
       )}
