@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 
 export type WearVariantEditorRow = {
@@ -56,7 +57,11 @@ export default function WearProductEditorClient({
   const [externalFulfillmentId, setExternalFulfillmentId] = useState(initial?.externalFulfillmentId ?? "");
   const [variants, setVariants] = useState<WearVariantEditorRow[]>(initial?.variants ?? []);
   const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiPreview, setAiPreview] = useState("");
+  const [aiErr, setAiErr] = useState("");
 
   const reloadVariants = useCallback(async () => {
     if (!productId) return;
@@ -68,6 +73,7 @@ export default function WearProductEditorClient({
   async function saveProduct(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    setMsg("");
     setBusy(true);
     const pc = parseInt(priceCents, 10);
     const so = parseInt(sortOrder, 10);
@@ -127,6 +133,7 @@ export default function WearProductEditorClient({
     if (!productId || !newLabel.trim()) return;
     setBusy(true);
     setErr("");
+    setMsg("");
     const r = await fetch("/api/admin/wear-product-variants", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -157,6 +164,7 @@ export default function WearProductEditorClient({
     if (!productId) return;
     setBusy(true);
     setErr("");
+    setMsg("");
     const priceCents =
       v.priceCents != null && Number.isFinite(v.priceCents) ? Math.max(0, Math.floor(v.priceCents)) : null;
     const stockQuantity =
@@ -190,6 +198,7 @@ export default function WearProductEditorClient({
     if (!productId || !confirm("Delete this variant?")) return;
     setBusy(true);
     setErr("");
+    setMsg("");
     const r = await fetch(`/api/admin/wear-product-variants/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!r.ok) {
@@ -203,9 +212,50 @@ export default function WearProductEditorClient({
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, ...patch } : v)));
   }
 
+  async function generateAiDescription() {
+    if (!productId) return;
+    setAiBusy(true);
+    setAiErr("");
+    setMsg("");
+    try {
+      const r = await fetch(`/api/admin/wear-products/${productId}/generate-description`, {
+        method: "POST",
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setAiErr((j as { error?: string }).error ?? "AI description generation failed");
+        return;
+      }
+      const nextDescription = (j as { description?: string }).description?.trim() ?? "";
+      if (!nextDescription) {
+        setAiErr("AI returned an empty description.");
+        return;
+      }
+      setAiPreview(nextDescription);
+      setMsg("AI description ready. Review it before accepting.");
+    } catch (e) {
+      setAiErr(e instanceof Error ? e.message : "AI description generation failed");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  function acceptAiDescription() {
+    if (!aiPreview) return;
+    setDescription(aiPreview);
+    setAiErr("");
+    setMsg("AI description inserted into the editor. Save product to keep it.");
+  }
+
+  function dismissAiDescription() {
+    setAiPreview("");
+    setAiErr("");
+  }
+
   return (
     <div className="mt-8 max-w-3xl space-y-10">
       {err ? <p className={ui.errorText}>{err}</p> : null}
+      {msg ? <p className={ui.successText}>{msg}</p> : null}
 
       <form onSubmit={saveProduct} className="space-y-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -254,6 +304,61 @@ export default function WearProductEditorClient({
               placeholder="Long-form copy; shown on the PDP below the buy box."
             />
           </div>
+          {!isCreate ? (
+            <div className="sm:col-span-2 rounded-xl border border-stone-200 bg-stone-50/80 p-4">
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  disabled={busy || aiBusy || !productId}
+                  onClick={() => void generateAiDescription()}
+                  className={ui.buttonSecondary}
+                >
+                  {aiBusy ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner size="sm" />
+                      Generating AI Description...
+                    </span>
+                  ) : aiPreview ? (
+                    "Regenerate AI Description"
+                  ) : (
+                    "Generate AI Description"
+                  )}
+                </button>
+                {aiPreview ? (
+                  <button
+                    type="button"
+                    disabled={busy || aiBusy}
+                    onClick={acceptAiDescription}
+                    className={ui.buttonPrimary}
+                  >
+                    Accept / Replace Description
+                  </button>
+                ) : null}
+                {aiPreview ? (
+                  <button
+                    type="button"
+                    disabled={busy || aiBusy}
+                    onClick={dismissAiDescription}
+                    className={ui.buttonGhost}
+                  >
+                    Dismiss
+                  </button>
+                ) : null}
+              </div>
+              <p className="mt-2 text-xs text-stone-500">
+                Uses synced Spreadshop details plus product imagery to describe the visible design without inventing specs.
+              </p>
+              {aiErr ? <p className="mt-3 text-sm font-medium text-red-700">{aiErr}</p> : null}
+              {aiPreview ? (
+                <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">AI preview</p>
+                  <pre className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800">
+                    {aiPreview}
+                  </pre>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <div>
             <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Base price (cents)</label>
             <input
