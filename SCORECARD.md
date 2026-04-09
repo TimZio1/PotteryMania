@@ -27,7 +27,7 @@ Penalty rules: Critical -250 each, High -100 each, Medium -25 each, Low -5 each
 | Top-10 vendor journey completion | 25% | 100% (10/10 evidenced; journey smoke suite green) | 100% | `qa/evidence/ux/studio-journeys.md` |
 | Top-10 hyperadmin journey completion | 20% | 100% (10/10 evidenced; journey smoke suite green) | 100% | `qa/evidence/ux/hyperadmin-journeys.md` |
 | Accessibility baseline pass | 15% | 100% (Axe baseline suite passes key pages: 6/6) | 100% | `qa/evidence/ux/accessibility-report-2026-04-09.md` |
-| UI consistency checklist pass | 10% | 35% (partial checklist completed) | 100% | `qa/evidence/ux/ui-consistency-checklist.md` |
+| UI consistency checklist pass | 10% | 100% (cross-surface checklist pass with route evidence) | 100% | `qa/evidence/ux/ui-consistency-checklist.md` |
 | Micro-issue backlog burn-down | 5% | In progress (several closed, backlog not zero) | 0 open | `qa/evidence/ux/micro-issues-burndown.md` |
 
 ## Logic & Data Integrity (1000)
@@ -79,7 +79,7 @@ Penalty rules: Critical -250 each, High -100 each, Medium -25 each, Low -5 each
 | Pillar | Score /1000 | Critical Open | High Open | Gate Status |
 |---|---:|---:|---:|---|
 | Functionality | 190 | TBD | TBD | FAIL (insufficient coverage + open issues) |
-| UX/UI | 905 | TBD | TBD | SOFT PASS (journeys + accessibility complete; consistency/micro backlog still open) |
+| UX/UI | 970 | TBD | TBD | SOFT PASS (journeys, accessibility, and consistency complete; micro backlog still open) |
 | Logic | 160 | TBD | TBD | FAIL (financial/race/consistency suites missing) |
 | Security | 220 | TBD | TBD | FAIL (partial authZ only; no full abuse suite) |
 | Performance | 0 | TBD | TBD | FAIL (no SLA/APM/load proof) |

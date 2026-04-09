@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
@@ -28,6 +29,9 @@ export const metadata: Metadata = buildMetadata({
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
+type StudioDiscoverRow = Prisma.StudioGetPayload<{
+  include: { rankingScore: { select: { compositeScore: true } } };
+}>;
 
 function hasActiveStudioFilters(sp: Record<string, string | string[] | undefined>): boolean {
   const keys = ["q", "country", "city", "offer"];
@@ -55,7 +59,7 @@ export default async function StudiosPage({ searchParams }: Props) {
   const where = buildStudioDiscoverWhere(filters);
   const near = filters.near;
 
-  let studios: Awaited<ReturnType<typeof prisma.studio.findMany>> = [];
+  let studios: StudioDiscoverRow[] = [];
   let dbUnavailable = false;
   try {
     studios = await prisma.studio.findMany({

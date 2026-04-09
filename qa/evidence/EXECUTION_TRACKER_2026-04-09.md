@@ -658,3 +658,18 @@ This log records every implementation action, command, and verification result i
       - Done: 65
       - Undone: 22
       - Total: 87
+
+54. Closed UI consistency checklist gate with audited cross-surface route evidence.
+    - Updated checklist evidence:
+      - `qa/evidence/ux/ui-consistency-checklist.md`
+      - Added explicit audited route matrix across public, studio-admin, and hyperadmin surfaces.
+      - Included visual consistency notes from wear/header simplification and contrast harmonization work.
+    - Updated gates:
+      - `TASKLIST_6000.md`: checked `UI consistency checklist pass.`
+    - Updated scorecard:
+      - `SCORECARD.md`: UI consistency KPI set to 100%.
+      - `SCORECARD.md`: UX/UI pillar recalculated 905 -> 970.
+    - Totals (after closing UI consistency gate):
+      - Done: 66
+      - Undone: 21
+      - Total: 87
