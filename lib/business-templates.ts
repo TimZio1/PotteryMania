@@ -34,6 +34,7 @@ export function mapBusinessTemplateRow(row: BusinessTemplateRow): BusinessTempla
   const impact = Array.isArray(row.expectedImpact)
     ? (row.expectedImpact as unknown[]).filter((x): x is string => typeof x === "string")
     : [];
+  const visualTheme = row.isDefault && row.visualTheme === "amber" ? "wear" : row.visualTheme;
   return {
     id: row.id,
     slug: row.slug,
@@ -48,7 +49,7 @@ export function mapBusinessTemplateRow(row: BusinessTemplateRow): BusinessTempla
     isPlatformRecommended: row.isPlatformRecommended,
     isDefault: row.isDefault,
     sortOrder: row.sortOrder,
-    visualTheme: row.visualTheme,
+    visualTheme,
     newSetupSummary: row.newSetupSummary,
     currentSetupSummary: row.currentSetupSummary,
     whatWillChange: what,

@@ -153,8 +153,8 @@ model BusinessTemplate {
   isPlatformRecommended Boolean  @default(false) @map("is_platform_recommended")
   isDefault             Boolean  @default(false) @map("is_default")
   sortOrder             Int      @default(0) @map("sort_order")
-  /// Theme key mapped in UI (amber, rose, teal, …).
-  visualTheme           String   @default("amber") @map("visual_theme")
+  /// Theme key mapped in UI (wear, amber, rose, teal, …).
+  visualTheme           String   @default("wear") @map("visual_theme")
   newSetupSummary       String   @map("new_setup_summary") @db.Text
   currentSetupSummary   String   @map("current_setup_summary") @db.Text
   whatWillChange        Json     @map("what_will_change")

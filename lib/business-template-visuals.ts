@@ -25,6 +25,17 @@ const FALLBACK: BusinessTemplateVisualTheme = {
 };
 
 export const BUSINESS_TEMPLATE_VISUALS: Record<string, BusinessTemplateVisualTheme> = {
+  wear: {
+    cardBorder: "border-neutral-700/90",
+    cardBg: "bg-gradient-to-br from-neutral-900 to-neutral-950",
+    cardHoverBorder: "group-hover:border-neutral-500/80",
+    bulletDot: "bg-amber-300",
+    ringActive: "ring-amber-300/35",
+    compareNewBorder: "border-neutral-700/90",
+    compareNewBg: "bg-neutral-900/90",
+    compareNewLabel: "text-amber-200",
+    ctaButton: "",
+  },
   amber: {
     cardBorder: "border-amber-200/90",
     cardBg: "bg-gradient-to-br from-amber-50/90 to-white",

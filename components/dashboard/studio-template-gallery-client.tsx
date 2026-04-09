@@ -129,7 +129,8 @@ export default function StudioTemplateGalleryClient({
   const leftSummary =
     currentTemplate?.currentSetupSummary ?? BUSINESS_TEMPLATE_NOT_STRUCTURED_LEFT;
   const rightSummary = selected?.newSetupSummary ?? "";
-  const drawerVisual = selected ? getBusinessTemplateVisuals(selected.visualTheme) : getBusinessTemplateVisuals("amber");
+  const drawerVisual = selected ? getBusinessTemplateVisuals(selected.visualTheme) : getBusinessTemplateVisuals("wear");
+  const selectedIsWear = selected?.visualTheme === "wear";
 
   if (templates.length === 0) {
     return (
@@ -157,6 +158,7 @@ export default function StudioTemplateGalleryClient({
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {templates.map((t) => {
           const v = getBusinessTemplateVisuals(t.visualTheme);
+          const isWearVisual = t.visualTheme === "wear";
           const studioRec = studioRecommendedSlug === t.slug;
           const showPlatformPick = !studioRec && t.isPlatformRecommended;
           const showFeatured = !studioRec && !showPlatformPick && t.isFeatured;
@@ -175,7 +177,7 @@ export default function StudioTemplateGalleryClient({
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className="text-lg font-semibold text-amber-950">{t.name}</h2>
+                  <h2 className={`text-lg font-semibold ${isWearVisual ? "text-white" : "text-amber-950"}`}>{t.name}</h2>
                   <div className="flex flex-wrap justify-end gap-1.5">
                     {studioRec ? (
                       <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-950">
@@ -199,9 +201,11 @@ export default function StudioTemplateGalleryClient({
                     ) : null}
                   </div>
                 </div>
-                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-stone-500">{t.businessModelLabel}</p>
-                <p className="mt-2 text-sm font-medium text-stone-800">{t.tagline}</p>
-                <ul className="mt-4 flex-1 space-y-2 text-sm text-stone-600">
+                <p className={`mt-1 text-xs font-medium uppercase tracking-wide ${isWearVisual ? "text-neutral-400" : "text-stone-500"}`}>
+                  {t.businessModelLabel}
+                </p>
+                <p className={`mt-2 text-sm font-medium ${isWearVisual ? "text-neutral-200" : "text-stone-800"}`}>{t.tagline}</p>
+                <ul className={`mt-4 flex-1 space-y-2 text-sm ${isWearVisual ? "text-neutral-300" : "text-stone-600"}`}>
                   {t.bullets.filter(Boolean).map((b) => (
                     <li key={b} className="flex gap-2">
                       <span className={`mt-1.5 h-1 w-1 shrink-0 rounded-full ${v.bulletDot}`} aria-hidden />
@@ -209,7 +213,9 @@ export default function StudioTemplateGalleryClient({
                     </li>
                   ))}
                 </ul>
-                <p className="mt-6 text-sm font-semibold text-amber-950">{money(t.priceCents, t.currency)} / month</p>
+                <p className={`mt-6 text-sm font-semibold ${isWearVisual ? "text-amber-200" : "text-amber-950"}`}>
+                  {money(t.priceCents, t.currency)} / month
+                </p>
                 <div
                   className={`${ui.buttonPrimary} mt-4 w-full justify-center sm:w-full pointer-events-none`}
                   aria-hidden
@@ -265,7 +271,7 @@ export default function StudioTemplateGalleryClient({
                         className={`rounded-xl border p-4 ${drawerVisual.compareNewBorder} ${drawerVisual.compareNewBg}`}
                       >
                         <p className={`text-xs font-semibold ${drawerVisual.compareNewLabel}`}>New template</p>
-                        <p className="mt-2 text-sm text-stone-800">{rightSummary}</p>
+                        <p className={`mt-2 text-sm ${selectedIsWear ? "text-neutral-200" : "text-stone-800"}`}>{rightSummary}</p>
                       </div>
                     </div>
                   </section>

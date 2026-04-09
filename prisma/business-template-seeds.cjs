@@ -13,7 +13,7 @@ module.exports.BUSINESS_TEMPLATE_SEEDS = [
     isPlatformRecommended: true,
     isDefault: true,
     sortOrder: 10,
-    visualTheme: "amber",
+    visualTheme: "wear",
     newSetupSummary:
       "Your dashboard prioritises classes, your week view, and filling seats. Booking actions stay one tap away.",
     currentSetupSummary:
