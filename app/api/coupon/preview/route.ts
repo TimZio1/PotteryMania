@@ -12,8 +12,8 @@ import {
   recomputeTotalsFromLineRows,
   validateCouponState,
 } from "@/lib/coupon-checkout";
-import { calculateShippingRate } from "@/lib/shipping";
 import { calculateEstimatedTaxCents } from "@/lib/tax";
+import { resolveShippingZoneForDestination, zonePriceCents } from "@/lib/shipping-zones";
 
 export const dynamic = "force-dynamic";
 
@@ -101,13 +101,54 @@ export async function POST(req: Request) {
     country: shipping.country || "",
   };
   const hasProducts = adjusted.some((row) => row.itemType === "product");
-  const shippingQuote = hasProducts
-    ? calculateShippingRate({
-        subtotalCents: subtotalAfter,
-        destinationCountry: shippingAddressJson.country,
-        totalWeightGrams: built.totalWeightGrams,
-      })
-    : { shippingCents: 0, methodLabel: "No shipping required" };
+  if (hasProducts && !shippingAddressJson.country.trim()) {
+    return NextResponse.json({ error: "shippingAddress.country is required for shippable products." }, { status: 400 });
+  }
+  let shippingQuote: { shippingCents: number; methodLabel: string } = { shippingCents: 0, methodLabel: "No shipping required" };
+  if (hasProducts) {
+    const studio = await prisma.studio.findUnique({
+      where: { id: built.studioId },
+      select: { country: true },
+    });
+    if (!studio) {
+      return NextResponse.json({ error: "Studio not found for shipping preview." }, { status: 400 });
+    }
+    const zone = resolveShippingZoneForDestination({
+      destinationCountry: shippingAddressJson.country,
+      studioCountry: studio.country,
+    });
+    const productIds = [...new Set(adjusted.filter((r) => r.itemType === "product" && r.productId).map((r) => r.productId!))];
+    const productRows = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: {
+        id: true,
+        title: true,
+        shippingDomesticCents: true,
+        shippingEuropeCents: true,
+        shippingUsaCents: true,
+        shippingCanadaCents: true,
+        shippingAsiaCents: true,
+      },
+    });
+    const byId = new Map(productRows.map((p) => [p.id, p] as const));
+    let shippingCents = 0;
+    for (const row of adjusted) {
+      if (row.itemType !== "product" || !row.productId) continue;
+      const p = byId.get(row.productId);
+      if (!p) {
+        return NextResponse.json({ error: "A cart product is no longer available." }, { status: 409 });
+      }
+      const zonePrice = zonePriceCents(p, zone);
+      if (zonePrice == null) {
+        return NextResponse.json(
+          { error: `Product "${p.title}" is not available for shipping to your region.` },
+          { status: 409 },
+        );
+      }
+      shippingCents += zonePrice * Math.max(1, row.quantity);
+    }
+    shippingQuote = { shippingCents, methodLabel: `Studio-defined ${zone} shipping` };
+  }
   const estimatedTaxCents = hasProducts
     ? calculateEstimatedTaxCents({
         subtotalCents: subtotalAfter,

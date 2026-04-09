@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { sortProductsByMarketplaceRanking } from "@/lib/ranking/score-engine";
 import { ceramicCategoryFromSlug } from "@/lib/ceramic-categories";
 import { studioCanOperateWhere } from "@/lib/studio-operating-gates";
+import type { ShippingZone } from "@/lib/shipping-zones";
+import { isShippingZone, normalizeCountryCode } from "@/lib/shipping-zones";
 
 /** In-memory fairness shuffle for recommended sort on early pages (P4-G); deeper pages use SQL order only. */
 const RECOMMENDED_SHUFFLE_CAP = 400;
@@ -35,6 +37,8 @@ export type ProductQueryInput = {
   maxPrice?: number | null;
   sort?: ProductSort;
   inStock?: boolean;
+  shippingRegion?: ShippingZone | null;
+  viewerCountry?: string | null;
   page?: number;
   pageSize?: number;
 };
@@ -64,6 +68,32 @@ export function buildProductWhere(input: ProductQueryInput): Prisma.ProductWhere
   if (input.inStock) {
     where.stockStatus = "in_stock";
     where.stockQuantity = { gt: 0 };
+  }
+  if (input.shippingRegion && isShippingZone(input.shippingRegion)) {
+    const zone = input.shippingRegion;
+    const viewerCountry = normalizeCountryCode(input.viewerCountry);
+    if (zone === "domestic") {
+      if (viewerCountry) {
+        where.AND = [
+          ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+          { shippingDomesticCents: { not: null } },
+          { studio: { country: { equals: viewerCountry, mode: "insensitive" } } },
+        ];
+      } else {
+        where.AND = [
+          ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+          { id: { equals: "__no_domestic_without_country__" } },
+        ];
+      }
+    } else if (zone === "europe") {
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), { shippingEuropeCents: { not: null } }];
+    } else if (zone === "usa") {
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), { shippingUsaCents: { not: null } }];
+    } else if (zone === "canada") {
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), { shippingCanadaCents: { not: null } }];
+    } else if (zone === "asia") {
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), { shippingAsiaCents: { not: null } }];
+    }
   }
 
   const effectiveMin = typeof input.minPrice === "number" ? input.minPrice : undefined;

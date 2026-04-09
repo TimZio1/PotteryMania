@@ -101,6 +101,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
           websiteUrl: studio.websiteUrl,
           instagramUrl: studio.instagramUrl,
           facebookUrl: studio.facebookUrl,
+          supportedLanguages: studio.supportedLanguages,
         }}
       />
 

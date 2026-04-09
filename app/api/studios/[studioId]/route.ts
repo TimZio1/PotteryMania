@@ -25,6 +25,13 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
   const str = (k: string) => (typeof body[k] === "string" ? (body[k] as string).trim() : undefined);
   const num = (k: string) => (typeof body[k] === "number" ? (body[k] as number) : undefined);
+  const arr = (k: string) =>
+    Array.isArray(body[k])
+      ? (body[k] as unknown[])
+          .filter((v): v is string => typeof v === "string")
+          .map((v) => v.trim().toLowerCase())
+          .filter(Boolean)
+      : undefined;
 
   const data: Record<string, unknown> = {};
   const keys = [
@@ -55,6 +62,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
   }
   if (body.latitude !== undefined) data.latitude = num("latitude");
   if (body.longitude !== undefined) data.longitude = num("longitude");
+  if (body.supportedLanguages !== undefined) data.supportedLanguages = arr("supportedLanguages") ?? ["en"];
 
   const updated = await prisma.studio.update({
     where: { id: studioId },

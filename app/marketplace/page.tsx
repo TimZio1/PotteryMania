@@ -9,6 +9,8 @@ import { redirectEndUserIfNoMarketplaceListings } from "@/lib/public-catalog-gua
 import { allCeramicCategories, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
 import { buildMetadata } from "@/lib/seo";
 import { billingIntervalLabel } from "@/lib/offering-pricing";
+import { resolveRequestShippingRegion } from "@/lib/request-region";
+import { resolveShippingZoneForDestination, shipsToZone } from "@/lib/shipping-zones";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
@@ -42,6 +44,7 @@ function buildQuery(params: Record<string, string | undefined>) {
 export default async function MarketplacePage({ searchParams }: Props) {
   const session = await auth();
   await redirectEndUserIfNoMarketplaceListings(session?.user?.role);
+  const resolvedRegion = await resolveRequestShippingRegion();
   const sp = (await searchParams) ?? {};
   const catalog = await listMarketplaceProducts({
     q: sp.q,
@@ -52,6 +55,8 @@ export default async function MarketplacePage({ searchParams }: Props) {
     inStock: sp.inStock === "1",
     minPrice: sp.minPrice ? parseInt(sp.minPrice, 10) : undefined,
     maxPrice: sp.maxPrice ? parseInt(sp.maxPrice, 10) : undefined,
+    shippingRegion: resolvedRegion.region,
+    viewerCountry: resolvedRegion.country,
     page: sp.page ? parseInt(sp.page, 10) : 1,
     pageSize: 12,
   });
@@ -109,6 +114,9 @@ export default async function MarketplacePage({ searchParams }: Props) {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Marketplace</h1>
           <p className="mt-3 text-stone-600">
             Pieces from approved studios — each listing shows who made it and where they are based.
+          </p>
+          <p className="mt-1 text-sm text-stone-500">
+            Region: <strong className="uppercase">{resolvedRegion.region}</strong> {resolvedRegion.country ? `(${resolvedRegion.country})` : ""}
           </p>
         </div>
 
@@ -189,6 +197,20 @@ export default async function MarketplacePage({ searchParams }: Props) {
               const img = p.images[0]?.imageUrl;
               const price = (p.salePriceCents ?? p.priceCents) / 100;
               const recurring = p.pricingType === "recurring" && p.recurringPriceCents != null && p.billingInterval != null;
+              const zone = resolveShippingZoneForDestination({
+                destinationCountry: resolvedRegion.country,
+                studioCountry: p.studio.country,
+              });
+              const ships = shipsToZone(
+                {
+                  shippingDomesticCents: p.shippingDomesticCents,
+                  shippingEuropeCents: p.shippingEuropeCents,
+                  shippingUsaCents: p.shippingUsaCents,
+                  shippingCanadaCents: p.shippingCanadaCents,
+                  shippingAsiaCents: p.shippingAsiaCents,
+                },
+                zone,
+              );
               return (
                 <Link key={p.id} href={`/marketplace/products/${p.id}`} className={ui.tile}>
                   <div className="aspect-square bg-stone-100">
@@ -212,6 +234,9 @@ export default async function MarketplacePage({ searchParams }: Props) {
                     {p.shortDescription ? (
                       <p className="mt-2 line-clamp-2 text-sm text-stone-600">{p.shortDescription}</p>
                     ) : null}
+                    <p className={`mt-2 text-xs font-medium ${ships ? "text-emerald-700" : "text-rose-700"}`}>
+                      {ships ? "Ships to your location" : "Not available in your region"}
+                    </p>
                     <p className="mt-2 text-lg font-medium text-amber-950">
                       {recurring
                         ? `€${(p.recurringPriceCents! / 100).toFixed(2)}/${billingIntervalLabel(

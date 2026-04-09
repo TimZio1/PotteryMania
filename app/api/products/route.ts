@@ -18,6 +18,14 @@ export async function GET(req: Request) {
     maxPrice: searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")!, 10) : undefined,
     sort: parseProductSort(searchParams.get("sort")),
     inStock: searchParams.get("inStock") === "1",
+    shippingRegion: searchParams.get("shippingRegion") as
+      | "domestic"
+      | "europe"
+      | "usa"
+      | "canada"
+      | "asia"
+      | null,
+    viewerCountry: searchParams.get("viewerCountry"),
     page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
     pageSize: searchParams.get("pageSize") ? parseInt(searchParams.get("pageSize")!, 10) : 12,
   });

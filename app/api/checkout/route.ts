@@ -6,7 +6,6 @@ import { getStripe } from "@/lib/stripe";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
-import { calculateShippingRate } from "@/lib/shipping";
 import { calculateEstimatedTaxCents, stripeTaxEnabled } from "@/lib/tax";
 import { buildCheckoutLineRowsFromCart } from "@/lib/checkout-line-rows";
 import {
@@ -22,6 +21,7 @@ import {
 import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
 import { logApiError } from "@/lib/monitoring";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
+import { resolveShippingZoneForDestination, zonePriceCents } from "@/lib/shipping-zones";
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 }
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
   }
 
   let { lineRows, subtotal, commissionTotal } = built;
-  const { totalWeightGrams, studioId, productBps, bookingBps } = built;
+  const { studioId, productBps, bookingBps } = built;
 
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
   if (!studio || studio.status !== "approved") {
@@ -162,13 +162,45 @@ export async function POST(req: Request) {
     postal: shipping.postal || "",
   };
   const hasProducts = lineRows.some((row) => row.itemType === "product");
-  const shippingQuote = hasProducts
-    ? calculateShippingRate({
-        subtotalCents: subtotal,
-        destinationCountry: shippingAddressJson.country,
-        totalWeightGrams,
-      })
-    : { shippingCents: 0, methodLabel: "No shipping required" };
+  if (hasProducts && !shippingAddressJson.country.trim()) {
+    return NextResponse.json({ error: "shippingAddress.country is required for shippable products." }, { status: 400 });
+  }
+  let shippingQuote: { shippingCents: number; methodLabel: string } = { shippingCents: 0, methodLabel: "No shipping required" };
+  if (hasProducts) {
+    const zone = resolveShippingZoneForDestination({
+      destinationCountry: shippingAddressJson.country,
+      studioCountry: studio.country,
+    });
+    const productIds = [...new Set(lineRows.filter((r) => r.itemType === "product" && r.productId).map((r) => r.productId!))];
+    const productRows = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: {
+        id: true,
+        title: true,
+        shippingDomesticCents: true,
+        shippingEuropeCents: true,
+        shippingUsaCents: true,
+        shippingCanadaCents: true,
+        shippingAsiaCents: true,
+      },
+    });
+    const byId = new Map(productRows.map((p) => [p.id, p] as const));
+    let shippingCents = 0;
+    for (const row of lineRows) {
+      if (row.itemType !== "product" || !row.productId) continue;
+      const p = byId.get(row.productId);
+      if (!p) return NextResponse.json({ error: "A cart product is no longer available." }, { status: 409 });
+      const zonePrice = zonePriceCents(p, zone);
+      if (zonePrice == null) {
+        return NextResponse.json(
+          { error: `Product "${p.title}" is not available for shipping to your region.` },
+          { status: 409 },
+        );
+      }
+      shippingCents += zonePrice * Math.max(1, row.quantity);
+    }
+    shippingQuote = { shippingCents, methodLabel: `Studio-defined ${zone} shipping` };
+  }
   const estimatedTaxCents = hasProducts
     ? calculateEstimatedTaxCents({
         subtotalCents: subtotal,

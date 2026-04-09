@@ -5,6 +5,7 @@ import { slugify } from "@/lib/slug";
 import { ceramicCategoryFromSlug, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
 import { normalizeOfferingPricing } from "@/lib/offering-pricing";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
+import { parseShippingZonesInput } from "@/lib/shipping-zones";
 
 type Ctx = { params: Promise<{ studioId: string; productId: string }> };
 
@@ -78,6 +79,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (body.dimensionsText === null || typeof body.dimensionsText === "string") data.dimensionsText = body.dimensionsText;
   if (typeof body.shippingNotes === "string") data.shippingNotes = body.shippingNotes;
   if (typeof body.returnNotes === "string") data.returnNotes = body.returnNotes;
+  if ("shippingZones" in body) {
+    const parsed = parseShippingZonesInput(body.shippingZones);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+    data.shippingDomesticCents = parsed.value.shippingDomesticCents;
+    data.shippingEuropeCents = parsed.value.shippingEuropeCents;
+    data.shippingUsaCents = parsed.value.shippingUsaCents;
+    data.shippingCanadaCents = parsed.value.shippingCanadaCents;
+    data.shippingAsiaCents = parsed.value.shippingAsiaCents;
+  }
   if (body.status === "draft" || body.status === "active" || body.status === "inactive" || body.status === "archived") {
     data.status = body.status;
   }

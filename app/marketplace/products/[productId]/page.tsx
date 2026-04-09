@@ -12,6 +12,8 @@ import { ceramicCategoryMetaByValue } from "@/lib/ceramic-categories";
 import { buildMetadata } from "@/lib/seo";
 import { billingIntervalLabel } from "@/lib/offering-pricing";
 import SubscribeButton from "@/components/offerings/subscribe-button";
+import { resolveRequestShippingRegion } from "@/lib/request-region";
+import { resolveShippingZoneForDestination, zonePriceCents, type ShippingZone } from "@/lib/shipping-zones";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { productId } = await params;
+  const resolvedRegion = await resolveRequestShippingRegion();
   const [result, reviewData] = await Promise.all([
     getMarketplaceProduct(productId),
     prisma.review.findMany({
@@ -58,6 +61,18 @@ export default async function ProductPage({ params }: Props) {
   const price = (product.salePriceCents ?? product.priceCents) / 100;
   const recurring =
     product.pricingType === "recurring" && product.recurringPriceCents != null && product.billingInterval != null;
+  const userZone = resolveShippingZoneForDestination({
+    destinationCountry: resolvedRegion.country,
+    studioCountry: product.studio.country,
+  });
+  const shipsToUser = zonePriceCents(product, userZone) != null;
+  const shippingZoneLabels: Array<{ zone: ShippingZone; label: string }> = [
+    { zone: "domestic", label: "Domestic" },
+    { zone: "europe", label: "Europe" },
+    { zone: "usa", label: "USA" },
+    { zone: "canada", label: "Canada" },
+    { zone: "asia", label: "Asia" },
+  ];
 
   const toolbar = (
     <Breadcrumbs
@@ -127,6 +142,9 @@ export default async function ProductPage({ params }: Props) {
               {product.isFeatured ? <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-800">Featured</span> : null}
             </div>
             {product.shortDescription ? <p className="mt-4 text-stone-700">{product.shortDescription}</p> : null}
+            <p className={`mt-3 text-sm font-medium ${shipsToUser ? "text-emerald-700" : "text-rose-700"}`}>
+              {shipsToUser ? "Ships to your location" : "Not available in your region"}
+            </p>
             <div className="mt-8">
               {recurring ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
@@ -143,11 +161,17 @@ export default async function ProductPage({ params }: Props) {
                   </div>
                 </div>
               ) : (
-                <AddToCart
-                  productId={product.id}
-                  stockQuantity={product.stockQuantity}
-                  stockStatus={product.stockStatus}
-                />
+                shipsToUser ? (
+                  <AddToCart
+                    productId={product.id}
+                    stockQuantity={product.stockQuantity}
+                    stockStatus={product.stockStatus}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+                    This product is currently unavailable for your shipping region.
+                  </div>
+                )
               )}
             </div>
             {product.fullDescription ? (
@@ -200,6 +224,19 @@ export default async function ProductPage({ params }: Props) {
                 </Link>
               </p>
               {product.shippingNotes ? <p className="mt-3 text-xs">Shipping: {product.shippingNotes}</p> : null}
+              <div className="mt-3">
+                <p className="text-xs font-medium text-stone-800">Shipping availability</p>
+                <ul className="mt-1 space-y-1 text-xs">
+                  {shippingZoneLabels.map(({ zone, label }) => {
+                    const cents = zonePriceCents(product, zone);
+                    return (
+                      <li key={zone} className={cents == null ? "text-stone-500" : "text-stone-700"}>
+                        {label}: {cents == null ? "Not available" : `€${(cents / 100).toFixed(2)}`}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
               {product.returnNotes ? <p className="mt-2 text-xs">Returns: {product.returnNotes}</p> : null}
             </div>
           </div>

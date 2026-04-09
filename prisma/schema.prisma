@@ -31,6 +31,9 @@ model User {
   adminTags       String[]  @default([]) @map("admin_tags")
   /// Opaque token for unauthenticated iCal/WebCal feed of this user’s bookings (`/api/calendar/feed/[token]`). Treat as secret.
   calendarFeedToken String?   @unique @map("calendar_feed_token")
+  preferredLanguage String?   @map("preferred_language")
+  detectedRegion    ShippingZone? @map("detected_region")
+  regionOverride    ShippingZone? @map("region_override")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -223,6 +226,7 @@ model Studio {
   websiteUrl            String?      @map("website_url")
   preferredLanguage     String?      @map("preferred_language")
   preferredCurrency     String?      @map("preferred_currency")
+  supportedLanguages    String[]     @default(["en"]) @map("supported_languages")
   status                StudioStatus
   rejectionReason       String?      @map("rejection_reason")
   approvedAt            DateTime?    @map("approved_at")
@@ -270,6 +274,7 @@ model Studio {
   insightPurchases                 InsightPurchase[]
   insightActionLogs                InsightActionLog[]
   studioContacts                   StudioContact[]
+  translations                    StudioTranslation[]
   businessTemplateFunnelEvents     BusinessTemplateFunnelEvent[]
   businessTemplateActivationLogs   BusinessTemplateActivationLog[]
   offeringSubscriptions            OfferingSubscription[]
@@ -577,6 +582,11 @@ model Product {
   careInstructions String?            @map("care_instructions")
   weightGrams      Int?               @map("weight_grams")
   dimensionsText   String?            @map("dimensions_text")
+  shippingDomesticCents Int?          @map("shipping_domestic_cents")
+  shippingEuropeCents   Int?          @map("shipping_europe_cents")
+  shippingUsaCents      Int?          @map("shipping_usa_cents")
+  shippingCanadaCents   Int?          @map("shipping_canada_cents")
+  shippingAsiaCents     Int?          @map("shipping_asia_cents")
   shippingNotes    String?            @map("shipping_notes")
   returnNotes      String?            @map("return_notes")
   isFeatured       Boolean            @default(false) @map("is_featured")
@@ -591,11 +601,58 @@ model Product {
   orderItems OrderItem[]
   reviews    Review[]
   offeringSubscriptions OfferingSubscription[]
+  translations ProductTranslation[]
 
   @@unique([studioId, slug])
   @@index([studioId])
   @@index([status])
   @@map("products")
+}
+
+enum ShippingZone {
+  domestic
+  europe
+  usa
+  canada
+  asia
+}
+
+model ProductTranslation {
+  id               String   @id @default(uuid()) @db.Uuid
+  productId        String   @map("product_id") @db.Uuid
+  languageCode     String   @map("language_code")
+  title            String
+  shortDescription String?  @map("short_description")
+  fullDescription  String?  @map("full_description")
+  materials        String?
+  careInstructions String?  @map("care_instructions")
+  shippingNotes    String?  @map("shipping_notes")
+  returnNotes      String?  @map("return_notes")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, languageCode])
+  @@index([languageCode])
+  @@map("product_translations")
+}
+
+model StudioTranslation {
+  id               String   @id @default(uuid()) @db.Uuid
+  studioId         String   @map("studio_id") @db.Uuid
+  languageCode     String   @map("language_code")
+  displayName      String   @map("display_name")
+  shortDescription String?  @map("short_description")
+  longDescription  String?  @map("long_description")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, languageCode])
+  @@index([languageCode])
+  @@map("studio_translations")
 }
 
 model ProductImage {

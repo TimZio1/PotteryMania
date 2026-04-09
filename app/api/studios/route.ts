@@ -26,9 +26,12 @@ export async function POST(req: Request) {
   const str = (k: string) => (typeof body[k] === "string" ? (body[k] as string).trim() : "");
   const opt = (k: string) => (typeof body[k] === "string" ? (body[k] as string).trim() : null);
   const num = (k: string) => (typeof body[k] === "number" ? body[k] as number : null);
+  const arr = (k: string) =>
+    Array.isArray(body[k]) ? (body[k] as unknown[]).filter((v): v is string => typeof v === "string").map((v) => v.trim().toLowerCase()).filter(Boolean) : [];
   const listingOnly = body.listingOnly === true;
 
   const displayName = str("displayName");
+  const supportedLanguages = arr("supportedLanguages");
   const legalBusinessName = str("legalBusinessName") || displayName;
   const fallbackVat = `FREE-LISTING-${user.id.slice(0, 8)}`;
   const vatNumber = str("vatNumber") || (listingOnly ? fallbackVat : "");
@@ -68,6 +71,7 @@ export async function POST(req: Request) {
       websiteUrl: opt("websiteUrl"),
       preferredLanguage: opt("preferredLanguage"),
       preferredCurrency: opt("preferredCurrency"),
+      supportedLanguages: supportedLanguages.length > 0 ? supportedLanguages : ["en"],
       status: "approved",
       approvedAt: new Date(),
     },

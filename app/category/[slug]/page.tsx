@@ -12,6 +12,7 @@ import {
   ceramicCategoryMetaBySlug,
   syncLockedCeramicCategories,
 } from "@/lib/ceramic-categories";
+import { resolveRequestShippingRegion } from "@/lib/request-region";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +81,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   if (!categoryMeta || !categoryEnum) notFound();
 
   const sp = (await searchParams) ?? {};
+  const resolvedRegion = await resolveRequestShippingRegion();
   const page = sp.page ? Math.max(1, parseInt(sp.page, 10) || 1) : 1;
 
   let categoryData = categoryMeta;
@@ -117,6 +119,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     minPrice: parsePriceToCents(sp.minPrice),
     maxPrice: parsePriceToCents(sp.maxPrice),
     sort: parseProductSort(sp.sort),
+    shippingRegion: resolvedRegion.region,
+    viewerCountry: resolvedRegion.country,
     page,
     pageSize: 16,
   });
@@ -129,8 +133,24 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         some: {
           status: "active",
           category: categoryEnum,
+          ...(resolvedRegion.region === "domestic"
+            ? resolvedRegion.country
+              ? {
+                  shippingDomesticCents: { not: null },
+                }
+              : { id: "__none__" }
+            : resolvedRegion.region === "europe"
+              ? { shippingEuropeCents: { not: null } }
+              : resolvedRegion.region === "usa"
+                ? { shippingUsaCents: { not: null } }
+                : resolvedRegion.region === "canada"
+                  ? { shippingCanadaCents: { not: null } }
+                  : { shippingAsiaCents: { not: null } }),
         },
       },
+      ...(resolvedRegion.region === "domestic" && resolvedRegion.country
+        ? { country: { equals: resolvedRegion.country, mode: "insensitive" as const } }
+        : {}),
     },
     orderBy: { displayName: "asc" },
     select: { id: true, displayName: true },

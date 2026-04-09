@@ -24,6 +24,7 @@ export default function StudioSettingsClient({
     websiteUrl: string | null;
     instagramUrl: string | null;
     facebookUrl: string | null;
+    supportedLanguages: string[];
   };
 }) {
   const router = useRouter();
@@ -53,6 +54,7 @@ export default function StudioSettingsClient({
           websiteUrl: form.websiteUrl?.trim() || "",
           instagramUrl: form.instagramUrl?.trim() || "",
           facebookUrl: form.facebookUrl?.trim() || "",
+          supportedLanguages: form.supportedLanguages,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -128,6 +130,24 @@ export default function StudioSettingsClient({
           <input className={cn(ui.input, "mt-1")} value={form.facebookUrl ?? ""} onChange={(e) => setForm((f) => ({ ...f, facebookUrl: e.target.value }))} />
         </label>
       </div>
+      <label>
+        <span className={ui.label}>Supported languages</span>
+        <input
+          className={cn(ui.input, "mt-1")}
+          value={form.supportedLanguages.join(", ")}
+          onChange={(e) =>
+            setForm((f) => ({
+              ...f,
+              supportedLanguages: e.target.value
+                .split(",")
+                .map((v) => v.trim().toLowerCase())
+                .filter(Boolean),
+            }))
+          }
+          placeholder="en, fr, de"
+        />
+        <p className="mt-1 text-xs text-stone-500">Comma-separated ISO language codes. English fallback is automatic.</p>
+      </label>
       <button type="submit" disabled={saving} className={ui.buttonPrimary}>
         {saving ? "Saving…" : "Save profile"}
       </button>

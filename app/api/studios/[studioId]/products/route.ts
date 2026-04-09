@@ -5,6 +5,7 @@ import { slugify } from "@/lib/slug";
 import { ceramicCategoryFromSlug, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
 import { normalizeOfferingPricing } from "@/lib/offering-pricing";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
+import { parseShippingZonesInput } from "@/lib/shipping-zones";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -75,6 +76,13 @@ export async function POST(req: Request, ctx: Ctx) {
     gracePeriodDays?: number | null;
     paymentRetryMax?: number | null;
     failedPaymentAction?: string;
+    shippingZones?: {
+      domestic?: number | null;
+      europe?: number | null;
+      usa?: number | null;
+      canada?: number | null;
+      asia?: number | null;
+    };
     images?: { imageUrl: string; altText?: string; isPrimary?: boolean }[];
   };
   try {
@@ -110,6 +118,10 @@ export async function POST(req: Request, ctx: Ctx) {
   const pricing = normalizeOfferingPricing(body);
   if (!pricing.ok) {
     return NextResponse.json({ error: pricing.error }, { status: 400 });
+  }
+  const shippingZones = parseShippingZonesInput(body.shippingZones);
+  if (!shippingZones.ok) {
+    return NextResponse.json({ error: shippingZones.error }, { status: 400 });
   }
 
   await syncLockedCeramicCategories(prisma);
@@ -150,6 +162,11 @@ export async function POST(req: Request, ctx: Ctx) {
       careInstructions: body.careInstructions ?? null,
       weightGrams: body.weightGrams ?? null,
       dimensionsText: body.dimensionsText ?? null,
+      shippingDomesticCents: shippingZones.value.shippingDomesticCents,
+      shippingEuropeCents: shippingZones.value.shippingEuropeCents,
+      shippingUsaCents: shippingZones.value.shippingUsaCents,
+      shippingCanadaCents: shippingZones.value.shippingCanadaCents,
+      shippingAsiaCents: shippingZones.value.shippingAsiaCents,
       shippingNotes: body.shippingNotes ?? null,
       returnNotes: body.returnNotes ?? null,
       status: status as "draft" | "active" | "inactive" | "archived",

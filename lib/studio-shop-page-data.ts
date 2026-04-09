@@ -26,6 +26,11 @@ export type StudioShopProductRow = {
   paymentRetryMax: number;
   failedPaymentAction: "pause" | "cancel";
   sku: string | null;
+  shippingDomesticCents: number | null;
+  shippingEuropeCents: number | null;
+  shippingUsaCents: number | null;
+  shippingCanadaCents: number | null;
+  shippingAsiaCents: number | null;
   stockQuantity: number;
   stockStatus: string;
   isLowStock: boolean;
@@ -71,6 +76,11 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
         paymentRetryMax: true,
         failedPaymentAction: true,
         sku: true,
+        shippingDomesticCents: true,
+        shippingEuropeCents: true,
+        shippingUsaCents: true,
+        shippingCanadaCents: true,
+        shippingAsiaCents: true,
         stockQuantity: true,
         stockStatus: true,
       },
@@ -113,6 +123,11 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
     paymentRetryMax: p.paymentRetryMax,
     failedPaymentAction: p.failedPaymentAction,
     sku: p.sku,
+    shippingDomesticCents: p.shippingDomesticCents,
+    shippingEuropeCents: p.shippingEuropeCents,
+    shippingUsaCents: p.shippingUsaCents,
+    shippingCanadaCents: p.shippingCanadaCents,
+    shippingAsiaCents: p.shippingAsiaCents,
     stockQuantity: p.stockQuantity,
     stockStatus: p.stockStatus,
     isLowStock: p.stockQuantity > 0 && p.stockQuantity <= DEFAULT_LOW_STOCK_THRESHOLD,
