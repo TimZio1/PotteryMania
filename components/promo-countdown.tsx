@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import { promoTimeLeft, PROMO_COUNTDOWN_HEADLINE, PROMO_LABEL } from "@/lib/promo";
 
 export function PromoCountdown({ className = "" }: { className?: string }) {
+  const [mounted, setMounted] = useState(false);
   const [tl, setTl] = useState(promoTimeLeft());
 
   useEffect(() => {
+    setMounted(true);
+    setTl(promoTimeLeft());
     const id = setInterval(() => setTl(promoTimeLeft()), 1_000);
     return () => clearInterval(id);
   }, []);
 
+  if (!mounted) return null;
   if (tl.expired) return null;
 
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -30,13 +34,17 @@ export function PromoCountdown({ className = "" }: { className?: string }) {
 }
 
 export function PromoCountdownCompact() {
+  const [mounted, setMounted] = useState(false);
   const [tl, setTl] = useState(promoTimeLeft());
 
   useEffect(() => {
+    setMounted(true);
+    setTl(promoTimeLeft());
     const id = setInterval(() => setTl(promoTimeLeft()), 60_000);
     return () => clearInterval(id);
   }, []);
 
+  if (!mounted) return null;
   if (tl.expired) return null;
 
   return (

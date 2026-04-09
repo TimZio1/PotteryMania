@@ -19,8 +19,32 @@ import { ui } from "@/lib/ui-styles";
 /** DB-backed commission copy — must not prerender at build (Railway build has no DB). */
 export const dynamic = "force-dynamic";
 
+async function getCommissionLabelSafe() {
+  try {
+    return await getMarketingCheckoutCommissionPctLabel();
+  } catch {
+    return "5%";
+  }
+}
+
+async function getPreRegCountSafe() {
+  try {
+    return await prisma.earlyAccessSignup.count();
+  } catch {
+    return 0;
+  }
+}
+
+async function getFeaturedStudiosSafe() {
+  try {
+    return await getFeaturedStudiosForSlot("homepage_hero");
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const commissionLabel = await getCommissionLabelSafe();
   return buildMetadata({
     title: "Ceramics marketplace and classes",
     description: `Where ceramic studios sell, teach, and get discovered. Your own page, your own domain, your own shop. ${commissionLabel} platform commission on checkout sales. Pre-register for 3 months free, then EUR5/month.`,
@@ -78,9 +102,9 @@ const studioShelfPieces = [
 ];
 
 export default async function Home() {
-  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
-  const preRegCount = await prisma.earlyAccessSignup.count();
-  const featuredStudios = await getFeaturedStudiosForSlot("homepage_hero");
+  const commissionLabel = await getCommissionLabelSafe();
+  const preRegCount = await getPreRegCountSafe();
+  const featuredStudios = await getFeaturedStudiosSafe();
   const studioBenefits = [
     "Your own page, your own domain, your own shop — a branded studio home, not a buried profile",
     "List products with gallery-quality presentation",

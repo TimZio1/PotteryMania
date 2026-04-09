@@ -12,8 +12,24 @@ import { EarlyAccessForm } from "./early-access-form";
 
 export const dynamic = "force-dynamic";
 
+async function getCommissionLabelSafe() {
+  try {
+    return await getMarketingCheckoutCommissionPctLabel();
+  } catch {
+    return "5%";
+  }
+}
+
+async function getInitialCountSafe() {
+  try {
+    return await prisma.earlyAccessSignup.count();
+  } catch {
+    return 0;
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const commissionLabel = await getCommissionLabelSafe();
   return buildMetadata({
     title: "Early Access — Claim Your Studio",
     description: `Pre-register your ceramic studio (Europe). 3 months free. ${commissionLabel} commission on checkout sales. Sell pottery, book classes, grow your audience.`,
@@ -22,9 +38,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function EarlyAccessPage() {
-  const initialCount = await prisma.earlyAccessSignup.count();
+  const initialCount = await getInitialCountSafe();
   const promoActive = isPromoActive();
-  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const commissionLabel = await getCommissionLabelSafe();
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-50">

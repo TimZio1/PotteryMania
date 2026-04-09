@@ -10,25 +10,40 @@ function isEndUserBrowse(role: string | undefined): boolean {
 /** Guests and customers: send home when there is nothing to shop or book (vendors/admins may still browse). */
 export async function redirectEndUserIfNoMarketplaceListings(role: string | undefined): Promise<void> {
   if (!isEndUserBrowse(role)) return;
-  const n = await prisma.product.count({ where: buildProductWhere({}) });
+  let n = 0;
+  try {
+    n = await prisma.product.count({ where: buildProductWhere({}) });
+  } catch {
+    return;
+  }
   if (n === 0) redirect("/");
 }
 
 export async function redirectEndUserIfNoPublicClasses(role: string | undefined): Promise<void> {
   if (!isEndUserBrowse(role)) return;
-  const n = await prisma.experience.count({
-    where: {
-      status: "active",
-      visibility: "public",
-      studio: { status: "approved" },
-    },
-  });
+  let n = 0;
+  try {
+    n = await prisma.experience.count({
+      where: {
+        status: "active",
+        visibility: "public",
+        studio: { status: "approved" },
+      },
+    });
+  } catch {
+    return;
+  }
   if (n === 0) redirect("/");
 }
 
 export async function redirectEndUserIfNoApprovedStudios(role: string | undefined): Promise<void> {
   if (!isEndUserBrowse(role)) return;
-  const n = await prisma.studio.count({ where: { status: "approved" } });
+  let n = 0;
+  try {
+    n = await prisma.studio.count({ where: { status: "approved" } });
+  } catch {
+    return;
+  }
   if (n === 0) redirect("/");
 }
 

@@ -41,24 +41,28 @@ export default async function MarketplacePage({ searchParams }: Props) {
   const session = await auth();
   await redirectEndUserIfNoMarketplaceListings(session?.user?.role);
   const sp = (await searchParams) ?? {};
-  const [catalog, categories] = await Promise.all([
-    listMarketplaceProducts({
-      q: sp.q,
-      category: sp.category,
-      country: sp.country,
-      city: sp.city,
-      sort: parseProductSort(sp.sort),
-      inStock: sp.inStock === "1",
-      minPrice: sp.minPrice ? parseInt(sp.minPrice, 10) : undefined,
-      maxPrice: sp.maxPrice ? parseInt(sp.maxPrice, 10) : undefined,
-      page: sp.page ? parseInt(sp.page, 10) : 1,
-      pageSize: 12,
-    }),
-    prisma.productCategory.findMany({
+  const catalog = await listMarketplaceProducts({
+    q: sp.q,
+    category: sp.category,
+    country: sp.country,
+    city: sp.city,
+    sort: parseProductSort(sp.sort),
+    inStock: sp.inStock === "1",
+    minPrice: sp.minPrice ? parseInt(sp.minPrice, 10) : undefined,
+    maxPrice: sp.maxPrice ? parseInt(sp.maxPrice, 10) : undefined,
+    page: sp.page ? parseInt(sp.page, 10) : 1,
+    pageSize: 12,
+  });
+  let categories: { id: string; name: string; slug: string }[] = [];
+  try {
+    categories = await prisma.productCategory.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
-    }),
-  ]);
+      select: { id: true, name: true, slug: true },
+    });
+  } catch {
+    categories = [];
+  }
   const products = catalog.products;
   const prevQuery = buildQuery({
     q: sp.q,

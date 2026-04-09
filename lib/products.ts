@@ -138,38 +138,48 @@ export async function listMarketplaceProducts(input: ProductQueryInput) {
   const pageSize = Math.min(48, Math.max(1, input.pageSize ?? DEFAULT_PAGE_SIZE));
   const where = buildProductWhere(input);
   const orderBy = buildProductOrderBy(input.sort);
-  const total = await prisma.product.count({ where });
-  const pageCount = Math.max(1, Math.ceil(total / pageSize));
-  const start = (page - 1) * pageSize;
+  try {
+    const total = await prisma.product.count({ where });
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+    const start = (page - 1) * pageSize;
 
-  if (input.sort === "recommended" && total > 0 && start < Math.min(RECOMMENDED_SHUFFLE_CAP, total)) {
-    const cap = Math.min(RECOMMENDED_SHUFFLE_CAP, total);
-    const batch = await prisma.product.findMany({
+    if (input.sort === "recommended" && total > 0 && start < Math.min(RECOMMENDED_SHUFFLE_CAP, total)) {
+      const cap = Math.min(RECOMMENDED_SHUFFLE_CAP, total);
+      const batch = await prisma.product.findMany({
+        where,
+        orderBy,
+        take: cap,
+        include: marketplaceListInclude,
+      });
+      const ranked = sortProductsByMarketplaceRanking(batch);
+      const products = ranked.slice(start, start + pageSize);
+      return { products, total, page, pageSize, pageCount };
+    }
+
+    const products = await prisma.product.findMany({
       where,
       orderBy,
-      take: cap,
+      skip: start,
+      take: pageSize,
       include: marketplaceListInclude,
     });
-    const ranked = sortProductsByMarketplaceRanking(batch);
-    const products = ranked.slice(start, start + pageSize);
-    return { products, total, page, pageSize, pageCount };
+
+    return {
+      products,
+      total,
+      page,
+      pageSize,
+      pageCount,
+    };
+  } catch {
+    return {
+      products: [],
+      total: 0,
+      page: 1,
+      pageSize,
+      pageCount: 1,
+    };
   }
-
-  const products = await prisma.product.findMany({
-    where,
-    orderBy,
-    skip: start,
-    take: pageSize,
-    include: marketplaceListInclude,
-  });
-
-  return {
-    products,
-    total,
-    page,
-    pageSize,
-    pageCount,
-  };
 }
 
 export async function getMarketplaceProduct(productId: string) {

@@ -54,25 +54,30 @@ export default async function ClassesPage({ searchParams }: Props) {
   const where = buildExperienceDiscoverWhere(filters);
   const near = filters.near;
 
-  let experiences = await prisma.experience.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: near ? GEO_SCAN_LIMIT : 80,
-    include: {
-      studio: {
-        select: {
-          displayName: true,
-          city: true,
-          country: true,
-          latitude: true,
-          longitude: true,
-          marketplaceRankWeight: true,
-          rankingScore: { select: { compositeScore: true } },
+  let experiences: Awaited<ReturnType<typeof prisma.experience.findMany>> = [];
+  try {
+    experiences = await prisma.experience.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: near ? GEO_SCAN_LIMIT : 80,
+      include: {
+        studio: {
+          select: {
+            displayName: true,
+            city: true,
+            country: true,
+            latitude: true,
+            longitude: true,
+            marketplaceRankWeight: true,
+            rankingScore: { select: { compositeScore: true } },
+          },
         },
+        images: { where: { isPrimary: true }, take: 1 },
       },
-      images: { where: { isPrimary: true }, take: 1 },
-    },
-  });
+    });
+  } catch {
+    experiences = [];
+  }
 
   if (near) {
     experiences = filterRowsByNearKm(experiences, near, (ex) => experienceMeetingPoint(ex)).slice(0, 80);

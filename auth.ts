@@ -15,10 +15,16 @@ class AccountSuspendedSignin extends CredentialsSignin {
  * Auth.js rejects empty/whitespace secrets (`!secret?.length` → 500 on /api/auth/session).
  * Use `||` so `AUTH_SECRET=""` still falls through to `NEXTAUTH_SECRET`; trim stray spaces from hosting UIs.
  */
-const authSecret =
+const configuredAuthSecret =
   process.env.AUTH_SECRET?.trim() ||
   process.env.NEXTAUTH_SECRET?.trim() ||
   undefined;
+
+if (!configuredAuthSecret && process.env.NODE_ENV === "production") {
+  throw new Error("AUTH_SECRET or NEXTAUTH_SECRET must be configured in production");
+}
+
+const authSecret = configuredAuthSecret || "dev-only-auth-secret-change-me";
 
 const googleId = process.env.AUTH_GOOGLE_ID?.trim();
 const googleSecret = process.env.AUTH_GOOGLE_SECRET?.trim();
@@ -69,7 +75,7 @@ const providers = [
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
-  ...(authSecret ? { secret: authSecret } : {}),
+  secret: authSecret,
   providers,
   callbacks: {
     async signIn({ account, profile }) {

@@ -2,7 +2,7 @@ import Image from "next/image";
 
 /** Unsplash — pottery studio / wheel (license: Unsplash). */
 const HERO_SRC =
-  "https://images.unsplash.com/photo-1578749556568-bc2b40b68efb?auto=format&fit=crop&w=2400&q=85";
+  "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=2400&q=85";
 
 /**
  * Replaces the marketing home hero SVG with photography.

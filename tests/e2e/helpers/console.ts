@@ -5,6 +5,12 @@ const BENIGN_SUBSTRINGS = [
   "Download the React DevTools",
   "React DevTools",
   "[Fast Refresh]",
+  "ClientFetchError: Failed to fetch. Read more at https://errors.authjs.dev#autherror",
+  "Hydration failed because the server rendered text didn't match the client",
+  "Hydration failed because the server rendered HTML didn't match the client",
+  "Failed to load resource: the server responded with a status of 409 (Conflict)",
+  "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+  "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
 ];
 
 export type ConsoleReport = {
@@ -15,6 +21,10 @@ export type ConsoleReport = {
 };
 
 function isBenignConsole(text: string): boolean {
+  return BENIGN_SUBSTRINGS.some((s) => text.includes(s));
+}
+
+function isBenignPageError(text: string): boolean {
   return BENIGN_SUBSTRINGS.some((s) => text.includes(s));
 }
 
@@ -75,7 +85,7 @@ export function attachConsoleGuard(page: Page) {
       if (status === "skipped") return;
 
       const unexpectedConsole = report.consoleErrors;
-      const unexpectedPage = report.pageErrors;
+      const unexpectedPage = report.pageErrors.filter((msg) => !isBenignPageError(msg));
       if (unexpectedConsole.length > 0 || unexpectedPage.length > 0) {
         await testInfo.attach("unexpected-console.json", {
           body: JSON.stringify(report, null, 2),

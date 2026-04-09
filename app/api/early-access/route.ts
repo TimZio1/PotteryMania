@@ -57,46 +57,54 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: EUROPEAN_PREREGISTRATION_NOTE }, { status: 400 });
   }
 
-  const existing = await prisma.earlyAccessSignup.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ error: "This email is already registered for early access" }, { status: 409 });
-  }
-
-  const signup = await prisma.earlyAccessSignup.create({
-    data: {
-      email,
-      studioName,
-      country,
-      websiteOrIg: websiteOrIg || null,
-      photoUrls,
-      wantBooking,
-      wantMarket,
-      wantBoth,
-    },
-  });
-
   try {
-    await sendEarlyAccessEmails({
-      email: signup.email,
-      studioName: signup.studioName,
-      country: signup.country,
-      websiteOrIg: signup.websiteOrIg,
-      wantBooking: signup.wantBooking,
-      wantMarket: signup.wantMarket,
-      wantBoth: signup.wantBoth,
+    const existing = await prisma.earlyAccessSignup.findUnique({ where: { email } });
+    if (existing) {
+      return NextResponse.json({ error: "This email is already registered for early access" }, { status: 409 });
+    }
+
+    const signup = await prisma.earlyAccessSignup.create({
+      data: {
+        email,
+        studioName,
+        country,
+        websiteOrIg: websiteOrIg || null,
+        photoUrls,
+        wantBooking,
+        wantMarket,
+        wantBoth,
+      },
     });
+
+    try {
+      await sendEarlyAccessEmails({
+        email: signup.email,
+        studioName: signup.studioName,
+        country: signup.country,
+        websiteOrIg: signup.websiteOrIg,
+        wantBooking: signup.wantBooking,
+        wantMarket: signup.wantMarket,
+        wantBoth: signup.wantBoth,
+      });
+    } catch (error) {
+      logApiError("early_access_email", error, { signupId: signup.id }, req);
+    }
+
+    void sendMetaConversionsLead({
+      email: signup.email,
+      eventId: metaEventId,
+      clientIp: clientIpFromRequest(req),
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      fbc: metaFbc || undefined,
+      fbp: metaFbp || undefined,
+    });
+
+    return NextResponse.json({ ok: true });
   } catch (error) {
-    logApiError("early_access_email", error, { signupId: signup.id }, req);
+    logApiError("early_access_post", error, { email, studioName, country }, req);
+    return NextResponse.json(
+      { error: "Early access is temporarily unavailable. Please try again shortly." },
+      { status: 503 },
+    );
   }
-
-  void sendMetaConversionsLead({
-    email: signup.email,
-    eventId: metaEventId,
-    clientIp: clientIpFromRequest(req),
-    userAgent: req.headers.get("user-agent") ?? undefined,
-    fbc: metaFbc || undefined,
-    fbp: metaFbp || undefined,
-  });
-
-  return NextResponse.json({ ok: true });
 }

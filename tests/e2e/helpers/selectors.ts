@@ -1,7 +1,7 @@
 /** Stable locators / copy shared across smoke tests. */
 export const COPY = {
-  earlyAccessHero: /Something new is coming to ceramics/i,
-  earlyAccessRegisterHeading: /Register your studio/i,
+  earlyAccessHero: /Claim your studio/i,
+  earlyAccessRegisterHeading: /Everything your studio needs/i,
   marketplaceHeading: /Marketplace/i,
 } as const;
 
