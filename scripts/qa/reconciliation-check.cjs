@@ -41,25 +41,7 @@ async function main() {
   }
 
   try {
-    const parsed = new URL(databaseUrl);
-    if (parsed.protocol === "prisma+postgres:") {
-      const outPath = writeReport([
-        "# Reconciliation Report",
-        "",
-        `- Timestamp: ${nowIso()}`,
-        "",
-        "## Verdict",
-        "",
-        "BLOCKED",
-        "",
-        "- `DATABASE_URL` is using `prisma+postgres://` (data-proxy style).",
-        "- This reconciliation script requires direct database access via `postgresql://`.",
-        "- Set `DATABASE_URL` to a direct Postgres connection string and rerun.",
-      ]);
-      console.error("[reconciliation-check] FAIL: DATABASE_URL uses prisma+postgres protocol.");
-      console.error(`[reconciliation-check] Evidence written: ${outPath}`);
-      process.exit(1);
-    }
+    new URL(databaseUrl);
   } catch {
     const outPath = writeReport([
       "# Reconciliation Report",
@@ -82,6 +64,38 @@ async function main() {
   const failures = [];
 
   try {
+    async function scanPaymentConsistency() {
+      const PAGE_SIZE = 500;
+      let cursorId = null;
+      let inspected = 0;
+      let orphanPayments = 0;
+      let currencyMismatches = 0;
+      for (;;) {
+        const rows = await prisma.payment.findMany({
+          take: PAGE_SIZE,
+          ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+          orderBy: { id: "asc" },
+          select: {
+            id: true,
+            currency: true,
+            order: { select: { id: true, currency: true } },
+          },
+        });
+        if (rows.length === 0) break;
+        for (const row of rows) {
+          inspected += 1;
+          if (!row.order?.id) {
+            orphanPayments += 1;
+            continue;
+          }
+          if (row.order.currency !== row.currency) currencyMismatches += 1;
+        }
+        cursorId = rows[rows.length - 1].id;
+        if (rows.length < PAGE_SIZE) break;
+      }
+      return { inspected, orphanPayments, currencyMismatches };
+    }
+
     const [
       totalOrders,
       paidOrders,
@@ -90,9 +104,8 @@ async function main() {
       succeededPayments,
       refundedPayments,
       partialRefundPayments,
-      orphanRows,
       negativeOrders,
-      currencyMismatchRows,
+      paymentIntegrity,
     ] = await Promise.all([
       prisma.order.count(),
       prisma.order.count({ where: { paymentStatus: "paid" } }),
@@ -101,22 +114,10 @@ async function main() {
       prisma.payment.count({ where: { paymentStatus: "succeeded" } }),
       prisma.payment.count({ where: { paymentStatus: "refunded" } }),
       prisma.payment.count({ where: { paymentStatus: "partially_refunded" } }),
-      prisma.$queryRaw`
-        SELECT COUNT(*)::int AS count
-        FROM payments p
-        LEFT JOIN orders o ON o.id = p.order_id
-        WHERE o.id IS NULL
-      `,
       prisma.order.count({ where: { totalCents: { lt: 0 } } }),
-      prisma.$queryRaw`
-        SELECT COUNT(*)::int AS count
-        FROM payments p
-        JOIN orders o ON o.id = p.order_id
-        WHERE p.currency <> o.currency
-      `,
+      scanPaymentConsistency(),
     ]);
-    const orphanPayments = Number(orphanRows?.[0]?.count ?? 0);
-    const currencyMismatches = Number(currencyMismatchRows?.[0]?.count ?? 0);
+    const { orphanPayments, currencyMismatches, inspected: inspectedPayments } = paymentIntegrity;
 
     // Sanity assertions for money-path consistency.
     if (paidOrders > 0 && succeededPayments === 0) {
@@ -153,6 +154,7 @@ async function main() {
       `- Succeeded payments: ${succeededPayments}`,
       `- Refunded payments: ${refundedPayments}`,
       `- Partially refunded payments: ${partialRefundPayments}`,
+      `- Payments inspected for integrity: ${inspectedPayments}`,
       `- Paid-order ratio: ${asPct(paidOrders, totalOrders)}`,
       "",
       "## Integrity Checks",

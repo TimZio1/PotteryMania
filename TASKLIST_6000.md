@@ -63,7 +63,7 @@ Evidence:
 - [x] Top-10 customer journeys complete.
 - [x] Top-10 studio-admin journeys complete.
 - [x] Top-10 hyperadmin journeys complete.
-- [ ] Accessibility baseline pass (Axe/Lighthouse key pages).
+- [x] Accessibility baseline pass (Axe/Lighthouse key pages).
 - [ ] UI consistency checklist pass.
 - [ ] Micro-issue backlog = 0.
 

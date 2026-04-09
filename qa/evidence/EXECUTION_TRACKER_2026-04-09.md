@@ -613,3 +613,48 @@ This log records every implementation action, command, and verification result i
       - Done: 64
       - Undone: 23
       - Total: 87
+
+52. Closed accessibility baseline gate with dedicated Axe suite and contrast remediations.
+    - Added accessibility automation:
+      - `tests/e2e/accessibility/accessibility-baseline.spec.ts`
+      - New script: `npm run test:accessibility`
+      - Added dev dependency: `@axe-core/playwright`
+    - Accessibility fixes shipped in audited routes:
+      - Raised low-contrast utility text on warm/soft surfaces in:
+        - `components/marketing-layout.tsx`
+        - `app/page.tsx`
+        - `app/early-access/page.tsx`
+        - `app/marketplace/page.tsx`
+        - `app/classes/page.tsx`
+    - Executed:
+      - `npm run test:accessibility`
+      - Result: 6 passed.
+    - Updated evidence:
+      - `qa/evidence/ux/accessibility-report-2026-04-09.md`
+    - Updated gates:
+      - `TASKLIST_6000.md`: checked `Accessibility baseline pass (Axe/Lighthouse key pages).`
+    - Updated scorecard:
+      - `SCORECARD.md`: journey KPI rows set to 100% and accessibility baseline to 100%.
+      - `SCORECARD.md`: UX/UI pillar recalculated to 905 (consistency + micro backlog remain open).
+    - Totals (after closing accessibility gate):
+      - Done: 65
+      - Undone: 22
+      - Total: 87
+
+53. Unblocked reconciliation script from protocol assumptions and advanced logic-blocker diagnosis.
+    - Updated QA script:
+      - `scripts/qa/reconciliation-check.cjs`
+      - Removed hard fail on `prisma+postgres://`.
+      - Replaced direct raw-SQL-only assumptions with Prisma relation scans for payment/order consistency checks.
+    - Executed:
+      - `npm run test:reconciliation`
+      - Result: **blocked** by runtime data-service fetch instability (`Cannot fetch data from service: fetch failed`), not URL protocol mismatch.
+    - Updated evidence/context:
+      - `qa/evidence/logic/reconciliation-report.md`
+      - `qa/evidence/logic/db-consistency-checks.md`
+      - `qa/evidence/ux/micro-issues-burndown.md`
+      - `SCORECARD.md` (logic blocker wording updated from protocol to connectivity instability)
+    - Totals (checklist count unchanged):
+      - Done: 65
+      - Undone: 22
+      - Total: 87

@@ -34,7 +34,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
             </div>
             <div className="grid gap-x-12 gap-y-6 text-sm text-stone-700 sm:grid-cols-3">
               <div className="space-y-2.5">
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Product</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Product</p>
                 <Link href="/marketplace" className="block transition hover:text-(--brand-ink)">
                   Shop
                 </Link>
@@ -49,7 +49,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
                 </Link>
               </div>
               <div className="space-y-2.5">
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Legal</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Legal</p>
                 <Link href="/terms" className="block transition hover:text-(--brand-ink)">
                   Terms
                 </Link>
@@ -61,7 +61,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
                 </Link>
               </div>
               <div className="space-y-2.5">
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Account</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Account</p>
                 {!isPreregistrationOnly() ? (
                   <Link href="/login" className="block transition hover:text-(--brand-ink)">
                     Sign in
@@ -73,7 +73,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
               </div>
             </div>
           </div>
-          <div className="mt-8 flex flex-col gap-3 border-t border-(--brand-line) pt-6 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-8 flex flex-col gap-3 border-t border-(--brand-line) pt-6 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
             <p>© {new Date().getFullYear()} PotteryMania.</p>
             <p>Made with clay and code.</p>
           </div>

@@ -123,7 +123,7 @@ export default async function EarlyAccessPage() {
           <div className="mb-8 flex justify-center sm:mb-10">
             <BrandLogo href="/" size="md" className="text-(--brand-ink)" />
           </div>
-          <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-400">
+          <p className="text-center text-xs font-medium uppercase tracking-[0.24em] text-stone-600">
             Everything your studio needs
           </p>
           <h2 className="mt-4 text-center font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
@@ -158,7 +158,7 @@ export default async function EarlyAccessPage() {
 
       {/* Footer */}
       <footer className="border-t border-(--brand-line) bg-(--brand-soft)">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>&copy; {new Date().getFullYear()} PotteryMania.</p>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <Link href="/login" className="font-medium text-stone-600 transition hover:text-(--brand-ink)">
@@ -206,7 +206,7 @@ function Testimonial({ quote, author }: { quote: string; author: string }) {
   return (
     <article className="rounded-2xl border border-(--brand-line) bg-white p-6">
       <p className="text-sm leading-7 text-stone-700 italic">&ldquo;{quote}&rdquo;</p>
-      <p className="mt-4 text-xs font-medium uppercase tracking-[0.16em] text-stone-400">{author}</p>
+      <p className="mt-4 text-xs font-medium uppercase tracking-[0.16em] text-stone-600">{author}</p>
     </article>
   );
 }

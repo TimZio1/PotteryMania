@@ -199,7 +199,7 @@ export default async function Home() {
         <section className="border-b border-(--brand-line) bg-white">
           <div className={`${ui.pageContainer} py-12 sm:py-14`}>
             <div className="max-w-2xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Start in one click</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Start in one click</p>
               <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
                 Choose your path on PotteryMania.
               </h2>
@@ -225,7 +225,7 @@ export default async function Home() {
           <div className={`${ui.pageContainer} py-10 sm:py-12`}>
             <div className="flex flex-col gap-5 rounded-[1.4rem] border border-(--brand-line) bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Pricing model</p>
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Pricing model</p>
                 <p className="mt-2 text-sm text-stone-700 sm:text-base">
                   Platform plans for studio tooling + {commissionLabel} commission on checkout sales.
                 </p>
@@ -247,7 +247,7 @@ export default async function Home() {
         <section id="clarity" className="border-y border-(--brand-line) bg-(--warm-surface)">
           <div className={`${ui.pageContainer} py-16 sm:py-24`}>
             <div className="max-w-2xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">What PotteryMania is</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">What PotteryMania is</p>
               <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
                 A clearer, more beautiful digital home for independent ceramics.
               </h2>
@@ -313,7 +313,7 @@ export default async function Home() {
           <div className={`${ui.pageContainer} py-16 sm:py-24`}>
             <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-start">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Why it feels different</p>
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Why it feels different</p>
                 <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
                   PotteryMania is not trying to be everything. That is exactly why it can be right for ceramics.
                 </h2>

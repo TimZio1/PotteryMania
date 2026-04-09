@@ -8,8 +8,8 @@
 
 ## Current Result
 
-- Execution blocked because `DATABASE_URL` currently uses `prisma+postgres://`.
-- Direct DB checks require `postgresql://` connection string.
+- Protocol-specific blocking was removed from reconciliation checks.
+- Current blocker is runtime data-service fetch instability during reconciliation execution (`Cannot fetch data from service: fetch failed`).
 
 ## Evidence
 
@@ -17,4 +17,4 @@
 
 ## Status
 
-- DB consistency gate: **blocked pending direct DB URL**.
+- DB consistency gate: **blocked pending stable DB connectivity**.

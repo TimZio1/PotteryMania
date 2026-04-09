@@ -5,12 +5,12 @@
 - Early-access mobile smoke instability (timeout-path assertion mismatch).
 - OpenTelemetry `import-in-the-middle` version mismatch warning noise in build/test logs.
 - Class discovery type mismatch causing build failure (`app/classes/page.tsx`).
+- Dedicated accessibility baseline run completed (Axe key pages: 6/6 pass).
 
 ## Still Open
 
-- DB connectivity/protocol blocker for reconciliation (`prisma+postgres://` vs direct `postgresql://`).
+- DB/data-service connectivity instability during reconciliation queries (`Cannot fetch data from service: fetch failed`).
 - Remaining Prisma advisory/runtime warnings in test/build output.
-- Dedicated accessibility baseline run pending.
 
 ## Status
 

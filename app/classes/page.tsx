@@ -396,10 +396,10 @@ export default async function ClassesPage({ searchParams }: Props) {
                     )}
                   </div>
                   <div className="p-4 sm:p-5">
-                    <p className="text-xs font-medium text-stone-500">{ex.studio.displayName}</p>
+                    <p className="text-xs font-medium text-stone-600">{ex.studio.displayName}</p>
                     <h2 className="mt-1 text-base font-semibold text-stone-900">{ex.title}</h2>
                     {km != null ? (
-                      <p className="mt-1 text-xs text-stone-500">~{km.toFixed(1)} km away</p>
+                      <p className="mt-1 text-xs text-stone-600">~{km.toFixed(1)} km away</p>
                     ) : null}
                     <p className="mt-2 text-sm font-medium text-amber-950">
                       {recurring
