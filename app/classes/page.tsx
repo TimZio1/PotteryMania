@@ -86,7 +86,7 @@ export default async function ClassesPage({ searchParams }: Props) {
   }
 
   if (near) {
-    experiences = filterRowsByNearKm(experiences, near, (ex) => experienceMeetingPoint(ex)).slice(0, 80);
+    experiences = filterRowsByNearKm(experiences, near, (ex) => experienceMeetingPoint(ex as Parameters<typeof experienceMeetingPoint>[0])).slice(0, 80);
   } else {
     experiences = sortExperiencesByMarketplaceRanking(experiences);
   }
