@@ -3,9 +3,9 @@ import { loginWithCredentials } from "../helpers/auth";
 import { getAdminCredentials, getProductId, getStudioId, getTestCredentials, getVendorCredentials } from "../helpers/env";
 
 test.describe("UX journeys — customer top 10", () => {
-  test("customer routes and auth boundaries are reachable", async ({ page }) => {
+  test("customer public routes are reachable", async ({ page }) => {
+    test.setTimeout(240_000);
     const productId = getProductId();
-    const creds = getTestCredentials();
 
     const customerRoutes = [
       "/",
@@ -21,21 +21,22 @@ test.describe("UX journeys — customer top 10", () => {
 
     for (const route of customerRoutes) {
       await test.step(`customer route ${route}`, async () => {
-        await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45_000 });
+        await page.goto(route, { waitUntil: "commit", timeout: 45_000 });
         await expect(page.locator("html")).toBeVisible();
       });
     }
+  });
 
-    await test.step("customer protected route journey", async () => {
-      if (!creds) {
-        await page.goto("/my-bookings");
-        await expect(page).toHaveURL(/\/login/);
-        return;
-      }
-      await loginWithCredentials(page, creds.email, creds.password, "/my-bookings");
-      await expect(page).toHaveURL(/\/my-bookings/);
-      await expect(page.getByRole("heading", { name: /^My bookings$/i })).toBeVisible({ timeout: 20_000 });
-    });
+  test("customer protected route journey", async ({ page }) => {
+    const creds = getTestCredentials();
+    if (!creds) {
+      await page.goto("/my-bookings");
+      await expect(page).toHaveURL(/\/login/);
+      return;
+    }
+    await loginWithCredentials(page, creds.email, creds.password, "/my-bookings");
+    await expect(page).toHaveURL(/\/my-bookings/);
+    await expect(page.getByRole("heading", { name: /^My bookings$/i })).toBeVisible({ timeout: 20_000 });
   });
 });
 

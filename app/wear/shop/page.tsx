@@ -30,10 +30,16 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const sp = await searchParams;
   const activeCategory = isWearCategory(sp.category) ? sp.category : null;
 
-  const products = await prisma.wearProduct.findMany({
-    where: { isActive: true, archivedAt: null },
-    orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-  });
+  let products: Awaited<ReturnType<typeof prisma.wearProduct.findMany>> = [];
+  let dbUnavailable = false;
+  try {
+    products = await prisma.wearProduct.findMany({
+      where: { isActive: true, archivedAt: null },
+      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
+    });
+  } catch {
+    dbUnavailable = true;
+  }
 
   const normalized = products.map((p) => {
     const category = resolveWearCategory({
@@ -90,7 +96,9 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         {visible.length === 0 ? (
           <div className="mx-auto mt-16 max-w-md text-center">
             <p className="text-sm leading-relaxed text-neutral-300">
-              {activeCategory
+              {dbUnavailable
+                ? "The wear catalog is temporarily unavailable. Please try again shortly."
+                : activeCategory
                 ? `No items currently in ${wearCategoryLabel(activeCategory)}.`
                 : "We're between drops or restocking the shelf. Check back soon — new pieces always land here first."}
             </p>

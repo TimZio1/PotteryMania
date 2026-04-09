@@ -55,12 +55,18 @@ export default async function StudiosPage({ searchParams }: Props) {
   const where = buildStudioDiscoverWhere(filters);
   const near = filters.near;
 
-  let studios = await prisma.studio.findMany({
-    where,
-    orderBy: byName ? { displayName: "asc" } : [{ marketplaceRankWeight: "desc" }, { displayName: "asc" }],
-    include: { rankingScore: { select: { compositeScore: true } } },
-    ...(near ? { take: GEO_SCAN_LIMIT } : {}),
-  });
+  let studios: Awaited<ReturnType<typeof prisma.studio.findMany>> = [];
+  let dbUnavailable = false;
+  try {
+    studios = await prisma.studio.findMany({
+      where,
+      orderBy: byName ? { displayName: "asc" } : [{ marketplaceRankWeight: "desc" }, { displayName: "asc" }],
+      include: { rankingScore: { select: { compositeScore: true } } },
+      ...(near ? { take: GEO_SCAN_LIMIT } : {}),
+    });
+  } catch {
+    dbUnavailable = true;
+  }
 
   if (near) {
     studios = filterRowsByNearKm(studios, near, (s) =>
@@ -250,6 +256,8 @@ export default async function StudiosPage({ searchParams }: Props) {
                 Clear filters
               </Link>
             </div>
+          ) : dbUnavailable ? (
+            <p className="mt-10 text-stone-500">Studios are temporarily unavailable. Please try again shortly.</p>
           ) : (
             <p className="mt-10 text-stone-500">No approved studios yet.</p>
           )

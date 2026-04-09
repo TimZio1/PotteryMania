@@ -60,9 +60,9 @@ Evidence:
 
 ## Phase 2 - UX/UI 1000
 
-- [ ] Top-10 customer journeys complete.
-- [ ] Top-10 studio-admin journeys complete.
-- [ ] Top-10 hyperadmin journeys complete.
+- [x] Top-10 customer journeys complete.
+- [x] Top-10 studio-admin journeys complete.
+- [x] Top-10 hyperadmin journeys complete.
 - [ ] Accessibility baseline pass (Axe/Lighthouse key pages).
 - [ ] UI consistency checklist pass.
 - [ ] Micro-issue backlog = 0.

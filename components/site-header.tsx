@@ -107,6 +107,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
 
   const authed = status === "authenticated" && session?.user;
   const role = session?.user?.role;
+  const isWearPage = wearZoneActive(pathname);
 
   const linkClass = (href: string) =>
     cn(
@@ -170,21 +171,23 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
         </div>
 
         <nav className="flex shrink-0 flex-wrap items-center justify-end gap-1 sm:gap-2" aria-label="Primary">
-          <label className="hidden items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-700 md:inline-flex">
-            <span>Ship to</span>
-            <select
-              className="bg-transparent text-xs font-medium outline-none"
-              value={region}
-              onChange={(e) => void updateRegion(e.target.value)}
-              aria-label="Shipping region"
-            >
-              {SHIPPING_REGION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          {!isWearPage ? (
+            <label className="hidden items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-700 md:inline-flex">
+              <span>Ship to</span>
+              <select
+                className="bg-transparent text-xs font-medium outline-none"
+                value={region}
+                onChange={(e) => void updateRegion(e.target.value)}
+                aria-label="Shipping region"
+              >
+                {SHIPPING_REGION_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           {authed ? (
             <div className="hidden items-center gap-1 md:flex">
               <Link href="/marketplace" className={linkClass("/marketplace")}>
@@ -373,21 +376,23 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
             </button>
           </div>
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
-            <label className="mb-2 block rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-700">
-              <span className="mb-1 block font-medium">Ship to</span>
-              <select
-                className="w-full rounded border border-stone-200 bg-white px-2 py-1.5 text-sm"
-                value={region}
-                onChange={(e) => void updateRegion(e.target.value)}
-                aria-label="Shipping region"
-              >
-                {SHIPPING_REGION_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {!isWearPage ? (
+              <label className="mb-2 block rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-700">
+                <span className="mb-1 block font-medium">Ship to</span>
+                <select
+                  className="w-full rounded border border-stone-200 bg-white px-2 py-1.5 text-sm"
+                  value={region}
+                  onChange={(e) => void updateRegion(e.target.value)}
+                  aria-label="Shipping region"
+                >
+                  {SHIPPING_REGION_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <Link href="/marketplace" className={mobileLinkClass("/marketplace")}>
               Shop
             </Link>
