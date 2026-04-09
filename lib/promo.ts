@@ -1,14 +1,14 @@
 /**
- * Launch promotion: free activation + listing for all studio types
- * until the deadline. Marketplace onboarding remains self-serve via Stripe Connect.
+ * Official launch countdown.
+ * No pre-registration promo/discount should be advertised.
  */
 
-export const PROMO_DEADLINE = new Date("2026-05-01T23:59:59Z");
+export const PROMO_DEADLINE = new Date("2026-05-01T00:00:00Z");
 
-export const PROMO_LABEL = "Free until 1 May 2026";
+export const PROMO_LABEL = "Official launch: 1 May 2026";
 
 /** Shown next to the live countdown on the landing strip and early-access page. */
-export const PROMO_COUNTDOWN_HEADLINE = "FREE PRE-REGISTRATION ENDS IN";
+export const PROMO_COUNTDOWN_HEADLINE = "OFFICIAL LAUNCH IN";
 
 export function isPromoActive(now = new Date()): boolean {
   return now < PROMO_DEADLINE;

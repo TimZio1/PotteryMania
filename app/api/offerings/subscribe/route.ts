@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { isOfferingBillingInterval } from "@/lib/offering-pricing";
+import { computeLaunchAwareSubscriptionTrial } from "@/lib/subscription-launch";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -49,6 +50,9 @@ export async function POST(req: Request) {
     }
     const intervalCount = Math.max(1, product.billingIntervalCount ?? 1);
     const stripeInterval = product.billingInterval === "weekly" ? "week" : "month";
+    const launchAwareTrial = computeLaunchAwareSubscriptionTrial({
+      trialPeriodDays: product.trialPeriodDays,
+    });
     const session = await getStripe().checkout.sessions.create({
       mode: "subscription",
       customer_email: user.email,
@@ -66,9 +70,7 @@ export async function POST(req: Request) {
           },
         },
       ],
-      ...(product.trialPeriodDays && product.trialPeriodDays > 0
-        ? { subscription_data: { trial_period_days: product.trialPeriodDays } }
-        : {}),
+      ...(Object.keys(launchAwareTrial).length > 0 ? { subscription_data: launchAwareTrial } : {}),
       metadata: {
         type: "offering_subscription",
         targetType: "product",
@@ -113,6 +115,9 @@ export async function POST(req: Request) {
   }
   const intervalCount = Math.max(1, experience.billingIntervalCount ?? 1);
   const stripeInterval = experience.billingInterval === "weekly" ? "week" : "month";
+  const launchAwareTrial = computeLaunchAwareSubscriptionTrial({
+    trialPeriodDays: experience.trialPeriodDays,
+  });
   const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     customer_email: user.email,
@@ -130,9 +135,7 @@ export async function POST(req: Request) {
         },
       },
     ],
-    ...(experience.trialPeriodDays && experience.trialPeriodDays > 0
-      ? { subscription_data: { trial_period_days: experience.trialPeriodDays } }
-      : {}),
+    ...(Object.keys(launchAwareTrial).length > 0 ? { subscription_data: launchAwareTrial } : {}),
     metadata: {
       type: "offering_subscription",
       targetType: "experience",

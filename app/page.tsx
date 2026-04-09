@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing-layout";
-import { PromoCountdown } from "@/components/promo-countdown";
 import { prisma } from "@/lib/db";
 import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
-import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
+import { PROMO_LABEL } from "@/lib/promo";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { ClarityCardsStagger } from "@/components/marketing/clarity-cards-stagger";
 import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rail";
@@ -47,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const commissionLabel = await getCommissionLabelSafe();
   return buildMetadata({
     title: "Ceramics marketplace and classes",
-    description: `Where ceramic studios sell, teach, and get discovered. Your own page, your own domain, your own shop. ${commissionLabel} platform commission on checkout sales. Pre-register for 3 months free, then EUR5/month.`,
+    description: `Where ceramic studios sell, teach, and get discovered. Your own page, your own domain, your own shop. Official launch: 1 May 2026. Studio plans start at EUR19/month, plus ${commissionLabel} platform commission on checkout sales.`,
     path: "/",
   });
 }
@@ -91,6 +90,32 @@ const differentiators = [
 ];
 
 const trustTags = ["Stoneware", "Porcelain", "Workshops", "Wheel Throwing", "Raku", "Studio Shelf", "Glaze", "Handbuilt"];
+const visitorPaths = [
+  {
+    title: "I run a studio",
+    body: "Create your profile, connect Stripe, and start selling classes and ceramics globally.",
+    href: "/early-access",
+    cta: "Register your studio",
+  },
+  {
+    title: "I want to buy ceramics",
+    body: "Browse independent makers and discover curated handmade pieces from real studios.",
+    href: "/marketplace",
+    cta: "Explore marketplace",
+  },
+  {
+    title: "I want to book classes",
+    body: "Find workshops and recurring experiences from ceramic studios near and far.",
+    href: "/classes",
+    cta: "View classes",
+  },
+] as const;
+const STUDIO_PRICE_TIERS = [
+  { name: "START", price: "€19/month" },
+  { name: "GROWTH", price: "€49/month" },
+  { name: "PRO", price: "€99/month" },
+  { name: "SCALE", price: "€199/month" },
+] as const;
 
 const studioShelfPieces = [
   { x: 220, y: 205, w: 110, h: 140, fill: "#dfc0a3" },
@@ -146,10 +171,11 @@ export default async function Home() {
           <p className="mt-4 max-w-2xl text-sm font-medium text-stone-100/85">{EUROPEAN_PREREGISTRATION_NOTE}</p>
           <div className="mt-6 flex max-w-xl flex-col gap-2">
             <div className="inline-flex max-w-fit rounded-full border border-emerald-300/30 bg-emerald-50/10 px-4 py-2 text-sm font-medium text-emerald-50 backdrop-blur-sm">
-              Pre-register and earn 3 months free, then EUR5/month.
+              Official launch: 1 May 2026 · plans from €19/month.
             </div>
             <p className="text-sm text-stone-100/80">
-              {commissionLabel} commission on marketplace and class checkout — only when you get paid.
+              Present ceramics with gallery-level care. No listing fees. {commissionLabel} commission only when you sell
+              through checkout. All subscription charges start on 1 May 2026.
             </p>
           </div>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -170,8 +196,56 @@ export default async function Home() {
 
         <FeaturedStudiosRail studios={featuredStudios} />
 
+        <section className="border-b border-(--brand-line) bg-white">
+          <div className={`${ui.pageContainer} py-12 sm:py-14`}>
+            <div className="max-w-2xl">
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Start in one click</p>
+              <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
+                Choose your path on PotteryMania.
+              </h2>
+            </div>
+            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+              {visitorPaths.map((path) => (
+                <article
+                  key={path.title}
+                  className="rounded-[1.4rem] border border-(--brand-line) bg-(--warm-surface) p-6 shadow-[0_20px_54px_rgba(61,36,23,0.05)]"
+                >
+                  <h3 className="font-serif text-2xl text-(--brand-ink)">{path.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">{path.body}</p>
+                  <Link href={path.href} className={`${ui.buttonGhost} mt-5 inline-flex text-sm text-amber-900`}>
+                    {path.cta}
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-(--brand-line) bg-(--warm-surface)">
+          <div className={`${ui.pageContainer} py-10 sm:py-12`}>
+            <div className="flex flex-col gap-5 rounded-[1.4rem] border border-(--brand-line) bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Pricing model</p>
+                <p className="mt-2 text-sm text-stone-700 sm:text-base">
+                  Platform plans for studio tooling + {commissionLabel} commission on checkout sales.
+                </p>
+              </div>
+              <ul className="flex flex-wrap gap-2">
+                {STUDIO_PRICE_TIERS.map((tier) => (
+                  <li
+                    key={tier.name}
+                    className="rounded-full border border-(--brand-line) bg-(--warm-surface) px-3 py-1 text-xs font-medium text-stone-700"
+                  >
+                    {tier.name} · {tier.price}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
         <section id="clarity" className="border-y border-(--brand-line) bg-(--warm-surface)">
-          <div className={`${ui.pageContainer} py-18 sm:py-24`}>
+          <div className={`${ui.pageContainer} py-16 sm:py-24`}>
             <div className="max-w-2xl">
               <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">What PotteryMania is</p>
               <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
@@ -236,7 +310,7 @@ export default async function Home() {
         </ImageSection>
 
         <section className="border-y border-(--brand-line) bg-(--brand-soft)">
-          <div className={`${ui.pageContainer} py-18 sm:py-24`}>
+          <div className={`${ui.pageContainer} py-16 sm:py-24`}>
             <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-start">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-500">Why it feels different</p>
@@ -314,12 +388,15 @@ export default async function Home() {
               Your studio deserves a better home online.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
-              Join PotteryMania during early access. Register now, secure 3 months free, then continue for EUR5/month
-              as the platform opens to the public.
+              Join PotteryMania during early access. Official launch starts on 1 May 2026. Studio plans start at
+              €19/month with {commissionLabel} commission applied only when checkout sales happen.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/early-access" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
                 Register your studio
+              </Link>
+              <Link href="/marketplace" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                Browse marketplace
               </Link>
               {!isPreregistrationOnly() ? (
                 <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
@@ -336,10 +413,10 @@ export default async function Home() {
 
 function AnnouncementStrip({ preRegShown, preRegCap }: { preRegShown: number; preRegCap: number }) {
   const preRegLine = (
-    <p className="text-sm text-stone-600 sm:text-right">
+    <p className="text-sm text-stone-600 sm:text-right" aria-live="polite">
       <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegShown}</span>
       <span className="text-stone-400">/</span>
-      <span className="tabular-nums text-stone-600">{preRegCap}</span> real pre-reg
+      <span className="tabular-nums text-stone-600">{preRegCap}</span> real pre-registrations
     </p>
   );
 
@@ -354,14 +431,7 @@ function AnnouncementStrip({ preRegShown, preRegCap }: { preRegShown: number; pr
             spot.
           </p>
         </div>
-        {isPromoActive() ? (
-          <div className="flex flex-col gap-1.5 sm:items-end">
-            <PromoCountdown className="text-stone-600 [&_span]:text-stone-700" />
-            {preRegLine}
-          </div>
-        ) : (
-          preRegLine
-        )}
+        {preRegLine}
       </div>
     </section>
   );
@@ -391,7 +461,7 @@ function ImageSection({
   }[tone];
 
   const justifyClass = align === "bottom" ? "items-end" : align === "end" ? "items-end" : "items-center";
-  const paddingClass = align === "bottom" ? "py-20 sm:py-28" : "py-18 sm:py-24";
+  const paddingClass = align === "bottom" ? "py-20 sm:py-28" : "py-16 sm:py-24";
 
   return (
     <section className={`relative isolate overflow-hidden ${minHeight}`}>

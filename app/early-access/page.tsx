@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const commissionLabel = await getCommissionLabelSafe();
   return buildMetadata({
     title: "Early Access — Claim Your Studio",
-    description: `Pre-register your ceramic studio (Europe). 3 months free. ${commissionLabel} commission on checkout sales. Sell pottery, book classes, grow your audience.`,
+    description: `Pre-register your ceramic studio (Europe). Official launch on 1 May 2026. ${commissionLabel} commission on checkout sales. Sell pottery, book classes, grow your audience.`,
     path: "/early-access",
   });
 }
@@ -85,7 +85,7 @@ export default async function EarlyAccessPage() {
             <div className="mb-8 flex flex-col items-center gap-3 text-center sm:mb-10">
               <span className="inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-500/10 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-200 backdrop-blur-sm">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" aria-hidden />
-                Closes May 1st
+                Official launch: May 1st
               </span>
               <PromoCountdown className="text-stone-300 [&_span]:text-white" />
             </div>
@@ -99,11 +99,14 @@ export default async function EarlyAccessPage() {
             <p className="mx-auto mt-5 max-w-md text-base leading-7 text-stone-200/90 sm:text-lg sm:leading-8">
               The ceramics platform for makers who sell, teach, and grow.
               <br className="hidden sm:block" />
-              <span className="font-medium text-white">3 months free.</span>
+              <span className="font-medium text-white">Official launch: 1 May 2026.</span>
             </p>
             <p className="mx-auto mt-4 max-w-md text-center text-sm leading-6 text-stone-300/95">
               We evaluate each studio for quality, authenticity, and fit before approval — pre-registering
               expresses interest and is not a guarantee of access.
+            </p>
+            <p className="mx-auto mt-3 max-w-md text-center text-sm font-medium leading-6 text-white/95">
+              All subscription charges start on 1 May 2026. Until then, studios use subscription features free.
             </p>
           </div>
 

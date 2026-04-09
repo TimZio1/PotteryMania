@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { recordOfferingSubscriptionEvent } from "@/lib/offering-subscriptions";
 import { isOfferingBillingInterval } from "@/lib/offering-pricing";
+import { computeLaunchAwareSubscriptionTrial } from "@/lib/subscription-launch";
 
 type Ctx = { params: Promise<{ subscriptionId: string }> };
 
@@ -123,6 +124,7 @@ export async function POST(req: Request, ctx: Ctx) {
   });
 
   const stripeInterval = next.billingInterval === "weekly" ? "week" : "month";
+  const launchAwareTrial = computeLaunchAwareSubscriptionTrial({ trialPeriodDays: 0 });
   const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     customer_email: user.email,
@@ -158,6 +160,7 @@ export async function POST(req: Request, ctx: Ctx) {
       pricingVersion: String(next.pricingVersion),
       previousOfferingSubscriptionId: current.id,
     },
+    ...(Object.keys(launchAwareTrial).length > 0 ? { subscription_data: launchAwareTrial } : {}),
     success_url: `${process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"}/account?plan_changed=1`,
     cancel_url: `${process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"}/account?plan_change_cancelled=1`,
   });

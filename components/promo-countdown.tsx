@@ -50,7 +50,7 @@ export function PromoCountdownCompact() {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
       <span className="inline-block h-1 w-1 rounded-full bg-emerald-500" aria-hidden />
-      FREE PRE-REG · {tl.days}d left
+      LAUNCH · {tl.days}d left
     </span>
   );
 }

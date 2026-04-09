@@ -1,0 +1,109 @@
+import { test, expect } from "@playwright/test";
+import { loginWithCredentials } from "../helpers/auth";
+import { getAdminCredentials, getProductId, getStudioId, getTestCredentials, getVendorCredentials } from "../helpers/env";
+
+test.describe("UX journeys — customer top 10", () => {
+  test("customer routes and auth boundaries are reachable", async ({ page }) => {
+    const productId = getProductId();
+    const creds = getTestCredentials();
+
+    const customerRoutes = [
+      "/",
+      "/marketplace",
+      "/classes",
+      "/wear/shop",
+      productId ? `/marketplace/products/${productId}` : "/marketplace",
+      "/studios",
+      "/early-access",
+      "/register",
+      "/login",
+    ];
+
+    for (const route of customerRoutes) {
+      await test.step(`customer route ${route}`, async () => {
+        await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45_000 });
+        await expect(page.locator("html")).toBeVisible();
+      });
+    }
+
+    await test.step("customer protected route journey", async () => {
+      if (!creds) {
+        await page.goto("/my-bookings");
+        await expect(page).toHaveURL(/\/login/);
+        return;
+      }
+      await loginWithCredentials(page, creds.email, creds.password, "/my-bookings");
+      await expect(page).toHaveURL(/\/my-bookings/);
+      await expect(page.getByRole("heading", { name: /^My bookings$/i })).toBeVisible({ timeout: 20_000 });
+    });
+  });
+});
+
+test.describe("UX journeys — studio-admin top 10", () => {
+  test("vendor dashboard surface reachability", async ({ page }) => {
+    const creds = getVendorCredentials();
+    const studioId = getStudioId();
+    if (!creds || !studioId) {
+      await page.goto("/dashboard");
+      await expect(page).toHaveURL(/\/login/);
+      return;
+    }
+
+    const routes = [
+      "/dashboard",
+      `/dashboard/products/${studioId}`,
+      `/dashboard/experiences/${studioId}`,
+      `/dashboard/bookings/${studioId}`,
+      `/dashboard/orders/${studioId}`,
+      `/dashboard/${studioId}`,
+      `/dashboard/${studioId}/settings`,
+      `/dashboard/${studioId}/template`,
+      `/dashboard/${studioId}/calendar`,
+      `/dashboard/${studioId}/ai`,
+    ];
+
+    await loginWithCredentials(page, creds.email, creds.password, routes[0]);
+
+    for (const route of routes) {
+      await test.step(`vendor route ${route}`, async () => {
+        await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45_000 });
+        await expect(page).not.toHaveURL(/\/login/);
+        await expect(page.locator("html")).toBeVisible();
+      });
+    }
+  });
+});
+
+test.describe("UX journeys — hyperadmin top 10", () => {
+  test("hyperadmin operations route reachability", async ({ page }) => {
+    const admin = getAdminCredentials();
+    if (!admin) {
+      await page.goto("/admin");
+      await expect(page).toHaveURL(/\/login|\/unauthorized-admin/);
+      return;
+    }
+
+    const routes = [
+      "/admin",
+      "/admin/reports",
+      "/admin/users",
+      "/admin/studios",
+      "/admin/orders",
+      "/admin/bookings",
+      "/admin/finance",
+      "/admin/system",
+      "/admin/operations",
+      "/admin/war-room",
+    ];
+
+    await loginWithCredentials(page, admin.email, admin.password, routes[0]);
+
+    for (const route of routes) {
+      await test.step(`hyperadmin route ${route}`, async () => {
+        await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45_000 });
+        await expect(page).not.toHaveURL(/\/login|\/unauthorized-admin/);
+        await expect(page.locator("html")).toBeVisible();
+      });
+    }
+  });
+});

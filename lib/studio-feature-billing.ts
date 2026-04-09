@@ -9,6 +9,7 @@ import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { getStripe } from "@/lib/stripe";
+import { computeLaunchAwareSubscriptionTrial } from "@/lib/subscription-launch";
 
 /** Proration for mid-cycle subscription item add/remove (`subscriptionItems.create` / `.del`). */
 export type StudioFeatureProrationBehavior = "create_prorations" | "none" | "always_invoice";
@@ -72,6 +73,7 @@ export async function createStudioFeatureSubscriptionCheckout(input: {
         featureId: input.feature.id,
         featureSlug: input.feature.slug,
       },
+      ...computeLaunchAwareSubscriptionTrial(),
     },
     success_url: successUrl,
     cancel_url: cancelUrl,
@@ -119,6 +121,7 @@ export async function createStudioBundleSubscriptionCheckout(input: {
         bundleSlug: input.bundle.slug,
         featureIds: featureIdsCsv,
       },
+      ...computeLaunchAwareSubscriptionTrial(),
     },
     success_url: successUrl,
     cancel_url: cancelUrl,
