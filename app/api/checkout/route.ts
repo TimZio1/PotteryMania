@@ -20,6 +20,8 @@ import {
   validateCouponState,
 } from "@/lib/coupon-checkout";
 import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
+import { logApiError } from "@/lib/monitoring";
+import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 }
@@ -45,7 +47,8 @@ export async function POST(req: Request) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("checkout_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
@@ -82,13 +85,13 @@ export async function POST(req: Request) {
   const { totalWeightGrams, studioId, productBps, bookingBps } = built;
 
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio?.activationPaidAt) {
-    return NextResponse.json({ error: "Studio has not been activated" }, { status: 400 });
+  if (!studio || studio.status !== "approved") {
+    return NextResponse.json({ error: "Studio not available" }, { status: 400 });
   }
 
   const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
   if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
-    return NextResponse.json({ error: "Studio has not completed Stripe Connect" }, { status: 400 });
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 400 });
   }
 
   let couponIdForMeta: string | null = null;
@@ -309,23 +312,25 @@ export async function POST(req: Request) {
     if (couponCodeForMeta) sessionMetadata.couponCode = couponCodeForMeta;
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer_email: customerEmail,
-    line_items,
-    success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl()}/cart?cancelled=1`,
-    automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
-    payment_intent_data: {
-      application_fee_amount: commissionTotal,
-      transfer_data: { destination: stripeRow.stripeAccountId },
-      metadata: {
-        orderId: order.id,
-        ...(couponIdForMeta ? { couponId: couponIdForMeta, discountCents: String(discountAppliedCents) } : {}),
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: "payment",
+      customer_email: customerEmail,
+      line_items,
+      success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl()}/cart?cancelled=1`,
+      automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
+      payment_intent_data: {
+        application_fee_amount: commissionTotal,
+        metadata: {
+          orderId: order.id,
+          ...(couponIdForMeta ? { couponId: couponIdForMeta, discountCents: String(discountAppliedCents) } : {}),
+        },
       },
+      metadata: sessionMetadata,
     },
-    metadata: sessionMetadata,
-  });
+    { stripeAccount: stripeRow.stripeAccountId },
+  );
 
   await prisma.order.update({
     where: { id: order.id },

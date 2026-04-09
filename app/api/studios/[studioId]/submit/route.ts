@@ -12,14 +12,11 @@ export async function POST(_req: Request, ctx: Ctx) {
   if (!studio || studio.ownerUserId !== user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (studio.status !== "draft" && studio.status !== "rejected") {
-    return NextResponse.json({ error: "Can only submit from draft or rejected" }, { status: 400 });
-  }
-
   const updated = await prisma.studio.update({
     where: { id: studioId },
     data: {
-      status: "pending_review",
+      status: "approved",
+      approvedAt: new Date(),
       rejectionReason: null,
     },
   });

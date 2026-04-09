@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildMetadata } from "@/lib/seo";
+import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { WearPdpBuySection } from "@/components/wear/wear-pdp-buy-section";
 
@@ -44,6 +45,12 @@ export default async function WearProductPage({ params }: Props) {
     },
   });
   if (!p) notFound();
+  const category = resolveWearCategory({
+    slug: p.slug,
+    name: p.name,
+    subtitle: p.subtitle,
+    description: p.description,
+  });
 
   const imgs = wearImageUrlsFromJson(p.images);
   const primary = imgs[0];
@@ -94,6 +101,9 @@ export default async function WearProductPage({ params }: Props) {
             ← Shop
           </Link>
           <h1 className="mt-6 font-serif text-3xl text-white sm:text-4xl">{p.name}</h1>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+            {wearCategoryLabel(category)}
+          </p>
           {p.subtitle ? <p className="mt-3 text-lg text-neutral-400">{p.subtitle}</p> : null}
           <WearPdpBuySection
             productId={p.id}

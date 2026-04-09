@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,8 @@ export async function POST(req: Request, ctx: Ctx) {
   let body: { reason?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_generated_insight_force_unlock_invalid_json", e, { id }, req);
     body = {};
   }
   const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : "";

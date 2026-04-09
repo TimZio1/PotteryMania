@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { captureError } from "@/lib/monitoring";
 import { siteMetadata } from "@/lib/seo";
+import { allCeramicCategories } from "@/lib/ceramic-categories";
 
 /** Lets `next build` succeed when no DB is reachable (CI, fresh clone). */
 function staticSitemapFallback(): MetadataRoute.Sitemap {
@@ -50,6 +51,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { url: `${base}/privacy`, lastModified: now },
       { url: `${base}/vendor-terms`, lastModified: now },
       { url: `${base}/marketplace`, lastModified: now },
+      ...allCeramicCategories().map((category) => ({
+        url: `${base}/category/${category.slug}`,
+        lastModified: now,
+      })),
       { url: `${base}/classes`, lastModified: now },
       { url: `${base}/studios`, lastModified: now },
       ...products.map((product) => ({

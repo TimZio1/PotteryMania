@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
 import type { ExperienceStatus, ExperienceType, ExperienceVisibility, LocationType } from "@prisma/client";
+import { normalizeOfferingPricing } from "@/lib/offering-pricing";
+import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -55,8 +57,9 @@ export async function POST(req: Request, ctx: Ctx) {
   if (studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
   }
-  if (!studio.activationPaidAt) {
-    return NextResponse.json({ error: "Studio activation fee required before listing experiences" }, { status: 403 });
+  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
+  if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
   }
 
   let body: Record<string, unknown>;
@@ -120,6 +123,11 @@ export async function POST(req: Request, ctx: Ctx) {
   const safeVisibility: ExperienceVisibility[] = ["public", "private"];
   const v = safeVisibility.includes(visibility) ? visibility : "public";
 
+  const pricing = normalizeOfferingPricing(body);
+  if (!pricing.ok) {
+    return NextResponse.json({ error: pricing.error }, { status: 400 });
+  }
+
   const experience = await prisma.experience.create({
     data: {
       studioId,
@@ -136,6 +144,17 @@ export async function POST(req: Request, ctx: Ctx) {
       maximumParticipants,
       priceCents,
       compareAtPriceCents: typeof body.compareAtPriceCents === "number" ? body.compareAtPriceCents : null,
+      pricingType: pricing.value.pricingType,
+      recurringPriceCents: pricing.value.recurringPriceCents,
+      billingInterval: pricing.value.billingInterval,
+      billingIntervalCount: pricing.value.billingIntervalCount,
+      minimumCommitmentCycles: pricing.value.minimumCommitmentCycles,
+      autoRenew: pricing.value.autoRenew,
+      trialPeriodDays: pricing.value.trialPeriodDays,
+      cancellationPolicyText: pricing.value.cancellationPolicyText,
+      gracePeriodDays: pricing.value.gracePeriodDays,
+      paymentRetryMax: pricing.value.paymentRetryMax,
+      failedPaymentAction: pricing.value.failedPaymentAction,
       currency: typeof body.currency === "string" ? body.currency.trim().toUpperCase() || "EUR" : "EUR",
       whatIsIncluded: typeof body.whatIsIncluded === "string" ? body.whatIsIncluded.trim() || null : null,
       whatToBring: typeof body.whatToBring === "string" ? body.whatToBring.trim() || null : null,

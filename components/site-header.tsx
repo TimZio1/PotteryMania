@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
+import { allCeramicCategories } from "@/lib/ceramic-categories";
 import { ui } from "@/lib/ui-styles";
 
 function adminVisible(role: string | undefined) {
@@ -108,6 +109,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     "min-h-12 justify-start px-4 text-base",
     wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "",
   );
+  const ceramicCategories = allCeramicCategories();
 
   return (
     <header className="sticky top-0 z-40 border-b border-(--brand-line) bg-[rgba(250,248,245,0.88)] backdrop-blur-xl">
@@ -141,6 +143,40 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               <Link href="/classes" className={linkClass("/classes")}>
                 Classes
               </Link>
+              <div className="group relative">
+                <Link
+                  href="/category/tableware"
+                  className={cn(
+                    ui.buttonGhost,
+                    pathname.startsWith("/category/") ? "bg-amber-50 text-amber-950" : "",
+                  )}
+                >
+                  Shop by Category
+                </Link>
+                <div className="invisible absolute left-0 top-[calc(100%+8px)] z-50 w-[560px] rounded-2xl border border-stone-200 bg-white p-3 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100">
+                  <div className="grid grid-cols-2 gap-2">
+                    {ceramicCategories.map((category) => (
+                      <Link
+                        key={category.slug}
+                        href={`/category/${category.slug}`}
+                        className="group/category flex items-center gap-2 rounded-xl border border-stone-100 p-2 transition hover:scale-[1.01] hover:shadow-sm"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={category.imageUrl}
+                          alt={category.title}
+                          className="h-10 w-10 rounded-lg object-cover"
+                          loading="lazy"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-stone-900">{category.title}</p>
+                          <p className="text-xs text-stone-500">{category.shortDescription}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
               <Link
                 href="/wear/shop"
                 className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
@@ -182,6 +218,40 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                 <Link href="/classes" className={linkClass("/classes")}>
                   Classes
                 </Link>
+                <div className="group relative">
+                  <Link
+                    href="/category/tableware"
+                    className={cn(
+                      ui.buttonGhost,
+                      pathname.startsWith("/category/") ? "bg-amber-50 text-amber-950" : "",
+                    )}
+                  >
+                    Shop by Category
+                  </Link>
+                  <div className="invisible absolute left-0 top-[calc(100%+8px)] z-50 w-[560px] rounded-2xl border border-stone-200 bg-white p-3 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100">
+                    <div className="grid grid-cols-2 gap-2">
+                      {ceramicCategories.map((category) => (
+                        <Link
+                          key={category.slug}
+                          href={`/category/${category.slug}`}
+                          className="group/category flex items-center gap-2 rounded-xl border border-stone-100 p-2 transition hover:scale-[1.01] hover:shadow-sm"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={category.imageUrl}
+                            alt={category.title}
+                            className="h-10 w-10 rounded-lg object-cover"
+                            loading="lazy"
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-stone-900">{category.title}</p>
+                            <p className="text-xs text-stone-500">{category.shortDescription}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
                 <Link
                   href="/wear/shop"
                   className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
@@ -224,76 +294,102 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
       </div>
 
       {/* Mobile sheet — available for all users */}
-      {open ? (
-        <div className="fixed inset-0 z-50 md:hidden" id="mobile-nav" role="dialog" aria-modal="true" aria-label="Navigation menu">
-          <button
-            type="button"
-            className="absolute inset-0 bg-stone-900/40"
-            aria-label="Close menu"
-            onClick={close}
-          />
-          <div className="absolute right-0 top-0 flex h-full w-[min(100%,20rem)] flex-col border-l border-stone-200 bg-white shadow-xl">
-            <div className="flex h-14 items-center justify-between border-b border-stone-100 px-4">
-              <span className="text-sm font-semibold text-stone-900">Menu</span>
-              <button type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
-                Close
-              </button>
-            </div>
-            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
-              <Link href="/marketplace" className={mobileLinkClass("/marketplace")}>
-                Shop
-              </Link>
-              <Link href="/classes" className={mobileLinkClass("/classes")}>
-                Classes
-              </Link>
-              <Link href="/wear/shop" className={mobileWearClass}>
-                Wearables
-                <CartBadge count={wearCount} />
-              </Link>
-              {authed ? (
-                <>
-                  <Link href="/cart" className={mobileLinkClass("/cart")}>
-                    Cart
-                  </Link>
-                  <Link href="/dashboard" className={mobileLinkClass("/dashboard")}>
-                    Dashboard
-                  </Link>
-                  <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")}>
-                    My bookings
-                  </Link>
-                  <Link href="/account" className={mobileLinkClass("/account")}>
-                    Account
-                  </Link>
-                  {adminVisible(role) ? (
-                    <Link href="/admin" className={mobileLinkClass("/admin")}>
-                      Admin
-                    </Link>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-stone-600")}
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                  >
-                    Sign out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <hr className="my-2 border-stone-100" />
-                  <Link href="/early-access" className={mobileLinkClass("/early-access")}>
-                    Register your studio
-                  </Link>
-                  {showPublicSignIn ? (
-                    <Link href="/login" className={mobileLinkClass("/login")}>
-                      Sign in
-                    </Link>
-                  ) : null}
-                </>
-              )}
-            </nav>
+      <div
+        className={cn(
+          "fixed inset-0 z-120 md:hidden transition-opacity",
+          open ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        id="mobile-nav"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        <button
+          type="button"
+          className={cn("absolute inset-0 bg-stone-900/40 transition-opacity", open ? "opacity-100" : "opacity-0")}
+          aria-label="Close menu"
+          onClick={close}
+        />
+        <div
+          className={cn(
+            "absolute right-0 top-0 flex h-full w-[min(100%,20rem)] flex-col border-l border-stone-200 bg-white shadow-xl transition-transform duration-200",
+            open ? "translate-x-0" : "translate-x-full",
+          )}
+        >
+          <div className="flex h-14 items-center justify-between border-b border-stone-100 px-4">
+            <span className="text-sm font-semibold text-stone-900">Menu</span>
+            <button type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
+              Close
+            </button>
           </div>
+          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
+            <Link href="/marketplace" className={mobileLinkClass("/marketplace")}>
+              Shop
+            </Link>
+            <Link href="/classes" className={mobileLinkClass("/classes")}>
+              Classes
+            </Link>
+            <Link href="/category/tableware" className={mobileLinkClass("/category/tableware")}>
+              Shop by Category
+            </Link>
+            <div className="grid grid-cols-2 gap-1 px-1 pb-2">
+              {ceramicCategories.map((category) => (
+                <Link
+                  key={category.slug}
+                  href={`/category/${category.slug}`}
+                  className="rounded-lg border border-stone-200 px-2 py-1.5 text-xs text-stone-700"
+                >
+                  {category.title}
+                </Link>
+              ))}
+            </div>
+            <Link href="/wear/shop" className={mobileWearClass}>
+              Wearables
+              <CartBadge count={wearCount} />
+            </Link>
+            {authed ? (
+              <>
+                <Link href="/cart" className={mobileLinkClass("/cart")}>
+                  Cart
+                </Link>
+                <Link href="/dashboard" className={mobileLinkClass("/dashboard")}>
+                  Dashboard
+                </Link>
+                <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")}>
+                  My bookings
+                </Link>
+                <Link href="/account" className={mobileLinkClass("/account")}>
+                  Account
+                </Link>
+                {adminVisible(role) ? (
+                  <Link href="/admin" className={mobileLinkClass("/admin")}>
+                    Admin
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-stone-600")}
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <hr className="my-2 border-stone-100" />
+                <Link href="/early-access" className={mobileLinkClass("/early-access")}>
+                  Register your studio
+                </Link>
+                {showPublicSignIn ? (
+                  <Link href="/login" className={mobileLinkClass("/login")}>
+                    Sign in
+                  </Link>
+                ) : null}
+              </>
+            )}
+          </nav>
         </div>
-      ) : null}
+      </div>
     </header>
   );
 }

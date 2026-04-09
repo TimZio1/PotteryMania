@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ export async function GET() {
       body: authBody.slice(0, 500),
     };
   } catch (e) {
+    logApiError("admin_spreadconnect_test_auth_failed", e);
     results.auth = { error: e instanceof Error ? e.message : "fetch failed" };
     return NextResponse.json({ ok: false, ...results });
   }
@@ -52,6 +54,7 @@ export async function GET() {
       body: artBody.slice(0, 1000),
     };
   } catch (e) {
+    logApiError("admin_spreadconnect_test_articles_bare_failed", e);
     results.articles_bare = { error: e instanceof Error ? e.message : "fetch failed" };
   }
 
@@ -68,6 +71,7 @@ export async function GET() {
       body: artBody2.slice(0, 1000),
     };
   } catch (e) {
+    logApiError("admin_spreadconnect_test_articles_limit1_failed", e);
     results.articles_limit1 = { error: e instanceof Error ? e.message : "fetch failed" };
   }
 
@@ -84,6 +88,7 @@ export async function GET() {
       body: artBody3.slice(0, 1000),
     };
   } catch (e) {
+    logApiError("admin_spreadconnect_test_articles_limit100_failed", e);
     results.articles_limit100 = { error: e instanceof Error ? e.message : "fetch failed" };
   }
 
@@ -98,6 +103,7 @@ export async function GET() {
       ok: ptRes.ok,
     };
   } catch (e) {
+    logApiError("admin_spreadconnect_test_product_types_failed", e);
     results.productTypes = { error: e instanceof Error ? e.message : "fetch failed" };
   }
 

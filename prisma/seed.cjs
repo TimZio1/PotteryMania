@@ -63,8 +63,84 @@ async function upsertBusinessTemplates() {
   console.log("[seed] business_templates upserted (" + BUSINESS_TEMPLATE_SEEDS.length + " rows)");
 }
 
+async function upsertOperationalBillingPlans() {
+  const plans = [
+    {
+      slug: "start",
+      name: "START",
+      description: "Bookings + product sales + basic calendar",
+      priceCents: 1900,
+      interval: "month",
+      features: [
+        "bookings_enabled",
+        "product_sales_enabled",
+        "basic_calendar",
+      ],
+    },
+    {
+      slug: "growth",
+      name: "GROWTH",
+      description: "Rescheduling, waitlist, reminders, basic analytics",
+      priceCents: 4900,
+      interval: "month",
+      features: ["rescheduling", "waitlist", "reminders", "basic_analytics"],
+    },
+    {
+      slug: "pro",
+      name: "PRO",
+      description: "CRM, repeat-customer tools, advanced analytics, reporting",
+      priceCents: 9900,
+      interval: "month",
+      features: ["crm", "repeat_customer_tools", "advanced_analytics", "reporting"],
+    },
+    {
+      slug: "scale",
+      name: "SCALE",
+      description: "Team management, multi-instructor, advanced scheduling, API access",
+      priceCents: 19900,
+      interval: "month",
+      features: ["team_management", "multiple_instructors", "advanced_scheduling", "api_access"],
+    },
+  ];
+
+  for (const p of plans) {
+    const row = await prisma.billingPlan.upsert({
+      where: { slug: p.slug },
+      create: {
+        slug: p.slug,
+        name: p.name,
+        description: p.description,
+        priceCents: p.priceCents,
+        currency: "EUR",
+        interval: p.interval,
+        isActive: true,
+      },
+      update: {
+        name: p.name,
+        description: p.description,
+        priceCents: p.priceCents,
+        currency: "EUR",
+        interval: p.interval,
+        isActive: true,
+      },
+    });
+
+    await prisma.planFeatureEntitlement.deleteMany({ where: { planId: row.id } });
+    for (const featureKey of p.features) {
+      await prisma.planFeatureEntitlement.create({
+        data: {
+          planId: row.id,
+          featureKey,
+        },
+      });
+    }
+  }
+  console.log("[seed] locked operational billing plans upserted");
+}
+
 async function main() {
   await upsertBusinessTemplates();
+  await upsertOperationalBillingPlans();
   await upsertWearProducts(prisma);
 
   const emailRaw = process.env.SEED_HYPER_ADMIN_EMAIL;

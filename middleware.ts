@@ -12,6 +12,12 @@ import {
   stripPortFromHost,
   vendorDomainResolveFetchBaseUrl,
 } from "@/lib/vendor-domain-core";
+import {
+  hasSessionLikeCookie,
+  isCsrfExemptPath,
+  isSameOriginRequest,
+  isStateChangingMethod,
+} from "@/lib/csrf-protection";
 
 const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart", "/account"];
 /** Public without marketplace; /register only when browsing is open (not preregistration-only). */
@@ -44,6 +50,21 @@ export default auth(async (req) => {
   }
 
   const path = req.nextUrl.pathname;
+  const isApiPath = path.startsWith("/api/");
+
+  if (isApiPath) {
+    if (isStateChangingMethod(req.method) && !isCsrfExemptPath(path)) {
+      const cookieHeader = req.headers.get("cookie");
+      if (hasSessionLikeCookie(cookieHeader)) {
+        const origin = req.headers.get("origin");
+        const referer = req.headers.get("referer");
+        if (!isSameOriginRequest(origin, referer, req.nextUrl.origin)) {
+          return NextResponse.json({ error: "CSRF validation failed" }, { status: 403 });
+        }
+      }
+    }
+    return NextResponse.next();
+  }
 
   const rawHost = req.headers.get("host");
   const hostNoPort = stripPortFromHost(rawHost);
@@ -127,5 +148,5 @@ export default auth(async (req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\..*).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\..*).*)"],
 };

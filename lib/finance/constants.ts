@@ -1,5 +1,5 @@
-/** One-time studio activation fee (€5) — keep in sync with activate route */
-export const ACTIVATION_FEE_CENTS = 500;
+/** Activation fee removed: Stripe-connected auto-activation. */
+export const ACTIVATION_FEE_CENTS = 0;
 
 export const LEDGER_SOURCE_SYSTEM = {
   commerce: "commerce",

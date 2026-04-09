@@ -10,6 +10,8 @@ export type WearProductAdminRow = {
   id: string;
   slug: string;
   name: string;
+  category: string;
+  categoryLabel: string;
   isActive: boolean;
   isFeatured: boolean;
   archivedAt: string | null;
@@ -180,6 +182,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
           <thead className="border-b border-stone-200 bg-stone-50/80 text-xs font-semibold uppercase tracking-wide text-stone-500">
             <tr>
               <th className="px-4 py-3">Product</th>
+              <th className="px-4 py-3">Category</th>
               <th className="px-4 py-3">Slug</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Variants</th>
@@ -195,6 +198,11 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
                   {p.archivedAt ? (
                     <span className="mt-1 inline-block text-xs text-amber-800/80">Archived</span>
                   ) : null}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex rounded-full border border-stone-200 px-2 py-0.5 text-xs text-stone-700">
+                    {p.categoryLabel}
+                  </span>
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-stone-600">{p.slug}</td>
                 <td className="px-4 py-3 text-stone-700">

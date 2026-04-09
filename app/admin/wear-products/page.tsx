@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { Spinner } from "@/components/ui/spinner";
 import { getWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
+import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
 
 import type { Metadata } from "next";
@@ -43,17 +44,27 @@ export default async function AdminWearProductsPage({
     include: { _count: { select: { variants: true } } },
   });
 
-  const initial = rows.map((r) => ({
-    id: r.id,
-    slug: r.slug,
-    name: r.name,
-    isActive: r.isActive,
-    isFeatured: r.isFeatured,
-    archivedAt: r.archivedAt?.toISOString() ?? null,
-    priceCents: r.priceCents,
-    currency: r.currency,
-    variantCount: r._count.variants,
-  }));
+  const initial = rows.map((r) => {
+    const category = resolveWearCategory({
+      slug: r.slug,
+      name: r.name,
+      subtitle: r.subtitle,
+      description: r.description,
+    });
+    return {
+      category,
+      categoryLabel: wearCategoryLabel(category),
+      id: r.id,
+      slug: r.slug,
+      name: r.name,
+      isActive: r.isActive,
+      isFeatured: r.isFeatured,
+      archivedAt: r.archivedAt?.toISOString() ?? null,
+      priceCents: r.priceCents,
+      currency: r.currency,
+      variantCount: r._count.variants,
+    };
+  });
 
   const health = await getWearCatalogHealthSnapshot();
 

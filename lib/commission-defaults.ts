@@ -1,7 +1,7 @@
-/** Basis points when no CommissionRule and no admin_configs row (380 = 3.8%). */
-export const DEFAULT_PLATFORM_COMMISSION_BPS = 380;
+/** Locked global take rate for all commerce (500 = 5.0%). */
+export const DEFAULT_PLATFORM_COMMISSION_BPS = 500;
 
-/** Human label for marketing / UI, e.g. 380 → "3.8%". */
+/** Human label for marketing / UI, e.g. 500 → "5%". */
 export function platformCommissionPercentLabel(bps: number): string {
   const pct = bps / 100;
   return Number.isInteger(pct) ? `${pct}%` : `${pct.toFixed(1)}%`;

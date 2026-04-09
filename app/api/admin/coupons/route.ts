@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeCouponCode } from "@/lib/coupon-checkout";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,8 @@ export async function POST(req: Request) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_coupons_post_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
@@ -115,7 +117,8 @@ export async function POST(req: Request) {
       },
     });
     return NextResponse.json({ id: created.id, code: created.code });
-  } catch {
+  } catch (e) {
+    logApiError("admin_coupons_post_create_failed", e, { code }, req);
     return NextResponse.json({ error: "Could not create coupon (duplicate code?)" }, { status: 400 });
   }
 }

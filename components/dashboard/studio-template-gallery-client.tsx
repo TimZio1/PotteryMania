@@ -26,7 +26,9 @@ function emitFunnelEvent(
       eventType,
       ...(templateSlug ? { templateSlug } : {}),
     }),
-  }).catch(() => {});
+  }).catch((error: unknown) => {
+    console.warn("[template-gallery] failed to emit funnel event", error);
+  });
 }
 
 export default function StudioTemplateGalleryClient({

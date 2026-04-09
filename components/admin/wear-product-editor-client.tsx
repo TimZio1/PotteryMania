@@ -21,6 +21,8 @@ export type WearVariantEditorRow = {
 export type WearProductEditorInitial = {
   slug: string;
   name: string;
+  category: string;
+  categoryLabel: string;
   subtitle: string | null;
   description: string | null;
   priceCents: number;
@@ -46,6 +48,7 @@ export default function WearProductEditorClient({
 
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
+  const categoryLabel = initial?.categoryLabel ?? "Auto";
   const [subtitle, setSubtitle] = useState(initial?.subtitle ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [priceCents, setPriceCents] = useState(String(initial?.priceCents ?? ""));
@@ -275,6 +278,14 @@ export default function WearProductEditorClient({
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               required
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Category</label>
+            <input
+              className="mt-1 w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-700"
+              value={categoryLabel}
+              readOnly
             />
           </div>
           <div>

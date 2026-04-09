@@ -9,6 +9,8 @@ import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/
 import { assertRateLimit } from "@/lib/rate-limit";
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import type { CancellationPolicy } from "@prisma/client";
+import { logApiError } from "@/lib/monitoring";
+import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -50,7 +52,8 @@ export async function POST(req: Request) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("bookings_checkout_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
@@ -88,9 +91,6 @@ export async function POST(req: Request) {
   if (studio.status !== "approved") {
     return NextResponse.json({ error: "Studio not available" }, { status: 400 });
   }
-  if (!studio.activationPaidAt) {
-    return NextResponse.json({ error: "Studio has not been activated" }, { status: 400 });
-  }
   if (slot.status !== "open") {
     return NextResponse.json({ error: "Slot not bookable" }, { status: 400 });
   }
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
 
   const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId: studio.id } });
   if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
-    return NextResponse.json({ error: "Studio has not completed Stripe Connect" }, { status: 400 });
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 400 });
   }
 
   const fullLine = experience.priceCents * participantCount;
@@ -184,28 +184,30 @@ export async function POST(req: Request) {
     ? `${experience.title} — deposit (${participantCount} pax)`
     : `${experience.title} (per person)`;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer_email: customerEmail,
-    line_items: [
-      {
-        quantity: isDeposit ? 1 : participantCount,
-        price_data: {
-          currency: "eur",
-          unit_amount: isDeposit ? charged : experience.priceCents,
-          product_data: { name: stripeName },
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: "payment",
+      customer_email: customerEmail,
+      line_items: [
+        {
+          quantity: isDeposit ? 1 : participantCount,
+          price_data: {
+            currency: "eur",
+            unit_amount: isDeposit ? charged : experience.priceCents,
+            product_data: { name: stripeName },
+          },
         },
+      ],
+      success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl()}/classes/${experience.id}?cancelled=1`,
+      payment_intent_data: {
+        application_fee_amount: commissionTotal,
+        metadata: { orderId: order.id },
       },
-    ],
-    success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl()}/classes/${experience.id}?cancelled=1`,
-    payment_intent_data: {
-      application_fee_amount: commissionTotal,
-      transfer_data: { destination: stripeRow.stripeAccountId },
       metadata: { orderId: order.id },
     },
-    metadata: { orderId: order.id },
-  });
+    { stripeAccount: stripeRow.stripeAccountId },
+  );
 
   return NextResponse.json({ url: session.url, orderId: order.id, bookingId: booking.id });
 }

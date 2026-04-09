@@ -4,6 +4,7 @@ import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { featureBundleToDto } from "@/lib/admin-feature-bundle-dto";
 import { getStripe } from "@/lib/stripe";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,8 @@ export async function POST(req: Request) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_feature_bundles_post_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
@@ -126,7 +128,8 @@ export async function POST(req: Request) {
       if (!p.active) {
         return NextResponse.json({ error: "Stripe price is inactive" }, { status: 400 });
       }
-    } catch {
+    } catch (e) {
+      logApiError("admin_feature_bundles_stripe_price_invalid", e, { stripePriceId }, req);
       return NextResponse.json({ error: "Stripe price id not found or invalid" }, { status: 400 });
     }
   }

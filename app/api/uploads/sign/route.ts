@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { uploadConfigPayload, uploadConfigured } from "@/lib/uploads";
+import { logApiError } from "@/lib/monitoring";
 
 export async function POST(req: Request) {
   const rate = assertRateLimit(req, "uploads:sign", 30, 60_000);
@@ -14,7 +15,8 @@ export async function POST(req: Request) {
   let body: { folder?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("uploads_sign_invalid_json", e, undefined, req);
     body = {};
   }
 

@@ -108,6 +108,9 @@ export async function buildCheckoutLineRowsFromCart(
       if (p.status !== "active" || p.studio.status !== "approved") {
         return { ok: false, error: `Product unavailable: ${p.title}`, status: 400 };
       }
+      if (p.pricingType === "recurring") {
+        return { ok: false, error: `Subscription product cannot be purchased as one-time: ${p.title}`, status: 409 };
+      }
       if (p.stockStatus === "out_of_stock" || p.stockQuantity < item.quantity) {
         return {
           ok: false,
@@ -155,6 +158,9 @@ export async function buildCheckoutLineRowsFromCart(
     const slot = item.slot;
     if (experience.status !== "active" || experience.visibility !== "public" || experience.studio.status !== "approved") {
       return { ok: false, error: `Experience unavailable: ${experience.title}`, status: 400 };
+    }
+    if (experience.pricingType === "recurring") {
+      return { ok: false, error: `Subscription class cannot be booked as one-time: ${experience.title}`, status: 409 };
     }
     if (slot.status !== "open") {
       return { ok: false, error: `Slot no longer bookable: ${experience.title}`, status: 400 };

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,8 @@ export async function PATCH(req: Request) {
   let body: { taskId?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_webhook_events_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const taskId = typeof body.taskId === "string" ? body.taskId.trim() : "";

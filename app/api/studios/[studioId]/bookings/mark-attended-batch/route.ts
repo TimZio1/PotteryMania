@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import type { Prisma } from "@prisma/client";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,8 @@ export async function POST(req: Request, ctx: Ctx) {
   let body: { bookingIds?: unknown };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("studio_bookings_mark_attended_batch_invalid_json", e, { studioId }, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

@@ -11,6 +11,17 @@ export type StudioClassListRow = {
   minimumParticipants: number;
   maximumParticipants: number;
   priceCents: number;
+  pricingType: "one_time" | "recurring";
+  recurringPriceCents: number | null;
+  billingInterval: "weekly" | "monthly" | "custom" | null;
+  billingIntervalCount: number | null;
+  minimumCommitmentCycles: number | null;
+  autoRenew: boolean;
+  trialPeriodDays: number | null;
+  cancellationPolicyText: string | null;
+  gracePeriodDays: number;
+  paymentRetryMax: number;
+  failedPaymentAction: "pause" | "cancel";
   currency: string;
   experienceType: string;
   skillLevel: string | null;
@@ -43,6 +54,17 @@ export async function buildStudioClassListRows(prisma: PrismaClient, studioId: s
       minimumParticipants: true,
       maximumParticipants: true,
       priceCents: true,
+      pricingType: true,
+      recurringPriceCents: true,
+      billingInterval: true,
+      billingIntervalCount: true,
+      minimumCommitmentCycles: true,
+      autoRenew: true,
+      trialPeriodDays: true,
+      cancellationPolicyText: true,
+      gracePeriodDays: true,
+      paymentRetryMax: true,
+      failedPaymentAction: true,
       currency: true,
       experienceType: true,
       skillLevel: true,
@@ -92,6 +114,17 @@ export async function buildStudioClassListRows(prisma: PrismaClient, studioId: s
       minimumParticipants: e.minimumParticipants,
       maximumParticipants: e.maximumParticipants,
       priceCents: e.priceCents,
+      pricingType: e.pricingType,
+      recurringPriceCents: e.recurringPriceCents,
+      billingInterval: e.billingInterval,
+      billingIntervalCount: e.billingIntervalCount,
+      minimumCommitmentCycles: e.minimumCommitmentCycles,
+      autoRenew: e.autoRenew,
+      trialPeriodDays: e.trialPeriodDays,
+      cancellationPolicyText: e.cancellationPolicyText,
+      gracePeriodDays: e.gracePeriodDays,
+      paymentRetryMax: e.paymentRetryMax,
+      failedPaymentAction: e.failedPaymentAction,
       currency: e.currency,
       experienceType: e.experienceType,
       skillLevel: e.skillLevel,

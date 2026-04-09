@@ -8,7 +8,10 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ui } from "@/lib/ui-styles";
 import { getMarketplaceProduct } from "@/lib/products";
 import { prisma } from "@/lib/db";
+import { ceramicCategoryMetaByValue } from "@/lib/ceramic-categories";
 import { buildMetadata } from "@/lib/seo";
+import { billingIntervalLabel } from "@/lib/offering-pricing";
+import SubscribeButton from "@/components/offerings/subscribe-button";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +56,8 @@ export default async function ProductPage({ params }: Props) {
   const avgRating = reviewData.length ? reviewData.reduce((sum, review) => sum + review.rating, 0) / reviewData.length : 0;
 
   const price = (product.salePriceCents ?? product.priceCents) / 100;
+  const recurring =
+    product.pricingType === "recurring" && product.recurringPriceCents != null && product.billingInterval != null;
 
   const toolbar = (
     <Breadcrumbs
@@ -98,13 +103,20 @@ export default async function ProductPage({ params }: Props) {
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">{product.title}</h1>
             <div className="mt-4 flex items-end gap-3">
-              <p className="text-3xl font-semibold text-amber-950">€{price.toFixed(2)}</p>
-              {product.salePriceCents ? (
+              <p className="text-3xl font-semibold text-amber-950">
+                {recurring
+                  ? `€${((product.recurringPriceCents as number) / 100).toFixed(2)}/${billingIntervalLabel(
+                      product.billingInterval as "weekly" | "monthly" | "custom",
+                      product.billingIntervalCount ?? 1,
+                    )}`
+                  : `€${price.toFixed(2)}`}
+              </p>
+              {!recurring && product.salePriceCents ? (
                 <p className="text-lg text-stone-400 line-through">€{(product.priceCents / 100).toFixed(2)}</p>
               ) : null}
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
-              {product.category ? <span className="rounded-full bg-stone-100 px-3 py-1">{product.category.name}</span> : null}
+              <span className="rounded-full bg-stone-100 px-3 py-1">{ceramicCategoryMetaByValue(product.category).title}</span>
               {product.stockQuantity > 0 ? (
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
                   {product.stockQuantity} in stock
@@ -116,11 +128,27 @@ export default async function ProductPage({ params }: Props) {
             </div>
             {product.shortDescription ? <p className="mt-4 text-stone-700">{product.shortDescription}</p> : null}
             <div className="mt-8">
-              <AddToCart
-                productId={product.id}
-                stockQuantity={product.stockQuantity}
-                stockStatus={product.stockStatus}
-              />
+              {recurring ? (
+                <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+                  <p className="text-sm font-medium text-amber-950">Recurring plan</p>
+                  <ul className="mt-2 space-y-1 text-xs text-amber-900">
+                    <li>Billing cycle: {billingIntervalLabel(product.billingInterval!, product.billingIntervalCount ?? 1)}</li>
+                    <li>Auto-renew: {product.autoRenew ? "On" : "Off"}</li>
+                    {product.minimumCommitmentCycles ? <li>Minimum commitment: {product.minimumCommitmentCycles} cycles</li> : null}
+                    {product.trialPeriodDays ? <li>Trial period: {product.trialPeriodDays} days</li> : null}
+                    {product.cancellationPolicyText ? <li>Cancellation: {product.cancellationPolicyText}</li> : null}
+                  </ul>
+                  <div className="mt-3">
+                    <SubscribeButton offeringType="product" offeringId={product.id} cta="Start subscription" />
+                  </div>
+                </div>
+              ) : (
+                <AddToCart
+                  productId={product.id}
+                  stockQuantity={product.stockQuantity}
+                  stockStatus={product.stockStatus}
+                />
+              )}
             </div>
             {product.fullDescription ? (
               <div className="mt-10 border-t border-stone-200 pt-8">

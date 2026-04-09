@@ -105,7 +105,13 @@ export default async function StudioPage({ params }: Props) {
   const avgRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
 
   const session = await auth();
-  redirectEndUserIfStudioHasNoPublicOfferings(session?.user?.role, experiences.length, products.length);
+  const allowEmptyPublicProfile = !studio.activationPaidAt;
+  redirectEndUserIfStudioHasNoPublicOfferings(
+    session?.user?.role,
+    experiences.length,
+    products.length,
+    allowEmptyPublicProfile,
+  );
 
   const galleryUrls = collectGalleryUrls(studio, experiences, products);
 
@@ -179,6 +185,11 @@ export default async function StudioPage({ params }: Props) {
               ) : null}
             </div>
             {studio.shortDescription ? <p className="mt-4 text-base text-stone-700">{studio.shortDescription}</p> : null}
+            {!studio.activationPaidAt ? (
+              <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900">
+                Free listing profile. Classes and product checkout become available after Stripe connection.
+              </p>
+            ) : null}
 
             <div className="mt-6 flex flex-wrap gap-2">
               {upcomingSlots.length > 0 || experiences.length > 0 ? (

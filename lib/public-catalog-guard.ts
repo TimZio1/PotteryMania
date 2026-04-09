@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildProductWhere } from "@/lib/products";
 import { canBrowseDuringPreregistration } from "@/lib/preregistration";
+import { studioCanOperateWhere } from "@/lib/studio-operating-gates";
 
 function isEndUserBrowse(role: string | undefined): boolean {
   return !canBrowseDuringPreregistration(role);
@@ -27,7 +28,7 @@ export async function redirectEndUserIfNoPublicClasses(role: string | undefined)
       where: {
         status: "active",
         visibility: "public",
-        studio: { status: "approved" },
+        studio: studioCanOperateWhere(),
       },
     });
   } catch {
@@ -51,7 +52,9 @@ export function redirectEndUserIfStudioHasNoPublicOfferings(
   role: string | undefined,
   experienceCount: number,
   productCount: number,
+  allowEmptyStudioProfile = false,
 ): void {
   if (!isEndUserBrowse(role)) return;
+  if (allowEmptyStudioProfile) return;
   if (experienceCount === 0 && productCount === 0) redirect("/");
 }

@@ -5,8 +5,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
-import { isPromoActive } from "@/lib/promo";
-import { PromoCountdown } from "@/components/promo-countdown";
 
 export default function EditStudioPage() {
   const { studioId } = useParams<{ studioId: string }>();
@@ -49,7 +47,7 @@ export default function EditStudioPage() {
     router.refresh();
   }
 
-  async function submitReview() {
+  async function publishProfile() {
     setErr("");
     const r = await fetch(`/api/studios/${studioId}/submit`, { method: "POST" });
     if (!r.ok) {
@@ -65,7 +63,9 @@ export default function EditStudioPage() {
     setErr("");
     const r = await fetch(`/api/studios/${studioId}/activate`, { method: "POST" });
     const j = await r.json();
-    if (j.free && j.redirectTo) {
+    if (j.activated && j.redirectTo) {
+      window.location.href = j.redirectTo;
+    } else if (j.free && j.redirectTo) {
       window.location.href = j.redirectTo;
     } else if (j.url) {
       window.location.href = j.url;
@@ -139,47 +139,18 @@ export default function EditStudioPage() {
       {/* ── Activation gate ── */}
       {!activated && (
         <div className="mt-6 rounded-2xl border-2 border-emerald-300 bg-emerald-50/60 p-5">
-          {isPromoActive() ? (
-            <>
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="text-lg font-semibold text-emerald-900">Activate your studio — free during launch</h2>
-              </div>
-              <p className="mt-2 text-sm text-stone-700">
-                We&apos;re waiving the activation fee for all studios joining during our launch period.
-                List products, schedule classes, and start selling — completely free.
-              </p>
-              <PromoCountdown className="mt-3" />
-              <button
-                type="button"
-                onClick={payActivation}
-                disabled={activating}
-                className={`${ui.buttonPrimary} mt-5`}
-              >
-                {activating ? "Activating…" : "Activate free"}
-              </button>
-            </>
-          ) : (
-            <>
-              <h2 className="text-lg font-semibold text-amber-950">Activate your studio — €5 one-time fee</h2>
-              <p className="mt-2 text-sm text-stone-700">
-                A one-time, non-refundable activation fee is required before you can list products or
-                experiences on PotteryMania.
-              </p>
-              <ul className="mt-3 list-disc pl-5 text-sm text-stone-600">
-                <li>One-time — never charged again</li>
-                <li>Non-refundable</li>
-                <li>Securely processed via Stripe</li>
-              </ul>
-              <button
-                type="button"
-                onClick={payActivation}
-                disabled={activating}
-                className={`${ui.buttonPrimary} mt-5`}
-              >
-                {activating ? "Redirecting to Stripe…" : "Pay €5 & activate"}
-              </button>
-            </>
-          )}
+          <h2 className="text-lg font-semibold text-amber-950">Activate commerce</h2>
+          <p className="mt-2 text-sm text-stone-700">
+            Connect Stripe first. Once Stripe is enabled, your shop and bookings activate automatically.
+          </p>
+          <button
+            type="button"
+            onClick={payActivation}
+            disabled={activating}
+            className={`${ui.buttonPrimary} mt-5`}
+          >
+            {activating ? "Checking Stripe status…" : "Activate now"}
+          </button>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
         </div>
       )}
@@ -227,11 +198,11 @@ export default function EditStudioPage() {
           </>
         ) : (
           <p className="rounded-lg bg-stone-100 p-3 text-center text-sm text-stone-500">
-            Pay the activation fee to unlock products, experiences, and bookings.
+            Connect Stripe to unlock products, experiences, and bookings.
           </p>
         )}
-        <button type="button" onClick={submitReview} className="rounded border border-amber-800 py-2 text-amber-900">
-          Submit for review
+        <button type="button" onClick={publishProfile} className="rounded border border-amber-800 py-2 text-amber-900">
+          Publish profile
         </button>
         <button type="button" onClick={stripeOnboard} className="rounded bg-stone-800 py-2 text-white">
           Connect Stripe

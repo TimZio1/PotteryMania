@@ -131,6 +131,17 @@ describe("executeAdminStripeOrderRefund", () => {
         refund_application_fee: true,
       }),
     );
+    expect(refundMocks.paymentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ paymentStatus: "refunded" }) }),
+    );
+    expect(refundMocks.orderUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          paymentStatus: "refunded",
+          orderStatus: "refunded",
+        }),
+      }),
+    );
   });
 
   it("partial refund then remainder; third call fails when Stripe balance is exhausted", async () => {
@@ -144,6 +155,14 @@ describe("executeAdminStripeOrderRefund", () => {
     if (!r1.ok) return;
     expect(r1.amountCents).toBe(4_000);
     expect(r1.fullyRefunded).toBe(false);
+    expect(refundMocks.orderUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          paymentStatus: "partially_refunded",
+          orderStatus: "partially_refunded",
+        }),
+      }),
+    );
 
     wirePi(10_000, 4_000);
     const r2 = await executeAdminStripeOrderRefund({
@@ -164,6 +183,35 @@ describe("executeAdminStripeOrderRefund", () => {
     });
     expect(r3.ok).toBe(false);
     expect(refundMocks.refundCreate).toHaveBeenCalledTimes(2);
+  });
+
+  it("caps requested amount to remaining refundable balance", async () => {
+    wirePi(10_000, 9_000);
+    const r = await executeAdminStripeOrderRefund({
+      orderId,
+      adminUserId: "adm1",
+      reason: "cap test",
+      amountCents: 5_000,
+    });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.amountCents).toBe(1_000);
+    expect(r.fullyRefunded).toBe(true);
+    expect(refundMocks.refundCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 1_000 }),
+    );
+  });
+
+  it("rejects non-positive refund amount", async () => {
+    const r = await executeAdminStripeOrderRefund({
+      orderId,
+      adminUserId: "adm1",
+      reason: "invalid amount",
+      amountCents: 0,
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(/at least 1 cent/i);
+    expect(refundMocks.refundCreate).not.toHaveBeenCalled();
   });
 
   it("maps Stripe refund errors", async () => {

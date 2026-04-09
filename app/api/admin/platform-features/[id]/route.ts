@@ -3,6 +3,7 @@ import type { PlatformFeatureVisibility } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_platform_feature_patch_invalid_json", e, { id }, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

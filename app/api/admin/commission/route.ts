@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import type { CommissionItemType } from "@prisma/client";
+import { logApiError } from "@/lib/monitoring";
+import { DEFAULT_PLATFORM_COMMISSION_BPS } from "@/lib/commission-defaults";
 
 const VALID_ITEM_TYPES: CommissionItemType[] = ["product", "booking"];
 
@@ -11,18 +12,11 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const productRule = await prisma.commissionRule.findFirst({
-    where: { ruleScope: "global", studioId: null, itemType: "product", isActive: true },
-    orderBy: { createdAt: "desc" },
+  return NextResponse.json({
+    locked: true,
+    percentageBasisPoints: DEFAULT_PLATFORM_COMMISSION_BPS,
+    itemTypes: VALID_ITEM_TYPES,
   });
-  const bookingRule = await prisma.commissionRule.findFirst({
-    where: { ruleScope: "global", studioId: null, itemType: "booking", isActive: true },
-    orderBy: { createdAt: "desc" },
-  });
-  const fallback = await prisma.adminConfig.findUnique({
-    where: { configKey: "default_product_commission_bps" },
-  });
-  return NextResponse.json({ productRule, bookingRule, fallback });
 }
 
 export async function PATCH(req: Request) {
@@ -33,54 +27,39 @@ export async function PATCH(req: Request) {
   let body: { percentageBasisPoints?: number; itemType?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_commission_patch_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const bps = typeof body.percentageBasisPoints === "number" ? body.percentageBasisPoints : -1;
-  if (bps < 0 || bps > 10000) {
-    return NextResponse.json({ error: "percentageBasisPoints 0-10000" }, { status: 400 });
-  }
+  const bps = typeof body.percentageBasisPoints === "number" ? body.percentageBasisPoints : DEFAULT_PLATFORM_COMMISSION_BPS;
   const itemType = (
     typeof body.itemType === "string" && VALID_ITEM_TYPES.includes(body.itemType as CommissionItemType)
       ? body.itemType
       : "product"
   ) as CommissionItemType;
 
-  const prevRule = await prisma.commissionRule.findFirst({
-    where: { ruleScope: "global", studioId: null, itemType, isActive: true },
-    orderBy: { createdAt: "desc" },
-  });
-
-  await prisma.commissionRule.updateMany({
-    where: { ruleScope: "global", studioId: null, itemType },
-    data: { isActive: false },
-  });
-  const rule = await prisma.commissionRule.create({
-    data: {
-      ruleScope: "global",
-      studioId: null,
-      itemType,
-      percentageBasisPoints: bps,
-      isActive: true,
-    },
-  });
+  const rule = {
+    id: "locked_global_commission",
+    itemType,
+    percentageBasisPoints: DEFAULT_PLATFORM_COMMISSION_BPS,
+  };
 
   await logAdminAction({
     actorUserId: user.id,
-    action: "commission.update",
+    action: "commission.update_blocked_locked_model",
     entityType: "commission_rule",
     entityId: rule.id,
-    before: prevRule ? { itemType, percentageBasisPoints: prevRule.percentageBasisPoints } : null,
-    after: { itemType, percentageBasisPoints: rule.percentageBasisPoints },
-    reason: null,
+    before: { itemType, percentageBasisPoints: bps },
+    after: { itemType, percentageBasisPoints: DEFAULT_PLATFORM_COMMISSION_BPS },
+    reason: "Global commission is locked to 5% by marketplace policy.",
   });
 
-  if (itemType === "product") {
-    await prisma.adminConfig.upsert({
-      where: { configKey: "default_product_commission_bps" },
-      create: { configKey: "default_product_commission_bps", configValue: { bps } },
-      update: { configValue: { bps } },
-    });
-  }
-  return NextResponse.json({ rule });
+  return NextResponse.json(
+    {
+      error: "Global commission is locked to 5% for both bookings and product sales.",
+      locked: true,
+      percentageBasisPoints: DEFAULT_PLATFORM_COMMISSION_BPS,
+    },
+    { status: 400 },
+  );
 }

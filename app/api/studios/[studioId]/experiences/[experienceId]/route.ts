@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
 import type { ExperienceStatus, ExperienceType, ExperienceVisibility, LocationType, Prisma } from "@prisma/client";
+import { normalizeOfferingPricing } from "@/lib/offering-pricing";
+import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 
 type Ctx = { params: Promise<{ studioId: string; experienceId: string }> };
 
@@ -27,6 +29,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
   }
   if (studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
+  }
+  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
+  if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
   }
 
   const exp = await prisma.experience.findFirst({
@@ -104,6 +110,55 @@ export async function PATCH(req: Request, ctx: Ctx) {
   }
   if (body.waitlistEnabled === true || body.waitlistEnabled === false) {
     data.waitlistEnabled = body.waitlistEnabled;
+  }
+
+  const pricingKeys = [
+    "pricingType",
+    "recurringPriceCents",
+    "billingInterval",
+    "billingIntervalCount",
+    "minimumCommitmentCycles",
+    "autoRenew",
+    "trialPeriodDays",
+    "cancellationPolicyText",
+    "gracePeriodDays",
+    "paymentRetryMax",
+    "failedPaymentAction",
+  ];
+  const touchesPricing = pricingKeys.some((k) => k in body);
+  if (touchesPricing) {
+    const pricing = normalizeOfferingPricing({
+      pricingType: "pricingType" in body ? body.pricingType : exp.pricingType,
+      recurringPriceCents: "recurringPriceCents" in body ? body.recurringPriceCents : exp.recurringPriceCents,
+      billingInterval: "billingInterval" in body ? body.billingInterval : exp.billingInterval,
+      billingIntervalCount:
+        "billingIntervalCount" in body ? body.billingIntervalCount : exp.billingIntervalCount,
+      minimumCommitmentCycles:
+        "minimumCommitmentCycles" in body ? body.minimumCommitmentCycles : exp.minimumCommitmentCycles,
+      autoRenew: "autoRenew" in body ? body.autoRenew : exp.autoRenew,
+      trialPeriodDays: "trialPeriodDays" in body ? body.trialPeriodDays : exp.trialPeriodDays,
+      cancellationPolicyText:
+        "cancellationPolicyText" in body ? body.cancellationPolicyText : exp.cancellationPolicyText,
+      gracePeriodDays: "gracePeriodDays" in body ? body.gracePeriodDays : exp.gracePeriodDays,
+      paymentRetryMax: "paymentRetryMax" in body ? body.paymentRetryMax : exp.paymentRetryMax,
+      failedPaymentAction:
+        "failedPaymentAction" in body ? body.failedPaymentAction : exp.failedPaymentAction,
+    });
+    if (!pricing.ok) {
+      return NextResponse.json({ error: pricing.error }, { status: 400 });
+    }
+    data.pricingType = pricing.value.pricingType;
+    data.recurringPriceCents = pricing.value.recurringPriceCents;
+    data.billingInterval = pricing.value.billingInterval;
+    data.billingIntervalCount = pricing.value.billingIntervalCount;
+    data.minimumCommitmentCycles = pricing.value.minimumCommitmentCycles;
+    data.autoRenew = pricing.value.autoRenew;
+    data.trialPeriodDays = pricing.value.trialPeriodDays;
+    data.cancellationPolicyText = pricing.value.cancellationPolicyText;
+    data.gracePeriodDays = pricing.value.gracePeriodDays;
+    data.paymentRetryMax = pricing.value.paymentRetryMax;
+    data.failedPaymentAction = pricing.value.failedPaymentAction;
+    data.pricingVersion = exp.pricingVersion + 1;
   }
 
   const allowedStatus: ExperienceStatus[] = ["draft", "active", "inactive", "archived"];

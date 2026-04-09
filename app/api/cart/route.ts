@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth-session";
 import { getCartForRequest, withCartCookie, cartItemInclude } from "@/lib/cart-server";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { logApiError } from "@/lib/monitoring";
 
 async function loadCart(cartId: string) {
   return prisma.cart.findUnique({
@@ -44,7 +45,8 @@ export async function POST(req: Request) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("cart_post_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const productId = typeof body.productId === "string" ? body.productId : "";
@@ -70,6 +72,9 @@ export async function POST(req: Request) {
       },
     });
     if (!product) return NextResponse.json({ error: "Product not available" }, { status: 400 });
+    if (product.pricingType === "recurring") {
+      return NextResponse.json({ error: "This offering is subscription-based. Use subscription checkout." }, { status: 409 });
+    }
 
     const unit = product.salePriceCents ?? product.priceCents;
     const same = existingItems.find((i) => i.itemType === "product" && i.productId === productId);
@@ -102,6 +107,9 @@ export async function POST(req: Request) {
     const experience = slot.experience;
     if (experience.status !== "active" || experience.visibility !== "public" || experience.studio.status !== "approved") {
       return NextResponse.json({ error: "Experience not available" }, { status: 400 });
+    }
+    if (experience.pricingType === "recurring") {
+      return NextResponse.json({ error: "This class is subscription-based. Start membership checkout instead." }, { status: 409 });
     }
     if (slot.status !== "open") {
       return NextResponse.json({ error: "Slot not bookable" }, { status: 400 });
@@ -179,7 +187,8 @@ export async function PATCH(req: Request) {
   let body: { itemId?: string; quantity?: number; participantCount?: number; seatType?: string | null };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("cart_patch_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const itemId = typeof body.itemId === "string" ? body.itemId : "";

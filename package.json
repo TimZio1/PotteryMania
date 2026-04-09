@@ -9,6 +9,17 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test tests/e2e/smoke",
+    "test:smoke": "npm run test:e2e:smoke -- --grep \"Flow 1|Flow 2|Route smoke\"",
+    "test:e2e-role-matrix": "npm run test:e2e:smoke -- --grep \"Flow 1|Flow 2|Route smoke|checkout|booking|product\"",
+    "test:api-contract": "vitest run lib/api-contract",
+    "test:security": "npm run test:e2e:smoke -- --grep \"Flow 2|Route smoke\"",
+    "test:load-smoke": "npm run test:e2e:smoke -- --grep \"checkout|booking\" --workers=1",
+    "test:reconciliation": "node scripts/qa/reconciliation-check.cjs",
+    "test:functionality": "npm run test:smoke && npm run test:e2e-role-matrix",
+    "test:ux": "npm run test:e2e:smoke -- --grep \"Flow 1\"",
+    "test:logic": "npm run test:e2e:smoke -- --grep \"checkout|booking|product\"",
+    "test:performance": "npm run test:load-smoke",
+    "test:business": "npm run test:e2e:smoke -- --grep \"checkout|booking\"",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
@@ -52,5 +63,8 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.2"
+  },
+  "overrides": {
+    "import-in-the-middle": "3.0.0"
   }
 }

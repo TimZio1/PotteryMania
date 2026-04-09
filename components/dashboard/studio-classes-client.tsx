@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
+import { billingIntervalLabel } from "@/lib/offering-pricing";
 import type { StudioClassListRow } from "@/lib/studio-classes-list";
 
 const EXPERIENCE_TYPES: { value: string; label: string }[] = [
@@ -56,6 +57,17 @@ export default function StudioClassesClient({
     minimumParticipants: 1,
     maximumParticipants: 8,
     priceEur: "",
+    recurringPriceEur: "",
+    pricingType: "one_time",
+    billingInterval: "monthly",
+    billingIntervalCount: 1,
+    minimumCommitmentCycles: 1,
+    autoRenew: true,
+    trialPeriodDays: 0,
+    cancellationPolicyText: "",
+    gracePeriodDays: 3,
+    paymentRetryMax: 3,
+    failedPaymentAction: "pause",
     status: "draft",
     visibility: "public",
     bookingApprovalRequired: false,
@@ -97,6 +109,17 @@ export default function StudioClassesClient({
       minimumParticipants: c.minimumParticipants,
       maximumParticipants: c.maximumParticipants,
       priceEur: (c.priceCents / 100).toFixed(2),
+      recurringPriceEur: ((c.recurringPriceCents ?? 0) / 100).toFixed(2),
+      pricingType: c.pricingType,
+      billingInterval: c.billingInterval ?? "monthly",
+      billingIntervalCount: c.billingIntervalCount ?? 1,
+      minimumCommitmentCycles: c.minimumCommitmentCycles ?? 1,
+      autoRenew: c.autoRenew,
+      trialPeriodDays: c.trialPeriodDays ?? 0,
+      cancellationPolicyText: c.cancellationPolicyText ?? "",
+      gracePeriodDays: c.gracePeriodDays,
+      paymentRetryMax: c.paymentRetryMax,
+      failedPaymentAction: c.failedPaymentAction,
       status: c.status,
       visibility: c.visibility,
       bookingApprovalRequired: c.bookingApprovalRequired,
@@ -113,8 +136,14 @@ export default function StudioClassesClient({
       return;
     }
     const priceCents = Math.round(price * 100);
+    const recurringPrice = parseFloat(form.recurringPriceEur.replace(",", "."));
+    const recurringPriceCents = Number.isFinite(recurringPrice) ? Math.round(recurringPrice * 100) : 0;
     if (form.maximumParticipants < form.minimumParticipants) {
       setErr("Max participants must be ≥ min");
+      return;
+    }
+    if (form.pricingType === "recurring" && recurringPriceCents < 50) {
+      setErr("Recurring price must be at least €0.50");
       return;
     }
     setSaving(true);
@@ -133,6 +162,19 @@ export default function StudioClassesClient({
           minimumParticipants: form.minimumParticipants,
           maximumParticipants: form.maximumParticipants,
           priceCents,
+          pricingType: form.pricingType,
+          recurringPriceCents: form.pricingType === "recurring" ? recurringPriceCents : null,
+          billingInterval: form.pricingType === "recurring" ? form.billingInterval : null,
+          billingIntervalCount: form.pricingType === "recurring" ? form.billingIntervalCount : null,
+          minimumCommitmentCycles: form.pricingType === "recurring" ? form.minimumCommitmentCycles : null,
+          autoRenew: form.pricingType === "recurring" ? form.autoRenew : true,
+          trialPeriodDays:
+            form.pricingType === "recurring" && form.trialPeriodDays > 0 ? form.trialPeriodDays : null,
+          cancellationPolicyText:
+            form.pricingType === "recurring" ? form.cancellationPolicyText.trim() || null : null,
+          gracePeriodDays: form.pricingType === "recurring" ? form.gracePeriodDays : 3,
+          paymentRetryMax: form.pricingType === "recurring" ? form.paymentRetryMax : 3,
+          failedPaymentAction: form.pricingType === "recurring" ? form.failedPaymentAction : "pause",
           status: form.status,
           visibility: form.visibility,
           bookingApprovalRequired: form.bookingApprovalRequired,
@@ -255,7 +297,14 @@ export default function StudioClassesClient({
                         )}
                       </td>
                       <td className="px-4 py-3 text-stone-600">{c.recurringRulesCount}</td>
-                      <td className="px-4 py-3 text-stone-600">€{(c.priceCents / 100).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-stone-600">
+                        {c.pricingType === "recurring" && c.recurringPriceCents != null
+                          ? `€${(c.recurringPriceCents / 100).toFixed(2)}/${billingIntervalLabel(
+                              c.billingInterval ?? "monthly",
+                              c.billingIntervalCount ?? 1,
+                            )}`
+                          : `€${(c.priceCents / 100).toFixed(2)}`}
+                      </td>
                       <td className="px-4 py-3">
                         <Link href={`/classes/${c.id}`} className="text-amber-900 hover:underline" onClick={(e) => e.stopPropagation()}>
                           View
@@ -373,6 +422,148 @@ export default function StudioClassesClient({
               onChange={(e) => setForm((f) => ({ ...f, priceEur: e.target.value }))}
             />
           </label>
+          <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Monetization</p>
+            <div className="mt-2 flex flex-wrap gap-4 text-sm">
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="class-pricing-type"
+                  checked={form.pricingType === "one_time"}
+                  onChange={() => setForm((f) => ({ ...f, pricingType: "one_time" }))}
+                />
+                One-time booking
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="class-pricing-type"
+                  checked={form.pricingType === "recurring"}
+                  onChange={() => setForm((f) => ({ ...f, pricingType: "recurring" }))}
+                />
+                Recurring membership
+              </label>
+            </div>
+            {form.pricingType === "recurring" ? (
+              <div className="mt-3 grid gap-3">
+                <label>
+                  <span className={ui.label}>Price per cycle (EUR)</span>
+                  <input
+                    className={cn(ui.input, "mt-1")}
+                    inputMode="decimal"
+                    value={form.recurringPriceEur}
+                    onChange={(e) => setForm((f) => ({ ...f, recurringPriceEur: e.target.value }))}
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label>
+                    <span className={ui.label}>Billing frequency</span>
+                    <select
+                      className={cn(ui.input, "mt-1")}
+                      value={form.billingInterval}
+                      onChange={(e) => setForm((f) => ({ ...f, billingInterval: e.target.value }))}
+                    >
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span className={ui.label}>Interval count</span>
+                    <input
+                      type="number"
+                      min={1}
+                      className={cn(ui.input, "mt-1")}
+                      value={form.billingIntervalCount}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, billingIntervalCount: parseInt(e.target.value, 10) || 1 }))
+                      }
+                    />
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label>
+                    <span className={ui.label}>Min commitment</span>
+                    <input
+                      type="number"
+                      min={1}
+                      className={cn(ui.input, "mt-1")}
+                      value={form.minimumCommitmentCycles}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, minimumCommitmentCycles: parseInt(e.target.value, 10) || 1 }))
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span className={ui.label}>Trial days</span>
+                    <input
+                      type="number"
+                      min={0}
+                      className={cn(ui.input, "mt-1")}
+                      value={form.trialPeriodDays}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, trialPeriodDays: Math.max(0, parseInt(e.target.value, 10) || 0) }))
+                      }
+                    />
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label>
+                    <span className={ui.label}>Grace period days</span>
+                    <input
+                      type="number"
+                      min={0}
+                      className={cn(ui.input, "mt-1")}
+                      value={form.gracePeriodDays}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, gracePeriodDays: Math.max(0, parseInt(e.target.value, 10) || 0) }))
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span className={ui.label}>Retry attempts</span>
+                    <input
+                      type="number"
+                      min={0}
+                      className={cn(ui.input, "mt-1")}
+                      value={form.paymentRetryMax}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, paymentRetryMax: Math.max(0, parseInt(e.target.value, 10) || 0) }))
+                      }
+                    />
+                  </label>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-stone-700">
+                  <input
+                    type="checkbox"
+                    checked={form.autoRenew}
+                    onChange={(e) => setForm((f) => ({ ...f, autoRenew: e.target.checked }))}
+                  />
+                  Auto-renew
+                </label>
+                <label>
+                  <span className={ui.label}>Cancellation rules</span>
+                  <textarea
+                    className={cn(ui.input, "mt-1 min-h-[64px]")}
+                    value={form.cancellationPolicyText}
+                    onChange={(e) => setForm((f) => ({ ...f, cancellationPolicyText: e.target.value }))}
+                    placeholder="e.g. Cancel up to 24h before renewal."
+                  />
+                </label>
+                <label>
+                  <span className={ui.label}>On failed payment</span>
+                  <select
+                    className={cn(ui.input, "mt-1")}
+                    value={form.failedPaymentAction}
+                    onChange={(e) => setForm((f) => ({ ...f, failedPaymentAction: e.target.value }))}
+                  >
+                    <option value="pause">Pause</option>
+                    <option value="cancel">Cancel</option>
+                  </select>
+                </label>
+              </div>
+            ) : null}
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <label>
               <span className={ui.label}>Status</span>

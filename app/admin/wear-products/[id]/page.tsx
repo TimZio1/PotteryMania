@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
 import WearProductEditorClient from "@/components/admin/wear-product-editor-client";
 import { metaAdminPage } from "@/lib/seo-routes";
 
@@ -28,10 +29,18 @@ export default async function AdminWearProductEditPage({ params }: WearProductPa
     },
   });
   if (!p) notFound();
+  const category = resolveWearCategory({
+    slug: p.slug,
+    name: p.name,
+    subtitle: p.subtitle,
+    description: p.description,
+  });
 
   const initial = {
     slug: p.slug,
     name: p.name,
+    category,
+    categoryLabel: wearCategoryLabel(category),
     subtitle: p.subtitle,
     description: p.description,
     priceCents: p.priceCents,
@@ -61,6 +70,9 @@ export default async function AdminWearProductEditPage({ params }: WearProductPa
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Edit · {p.name}</h1>
       <p className="mt-2 text-sm text-stone-600">
         Slug: <span className="font-mono text-xs">{p.slug}</span>
+      </p>
+      <p className="mt-1 text-sm text-stone-600">
+        Category: <span className="font-medium">{wearCategoryLabel(category)}</span>
       </p>
       <WearProductEditorClient productId={p.id} initial={initial} />
     </div>

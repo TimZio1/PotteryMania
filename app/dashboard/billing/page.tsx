@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { metaDashboardPage } from "@/lib/seo-routes";
@@ -21,23 +19,32 @@ export default async function DashboardBillingPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login?callbackUrl=/dashboard/billing");
 
-  const plans = await prisma.billingPlan.findMany({
-    where: { isActive: true },
-    orderBy: { priceCents: "asc" },
-    include: { entitlements: { take: 12 } },
-  });
-
-  const studios = await prisma.studio.findMany({
-    where: { ownerUserId: user.id, status: "approved" },
-    orderBy: { displayName: "asc" },
-    select: { id: true, displayName: true },
-  });
-
-  const platformSubscriptions = await prisma.subscription.findMany({
-    where: { userId: user.id, status: { in: ["active", "trialing", "past_due"] } },
-    orderBy: { createdAt: "desc" },
-    include: { plan: { select: { name: true, slug: true, priceCents: true, currency: true, interval: true } } },
-  });
+  const plans = [
+    {
+      slug: "start",
+      name: "START",
+      price: "€19/month",
+      items: ["bookings enabled", "product sales enabled", "basic calendar"],
+    },
+    {
+      slug: "growth",
+      name: "GROWTH",
+      price: "€49/month",
+      items: ["rescheduling", "waitlist", "reminders", "basic analytics"],
+    },
+    {
+      slug: "pro",
+      name: "PRO",
+      price: "€99/month",
+      items: ["CRM", "repeat customer tools", "advanced analytics", "reporting"],
+    },
+    {
+      slug: "scale",
+      name: "SCALE",
+      price: "€199/month",
+      items: ["team management", "multiple instructors", "advanced scheduling", "API access"],
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-10">
@@ -51,68 +58,23 @@ export default async function DashboardBillingPage() {
         </p>
       </div>
 
-      {platformSubscriptions.length > 0 ? (
-        <div className={`${ui.card} space-y-3`}>
-          <h2 className="text-lg font-semibold text-stone-900">Platform billing subscriptions</h2>
-          <p className="text-sm text-stone-600">
-            Legacy <code className="text-xs">subscriptions</code> tied to your account (when enabled by operations).
-          </p>
-          <ul className="divide-y divide-stone-100 text-sm">
-            {platformSubscriptions.map((s) => (
-              <li key={s.id} className="py-3">
-                <span className="font-medium text-stone-800">{s.plan.name}</span>{" "}
-                <span className="text-stone-500">
-                  ({s.plan.slug}) · <code className="text-xs">{s.status}</code>
-                </span>
-                <p className="mt-1 text-stone-600">
-                  {(s.plan.priceCents / 100).toFixed(2)} {s.plan.currency} / {s.plan.interval}
-                  {s.currentPeriodEnd ? (
-                    <span className="text-stone-500">
-                      {" "}
-                      · current period ends {s.currentPeriodEnd.toISOString().slice(0, 10)}
-                    </span>
-                  ) : null}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {studios.length > 0 ? (
-        <div className={`${ui.card} space-y-2`}>
-          <h2 className="text-lg font-semibold text-stone-900">Your studios</h2>
-          <ul className="space-y-2 text-sm">
-            {studios.map((s) => (
-              <li key={s.id}>
-                <Link href={`/dashboard/${s.id}/features`} className="font-medium text-amber-900 underline">
-                  {s.displayName} — manage add-ons
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <p className="text-sm text-stone-600">No approved studios yet.</p>
-      )}
-
       <div className={`${ui.card} space-y-3`}>
-        <h2 className="text-lg font-semibold text-stone-900">Platform billing plans (catalog)</h2>
-        {plans.length === 0 ? (
-          <p className="text-sm text-stone-500">No active plans in the database.</p>
-        ) : (
-          <ul className="divide-y divide-stone-100 text-sm">
-            {plans.map((p) => (
-              <li key={p.id} className="py-3">
-                <span className="font-medium text-stone-800">{p.name}</span>{" "}
-                <span className="text-stone-500">
-                  ({p.slug}) · {(p.priceCents / 100).toFixed(2)} {p.currency} / {p.interval}
-                </span>
-                {p.description ? <p className="mt-1 text-stone-600">{p.description}</p> : null}
-              </li>
-            ))}
-          </ul>
-        )}
+        <h2 className="text-lg font-semibold text-stone-900">Operational plans (locked model)</h2>
+        <p className="text-sm text-stone-600">
+          These plans are for operational tooling only. Marketplace visibility is never sold.
+        </p>
+        <ul className="divide-y divide-stone-100 text-sm">
+          {plans.map((p) => (
+            <li key={p.slug} className="py-3">
+              <span className="font-medium text-stone-800">{p.name}</span>{" "}
+              <span className="text-stone-500">· {p.price}</span>
+              <p className="mt-1 text-stone-600">{p.items.join(" · ")}</p>
+            </li>
+          ))}
+        </ul>
+        <p className="text-xs text-stone-500">
+          Checkout for plan subscriptions should be tied to Stripe-connected studios.
+        </p>
       </div>
     </div>
   );

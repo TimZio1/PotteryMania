@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function NewStudioPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isFreeListing = searchParams.get("listing") === "free";
   const [err, setErr] = useState("");
   const [f, setF] = useState({
     displayName: "",
@@ -31,7 +33,7 @@ export default function NewStudioPage() {
     const r = await fetch("/api/studios", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(f),
+      body: JSON.stringify({ ...f, listingOnly: isFreeListing }),
     });
     const j = await r.json();
     if (!r.ok) {
@@ -60,12 +62,18 @@ export default function NewStudioPage() {
         ← Dashboard
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">Create studio</h1>
+      {isFreeListing ? (
+        <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          Free listing mode: directory-only profile (name, address, phone, one image). Connect Stripe later to unlock
+          bookings and product sales.
+        </p>
+      ) : null}
       <form onSubmit={submit} className="mt-6 space-y-3">
         {err && <p className="text-sm text-red-600">{err}</p>}
         {field("displayName", "Display name", true)}
-        {field("legalBusinessName", "Legal business name", true)}
-        {field("vatNumber", "VAT / tax number", true)}
-        {field("responsiblePersonName", "Responsible person", true)}
+        {field("legalBusinessName", "Legal business name", !isFreeListing)}
+        {field("vatNumber", "VAT / tax number", !isFreeListing)}
+        {field("responsiblePersonName", "Responsible person", !isFreeListing)}
         {field("email", "Studio email", true, "email")}
         {field("phone", "Phone")}
         {field("country", "Country", true)}
@@ -75,10 +83,10 @@ export default function NewStudioPage() {
         {field("postalCode", "Postal code")}
         {field("shortDescription", "Short description")}
         {field("longDescription", "Long description")}
-        {field("logoUrl", "Logo image URL", false, "url")}
+        {!isFreeListing ? field("logoUrl", "Logo image URL", false, "url") : null}
         {field("coverImageUrl", "Cover image URL", false, "url")}
         <button type="submit" className="w-full rounded bg-amber-800 py-2 text-white">
-          Save draft
+          {isFreeListing ? "Publish free listing" : "Create studio"}
         </button>
       </form>
     </div>

@@ -6,6 +6,7 @@ import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeWearSlug, isValidWearSlug } from "@/lib/wear-slug";
 import { parseWearImageUrlsFromMultiline } from "@/lib/wear-admin-helpers";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
 import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
@@ -22,12 +23,20 @@ export async function GET(_req: Request, ctx: Ctx) {
     include: { variants: { orderBy: [{ sortOrder: "asc" }, { label: "asc" }] } },
   });
   if (!r) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const category = resolveWearCategory({
+    slug: r.slug,
+    name: r.name,
+    subtitle: r.subtitle,
+    description: r.description,
+  });
 
   return NextResponse.json({
     product: {
       id: r.id,
       slug: r.slug,
       name: r.name,
+      category,
+      categoryLabel: wearCategoryLabel(category),
       subtitle: r.subtitle,
       description: r.description,
       priceCents: r.priceCents,

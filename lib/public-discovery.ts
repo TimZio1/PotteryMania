@@ -1,5 +1,6 @@
 import type { ExperienceType, Prisma } from "@prisma/client";
 import { haversineKm, parseNearQueryFromParams, type NearQuery } from "@/lib/geo";
+import { studioCanOperateWhere } from "@/lib/studio-operating-gates";
 
 export type { NearQuery };
 
@@ -73,7 +74,7 @@ export function buildExperienceDiscoverWhere(f: ClassesDiscoveryFilters): Prisma
   const and: Prisma.ExperienceWhereInput[] = [
     { status: "active" },
     { visibility: "public" },
-    { studio: { status: "approved" } },
+    { studio: studioCanOperateWhere() },
   ];
 
   if (f.q) {

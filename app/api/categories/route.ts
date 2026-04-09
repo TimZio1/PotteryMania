@@ -1,36 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdminUser } from "@/lib/auth-session";
-import { slugify } from "@/lib/slug";
+import { syncLockedCeramicCategories } from "@/lib/ceramic-categories";
 
 export async function GET() {
-  const categories = await prisma.productCategory.findMany({
-    where: { isActive: true },
-    orderBy: { name: "asc" },
-  });
-  return NextResponse.json({ categories });
-}
-
-export async function POST(req: Request) {
-  const user = await requireAdminUser();
-  if (!user) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  let body: { name?: string };
   try {
-    body = await req.json();
+    await syncLockedCeramicCategories(prisma);
+    const categories = await prisma.productCategory.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        shortDescription: true,
+        longDescription: true,
+        imageUrl: true,
+        icon: true,
+      },
+    });
+    return NextResponse.json({ categories });
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ categories: [] });
   }
-  const name = typeof body.name === "string" ? body.name.trim() : "";
-  if (!name) return NextResponse.json({ error: "Name required" }, { status: 400 });
-  const slug = slugify(name);
-  const exists = await prisma.productCategory.findFirst({
-    where: { OR: [{ name }, { slug }] } ,
-  });
-  if (exists) return NextResponse.json({ error: "Category exists" }, { status: 409 });
-  const cat = await prisma.productCategory.create({
-    data: { name, slug },
-  });
-  return NextResponse.json({ category: cat }, { status: 201 });
 }

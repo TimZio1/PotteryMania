@@ -59,7 +59,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
         <p className={ui.overline}>Configuration</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Settings</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Update how you appear to customers. Stripe Connect, activation, and legal checks stay in the studio workspace.
+          Update how you appear to customers. Stripe Connect and legal profile details stay in the studio workspace.
         </p>
       </div>
 
@@ -106,7 +106,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
 
       <div className={`${ui.card} space-y-4`}>
         <h2 className="text-lg font-semibold text-stone-900">Studio workspace</h2>
-        <p className="text-sm text-stone-600">Legal entity, photos, activation fee, and Stripe onboarding.</p>
+        <p className="text-sm text-stone-600">Legal entity, photos, and Stripe onboarding.</p>
         <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
           Open full studio workspace
         </Link>

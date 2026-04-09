@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { mapBusinessTemplateRow } from "@/lib/business-templates";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_business_templates_patch_invalid_json", e, { id }, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

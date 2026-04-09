@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
+import { ceramicCategoryFromSlug, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
+import { normalizeOfferingPricing } from "@/lib/offering-pricing";
+import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 
 type Ctx = { params: Promise<{ studioId: string; productId: string }> };
 
@@ -21,8 +24,12 @@ export async function PATCH(req: Request, ctx: Ctx) {
   const { studioId, productId } = await ctx.params;
   const pair = await assertProduct(studioId, productId, user.id);
   if (!pair) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (pair.studio.status !== "approved") {
-    return NextResponse.json({ error: "Studio not approved" }, { status: 403 });
+  if (pair.studio.status === "suspended") {
+    return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
+  }
+  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
+  if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
   }
 
   let body: Record<string, unknown>;
@@ -49,6 +56,22 @@ export async function PATCH(req: Request, ctx: Ctx) {
     data.stockStatus = body.stockStatus;
   }
   if (body.categoryId === null || typeof body.categoryId === "string") data.categoryId = body.categoryId;
+  if (typeof body.category === "string") {
+    const category = ceramicCategoryFromSlug(body.category);
+    if (!category) {
+      return NextResponse.json({ error: "Invalid ceramic category" }, { status: 400 });
+    }
+    await syncLockedCeramicCategories(prisma);
+    const categoryMeta = await prisma.productCategory.findUnique({
+      where: { slug: ceramicCategoryMetaByValue(category).slug },
+      select: { id: true },
+    });
+    data.category = category;
+    data.categoryId = categoryMeta?.id ?? null;
+  }
+  if (body.subcategory === null || typeof body.subcategory === "string") {
+    data.subcategory = typeof body.subcategory === "string" ? body.subcategory.trim() || null : null;
+  }
   if (typeof body.materials === "string") data.materials = body.materials;
   if (typeof body.careInstructions === "string") data.careInstructions = body.careInstructions;
   if (body.weightGrams === null || typeof body.weightGrams === "number") data.weightGrams = body.weightGrams;
@@ -59,6 +82,55 @@ export async function PATCH(req: Request, ctx: Ctx) {
     data.status = body.status;
   }
   if (typeof body.isFeatured === "boolean") data.isFeatured = body.isFeatured;
+
+  const pricingKeys = [
+    "pricingType",
+    "recurringPriceCents",
+    "billingInterval",
+    "billingIntervalCount",
+    "minimumCommitmentCycles",
+    "autoRenew",
+    "trialPeriodDays",
+    "cancellationPolicyText",
+    "gracePeriodDays",
+    "paymentRetryMax",
+    "failedPaymentAction",
+  ];
+  const touchesPricing = pricingKeys.some((k) => k in body);
+  if (touchesPricing) {
+    const pricing = normalizeOfferingPricing({
+      pricingType: "pricingType" in body ? body.pricingType : pair.product.pricingType,
+      recurringPriceCents: "recurringPriceCents" in body ? body.recurringPriceCents : pair.product.recurringPriceCents,
+      billingInterval: "billingInterval" in body ? body.billingInterval : pair.product.billingInterval,
+      billingIntervalCount:
+        "billingIntervalCount" in body ? body.billingIntervalCount : pair.product.billingIntervalCount,
+      minimumCommitmentCycles:
+        "minimumCommitmentCycles" in body ? body.minimumCommitmentCycles : pair.product.minimumCommitmentCycles,
+      autoRenew: "autoRenew" in body ? body.autoRenew : pair.product.autoRenew,
+      trialPeriodDays: "trialPeriodDays" in body ? body.trialPeriodDays : pair.product.trialPeriodDays,
+      cancellationPolicyText:
+        "cancellationPolicyText" in body ? body.cancellationPolicyText : pair.product.cancellationPolicyText,
+      gracePeriodDays: "gracePeriodDays" in body ? body.gracePeriodDays : pair.product.gracePeriodDays,
+      paymentRetryMax: "paymentRetryMax" in body ? body.paymentRetryMax : pair.product.paymentRetryMax,
+      failedPaymentAction:
+        "failedPaymentAction" in body ? body.failedPaymentAction : pair.product.failedPaymentAction,
+    });
+    if (!pricing.ok) {
+      return NextResponse.json({ error: pricing.error }, { status: 400 });
+    }
+    data.pricingType = pricing.value.pricingType;
+    data.recurringPriceCents = pricing.value.recurringPriceCents;
+    data.billingInterval = pricing.value.billingInterval;
+    data.billingIntervalCount = pricing.value.billingIntervalCount;
+    data.minimumCommitmentCycles = pricing.value.minimumCommitmentCycles;
+    data.autoRenew = pricing.value.autoRenew;
+    data.trialPeriodDays = pricing.value.trialPeriodDays;
+    data.cancellationPolicyText = pricing.value.cancellationPolicyText;
+    data.gracePeriodDays = pricing.value.gracePeriodDays;
+    data.paymentRetryMax = pricing.value.paymentRetryMax;
+    data.failedPaymentAction = pricing.value.failedPaymentAction;
+    data.pricingVersion = pair.product.pricingVersion + 1;
+  }
   if (Array.isArray(body.images)) {
     const images = body.images.filter((img): img is { imageUrl: string; altText?: string | null; isPrimary?: boolean } => {
       return Boolean(img && typeof img === "object" && typeof (img as { imageUrl?: unknown }).imageUrl === "string");

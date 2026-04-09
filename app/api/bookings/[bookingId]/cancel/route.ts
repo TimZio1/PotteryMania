@@ -18,7 +18,9 @@ export async function POST(req: Request, ctx: Ctx) {
   let body: { reason?: string } = {};
   try {
     body = await req.json();
-  } catch {}
+  } catch (e) {
+    logApiError("booking_cancel_invalid_json", e, { bookingId }, req);
+  }
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },

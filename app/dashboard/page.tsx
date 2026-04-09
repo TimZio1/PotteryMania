@@ -4,8 +4,6 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser, requireAdminUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
-import { isPromoActive, PROMO_LABEL } from "@/lib/promo";
-import { PromoCountdownCompact } from "@/components/promo-countdown";
 import { metaDashboardPage } from "@/lib/seo-routes";
 
 export const metadata: Metadata = metaDashboardPage(
@@ -59,6 +57,9 @@ export default async function DashboardPage() {
             <Link href="/classes" className={ui.buttonSecondary}>
               Find a class
             </Link>
+            <Link href="/dashboard/studio/new?listing=free" className={ui.buttonSecondary}>
+              Add my studio (free map listing)
+            </Link>
             <Link href="/my-bookings" className={`${ui.buttonGhost} justify-center`}>
               My bookings
             </Link>
@@ -90,24 +91,17 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-wrap items-center gap-3">
         <p className={ui.overline}>Vendor</p>
-        {isPromoActive() && <PromoCountdownCompact />}
       </div>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Studio dashboard</h1>
       <p className="mt-2 max-w-xl text-stone-600">
         Manage listings, classes, bookings, and payouts. Connect Stripe before taking live payments.
       </p>
 
-      {isPromoActive() && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900">
-          <strong>Launch offer:</strong> {PROMO_LABEL} — activation, listings, and classes are completely free for all studios.
-        </div>
-      )}
-
       {studios.length === 0 ? (
         <div className={`${ui.cardMuted} mt-10`}>
           <h2 className="text-lg font-semibold text-amber-950">Create your studio</h2>
           <p className="mt-2 text-sm text-stone-600">
-            Add your profile so we can review and approve you for the marketplace and class listings.
+            Add your profile, connect Stripe, and go live immediately.
           </p>
           <Link href="/dashboard/studio/new" className={`${ui.buttonPrimary} mt-6 inline-flex`}>
             Start studio setup
@@ -125,22 +119,12 @@ export default async function DashboardPage() {
                     <h2 className="text-lg font-semibold text-stone-900">{s.displayName}</h2>
                     <p className="mt-1 text-sm text-stone-500 capitalize">Status: {s.status.replace(/_/g, " ")}</p>
 
-                    {!activated && (
-                      <p className="mt-2 text-sm font-medium text-emerald-800">
-                        {isPromoActive()
-                          ? "Activate free during the launch period"
-                          : "⚠ Activation fee (€5) required before you can list or sell"}
-                      </p>
-                    )}
-
                     <p className="mt-3 text-sm text-stone-600">
-                      <span className="font-medium text-stone-800">Activation:</span>{" "}
+                      <span className="font-medium text-stone-800">Commerce:</span>{" "}
                       {activated ? (
                         <span className="text-emerald-800">Active</span>
-                      ) : isPromoActive() ? (
-                        <span className="text-emerald-800">Free — activate now</span>
                       ) : (
-                        <span className="text-amber-900">Pending — pay €5 to activate</span>
+                        <span className="text-amber-900">Pending — connect Stripe to activate</span>
                       )}
                     </p>
                     <p className="mt-1 text-sm text-stone-600">
@@ -164,7 +148,7 @@ export default async function DashboardPage() {
                     </Link>
                   </div>
                 </div>
-                {activated && (
+                      {activated && (
                   <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-stone-100 pt-4 text-sm">
                     <Link href={`/dashboard/products/${s.id}`} className="font-medium text-amber-900 hover:underline">
                       Products

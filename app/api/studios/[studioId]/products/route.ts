@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
+import { ceramicCategoryFromSlug, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
+import { normalizeOfferingPricing } from "@/lib/offering-pricing";
+import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -21,7 +24,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   const products = await prisma.product.findMany({
     where: { studioId },
     orderBy: { updatedAt: "desc" },
-    include: { images: true, category: true },
+    include: { images: true, categoryMeta: true },
   });
   return NextResponse.json({ products });
 }
@@ -32,11 +35,12 @@ export async function POST(req: Request, ctx: Ctx) {
   const { studioId } = await ctx.params;
   const studio = await assertOwner(studioId, user.id);
   if (!studio) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (studio.status !== "approved") {
-    return NextResponse.json({ error: "Studio must be approved to add products" }, { status: 403 });
+  if (studio.status === "suspended") {
+    return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
   }
-  if (!studio.activationPaidAt) {
-    return NextResponse.json({ error: "Studio activation fee required before listing products" }, { status: 403 });
+  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
+  if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
   }
 
   let body: {
@@ -50,6 +54,8 @@ export async function POST(req: Request, ctx: Ctx) {
     stockQuantity?: number;
     stockStatus?: string;
     categoryId?: string | null;
+    category?: string;
+    subcategory?: string | null;
     materials?: string | null;
     careInstructions?: string | null;
     weightGrams?: number | null;
@@ -58,6 +64,17 @@ export async function POST(req: Request, ctx: Ctx) {
     returnNotes?: string | null;
     status?: string;
     isFeatured?: boolean;
+    pricingType?: string;
+    recurringPriceCents?: number | null;
+    billingInterval?: string | null;
+    billingIntervalCount?: number | null;
+    minimumCommitmentCycles?: number | null;
+    autoRenew?: boolean;
+    trialPeriodDays?: number | null;
+    cancellationPolicyText?: string | null;
+    gracePeriodDays?: number | null;
+    paymentRetryMax?: number | null;
+    failedPaymentAction?: string;
     images?: { imageUrl: string; altText?: string; isPrimary?: boolean }[];
   };
   try {
@@ -68,6 +85,8 @@ export async function POST(req: Request, ctx: Ctx) {
 
   const title = typeof body.title === "string" ? body.title.trim() : "";
   if (!title) return NextResponse.json({ error: "title required" }, { status: 400 });
+  const category = ceramicCategoryFromSlug(typeof body.category === "string" ? body.category : "") ?? "tableware";
+  const subcategory = typeof body.subcategory === "string" ? body.subcategory.trim() || null : null;
   const priceCents = typeof body.priceCents === "number" ? body.priceCents : -1;
   if (priceCents < 0) return NextResponse.json({ error: "priceCents required" }, { status: 400 });
 
@@ -88,20 +107,45 @@ export async function POST(req: Request, ctx: Ctx) {
       ? body.status
       : "draft";
 
+  const pricing = normalizeOfferingPricing(body);
+  if (!pricing.ok) {
+    return NextResponse.json({ error: pricing.error }, { status: 400 });
+  }
+
+  await syncLockedCeramicCategories(prisma);
+  const categorySlug = ceramicCategoryMetaByValue(category).slug;
+  const categoryMeta = await prisma.productCategory.findUnique({
+    where: { slug: categorySlug },
+    select: { id: true },
+  });
+
   const product = await prisma.product.create({
     data: {
       studioId,
+      category,
+      subcategory,
       title,
       slug,
       shortDescription: body.shortDescription?.trim() || null,
       fullDescription: body.fullDescription?.trim() || null,
       priceCents,
       salePriceCents: body.salePriceCents ?? null,
+      pricingType: pricing.value.pricingType,
+      recurringPriceCents: pricing.value.recurringPriceCents,
+      billingInterval: pricing.value.billingInterval,
+      billingIntervalCount: pricing.value.billingIntervalCount,
+      minimumCommitmentCycles: pricing.value.minimumCommitmentCycles,
+      autoRenew: pricing.value.autoRenew,
+      trialPeriodDays: pricing.value.trialPeriodDays,
+      cancellationPolicyText: pricing.value.cancellationPolicyText,
+      gracePeriodDays: pricing.value.gracePeriodDays,
+      paymentRetryMax: pricing.value.paymentRetryMax,
+      failedPaymentAction: pricing.value.failedPaymentAction,
       sku: body.sku ?? null,
       stockQuantity: body.stockQuantity ?? 0,
       stockStatus:
         body.stockStatus === "out_of_stock" || body.stockStatus === "backorder" ? body.stockStatus : "in_stock",
-      categoryId: body.categoryId || null,
+      categoryId: categoryMeta?.id ?? body.categoryId ?? null,
       materials: body.materials ?? null,
       careInstructions: body.careInstructions ?? null,
       weightGrams: body.weightGrams ?? null,

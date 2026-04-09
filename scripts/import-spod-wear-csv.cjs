@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Import Spreadshirt / SPOD product export CSV into WearProduct + WearProductVariant.
  * Groups rows by "Product ID". Upserts by slug / variant SKUs (same idea as Spreadconnect catalog sync).

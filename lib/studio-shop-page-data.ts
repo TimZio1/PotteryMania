@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { ceramicCategoryMetaByValue } from "@/lib/ceramic-categories";
 
 export const DEFAULT_LOW_STOCK_THRESHOLD = 5;
 
@@ -6,10 +7,24 @@ export type StudioShopProductRow = {
   id: string;
   title: string;
   slug: string;
+  category: string;
+  categoryLabel: string;
+  subcategory: string | null;
   shortDescription: string | null;
   status: string;
   priceCents: number;
   salePriceCents: number | null;
+  pricingType: "one_time" | "recurring";
+  recurringPriceCents: number | null;
+  billingInterval: "weekly" | "monthly" | "custom" | null;
+  billingIntervalCount: number | null;
+  minimumCommitmentCycles: number | null;
+  autoRenew: boolean;
+  trialPeriodDays: number | null;
+  cancellationPolicyText: string | null;
+  gracePeriodDays: number;
+  paymentRetryMax: number;
+  failedPaymentAction: "pause" | "cancel";
   sku: string | null;
   stockQuantity: number;
   stockStatus: string;
@@ -38,10 +53,23 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
         id: true,
         title: true,
         slug: true,
+        category: true,
+        subcategory: true,
         shortDescription: true,
         status: true,
         priceCents: true,
         salePriceCents: true,
+        pricingType: true,
+        recurringPriceCents: true,
+        billingInterval: true,
+        billingIntervalCount: true,
+        minimumCommitmentCycles: true,
+        autoRenew: true,
+        trialPeriodDays: true,
+        cancellationPolicyText: true,
+        gracePeriodDays: true,
+        paymentRetryMax: true,
+        failedPaymentAction: true,
         sku: true,
         stockQuantity: true,
         stockStatus: true,
@@ -66,10 +94,24 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
     id: p.id,
     title: p.title,
     slug: p.slug,
+    category: p.category,
+    categoryLabel: ceramicCategoryMetaByValue(p.category).title,
+    subcategory: p.subcategory,
     shortDescription: p.shortDescription,
     status: p.status,
     priceCents: p.priceCents,
     salePriceCents: p.salePriceCents,
+    pricingType: p.pricingType,
+    recurringPriceCents: p.recurringPriceCents,
+    billingInterval: p.billingInterval,
+    billingIntervalCount: p.billingIntervalCount,
+    minimumCommitmentCycles: p.minimumCommitmentCycles,
+    autoRenew: p.autoRenew,
+    trialPeriodDays: p.trialPeriodDays,
+    cancellationPolicyText: p.cancellationPolicyText,
+    gracePeriodDays: p.gracePeriodDays,
+    paymentRetryMax: p.paymentRetryMax,
+    failedPaymentAction: p.failedPaymentAction,
     sku: p.sku,
     stockQuantity: p.stockQuantity,
     stockStatus: p.stockStatus,

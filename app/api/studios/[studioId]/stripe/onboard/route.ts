@@ -17,9 +17,6 @@ export async function POST(_req: Request, ctx: Ctx) {
   if (!studio || studio.ownerUserId !== user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (studio.status !== "approved") {
-    return NextResponse.json({ error: "Studio must be approved first" }, { status: 403 });
-  }
 
   const stripe = getStripe();
   let row = await prisma.stripeAccount.findUnique({ where: { studioId } });

@@ -4,6 +4,7 @@ import { logAdminAction } from "@/lib/admin-audit";
 import { requireFinanceAdmin } from "@/lib/finance/admin-guard";
 import { LEDGER_SOURCE_SYSTEM } from "@/lib/finance/constants";
 import { upsertLedgerEntry } from "@/lib/finance/ledger";
+import { logApiError } from "@/lib/monitoring";
 
 const ALLOWED: FinanceLedgerEntryType[] = [
   "infra_cost",
@@ -27,7 +28,8 @@ export async function POST(req: Request) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_finance_ledger_adjustment_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

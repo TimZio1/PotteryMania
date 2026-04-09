@@ -59,8 +59,8 @@ export default async function AdminReportsPage() {
   const funnelRows = [
     { step: "Leads (early access, all time)", value: String(earlyAccessTotal), note: `${earlyAccess30} last 30d` },
     { step: "New registered users (30d)", value: String(users30), note: "Accounts created" },
-    { step: "Studios approved", value: String(approvedStudios), note: "KYC / review passed" },
-    { step: "Studios activated (paid)", value: String(activatedStudios), note: "€5 activation fee" },
+    { step: "Studios approved", value: String(approvedStudios), note: "Self-serve studio onboarding" },
+    { step: "Studios activated", value: String(activatedStudios), note: "Stripe Connect enabled" },
     { step: "Studios with live listing", value: String(vendorsWithListing), note: "Active product or class" },
   ];
 

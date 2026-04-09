@@ -11,6 +11,7 @@ import { displayedPreRegTotal } from "@/lib/brand";
 
 const MAX_PHOTOS = 3;
 const MAX_FILE_MB = 5;
+const SUBMIT_TIMEOUT_MS = 20_000;
 
 function readMetaCookie(name: "_fbc" | "_fbp"): string | undefined {
   if (typeof document === "undefined") return undefined;
@@ -51,7 +52,9 @@ export function EarlyAccessForm({
       .then((d) => {
         if (typeof d.count === "number") setCount(d.count);
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        console.warn("[early-access] failed to refresh count", error);
+      });
   }, []);
 
   const onFiles = useCallback(
@@ -104,23 +107,31 @@ export function EarlyAccessForm({
         }
       }
 
-      const r = await fetch("/api/early-access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          studioName,
-          country,
-          websiteOrIg: websiteOrIg || undefined,
-          photoUrls,
-          wantBooking,
-          wantMarket,
-          wantBoth,
-          metaEventId,
-          metaFbc: readMetaCookie("_fbc"),
-          metaFbp: readMetaCookie("_fbp"),
-        }),
-      });
+      const submitAbort = new AbortController();
+      const submitTimeout = setTimeout(() => submitAbort.abort(), SUBMIT_TIMEOUT_MS);
+      let r: Response;
+      try {
+        r = await fetch("/api/early-access", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            studioName,
+            country,
+            websiteOrIg: websiteOrIg || undefined,
+            photoUrls,
+            wantBooking,
+            wantMarket,
+            wantBoth,
+            metaEventId,
+            metaFbc: readMetaCookie("_fbc"),
+            metaFbp: readMetaCookie("_fbp"),
+          }),
+          signal: submitAbort.signal,
+        });
+      } finally {
+        clearTimeout(submitTimeout);
+      }
       const j = await r.json();
       if (!r.ok) {
         setErr(j.error || "Something went wrong");
@@ -143,6 +154,8 @@ export function EarlyAccessForm({
     } catch (error) {
       if (error instanceof Error && error.message === "Hosted uploads are not configured") {
         setErr("Photo uploads are temporarily unavailable. You can still register without photos.");
+      } else if (error instanceof Error && error.name === "AbortError") {
+        setErr("Request timed out. Please try again.");
       } else {
         setErr("Network error. Please try again.");
       }

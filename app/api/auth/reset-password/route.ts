@@ -3,6 +3,7 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { hashResetToken } from "@/lib/password-reset-token";
+import { logApiError } from "@/lib/monitoring";
 
 export async function POST(req: Request) {
   const rate = assertRateLimit(req, "password-reset:confirm", 10, 60 * 60_000);
@@ -12,7 +13,8 @@ export async function POST(req: Request) {
   let body: { token?: string; password?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("auth_reset_password_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const token = typeof body.token === "string" ? body.token.trim() : "";

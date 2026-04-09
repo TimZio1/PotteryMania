@@ -58,6 +58,7 @@ model User {
   emailVerificationTokens   EmailVerificationToken[]
   rankingBoostsAuthored     RankingBoost[]           @relation("RankingBoostAuthor")
   insightPurchases          InsightPurchase[]
+  offeringSubscriptions     OfferingSubscription[]
 
   @@map("users")
 }
@@ -271,6 +272,7 @@ model Studio {
   studioContacts                   StudioContact[]
   businessTemplateFunnelEvents     BusinessTemplateFunnelEvent[]
   businessTemplateActivationLogs   BusinessTemplateActivationLog[]
+  offeringSubscriptions            OfferingSubscription[]
 
   @@index([status])
   @@index([country, city])
@@ -352,15 +354,33 @@ model FeaturedPlacement {
 }
 
 model ProductCategory {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @unique
-  slug      String   @unique
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String   @unique
+  slug             String   @unique
+  shortDescription String   @map("short_description")
+  longDescription  String   @map("long_description") @db.Text
+  imageUrl         String   @map("image_url")
+  icon             String?
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   products Product[]
 
   @@map("product_categories")
+}
+
+enum CeramicCategory {
+  tableware
+  decorative_objects
+  vases_and_plant_pots
+  lighting
+  kitchen_and_serving
+  coffee_and_tea
+  bathroom_and_wellness
+  jewelry_and_small_objects
+  outdoor_and_garden
+  ritual_and_artistic_pieces
 }
 
 enum ProductStockStatus {
@@ -374,6 +394,22 @@ enum ProductStatus {
   active
   inactive
   archived
+}
+
+enum OfferingPricingType {
+  one_time
+  recurring
+}
+
+enum OfferingBillingInterval {
+  weekly
+  monthly
+  custom
+}
+
+enum OfferingFailedPaymentAction {
+  pause
+  cancel
 }
 
 /// Native PotteryMania wear catalog — not studio `Product`; no marketplace cart mixing.
@@ -513,12 +549,26 @@ model Product {
   id               String             @id @default(uuid()) @db.Uuid
   studioId         String             @map("studio_id") @db.Uuid
   categoryId       String?            @map("category_id") @db.Uuid
+  category         CeramicCategory    @default(tableware)
+  subcategory      String?
   title            String
   slug             String
   shortDescription String?            @map("short_description")
   fullDescription  String?            @map("full_description")
   priceCents       Int                @map("price_cents")
   salePriceCents   Int?               @map("sale_price_cents")
+  pricingType      OfferingPricingType @default(one_time) @map("pricing_type")
+  recurringPriceCents Int?            @map("recurring_price_cents")
+  billingInterval  OfferingBillingInterval? @map("billing_interval")
+  billingIntervalCount Int?           @map("billing_interval_count")
+  minimumCommitmentCycles Int?        @map("minimum_commitment_cycles")
+  autoRenew        Boolean            @default(true) @map("auto_renew")
+  trialPeriodDays  Int?               @map("trial_period_days")
+  cancellationPolicyText String?      @map("cancellation_policy_text")
+  gracePeriodDays  Int                @default(3) @map("grace_period_days")
+  paymentRetryMax  Int                @default(3) @map("payment_retry_max")
+  failedPaymentAction OfferingFailedPaymentAction @default(pause) @map("failed_payment_action")
+  pricingVersion   Int                @default(1) @map("pricing_version")
   currency         String             @default("EUR")
   sku              String?
   stockQuantity    Int                @default(0) @map("stock_quantity")
@@ -534,12 +584,13 @@ model Product {
   createdAt        DateTime           @default(now()) @map("created_at")
   updatedAt        DateTime           @updatedAt @map("updated_at")
 
-  studio     Studio           @relation(fields: [studioId], references: [id], onDelete: Cascade)
-  category   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  images     ProductImage[]
+  studio       Studio           @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  categoryMeta ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images       ProductImage[]
   cartItems  CartItem[]
   orderItems OrderItem[]
   reviews    Review[]
+  offeringSubscriptions OfferingSubscription[]
 
   @@unique([studioId, slug])
   @@index([studioId])
@@ -604,6 +655,18 @@ model Experience {
   maximumParticipants  Int                  @map("maximum_participants")
   priceCents           Int                  @map("price_cents")
   compareAtPriceCents  Int?                 @map("compare_at_price_cents")
+  pricingType          OfferingPricingType  @default(one_time) @map("pricing_type")
+  recurringPriceCents  Int?                 @map("recurring_price_cents")
+  billingInterval      OfferingBillingInterval? @map("billing_interval")
+  billingIntervalCount Int?                 @map("billing_interval_count")
+  minimumCommitmentCycles Int?              @map("minimum_commitment_cycles")
+  autoRenew            Boolean              @default(true) @map("auto_renew")
+  trialPeriodDays      Int?                 @map("trial_period_days")
+  cancellationPolicyText String?            @map("cancellation_policy_text")
+  gracePeriodDays      Int                  @default(3) @map("grace_period_days")
+  paymentRetryMax      Int                  @default(3) @map("payment_retry_max")
+  failedPaymentAction  OfferingFailedPaymentAction @default(pause) @map("failed_payment_action")
+  pricingVersion       Int                  @default(1) @map("pricing_version")
   currency             String               @default("EUR")
   whatIsIncluded       String?              @map("what_is_included")
   whatToBring          String?              @map("what_to_bring")
@@ -642,6 +705,7 @@ model Experience {
   cartItems            CartItem[]
   waitlistEntries      BookingWaitlistEntry[]
   reviews              Review[]
+  offeringSubscriptions OfferingSubscription[]
 
   @@unique([studioId, slug])
   @@index([studioId])
@@ -1655,6 +1719,37 @@ enum SubscriptionEventType {
   payment_succeeded
 }
 
+enum OfferingSubscriptionTargetType {
+  product
+  experience
+  kiln_usage
+  membership
+}
+
+enum OfferingSubscriptionStatus {
+  active
+  trialing
+  past_due
+  paused
+  pending_cancel
+  canceled
+  expired
+}
+
+enum OfferingSubscriptionEventType {
+  created
+  checkout_completed
+  renewed
+  payment_failed
+  payment_recovered
+  paused
+  resumed
+  cancel_scheduled
+  canceled
+  expired
+  plan_changed
+}
+
 model SubscriptionEvent {
   id             String                @id @default(uuid()) @db.Uuid
   subscriptionId String                @map("subscription_id") @db.Uuid
@@ -1666,6 +1761,68 @@ model SubscriptionEvent {
 
   @@index([subscriptionId, createdAt])
   @@map("subscription_events")
+}
+
+model OfferingSubscription {
+  id                   String                         @id @default(uuid()) @db.Uuid
+  studioId             String                         @map("studio_id") @db.Uuid
+  userId               String?                        @map("user_id") @db.Uuid
+  targetType           OfferingSubscriptionTargetType @map("target_type")
+  productId            String?                        @map("product_id") @db.Uuid
+  experienceId         String?                        @map("experience_id") @db.Uuid
+  customerEmail        String                         @map("customer_email")
+  customerName         String?                        @map("customer_name")
+  status               OfferingSubscriptionStatus     @default(active)
+  priceSnapshotCents   Int                            @map("price_snapshot_cents")
+  currency             String                         @default("EUR")
+  pricingVersion       Int                            @default(1) @map("pricing_version")
+  billingInterval      OfferingBillingInterval        @map("billing_interval")
+  billingIntervalCount Int                            @default(1) @map("billing_interval_count")
+  minimumCommitmentCycles Int?                        @map("minimum_commitment_cycles")
+  cyclesBilled         Int                            @default(0) @map("cycles_billed")
+  autoRenew            Boolean                        @default(true) @map("auto_renew")
+  cancelAtPeriodEnd    Boolean                        @default(false) @map("cancel_at_period_end")
+  trialEndsAt          DateTime?                      @map("trial_ends_at")
+  currentPeriodStart   DateTime?                      @map("current_period_start")
+  currentPeriodEnd     DateTime?                      @map("current_period_end")
+  nextBillingDate      DateTime?                      @map("next_billing_date")
+  graceEndsAt          DateTime?                      @map("grace_ends_at")
+  failedPaymentCount   Int                            @default(0) @map("failed_payment_count")
+  paymentRetryMax      Int                            @default(3) @map("payment_retry_max")
+  gracePeriodDays      Int                            @default(3) @map("grace_period_days")
+  failedPaymentAction  OfferingFailedPaymentAction    @default(pause) @map("failed_payment_action")
+  canceledAt           DateTime?                      @map("canceled_at")
+  endedAt              DateTime?                      @map("ended_at")
+  stripeCustomerId     String?                        @map("stripe_customer_id")
+  stripeSubscriptionId String?                        @unique @map("stripe_subscription_id")
+  createdAt            DateTime                       @default(now()) @map("created_at")
+  updatedAt            DateTime                       @updatedAt @map("updated_at")
+
+  studio     Studio      @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product    Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  experience Experience? @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+  events     OfferingSubscriptionEvent[]
+
+  @@index([studioId, status])
+  @@index([userId, status])
+  @@index([productId])
+  @@index([experienceId])
+  @@index([stripeSubscriptionId])
+  @@map("offering_subscriptions")
+}
+
+model OfferingSubscriptionEvent {
+  id             String                        @id @default(uuid()) @db.Uuid
+  subscriptionId String                        @map("subscription_id") @db.Uuid
+  eventType      OfferingSubscriptionEventType @map("event_type")
+  payload        Json?
+  createdAt      DateTime                      @default(now()) @map("created_at")
+
+  subscription OfferingSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, createdAt])
+  @@map("offering_subscription_events")
 }
 
 model Coupon {

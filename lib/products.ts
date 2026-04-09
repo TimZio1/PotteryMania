@@ -1,13 +1,22 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { sortProductsByMarketplaceRanking } from "@/lib/ranking/score-engine";
+import { ceramicCategoryFromSlug } from "@/lib/ceramic-categories";
+import { studioCanOperateWhere } from "@/lib/studio-operating-gates";
 
 /** In-memory fairness shuffle for recommended sort on early pages (P4-G); deeper pages use SQL order only. */
 const RECOMMENDED_SHUFFLE_CAP = 400;
 
-export type ProductSort = "recommended" | "newest" | "price_asc" | "price_desc" | "featured";
+export type ProductSort = "recommended" | "popular" | "newest" | "price_asc" | "price_desc" | "featured";
 
-export const PRODUCT_SORT_VALUES: ProductSort[] = ["recommended", "newest", "featured", "price_asc", "price_desc"];
+export const PRODUCT_SORT_VALUES: ProductSort[] = [
+  "recommended",
+  "popular",
+  "newest",
+  "featured",
+  "price_asc",
+  "price_desc",
+];
 
 export function parseProductSort(value: string | undefined | null): ProductSort {
   if (value && (PRODUCT_SORT_VALUES as readonly string[]).includes(value)) {
@@ -33,10 +42,7 @@ export type ProductQueryInput = {
 const DEFAULT_PAGE_SIZE = 12;
 
 function activeStudioWhere(country?: string | null, city?: string | null): Prisma.StudioWhereInput {
-  const where: Prisma.StudioWhereInput = {
-    status: "approved",
-    activationPaidAt: { not: null },
-  };
+  const where: Prisma.StudioWhereInput = studioCanOperateWhere();
   if (country) where.country = country;
   if (city) where.city = city;
   return where;
@@ -49,7 +55,8 @@ export function buildProductWhere(input: ProductQueryInput): Prisma.ProductWhere
   };
 
   if (input.category) {
-    where.category = { slug: input.category };
+    const category = ceramicCategoryFromSlug(input.category);
+    if (category) where.category = category;
   }
   if (input.studioId) {
     where.studioId = input.studioId;
@@ -95,7 +102,7 @@ export function buildProductWhere(input: ProductQueryInput): Prisma.ProductWhere
           { fullDescription: { contains: q, mode: "insensitive" } },
           { materials: { contains: q, mode: "insensitive" } },
           { studio: { displayName: { contains: q, mode: "insensitive" } } },
-          { category: { name: { contains: q, mode: "insensitive" } } },
+          { categoryMeta: { name: { contains: q, mode: "insensitive" } } },
         ],
       },
     ];
@@ -107,13 +114,13 @@ export function buildProductWhere(input: ProductQueryInput): Prisma.ProductWhere
 export function buildProductOrderBy(sort: ProductSort = "recommended"): Prisma.ProductOrderByWithRelationInput[] {
   if (sort === "price_asc") return [{ salePriceCents: "asc" }, { priceCents: "asc" }, { createdAt: "desc" }];
   if (sort === "price_desc") return [{ salePriceCents: "desc" }, { priceCents: "desc" }, { createdAt: "desc" }];
-  if (sort === "featured") return [{ isFeatured: "desc" }, { createdAt: "desc" }];
   if (sort === "newest") return [{ createdAt: "desc" }];
-  // recommended: featured, studio composite (P4), admin weight, freshness
+  if (sort === "popular") {
+    return [{ studio: { rankingScore: { compositeScore: "desc" } } }, { createdAt: "desc" }];
+  }
+  // recommended: quality/activity ranking + recency
   return [
-    { isFeatured: "desc" },
     { studio: { rankingScore: { compositeScore: "desc" } } },
-    { studio: { marketplaceRankWeight: "desc" } },
     { createdAt: "desc" },
   ];
 }
@@ -129,7 +136,7 @@ const marketplaceListInclude = {
       rankingScore: { select: { compositeScore: true } },
     },
   },
-  category: { select: { id: true, name: true, slug: true } },
+  categoryMeta: { select: { id: true, name: true, slug: true } },
   images: { where: { isPrimary: true }, take: 1 },
 } as const;
 
@@ -188,13 +195,12 @@ export async function getMarketplaceProduct(productId: string) {
       id: productId,
       status: "active",
       studio: {
-        status: "approved",
-        activationPaidAt: { not: null },
+        ...studioCanOperateWhere(),
       },
     },
     include: {
       studio: true,
-      category: true,
+      categoryMeta: true,
       images: { orderBy: { sortOrder: "asc" } },
     },
   });

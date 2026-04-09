@@ -8,6 +8,7 @@ import {
   setStudioFeatureRequestsDesiredForSubscription,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_studio_feature_activations_patch_invalid_json", e, { studioId }, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

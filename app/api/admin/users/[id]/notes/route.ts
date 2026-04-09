@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
+import { logApiError } from "@/lib/monitoring";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -15,7 +16,8 @@ export async function POST(req: Request, ctx: Ctx) {
   let body: { content?: string; reason?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_user_notes_post_invalid_json", e, { targetUserId }, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const content = typeof body.content === "string" ? body.content.trim() : "";

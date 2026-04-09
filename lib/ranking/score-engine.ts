@@ -22,18 +22,6 @@ function norm(value: number, max: number): number {
   return Math.min(100, (value / max) * 100);
 }
 
-/** P4-G: manual boost fades linearly as `endsAt` approaches (open-ended boosts keep full value). */
-function decayedBoostValue(now: Date, startsAt: Date, endsAt: Date | null, boostValue: number): number {
-  if (!endsAt) return boostValue;
-  const end = endsAt.getTime();
-  const start = startsAt.getTime();
-  if (end <= start) return boostValue;
-  const t = now.getTime();
-  if (t >= end) return 0;
-  if (t <= start) return boostValue;
-  return boostValue * ((end - t) / (end - start));
-}
-
 type ProfileBits = {
   shortDescription: string | null;
   longDescription: string | null;
@@ -71,13 +59,13 @@ export type RankingUpdateResult = {
  * Recomputes `StudioRankingScore` for every **approved** studio (Prompt 4-B v1).
  * Performance: paid marketplace GMV (30d) + confirmed/completed class bookings (30d).
  * Activity: products + experiences with `updatedAt` in the window (proxy for catalog freshness).
- * Manual: sum of active `RankingBoost.boostValue` + `marketplaceRankWeight` (then cross-studio normalized).
+ * Manual: disabled (fairness policy; no paid/manual ranking manipulation).
  */
 export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
   const t0 = Date.now();
   const now = new Date();
   const since = new Date(now.getTime() - WINDOW_DAYS * 86400000);
-  const { performance: PERF_WEIGHT, activity: ACTIVITY_WEIGHT, manual: MANUAL_WEIGHT } =
+  const { performance: PERF_WEIGHT, activity: ACTIVITY_WEIGHT } =
     await getRankingScoreWeights();
 
   const PAGE = 500;
@@ -134,7 +122,7 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
 
   const studioIds = studios.map((s) => s.id);
 
-  const [bookingGroups, orderItems, productTouches, experienceTouches, boosts, activeExpByStudio, activeProdByStudio] =
+  const [bookingGroups, orderItems, productTouches, experienceTouches, activeExpByStudio, activeProdByStudio] =
     await Promise.all([
     prisma.booking.groupBy({
       by: ["studioId"],
@@ -164,14 +152,6 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
       by: ["studioId"],
       where: { studioId: { in: studioIds }, updatedAt: { gte: since } },
       _count: { _all: true },
-    }),
-    prisma.rankingBoost.findMany({
-      where: {
-        studioId: { in: studioIds },
-        startsAt: { lte: now },
-        OR: [{ endsAt: null }, { endsAt: { gte: now } }],
-      },
-      select: { studioId: true, boostValue: true, startsAt: true, endsAt: true },
     }),
     prisma.experience.groupBy({
       by: ["studioId"],
@@ -204,12 +184,6 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
   const experienceCount = new Map<string, number>();
   for (const g of experienceTouches) {
     experienceCount.set(g.studioId, g._count._all);
-  }
-
-  const boostSum = new Map<string, number>();
-  for (const b of boosts) {
-    const v = decayedBoostValue(now, b.startsAt, b.endsAt, b.boostValue);
-    boostSum.set(b.studioId, (boostSum.get(b.studioId) ?? 0) + v);
   }
 
   const activeExpCount = new Map<string, number>();
@@ -255,8 +229,8 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
     const revenueCents30d = revenueCents.get(s.id) ?? 0;
     const productsTouched30d = productCount.get(s.id) ?? 0;
     const experiencesTouched30d = experienceCount.get(s.id) ?? 0;
-    const bSum = boostSum.get(s.id) ?? 0;
-    const manualRaw = bSum + s.marketplaceRankWeight;
+    const bSum = 0;
+    const manualRaw = 0;
     const profileCompleteness = profileCompletenessScore({
       shortDescription: s.shortDescription,
       longDescription: s.longDescription,
@@ -310,15 +284,11 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
         r.graceActivityBonus,
     );
     r.manualNorm = norm(r.manualRaw, maxManualRaw);
-    // P4-G: curb manual/admin weight when there is no recent performance (anti pay-to-win).
-    if (r.bookings30d === 0 && r.revenueCents30d === 0 && r.manualRaw > 45) {
-      r.manualNorm *= 0.86;
-    }
     r.performanceScore = r.performanceNorm;
     r.activityScore = r.activityNorm;
-    r.manualBoost = r.manualNorm;
+    r.manualBoost = 0;
     r.compositeScore =
-      PERF_WEIGHT * r.performanceNorm + ACTIVITY_WEIGHT * r.activityNorm + MANUAL_WEIGHT * r.manualNorm;
+      PERF_WEIGHT * r.performanceNorm + ACTIVITY_WEIGHT * r.activityNorm;
     r.scoreBreakdown = {
       windowDays: WINDOW_DAYS,
       bookings30d: r.bookings30d,
@@ -333,7 +303,7 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
         boostDecayApplied: true,
         manualCappedWithoutPerformance: r.bookings30d === 0 && r.revenueCents30d === 0 && r.manualRaw > 45,
       },
-      weights: { performance: PERF_WEIGHT, activity: ACTIVITY_WEIGHT, manual: MANUAL_WEIGHT },
+      weights: { performance: PERF_WEIGHT, activity: ACTIVITY_WEIGHT, manual: 0 },
       calculatedAtDay: startOfUtcDay(now).toISOString().slice(0, 10),
     };
   }
@@ -427,9 +397,6 @@ export function sortStudiosByMarketplaceRanking<T extends StudioWithRankingSort>
     const ca = a.rankingScore?.compositeScore ?? 0;
     const cb = b.rankingScore?.compositeScore ?? 0;
     if (Math.abs(cb - ca) > 1e-9) return cb - ca;
-    const wa = a.marketplaceRankWeight;
-    const wb = b.marketplaceRankWeight;
-    if (wb !== wa) return wb - wa;
     return a.displayName.localeCompare(b.displayName);
   });
   return fairShuffleByCompositeBand(deterministic, (s) => s.rankingScore?.compositeScore ?? 0);
@@ -452,9 +419,6 @@ export function sortExperiencesByMarketplaceRanking<T extends ExperienceRowWithS
     const ca = a.studio.rankingScore?.compositeScore ?? 0;
     const cb = b.studio.rankingScore?.compositeScore ?? 0;
     if (Math.abs(cb - ca) > 1e-9) return cb - ca;
-    const wa = a.studio.marketplaceRankWeight;
-    const wb = b.studio.marketplaceRankWeight;
-    if (wb !== wa) return wb - wa;
     return b.createdAt.getTime() - a.createdAt.getTime();
   });
   return fairShuffleByCompositeBand(deterministic, (r) => r.studio.rankingScore?.compositeScore ?? 0);
@@ -468,22 +432,14 @@ export type ProductRowWithStudioRanking = {
 };
 
 /**
- * Featured listings stay first; within featured and within non-featured, apply composite band shuffle (P4-G).
+ * Fair ordering only; featured or paid boosts are ignored by policy.
  */
 export function sortProductsByMarketplaceRanking<T extends ProductRowWithStudioRanking>(rows: T[]): T[] {
-  const rankChunk = (chunk: T[]) => {
-    const deterministic = [...chunk].sort((a, b) => {
-      const ca = a.studio.rankingScore?.compositeScore ?? 0;
-      const cb = b.studio.rankingScore?.compositeScore ?? 0;
-      if (Math.abs(cb - ca) > 1e-9) return cb - ca;
-      const wa = a.studio.marketplaceRankWeight;
-      const wb = b.studio.marketplaceRankWeight;
-      if (wb !== wa) return wb - wa;
-      return b.createdAt.getTime() - a.createdAt.getTime();
-    });
-    return fairShuffleByCompositeBand(deterministic, (r) => r.studio.rankingScore?.compositeScore ?? 0);
-  };
-  const featured = rows.filter((r) => r.isFeatured);
-  const rest = rows.filter((r) => !r.isFeatured);
-  return [...rankChunk(featured), ...rankChunk(rest)];
+  const deterministic = [...rows].sort((a, b) => {
+    const ca = a.studio.rankingScore?.compositeScore ?? 0;
+    const cb = b.studio.rankingScore?.compositeScore ?? 0;
+    if (Math.abs(cb - ca) > 1e-9) return cb - ca;
+    return b.createdAt.getTime() - a.createdAt.getTime();
+  });
+  return fairShuffleByCompositeBand(deterministic, (r) => r.studio.rankingScore?.compositeScore ?? 0);
 }

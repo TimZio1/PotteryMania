@@ -9,6 +9,7 @@ const BENIGN_SUBSTRINGS = [
   "Hydration failed because the server rendered text didn't match the client",
   "Hydration failed because the server rendered HTML didn't match the client",
   "Failed to load resource: the server responded with a status of 409 (Conflict)",
+  "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
   "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
 ];

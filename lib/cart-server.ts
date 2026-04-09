@@ -33,7 +33,8 @@ export async function getCartForRequest(userId: string | null): Promise<{
   const cart = await prisma.cart.create({
     data: { sessionToken: randomUUID() },
   });
-  const setCookie = `${CART_COOKIE}=${cart.id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 90}`;
+  const secureAttr = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  const setCookie = `${CART_COOKIE}=${cart.id}; Path=/; HttpOnly; SameSite=Lax${secureAttr}; Max-Age=${60 * 60 * 24 * 90}`;
   return { cartId: cart.id, setCookie };
 }
 

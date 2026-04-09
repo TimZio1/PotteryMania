@@ -6,7 +6,9 @@ import { ui } from "@/lib/ui-styles";
 import { listMarketplaceProducts, parseProductSort, type ProductSort } from "@/lib/products";
 import { prisma } from "@/lib/db";
 import { redirectEndUserIfNoMarketplaceListings } from "@/lib/public-catalog-guard";
+import { allCeramicCategories, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
 import { buildMetadata } from "@/lib/seo";
+import { billingIntervalLabel } from "@/lib/offering-pricing";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
@@ -53,16 +55,28 @@ export default async function MarketplacePage({ searchParams }: Props) {
     page: sp.page ? parseInt(sp.page, 10) : 1,
     pageSize: 12,
   });
-  let categories: { id: string; name: string; slug: string }[] = [];
+  let categories: { id: string; name: string; slug: string }[] = allCeramicCategories().map((category) => ({
+    id: category.slug,
+    name: category.title,
+    slug: category.slug,
+  }));
   try {
-    categories = await prisma.productCategory.findMany({
+    await syncLockedCeramicCategories(prisma);
+    const dbCategories = await prisma.productCategory.findMany({
       where: { isActive: true },
-      orderBy: { name: "asc" },
+      orderBy: { createdAt: "asc" },
       select: { id: true, name: true, slug: true },
     });
-  } catch {
-    categories = [];
-  }
+    const bySlug = new Map(dbCategories.map((c) => [c.slug, c] as const));
+    categories = allCeramicCategories().map((category) => {
+      const db = bySlug.get(category.slug);
+      return {
+        id: db?.id ?? category.slug,
+        name: db?.name ?? category.title,
+        slug: category.slug,
+      };
+    });
+  } catch {}
   const products = catalog.products;
   const prevQuery = buildQuery({
     q: sp.q,
@@ -118,8 +132,8 @@ export default async function MarketplacePage({ searchParams }: Props) {
             <span className={ui.label}>Sort</span>
             <select className={`${ui.input} mt-1`} name="sort" defaultValue={sp.sort ?? "recommended"}>
               <option value="recommended">Recommended</option>
+              <option value="popular">Popular</option>
               <option value="newest">Newest</option>
-              <option value="featured">Featured</option>
               <option value="price_asc">Price: low to high</option>
               <option value="price_desc">Price: high to low</option>
             </select>
@@ -174,6 +188,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
             {products.map((p) => {
               const img = p.images[0]?.imageUrl;
               const price = (p.salePriceCents ?? p.priceCents) / 100;
+              const recurring = p.pricingType === "recurring" && p.recurringPriceCents != null && p.billingInterval != null;
               return (
                 <Link key={p.id} href={`/marketplace/products/${p.id}`} className={ui.tile}>
                   <div className="aspect-square bg-stone-100">
@@ -187,13 +202,24 @@ export default async function MarketplacePage({ searchParams }: Props) {
                   <div className="p-4 sm:p-5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-medium text-stone-500">{p.studio.displayName}</p>
-                      {p.isFeatured ? <span className="text-xs font-medium text-amber-900">Featured</span> : null}
                     </div>
+                    <p className="mt-2">
+                      <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-600">
+                        {ceramicCategoryMetaByValue(p.category).title}
+                      </span>
+                    </p>
                     <h2 className="mt-1 text-base font-semibold text-stone-900">{p.title}</h2>
                     {p.shortDescription ? (
                       <p className="mt-2 line-clamp-2 text-sm text-stone-600">{p.shortDescription}</p>
                     ) : null}
-                    <p className="mt-2 text-lg font-medium text-amber-950">€{price.toFixed(2)}</p>
+                    <p className="mt-2 text-lg font-medium text-amber-950">
+                      {recurring
+                        ? `€${(p.recurringPriceCents! / 100).toFixed(2)}/${billingIntervalLabel(
+                            p.billingInterval as "weekly" | "monthly" | "custom",
+                            p.billingIntervalCount ?? 1,
+                          )}`
+                        : `€${price.toFixed(2)}`}
+                    </p>
                   </div>
                 </Link>
               );

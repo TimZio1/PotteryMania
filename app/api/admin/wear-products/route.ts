@@ -5,6 +5,7 @@ import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeWearSlug, isValidWearSlug } from "@/lib/wear-slug";
 import { parseWearImageUrlsFromMultiline } from "@/lib/wear-admin-helpers";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
 import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
@@ -25,24 +26,34 @@ export async function GET(req: Request) {
   });
 
   return NextResponse.json({
-    products: rows.map((r) => ({
-      id: r.id,
-      slug: r.slug,
-      name: r.name,
-      subtitle: r.subtitle,
-      description: r.description,
-      priceCents: r.priceCents,
-      currency: r.currency,
-      images: wearImageUrlsFromJson(r.images),
-      imagesText: wearImageUrlsFromJson(r.images).join("\n"),
-      sortOrder: r.sortOrder,
-      isActive: r.isActive,
-      isFeatured: r.isFeatured,
-      archivedAt: r.archivedAt?.toISOString() ?? null,
-      externalFulfillmentId: r.externalFulfillmentId,
-      updatedAt: r.updatedAt.toISOString(),
-      variantCount: r._count.variants,
-    })),
+    products: rows.map((r) => {
+      const category = resolveWearCategory({
+        slug: r.slug,
+        name: r.name,
+        subtitle: r.subtitle,
+        description: r.description,
+      });
+      return {
+        category,
+        categoryLabel: wearCategoryLabel(category),
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        subtitle: r.subtitle,
+        description: r.description,
+        priceCents: r.priceCents,
+        currency: r.currency,
+        images: wearImageUrlsFromJson(r.images),
+        imagesText: wearImageUrlsFromJson(r.images).join("\n"),
+        sortOrder: r.sortOrder,
+        isActive: r.isActive,
+        isFeatured: r.isFeatured,
+        archivedAt: r.archivedAt?.toISOString() ?? null,
+        externalFulfillmentId: r.externalFulfillmentId,
+        updatedAt: r.updatedAt.toISOString(),
+        variantCount: r._count.variants,
+      };
+    }),
   });
 }
 

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { normalizeAdminTags } from "@/lib/admin-user-tags";
 import { requireAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
+import { logApiError } from "@/lib/monitoring";
 
 const ROLES: UserRole[] = ["customer", "vendor", "admin", "hyper_admin"];
 
@@ -89,7 +90,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_user_patch_invalid_json", e, { id }, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

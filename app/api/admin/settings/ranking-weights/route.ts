@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/auth-session";
 import { getRankingScoreWeights, setRankingScoreWeights } from "@/lib/ranking-weights-config";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,8 @@ export async function PATCH(req: Request) {
   let body: { performance?: number; activity?: number; manual?: number; reason?: string };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_ranking_weights_patch_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

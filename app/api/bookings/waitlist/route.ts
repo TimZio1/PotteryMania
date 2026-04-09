@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { validateSeatTypeRequired } from "@/lib/bookings/seat-type";
+import { logApiError } from "@/lib/monitoring";
 
 /**
  * Join waitlist when the slot has no remaining seats. Does not reserve capacity.
@@ -16,7 +17,8 @@ export async function POST(req: Request) {
   };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("bookings_waitlist_invalid_json", e, undefined, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

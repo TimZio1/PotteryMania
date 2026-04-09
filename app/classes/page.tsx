@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
@@ -20,6 +21,7 @@ import { FilterCollapse } from "@/components/discovery/filter-collapse";
 import { NearPointFields } from "@/components/discovery/near-point-fields";
 import { NearResultsMap } from "@/components/discovery/near-results-map";
 import { sortExperiencesByMarketplaceRanking } from "@/lib/ranking/score-engine";
+import { billingIntervalLabel } from "@/lib/offering-pricing";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
@@ -29,6 +31,23 @@ export const metadata: Metadata = buildMetadata({
 });
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
+
+const experienceListInclude = {
+  studio: {
+    select: {
+      displayName: true,
+      city: true,
+      country: true,
+      latitude: true,
+      longitude: true,
+      marketplaceRankWeight: true,
+      rankingScore: { select: { compositeScore: true } },
+    },
+  },
+  images: { where: { isPrimary: true }, take: 1 },
+} as const;
+
+type ExperienceListRow = Prisma.ExperienceGetPayload<{ include: typeof experienceListInclude }>;
 
 function hasActiveClassFilters(sp: Record<string, string | string[] | undefined>): boolean {
   const keys = ["q", "country", "city", "category", "skill", "type", "minPrice", "maxPrice", "from", "to", "spots"];
@@ -54,26 +73,13 @@ export default async function ClassesPage({ searchParams }: Props) {
   const where = buildExperienceDiscoverWhere(filters);
   const near = filters.near;
 
-  let experiences: Awaited<ReturnType<typeof prisma.experience.findMany>> = [];
+  let experiences: ExperienceListRow[] = [];
   try {
     experiences = await prisma.experience.findMany({
       where,
       orderBy: { createdAt: "desc" },
       take: near ? GEO_SCAN_LIMIT : 80,
-      include: {
-        studio: {
-          select: {
-            displayName: true,
-            city: true,
-            country: true,
-            latitude: true,
-            longitude: true,
-            marketplaceRankWeight: true,
-            rankingScore: { select: { compositeScore: true } },
-          },
-        },
-        images: { where: { isPrimary: true }, take: 1 },
-      },
+      include: experienceListInclude,
     });
   } catch {
     experiences = [];
@@ -375,6 +381,7 @@ export default async function ClassesPage({ searchParams }: Props) {
             {experiences.map((ex) => {
               const img = ex.images[0]?.imageUrl;
               const price = ex.priceCents / 100;
+              const recurring = ex.pricingType === "recurring" && ex.recurringPriceCents != null && ex.billingInterval != null;
               const pt = experienceMeetingPoint(ex);
               const km =
                 near && pt ? haversineKm(near.lat, near.lng, pt.lat, pt.lng) : null;
@@ -394,7 +401,14 @@ export default async function ClassesPage({ searchParams }: Props) {
                     {km != null ? (
                       <p className="mt-1 text-xs text-stone-500">~{km.toFixed(1)} km away</p>
                     ) : null}
-                    <p className="mt-2 text-sm font-medium text-amber-950">From €{price.toFixed(2)} / person</p>
+                    <p className="mt-2 text-sm font-medium text-amber-950">
+                      {recurring
+                        ? `€${(ex.recurringPriceCents! / 100).toFixed(2)}/${billingIntervalLabel(
+                            ex.billingInterval as "weekly" | "monthly" | "custom",
+                            ex.billingIntervalCount ?? 1,
+                          )}`
+                        : `From €${price.toFixed(2)} / person`}
+                    </p>
                   </div>
                 </Link>
               );

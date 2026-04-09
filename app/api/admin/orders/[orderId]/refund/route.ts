@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { executeAdminStripeOrderRefund } from "@/lib/orders/admin-stripe-order-refund";
+import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ orderId: strin
   let body: { reason?: string; amountCents?: number | null };
   try {
     body = await req.json();
-  } catch {
+  } catch (e) {
+    logApiError("admin_order_refund_invalid_json", e, { orderId }, req);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

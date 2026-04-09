@@ -34,5 +34,15 @@ export async function GET(_req: Request, ctx: Ctx) {
       onboardingStatus,
     },
   });
+  if (chargesEnabled && payoutsEnabled) {
+    await prisma.studio.update({
+      where: { id: studioId },
+      data: {
+        status: "approved",
+        approvedAt: new Date(),
+        activationPaidAt: studio.activationPaidAt ?? new Date(),
+      },
+    });
+  }
   return NextResponse.json({ stripe: updated });
 }

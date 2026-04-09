@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
+import { allCeramicCategories } from "@/lib/ceramic-categories";
+import { billingIntervalLabel } from "@/lib/offering-pricing";
 import type { StudioShopOrderRow, StudioShopProductRow } from "@/lib/studio-shop-page-data";
 import { DEFAULT_LOW_STOCK_THRESHOLD } from "@/lib/studio-shop-page-data";
 
@@ -49,14 +51,44 @@ export default function StudioShopClient({
   const [selected, setSelected] = useState<StudioShopProductRow | null>(null);
   const [form, setForm] = useState({
     title: "",
+    category: "tableware",
+    subcategory: "",
     shortDescription: "",
     priceEur: "",
+    recurringPriceEur: "",
+    pricingType: "one_time",
+    billingInterval: "monthly",
+    billingIntervalCount: 1,
+    minimumCommitmentCycles: 1,
+    autoRenew: true,
+    trialPeriodDays: 0,
+    cancellationPolicyText: "",
+    gracePeriodDays: 3,
+    paymentRetryMax: 3,
+    failedPaymentAction: "pause",
     sku: "",
     stockQuantity: 0,
     stockStatus: "in_stock",
     status: "draft",
   });
   const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: "",
+    category: "tableware",
+    priceEur: "0",
+    recurringPriceEur: "0",
+    pricingType: "one_time",
+    billingInterval: "monthly",
+    billingIntervalCount: 1,
+    minimumCommitmentCycles: 1,
+    autoRenew: true,
+    trialPeriodDays: 0,
+    cancellationPolicyText: "",
+    gracePeriodDays: 3,
+    paymentRetryMax: 3,
+    failedPaymentAction: "pause",
+  });
   const [orderBusy, setOrderBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -92,8 +124,21 @@ export default function StudioShopClient({
     setSelected(p);
     setForm({
       title: p.title,
+      category: p.category,
+      subcategory: p.subcategory ?? "",
       shortDescription: p.shortDescription ?? "",
       priceEur: ((p.salePriceCents ?? p.priceCents) / 100).toFixed(2),
+      recurringPriceEur: ((p.recurringPriceCents ?? 0) / 100).toFixed(2),
+      pricingType: p.pricingType,
+      billingInterval: p.billingInterval ?? "monthly",
+      billingIntervalCount: p.billingIntervalCount ?? 1,
+      minimumCommitmentCycles: p.minimumCommitmentCycles ?? 1,
+      autoRenew: p.autoRenew,
+      trialPeriodDays: p.trialPeriodDays ?? 0,
+      cancellationPolicyText: p.cancellationPolicyText ?? "",
+      gracePeriodDays: p.gracePeriodDays,
+      paymentRetryMax: p.paymentRetryMax,
+      failedPaymentAction: p.failedPaymentAction,
       sku: p.sku ?? "",
       stockQuantity: p.stockQuantity,
       stockStatus: p.stockStatus,
@@ -110,6 +155,12 @@ export default function StudioShopClient({
       return;
     }
     const priceCents = Math.round(price * 100);
+    const recurringPrice = parseFloat(String(form.recurringPriceEur).replace(",", "."));
+    const recurringPriceCents = Number.isFinite(recurringPrice) ? Math.round(recurringPrice * 100) : 0;
+    if (form.pricingType === "recurring" && recurringPriceCents < 50) {
+      setErr("Recurring price must be at least €0.50");
+      return;
+    }
     setSaving(true);
     setErr(null);
     try {
@@ -120,6 +171,21 @@ export default function StudioShopClient({
           title: form.title,
           shortDescription: form.shortDescription.trim() || null,
           priceCents,
+          pricingType: form.pricingType,
+          recurringPriceCents: form.pricingType === "recurring" ? recurringPriceCents : null,
+          billingInterval: form.pricingType === "recurring" ? form.billingInterval : null,
+          billingIntervalCount: form.pricingType === "recurring" ? form.billingIntervalCount : null,
+          minimumCommitmentCycles: form.pricingType === "recurring" ? form.minimumCommitmentCycles : null,
+          autoRenew: form.pricingType === "recurring" ? form.autoRenew : true,
+          trialPeriodDays:
+            form.pricingType === "recurring" && form.trialPeriodDays > 0 ? form.trialPeriodDays : null,
+          cancellationPolicyText:
+            form.pricingType === "recurring" ? form.cancellationPolicyText.trim() || null : null,
+          gracePeriodDays: form.pricingType === "recurring" ? form.gracePeriodDays : 3,
+          paymentRetryMax: form.pricingType === "recurring" ? form.paymentRetryMax : 3,
+          failedPaymentAction: form.pricingType === "recurring" ? form.failedPaymentAction : "pause",
+          category: form.category,
+          subcategory: form.subcategory.trim() || null,
           salePriceCents: null,
           sku: form.sku.trim() || null,
           stockQuantity: form.stockQuantity,
@@ -134,6 +200,77 @@ export default function StudioShopClient({
       setErr(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function createProduct(e: React.FormEvent) {
+    e.preventDefault();
+    const price = parseFloat(String(createForm.priceEur).replace(",", "."));
+    const recurringPrice = parseFloat(String(createForm.recurringPriceEur).replace(",", "."));
+    if (!createForm.title.trim() || !Number.isFinite(price) || price < 0) {
+      setErr("Provide valid title and price");
+      return;
+    }
+    if (createForm.pricingType === "recurring" && (!Number.isFinite(recurringPrice) || recurringPrice < 0.5)) {
+      setErr("Provide valid recurring price (>= €0.50)");
+      return;
+    }
+    setCreating(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/studios/${studioId}/products`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: createForm.title.trim(),
+          category: createForm.category,
+          priceCents: Math.round(price * 100),
+          pricingType: createForm.pricingType,
+          recurringPriceCents:
+            createForm.pricingType === "recurring" ? Math.round(recurringPrice * 100) : null,
+          billingInterval: createForm.pricingType === "recurring" ? createForm.billingInterval : null,
+          billingIntervalCount: createForm.pricingType === "recurring" ? createForm.billingIntervalCount : null,
+          minimumCommitmentCycles:
+            createForm.pricingType === "recurring" ? createForm.minimumCommitmentCycles : null,
+          autoRenew: createForm.pricingType === "recurring" ? createForm.autoRenew : true,
+          trialPeriodDays:
+            createForm.pricingType === "recurring" && createForm.trialPeriodDays > 0
+              ? createForm.trialPeriodDays
+              : null,
+          cancellationPolicyText:
+            createForm.pricingType === "recurring" ? createForm.cancellationPolicyText.trim() || null : null,
+          gracePeriodDays: createForm.pricingType === "recurring" ? createForm.gracePeriodDays : 3,
+          paymentRetryMax: createForm.pricingType === "recurring" ? createForm.paymentRetryMax : 3,
+          failedPaymentAction: createForm.pricingType === "recurring" ? createForm.failedPaymentAction : "pause",
+          status: "draft",
+          stockStatus: "in_stock",
+          stockQuantity: 0,
+          images: [],
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Create failed");
+      setCreateForm({
+        title: "",
+        category: "tableware",
+        priceEur: "0",
+        recurringPriceEur: "0",
+        pricingType: "one_time",
+        billingInterval: "monthly",
+        billingIntervalCount: 1,
+        minimumCommitmentCycles: 1,
+        autoRenew: true,
+        trialPeriodDays: 0,
+        cancellationPolicyText: "",
+        gracePeriodDays: 3,
+        paymentRetryMax: 3,
+        failedPaymentAction: "pause",
+      });
+      router.refresh();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Create failed");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -219,11 +356,117 @@ export default function StudioShopClient({
               </label>
             </div>
 
+            <form
+              onSubmit={(e) => void createProduct(e)}
+              className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm"
+            >
+              <p className="text-sm font-semibold text-stone-900">Create product</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <label className="block sm:col-span-2">
+                  <span className={ui.label}>Title</span>
+                  <input
+                    className={`${ui.input} mt-1`}
+                    value={createForm.title}
+                    onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="block">
+                  <span className={ui.label}>Price (EUR)</span>
+                  <input
+                    className={`${ui.input} mt-1`}
+                    inputMode="decimal"
+                    value={createForm.priceEur}
+                    onChange={(e) => setCreateForm((f) => ({ ...f, priceEur: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="block">
+                  <span className={ui.label}>Category</span>
+                  <select
+                    className={`${ui.input} mt-1`}
+                    value={createForm.category}
+                    onChange={(e) => setCreateForm((f) => ({ ...f, category: e.target.value }))}
+                  >
+                    {allCeramicCategories().map((cat) => (
+                      <option key={cat.slug} value={cat.slug}>
+                        {cat.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="sm:col-span-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Pricing model</p>
+                  <div className="mt-2 flex flex-wrap gap-4 text-sm">
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="create-pricing-type"
+                        checked={createForm.pricingType === "one_time"}
+                        onChange={() => setCreateForm((f) => ({ ...f, pricingType: "one_time" }))}
+                      />
+                      One-time purchase
+                    </label>
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="create-pricing-type"
+                        checked={createForm.pricingType === "recurring"}
+                        onChange={() => setCreateForm((f) => ({ ...f, pricingType: "recurring" }))}
+                      />
+                      Recurring plan
+                    </label>
+                  </div>
+                  {createForm.pricingType === "recurring" ? (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <label className="block">
+                        <span className={ui.label}>Price per cycle (EUR)</span>
+                        <input
+                          className={`${ui.input} mt-1`}
+                          inputMode="decimal"
+                          value={createForm.recurringPriceEur}
+                          onChange={(e) => setCreateForm((f) => ({ ...f, recurringPriceEur: e.target.value }))}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className={ui.label}>Billing frequency</span>
+                        <select
+                          className={`${ui.input} mt-1`}
+                          value={createForm.billingInterval}
+                          onChange={(e) => setCreateForm((f) => ({ ...f, billingInterval: e.target.value }))}
+                        >
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className={ui.label}>Interval count</span>
+                        <input
+                          type="number"
+                          min={1}
+                          className={`${ui.input} mt-1`}
+                          value={createForm.billingIntervalCount}
+                          onChange={(e) =>
+                            setCreateForm((f) => ({ ...f, billingIntervalCount: parseInt(e.target.value, 10) || 1 }))
+                          }
+                        />
+                      </label>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <button type="submit" disabled={creating} className={`${ui.buttonPrimary} mt-4`}>
+                {creating ? "Creating..." : "Create draft"}
+              </button>
+            </form>
+
             <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-sm">
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-stone-200 bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-500">
                   <tr>
                     <th className="px-4 py-3">Product</th>
+                    <th className="px-4 py-3">Category</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Stock</th>
                     <th className="px-4 py-3">SKU</th>
@@ -233,7 +476,7 @@ export default function StudioShopClient({
                 <tbody>
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-stone-500">
+                      <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
                         No products match.
                       </td>
                     </tr>
@@ -266,6 +509,10 @@ export default function StudioShopClient({
                               </span>
                             ) : null}
                           </td>
+                          <td className="px-4 py-3 text-stone-600">
+                            {p.categoryLabel}
+                            {p.subcategory ? <span className="ml-1 text-xs text-stone-500">· {p.subcategory}</span> : null}
+                          </td>
                           <td className="px-4 py-3 text-stone-600">{p.status}</td>
                           <td className="px-4 py-3 text-stone-600">
                             {p.stockQuantity}{" "}
@@ -273,7 +520,12 @@ export default function StudioShopClient({
                           </td>
                           <td className="px-4 py-3 text-stone-600">{p.sku ?? "—"}</td>
                           <td className="px-4 py-3 text-stone-600">
-                            €{((p.salePriceCents ?? p.priceCents) / 100).toFixed(2)}
+                            {p.pricingType === "recurring" && p.recurringPriceCents != null
+                              ? `€${(p.recurringPriceCents / 100).toFixed(2)}/${billingIntervalLabel(
+                                  p.billingInterval ?? "monthly",
+                                  p.billingIntervalCount ?? 1,
+                                )}`
+                              : `€${((p.salePriceCents ?? p.priceCents) / 100).toFixed(2)}`}
                           </td>
                         </tr>
                       );
@@ -302,6 +554,28 @@ export default function StudioShopClient({
                 <input className={cn(ui.input, "mt-1")} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
               </label>
               <label>
+                <span className={ui.label}>Category</span>
+                <select
+                  className={cn(ui.input, "mt-1")}
+                  value={form.category}
+                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                >
+                  {allCeramicCategories().map((cat) => (
+                    <option key={cat.slug} value={cat.slug}>
+                      {cat.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className={ui.label}>Subcategory (optional)</span>
+                <input
+                  className={cn(ui.input, "mt-1")}
+                  value={form.subcategory}
+                  onChange={(e) => setForm((f) => ({ ...f, subcategory: e.target.value }))}
+                />
+              </label>
+              <label>
                 <span className={ui.label}>Short description</span>
                 <textarea
                   className={cn(ui.input, "mt-1 min-h-[64px]")}
@@ -318,6 +592,147 @@ export default function StudioShopClient({
                   onChange={(e) => setForm((f) => ({ ...f, priceEur: e.target.value }))}
                 />
               </label>
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Pricing model</p>
+                <div className="mt-2 flex flex-wrap gap-4 text-sm">
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="edit-pricing-type"
+                      checked={form.pricingType === "one_time"}
+                      onChange={() => setForm((f) => ({ ...f, pricingType: "one_time" }))}
+                    />
+                    One-time purchase
+                  </label>
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="edit-pricing-type"
+                      checked={form.pricingType === "recurring"}
+                      onChange={() => setForm((f) => ({ ...f, pricingType: "recurring" }))}
+                    />
+                    Recurring plan
+                  </label>
+                </div>
+                {form.pricingType === "recurring" ? (
+                  <div className="mt-3 grid gap-3">
+                    <label>
+                      <span className={ui.label}>Price per cycle (EUR)</span>
+                      <input
+                        className={cn(ui.input, "mt-1")}
+                        inputMode="decimal"
+                        value={form.recurringPriceEur}
+                        onChange={(e) => setForm((f) => ({ ...f, recurringPriceEur: e.target.value }))}
+                      />
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label>
+                        <span className={ui.label}>Frequency</span>
+                        <select
+                          className={cn(ui.input, "mt-1")}
+                          value={form.billingInterval}
+                          onChange={(e) => setForm((f) => ({ ...f, billingInterval: e.target.value }))}
+                        >
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span className={ui.label}>Interval count</span>
+                        <input
+                          type="number"
+                          min={1}
+                          className={cn(ui.input, "mt-1")}
+                          value={form.billingIntervalCount}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, billingIntervalCount: parseInt(e.target.value, 10) || 1 }))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label>
+                        <span className={ui.label}>Min commitment (cycles)</span>
+                        <input
+                          type="number"
+                          min={1}
+                          className={cn(ui.input, "mt-1")}
+                          value={form.minimumCommitmentCycles}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, minimumCommitmentCycles: parseInt(e.target.value, 10) || 1 }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span className={ui.label}>Trial period (days)</span>
+                        <input
+                          type="number"
+                          min={0}
+                          className={cn(ui.input, "mt-1")}
+                          value={form.trialPeriodDays}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, trialPeriodDays: Math.max(0, parseInt(e.target.value, 10) || 0) }))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label>
+                        <span className={ui.label}>Grace period (days)</span>
+                        <input
+                          type="number"
+                          min={0}
+                          className={cn(ui.input, "mt-1")}
+                          value={form.gracePeriodDays}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, gracePeriodDays: Math.max(0, parseInt(e.target.value, 10) || 0) }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span className={ui.label}>Retry attempts</span>
+                        <input
+                          type="number"
+                          min={0}
+                          className={cn(ui.input, "mt-1")}
+                          value={form.paymentRetryMax}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, paymentRetryMax: Math.max(0, parseInt(e.target.value, 10) || 0) }))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <label>
+                      <span className={ui.label}>Cancellation rules</span>
+                      <textarea
+                        className={cn(ui.input, "mt-1 min-h-[64px]")}
+                        value={form.cancellationPolicyText}
+                        onChange={(e) => setForm((f) => ({ ...f, cancellationPolicyText: e.target.value }))}
+                      />
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-stone-700">
+                      <input
+                        type="checkbox"
+                        checked={form.autoRenew}
+                        onChange={(e) => setForm((f) => ({ ...f, autoRenew: e.target.checked }))}
+                      />
+                      Auto-renew enabled
+                    </label>
+                    <label>
+                      <span className={ui.label}>On failed payment</span>
+                      <select
+                        className={cn(ui.input, "mt-1")}
+                        value={form.failedPaymentAction}
+                        onChange={(e) => setForm((f) => ({ ...f, failedPaymentAction: e.target.value }))}
+                      >
+                        <option value="pause">Pause access</option>
+                        <option value="cancel">Cancel subscription</option>
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
+              </div>
               <label>
                 <span className={ui.label}>SKU</span>
                 <input className={cn(ui.input, "mt-1")} value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} />

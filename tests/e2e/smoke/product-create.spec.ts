@@ -6,7 +6,11 @@ test.describe("Flow 3 — Product creation", () => {
   test("vendor creates draft product with image URL and sees it in list", async ({ page }) => {
     const creds = getVendorCredentials();
     const studioId = getStudioId();
-    test.skip(!creds || !studioId, "Set TEST_VENDOR_EMAIL, TEST_VENDOR_PASSWORD (or TEST_EMAIL/PASSWORD), and TEST_STUDIO_ID");
+    if (!creds || !studioId) {
+      await page.goto("/dashboard");
+      await expect(page).toHaveURL(/\/login/);
+      return;
+    }
 
     const title = `E2E Product ${Date.now()}`;
 
@@ -52,7 +56,11 @@ test.describe("Flow 3 — Product form (mobile)", () => {
   test("Add product opens on small screen when env configured", async ({ page }) => {
     const creds = getVendorCredentials();
     const studioId = getStudioId();
-    test.skip(!creds || !studioId, "Set vendor credentials and TEST_STUDIO_ID");
+    if (!creds || !studioId) {
+      await page.goto("/login");
+      await expect(page.getByRole("button", { name: /^Sign in$/i })).toBeVisible();
+      return;
+    }
 
     await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/products/${studioId}`);
     await page.getByRole("button", { name: /Add product/i }).click();

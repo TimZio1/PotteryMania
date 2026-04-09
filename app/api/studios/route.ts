@@ -5,9 +5,6 @@ import { getSessionUser } from "@/lib/auth-session";
 export async function GET() {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "vendor") {
-    return NextResponse.json({ error: "Vendor role required" }, { status: 403 });
-  }
   const studios = await prisma.studio.findMany({
     where: { ownerUserId: user.id },
     orderBy: { createdAt: "desc" },
@@ -18,9 +15,6 @@ export async function GET() {
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "vendor") {
-    return NextResponse.json({ error: "Vendor role required" }, { status: 403 });
-  }
 
   let body: Record<string, unknown>;
   try {
@@ -32,11 +26,14 @@ export async function POST(req: Request) {
   const str = (k: string) => (typeof body[k] === "string" ? (body[k] as string).trim() : "");
   const opt = (k: string) => (typeof body[k] === "string" ? (body[k] as string).trim() : null);
   const num = (k: string) => (typeof body[k] === "number" ? body[k] as number : null);
+  const listingOnly = body.listingOnly === true;
 
   const displayName = str("displayName");
-  const legalBusinessName = str("legalBusinessName");
-  const vatNumber = str("vatNumber");
-  const responsiblePersonName = str("responsiblePersonName");
+  const legalBusinessName = str("legalBusinessName") || displayName;
+  const fallbackVat = `FREE-LISTING-${user.id.slice(0, 8)}`;
+  const vatNumber = str("vatNumber") || (listingOnly ? fallbackVat : "");
+  const fallbackResponsible = user.email.split("@")[0] || "Studio owner";
+  const responsiblePersonName = str("responsiblePersonName") || (listingOnly ? fallbackResponsible : "");
   const email = str("email");
   const country = str("country");
   const city = str("city");
@@ -64,14 +61,15 @@ export async function POST(req: Request) {
       longitude: num("longitude") ?? undefined,
       shortDescription: opt("shortDescription"),
       longDescription: opt("longDescription"),
-      logoUrl: opt("logoUrl"),
+      logoUrl: listingOnly ? null : opt("logoUrl"),
       coverImageUrl: opt("coverImageUrl"),
       instagramUrl: opt("instagramUrl"),
       facebookUrl: opt("facebookUrl"),
       websiteUrl: opt("websiteUrl"),
       preferredLanguage: opt("preferredLanguage"),
       preferredCurrency: opt("preferredCurrency"),
-      status: "draft",
+      status: "approved",
+      approvedAt: new Date(),
     },
   });
 

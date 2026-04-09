@@ -8,6 +8,8 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
 import { buildMetadata } from "@/lib/seo";
+import { billingIntervalLabel } from "@/lib/offering-pricing";
+import SubscribeButton from "@/components/offerings/subscribe-button";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +25,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       id: experienceId,
       status: "active",
       visibility: "public",
-      studio: { status: "approved" },
+      studio: {
+        status: "approved",
+        stripeAccount: { is: { chargesEnabled: true, payoutsEnabled: true } },
+      },
     },
     include: {
       studio: { select: { displayName: true } },
@@ -60,7 +65,10 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
       id: experienceId,
       status: "active",
       visibility: "public",
-      studio: { status: "approved" },
+      studio: {
+        status: "approved",
+        stripeAccount: { is: { chargesEnabled: true, payoutsEnabled: true } },
+      },
     },
     include: {
       studio: true,
@@ -117,6 +125,10 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
     : [];
 
   const price = experience.priceCents / 100;
+  const recurring =
+    experience.pricingType === "recurring" &&
+    experience.recurringPriceCents != null &&
+    experience.billingInterval != null;
   const primary = experience.images.find((i) => i.isPrimary) ?? experience.images[0];
 
   const toolbar = (
@@ -137,7 +149,14 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
           </Link>
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">{experience.title}</h1>
-        <p className="mt-3 text-xl font-medium text-amber-950">€{price.toFixed(2)} per person</p>
+        <p className="mt-3 text-xl font-medium text-amber-950">
+          {recurring
+            ? `€${((experience.recurringPriceCents as number) / 100).toFixed(2)}/${billingIntervalLabel(
+                experience.billingInterval as "weekly" | "monthly" | "custom",
+                experience.billingIntervalCount ?? 1,
+              )}`
+            : `€${price.toFixed(2)} per person`}
+        </p>
         {experience.bookingDepositBps > 0 && (
           <p className="mt-2 max-w-2xl text-sm text-stone-600">
             A deposit may be charged at checkout ({(experience.bookingDepositBps / 100).toFixed(1)}% of the booking
@@ -165,17 +184,40 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
           </p>
         )}
         <div className="mt-10 border-t border-stone-200 pt-10">
-          <h2 className="text-lg font-semibold text-amber-950">Book a session</h2>
-          <p className="mt-1 text-sm text-stone-600">Choose a time, party size, and seat type when offered.</p>
-          <ClassBookingForm
-            minP={experience.minimumParticipants}
-            maxP={experience.maximumParticipants}
-            priceCents={experience.priceCents}
-            bookingDepositBps={experience.bookingDepositBps}
-            slots={slots}
-            waitlistSlots={waitlistSlots}
-            initialSlotId={initialSlotId}
-          />
+          {recurring ? (
+            <>
+              <h2 className="text-lg font-semibold text-amber-950">Start recurring membership</h2>
+              <p className="mt-1 text-sm text-stone-600">
+                Clear renewal terms are shown before checkout. Cancelation and trial terms apply as listed below.
+              </p>
+              <ul className="mt-3 space-y-1 text-xs text-stone-600">
+                <li>Billing cycle: {billingIntervalLabel(experience.billingInterval!, experience.billingIntervalCount ?? 1)}</li>
+                <li>Auto-renew: {experience.autoRenew ? "On" : "Off"}</li>
+                {experience.minimumCommitmentCycles ? (
+                  <li>Minimum commitment: {experience.minimumCommitmentCycles} cycles</li>
+                ) : null}
+                {experience.trialPeriodDays ? <li>Trial period: {experience.trialPeriodDays} days</li> : null}
+                {experience.cancellationPolicyText ? <li>Cancellation: {experience.cancellationPolicyText}</li> : null}
+              </ul>
+              <div className="mt-4">
+                <SubscribeButton offeringType="experience" offeringId={experience.id} cta="Start membership" />
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-lg font-semibold text-amber-950">Book a session</h2>
+              <p className="mt-1 text-sm text-stone-600">Choose a time, party size, and seat type when offered.</p>
+              <ClassBookingForm
+                minP={experience.minimumParticipants}
+                maxP={experience.maximumParticipants}
+                priceCents={experience.priceCents}
+                bookingDepositBps={experience.bookingDepositBps}
+                slots={slots}
+                waitlistSlots={waitlistSlots}
+                initialSlotId={initialSlotId}
+              />
+            </>
+          )}
         </div>
       </main>
     </MarketingLayout>

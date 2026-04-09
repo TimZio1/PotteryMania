@@ -28,6 +28,11 @@ import { runStripeWebhookSideEffect } from "@/lib/webhook-event-store";
 import { scheduleWearOrderNotification } from "@/lib/wear-order-notifications";
 import { logApiError } from "@/lib/monitoring";
 import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
+import {
+  mapStripeSubscriptionStatus,
+  recordOfferingSubscriptionEvent,
+  syncOfferingSubscriptionFromStripeSubscription,
+} from "@/lib/offering-subscriptions";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -66,18 +71,225 @@ export async function POST(req: Request) {
 
   if (event.type === "customer.subscription.deleted") {
     const sub = event.data.object as Stripe.Subscription;
+    const now = new Date();
+    const row = await prisma.offeringSubscription.findUnique({
+      where: { stripeSubscriptionId: sub.id },
+      select: { id: true },
+    });
+    if (row) {
+      await prisma.offeringSubscription.update({
+        where: { id: row.id },
+        data: {
+          status: "canceled",
+          autoRenew: false,
+          cancelAtPeriodEnd: false,
+          canceledAt: now,
+          endedAt: now,
+          nextBillingDate: null,
+        },
+      });
+      await recordOfferingSubscriptionEvent(row.id, "canceled", { source: "customer.subscription.deleted" });
+      return ack();
+    }
     await markActivationsEndedForStripeSubscription(sub.id);
     return ack();
   }
 
   if (event.type === "customer.subscription.updated") {
     const sub = event.data.object as Stripe.Subscription;
+    const row = await prisma.offeringSubscription.findUnique({
+      where: { stripeSubscriptionId: sub.id },
+      select: { id: true },
+    });
+    if (row) {
+      await syncOfferingSubscriptionFromStripeSubscription(sub);
+      return ack();
+    }
     await syncStudioBillingSubscriptionFromStripe(sub);
+    return ack();
+  }
+
+  if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object as Stripe.Invoice;
+    const invoiceAny = invoice as unknown as { id?: string; subscription?: unknown };
+    const subId =
+      typeof invoiceAny.subscription === "string"
+        ? invoiceAny.subscription
+        : (invoiceAny.subscription as { id?: string } | null)?.id;
+    if (!subId) return ack();
+    const row = await prisma.offeringSubscription.findUnique({ where: { stripeSubscriptionId: subId } });
+    if (!row) return ack();
+
+    const now = new Date();
+    const nextFailures = row.failedPaymentCount + 1;
+    const graceEndsAt = new Date(now.getTime() + row.gracePeriodDays * 24 * 60 * 60 * 1000);
+    let nextStatus: "past_due" | "paused" | "canceled" = "past_due";
+    let endedAt: Date | null = null;
+    if (nextFailures >= row.paymentRetryMax && row.failedPaymentAction === "pause") {
+      nextStatus = "paused";
+    } else if (nextFailures >= row.paymentRetryMax && row.failedPaymentAction === "cancel") {
+      nextStatus = "canceled";
+      endedAt = now;
+      if (row.stripeSubscriptionId) {
+        try {
+          await getStripe().subscriptions.cancel(row.stripeSubscriptionId);
+        } catch {
+          // non-fatal; local status still marks cancel intent and next sync can reconcile
+        }
+      }
+    }
+    await prisma.offeringSubscription.update({
+      where: { id: row.id },
+      data: {
+        status: nextStatus,
+        failedPaymentCount: nextFailures,
+        graceEndsAt,
+        endedAt,
+      },
+    });
+    await recordOfferingSubscriptionEvent(row.id, "payment_failed", {
+      invoiceId: invoice.id,
+      attempts: nextFailures,
+      status: nextStatus,
+    });
+    return ack();
+  }
+
+  if (event.type === "invoice.payment_succeeded") {
+    const invoice = event.data.object as Stripe.Invoice;
+    const invoiceAny = invoice as unknown as { id?: string; subscription?: unknown; lines?: { data?: unknown[] } };
+    const subId =
+      typeof invoiceAny.subscription === "string"
+        ? invoiceAny.subscription
+        : (invoiceAny.subscription as { id?: string } | null)?.id;
+    if (!subId) return ack();
+    const row = await prisma.offeringSubscription.findUnique({ where: { stripeSubscriptionId: subId } });
+    if (!row) return ack();
+
+    const firstLine = (invoiceAny.lines?.data?.[0] as { period?: { start?: number; end?: number } } | undefined) ?? undefined;
+    const linePeriod = firstLine?.period;
+    const currentPeriodStart = linePeriod?.start ? new Date(linePeriod.start * 1000) : row.currentPeriodStart;
+    const currentPeriodEnd = linePeriod?.end ? new Date(linePeriod.end * 1000) : row.currentPeriodEnd;
+    await prisma.offeringSubscription.update({
+      where: { id: row.id },
+      data: {
+        status: row.cancelAtPeriodEnd ? "pending_cancel" : "active",
+        failedPaymentCount: 0,
+        graceEndsAt: null,
+        currentPeriodStart: currentPeriodStart ?? null,
+        currentPeriodEnd: currentPeriodEnd ?? null,
+        nextBillingDate: currentPeriodEnd ?? null,
+        cyclesBilled: { increment: 1 },
+      },
+    });
+    await recordOfferingSubscriptionEvent(row.id, "payment_recovered", { invoiceId: invoiceAny.id ?? null });
     return ack();
   }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+
+    if (session.metadata?.type === "offering_subscription") {
+      const targetType = session.metadata.targetType;
+      const productId = session.metadata.productId ?? null;
+      const experienceId = session.metadata.experienceId ?? null;
+      const studioId = session.metadata.studioId;
+      const userId = session.metadata.userId;
+      const priceSnapshotCents = parseInt(session.metadata.priceSnapshotCents ?? "0", 10);
+      const billingInterval = session.metadata.billingInterval;
+      const billingIntervalCount = parseInt(session.metadata.billingIntervalCount ?? "1", 10) || 1;
+      const minimumCommitmentCycles = parseInt(session.metadata.minimumCommitmentCycles ?? "0", 10) || null;
+      const trialPeriodDays = parseInt(session.metadata.trialPeriodDays ?? "0", 10) || null;
+      const gracePeriodDays = parseInt(session.metadata.gracePeriodDays ?? "3", 10) || 3;
+      const paymentRetryMax = parseInt(session.metadata.paymentRetryMax ?? "3", 10) || 3;
+      const pricingVersion = parseInt(session.metadata.pricingVersion ?? "1", 10) || 1;
+      const failedPaymentAction = session.metadata.failedPaymentAction === "cancel" ? "cancel" : "pause";
+      const autoRenew = session.metadata.autoRenew !== "0";
+      const subRaw = session.subscription;
+      const stripeSubscriptionId = typeof subRaw === "string" ? subRaw : subRaw?.id ?? null;
+      const custRaw = session.customer;
+      const stripeCustomerId = typeof custRaw === "string" ? custRaw : custRaw?.id ?? null;
+
+      if (
+        stripeSubscriptionId &&
+        studioId &&
+        userId &&
+        (targetType === "product" || targetType === "experience") &&
+        billingInterval &&
+        (billingInterval === "weekly" || billingInterval === "monthly" || billingInterval === "custom")
+      ) {
+        let stripeSub: Stripe.Subscription | null = null;
+        try {
+          stripeSub = await getStripe().subscriptions.retrieve(stripeSubscriptionId);
+        } catch {
+          stripeSub = null;
+        }
+        const stripeSubAny = stripeSub as unknown as {
+          current_period_start?: number;
+          current_period_end?: number;
+          trial_end?: number | null;
+          status?: Stripe.Subscription.Status;
+        } | null;
+        const now = new Date();
+        const currentPeriodStart =
+          stripeSubAny?.current_period_start != null ? new Date(stripeSubAny.current_period_start * 1000) : now;
+        const currentPeriodEnd =
+          stripeSubAny?.current_period_end != null ? new Date(stripeSubAny.current_period_end * 1000) : null;
+        const trialEndsAt = stripeSubAny?.trial_end ? new Date(stripeSubAny.trial_end * 1000) : null;
+        const status = stripeSubAny?.status ? mapStripeSubscriptionStatus(stripeSubAny.status) : "active";
+        const saved = await prisma.offeringSubscription.upsert({
+          where: { stripeSubscriptionId },
+          create: {
+            studioId,
+            userId,
+            targetType,
+            productId: targetType === "product" ? productId : null,
+            experienceId: targetType === "experience" ? experienceId : null,
+            customerEmail: session.customer_details?.email ?? "",
+            customerName: session.customer_details?.name ?? null,
+            status,
+            priceSnapshotCents,
+            billingInterval,
+            billingIntervalCount,
+            minimumCommitmentCycles,
+            autoRenew,
+            trialEndsAt,
+            currentPeriodStart,
+            currentPeriodEnd,
+            nextBillingDate: currentPeriodEnd,
+            paymentRetryMax,
+            gracePeriodDays,
+            failedPaymentAction,
+            pricingVersion,
+            stripeCustomerId,
+            stripeSubscriptionId,
+          },
+          update: {
+            status,
+            customerEmail: session.customer_details?.email ?? undefined,
+            customerName: session.customer_details?.name ?? null,
+            currentPeriodStart,
+            currentPeriodEnd,
+            nextBillingDate: currentPeriodEnd,
+            trialEndsAt,
+            paymentRetryMax,
+            gracePeriodDays,
+            failedPaymentAction,
+            autoRenew,
+            pricingVersion,
+            stripeCustomerId,
+          },
+        });
+        await recordOfferingSubscriptionEvent(saved.id, "checkout_completed", {
+          sessionId: session.id,
+          stripeSubscriptionId,
+          billingInterval,
+          billingIntervalCount,
+          trialPeriodDays,
+        });
+      }
+      return ack();
+    }
 
     // --- Studio add-on subscription (platform Billing) ---
     if (session.metadata?.type === "studio_feature_subscription") {
