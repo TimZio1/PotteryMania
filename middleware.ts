@@ -83,7 +83,7 @@ export default auth(async (req) => {
           const secret = process.env.VENDOR_DOMAIN_RESOLVE_SECRET?.trim();
           if (secret) headers.set("x-potterymania-resolve-secret", secret);
           const resolveUrl = `${base}/api/vendor-domains/resolve?host=${encodeURIComponent(hNorm)}`;
-          const res = await fetch(resolveUrl, { headers, cache: "no-store", signal: AbortSignal.timeout(8000) });
+          const res = await fetch(resolveUrl, { headers, cache: "no-store", signal: AbortSignal.timeout(2500) });
           if (res.ok) {
             const data = (await res.json()) as { studioId?: unknown };
             const studioId = typeof data.studioId === "string" ? data.studioId : null;
@@ -132,5 +132,5 @@ export default auth(async (req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\..*).*)"],
+  matcher: ["/((?!api/ready|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\..*).*)"],
 };

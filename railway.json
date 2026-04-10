@@ -3,7 +3,7 @@
   "deploy": {
     "preDeployCommand": ["npm run db:migrate"],
     "startCommand": "npm run start",
-    "healthcheckPath": "/",
+    "healthcheckPath": "/api/ready",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE"
   }
