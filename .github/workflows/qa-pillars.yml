@@ -2,9 +2,10 @@ name: QA Pillars
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  # Do not run on every push to `main`: Railway "Wait for CI" treats any failed
+  # workflow as SKIPPED deploy. Full pillars stay on PRs + manual + schedule.
+  schedule:
+    - cron: "0 5 * * 1"
   pull_request:
 
 concurrency:

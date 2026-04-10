@@ -67,6 +67,8 @@ Migrations to apply on the database (in order among others): `20260405230000_pas
 
 `railway.json` runs **`npm run db:migrate`** (`prisma migrate deploy`) as **preDeployCommand**, then **`npm run start`**. Pushing/linking the service deploys migrations automatically once `DATABASE_URL` is set.
 
+**If Railway shows deploy SKIPPED:** with **Wait for CI** enabled, **any** failed GitHub Actions check on that commit skips the deploy. This repo uses **`.github/workflows/ci.yml`** (lint + build on push to `main`) as the lightweight gate; the heavy **`qa-pillars.yml`** suite runs on pull requests, weekly schedule, and manual dispatch—not on every `main` push—so flaky E2E does not block production deploys. Fix or disable failing checks in GitHub, or turn off Wait for CI in the Railway service.
+
 **Build note:** The app image build does **not** have access to `postgres.railway.internal`. Do not prerender pages that call Prisma against prod DB at build time; home uses **`dynamic = "force-dynamic"`** and marketing commission reads use a safe fallback when the DB is unreachable.
 
 Local: `npx prisma migrate deploy` (requires a reachable `DATABASE_URL`). CLI: `npx @railway/cli login` → `railway link` → `railway up` from `potterymania/` if you deploy from the terminal.
