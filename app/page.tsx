@@ -13,6 +13,7 @@ import { displayedPreRegTotal } from "@/lib/brand";
 import { STUDIO_TESTIMONIALS, testimonialAttribution } from "@/lib/marketing-testimonials";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
+import { monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
 
 /** Homepage is DB-aware for counters/content and must not prerender at build. */
 export const dynamic = "force-dynamic";
@@ -101,13 +102,6 @@ const visitorPaths = [
     cta: "Start shop setup",
   },
 ] as const;
-const STUDIO_PRICE_TIERS = [
-  { name: "START", price: "€19/month" },
-  { name: "GROWTH", price: "€49/month" },
-  { name: "PRO", price: "€99/month" },
-  { name: "SCALE", price: "€199/month" },
-] as const;
-
 const studioShelfPieces = [
   { x: 220, y: 205, w: 110, h: 140, fill: "#dfc0a3" },
   { x: 370, y: 205, w: 88, h: 120, fill: "#b1774f" },
@@ -216,16 +210,16 @@ export default async function Home() {
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Pricing model</p>
                 <p className="mt-2 text-sm text-stone-700 sm:text-base">
-                  Platform plans for studio tooling with 0% platform commission on sales and bookings.
+                  Pay by studio usage: bookings-only, shop-only, both, or pro. Platform commission stays at 0%.
                 </p>
               </div>
               <ul className="flex flex-wrap gap-2">
-                {STUDIO_PRICE_TIERS.map((tier) => (
+                {STUDIO_PLANS.map((plan) => (
                   <li
-                    key={tier.name}
+                    key={plan.key}
                     className="rounded-full border border-(--brand-line) bg-(--warm-surface) px-3 py-1 text-xs font-medium text-stone-700"
                   >
-                    {tier.name} · {tier.price}
+                    {plan.name} · {monthlyLabel(plan)}
                   </li>
                 ))}
               </ul>

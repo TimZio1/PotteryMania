@@ -869,3 +869,18 @@ This log records every implementation action, command, and verification result i
       - `npm run lint -- lib/commission-defaults.ts app/api/admin/commission/route.ts app/api/checkout/route.ts app/api/bookings/checkout/route.ts lib/preregistration.ts middleware.ts app/early-access/page.tsx app/register/page.tsx components/site-header.tsx components/marketing-layout.tsx app/page.tsx components/dashboard/studio-marketplace-visibility.tsx app/api/early-access/route.ts app/api/early-access/count/route.ts app/sitemap.ts app/robots.ts lib/commission.test.ts`
       - `npm run test -- lib/commission.test.ts`
       - Result: pass.
+
+65. Implemented studio-tier pricing model (bookings/shop/both/pro) for competitiveness + profitability under 0% commission.
+    - Central pricing source:
+      - `lib/studio-plan-pricing.ts`: added canonical plan catalog with monthly/annual-equivalent pricing, plan metadata, and setup-path mapping helpers.
+      - Plans now align to product shape: `bookings`, `shop`, `both`, plus a higher-value `pro` tier.
+    - Dashboard billing surface:
+      - `app/dashboard/billing/page.tsx`: replaced legacy START/GROWTH/PRO/SCALE copy with studio-usage tiers and explicit 0% commission model.
+      - Added "High-impact add-ons" block to support subscription-led base pricing + optional expansion revenue.
+    - Onboarding + conversion alignment:
+      - `app/dashboard/studio/new/page.tsx`: setup selector now displays recommended plan and monthly price based on chosen setup path.
+      - `app/page.tsx`: pricing chips now render from shared plan config instead of hardcoded legacy tier labels.
+      - `app/dashboard/page.tsx`: added quick link to `/dashboard/billing` for plan visibility during setup.
+    - Verification:
+      - `npm run lint -- lib/studio-plan-pricing.ts app/dashboard/billing/page.tsx app/dashboard/studio/new/page.tsx app/page.tsx app/dashboard/page.tsx`
+      - Result: pass (0 errors).

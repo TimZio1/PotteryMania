@@ -56,6 +56,9 @@ export default async function DashboardPage() {
             <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>
               Studio setup
             </Link>
+            <Link href="/dashboard/billing" className={`${ui.buttonGhost} justify-center`}>
+              Studio plans & billing
+            </Link>
             <Link href="/my-bookings" className={`${ui.buttonGhost} justify-center`}>
               My bookings
             </Link>
@@ -97,7 +100,7 @@ export default async function DashboardPage() {
         <div className={`${ui.cardMuted} mt-10`}>
           <h2 className="text-lg font-semibold text-amber-950">Create your studio</h2>
           <p className="mt-2 text-sm text-stone-600">
-            Add your profile, connect Stripe, and go live immediately.
+            Add your profile, choose a plan path (bookings, shop, or both), connect Stripe, and go live immediately.
           </p>
           <Link href="/dashboard/studio/new?setup=both" className={`${ui.buttonPrimary} mt-6 inline-flex`}>
             Start website setup

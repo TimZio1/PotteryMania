@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { monthlyLabel, setupPathToPlanKey, studioPlanByKey } from "@/lib/studio-plan-pricing";
 
 type SetupPath = "bookings" | "shop" | "both";
 
@@ -56,6 +57,7 @@ export default function NewStudioPage() {
     coverImageUrl: "",
   });
   const pathCopy = setupCopy(setup);
+  const selectedPlan = studioPlanByKey(setupPathToPlanKey(setup));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -133,6 +135,10 @@ export default function NewStudioPage() {
         </Link>
       </div>
       <p className="mt-3 text-sm font-medium text-amber-900">{pathCopy.title}</p>
+      <p className="mt-1 text-sm text-stone-600">
+        Recommended plan: <span className="font-medium text-stone-800">{selectedPlan.name}</span> (
+        {monthlyLabel(selectedPlan)}, 0% platform commission).
+      </p>
       <form onSubmit={submit} className="mt-6 space-y-3">
         {err && <p className="text-sm text-red-600">{err}</p>}
         {field("displayName", "Display name", true)}

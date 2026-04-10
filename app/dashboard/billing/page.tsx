@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { metaDashboardPage } from "@/lib/seo-routes";
+import { annualEquivalentLabel, monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
 
 export const metadata: Metadata = metaDashboardPage(
   "Billing",
@@ -19,33 +20,6 @@ export default async function DashboardBillingPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login?callbackUrl=/dashboard/billing");
 
-  const plans = [
-    {
-      slug: "start",
-      name: "START",
-      price: "€19/month",
-      items: ["bookings enabled", "product sales enabled", "basic calendar"],
-    },
-    {
-      slug: "growth",
-      name: "GROWTH",
-      price: "€49/month",
-      items: ["rescheduling", "waitlist", "reminders", "basic analytics"],
-    },
-    {
-      slug: "pro",
-      name: "PRO",
-      price: "€99/month",
-      items: ["CRM", "repeat customer tools", "advanced analytics", "reporting"],
-    },
-    {
-      slug: "scale",
-      name: "SCALE",
-      price: "€199/month",
-      items: ["team management", "multiple instructors", "advanced scheduling", "API access"],
-    },
-  ];
-
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-10">
       <div>
@@ -59,22 +33,37 @@ export default async function DashboardBillingPage() {
       </div>
 
       <div className={`${ui.card} space-y-3`}>
-        <h2 className="text-lg font-semibold text-stone-900">Operational plans (locked model)</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Studio plans (0% commission model)</h2>
         <p className="text-sm text-stone-600">
-          These plans are for operational tooling only. Marketplace visibility is never sold.
+          Plans are based on studio usage: bookings-only, shop-only, both, or pro. Platform take-rate stays at 0%.
         </p>
         <ul className="divide-y divide-stone-100 text-sm">
-          {plans.map((p) => (
-            <li key={p.slug} className="py-3">
-              <span className="font-medium text-stone-800">{p.name}</span>{" "}
-              <span className="text-stone-500">· {p.price}</span>
-              <p className="mt-1 text-stone-600">{p.items.join(" · ")}</p>
+          {STUDIO_PLANS.map((plan) => (
+            <li key={plan.key} className="py-3">
+              <span className="font-medium text-stone-800">{plan.name}</span>{" "}
+              <span className="text-stone-500">
+                · {monthlyLabel(plan)} · {annualEquivalentLabel(plan)}
+              </span>
+              <p className="mt-1 text-stone-600">{plan.headline}</p>
+              <p className="mt-1 text-stone-500">{plan.includes.join(" · ")}</p>
             </li>
           ))}
         </ul>
         <p className="text-xs text-stone-500">
-          Checkout for plan subscriptions should be tied to Stripe-connected studios.
+          Add-ons are still purchased per studio from Features / Add-ons.
         </p>
+      </div>
+      <div className={`${ui.card} space-y-3`}>
+        <h2 className="text-lg font-semibold text-stone-900">High-impact add-ons</h2>
+        <p className="text-sm text-stone-600">
+          Keep your base plan competitive, then scale with optional paid capabilities.
+        </p>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-stone-700">
+          <li>Automation and reminder packs</li>
+          <li>Advanced analytics and reporting</li>
+          <li>Priority support</li>
+          <li>Premium branding and template upgrades</li>
+        </ul>
       </div>
     </div>
   );
