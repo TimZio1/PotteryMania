@@ -5,7 +5,7 @@ import { metaDashboardPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaDashboardPage(
   "New studio",
   "/dashboard/studio/new",
-  "Create your ceramic studio profile for PotteryMania review and onboarding.",
+  "Quick setup for your studio — add products or classes and share your public page in minutes.",
 );
 
 export default function NewStudioLayout({ children }: { children: ReactNode }) {

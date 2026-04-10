@@ -127,6 +127,39 @@ describe("API contract: POST /api/studios", () => {
     );
   });
 
+  it("quickStart creates studio with deferred-address placeholders", async () => {
+    const req = new Request("http://localhost:3000/api/studios", {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: "Fast Studio",
+        country: "Portugal",
+        city: "",
+        email: "vendor@example.com",
+        quickStart: true,
+      }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    expect(studioRouteMocks.studioCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          displayName: "Fast Studio",
+          country: "Portugal",
+          city: "Pending",
+          email: "vendor@example.com",
+          legalBusinessName: "Fast Studio",
+          addressLine1: "Pending — complete in Studio profile",
+          vatNumber: expect.stringMatching(/^QUICKSTART-/),
+          responsiblePersonName: "vendor",
+          status: "approved",
+          approvedAt: expect.any(Date),
+        }),
+      }),
+    );
+  });
+
   it("creates vendor studio as approved (immediate self-serve)", async () => {
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",

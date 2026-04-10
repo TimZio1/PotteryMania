@@ -29,20 +29,40 @@ export async function POST(req: Request) {
   const arr = (k: string) =>
     Array.isArray(body[k]) ? (body[k] as unknown[]).filter((v): v is string => typeof v === "string").map((v) => v.trim().toLowerCase()).filter(Boolean) : [];
   const listingOnly = body.listingOnly === true;
+  const quickStart = body.quickStart === true;
 
   const displayName = str("displayName");
   const supportedLanguages = arr("supportedLanguages");
-  const legalBusinessName = str("legalBusinessName") || displayName;
-  const fallbackVat = `FREE-LISTING-${user.id.slice(0, 8)}`;
-  const vatNumber = str("vatNumber") || (listingOnly ? fallbackVat : "");
-  const fallbackResponsible = user.email.split("@")[0] || "Studio owner";
-  const responsiblePersonName = str("responsiblePersonName") || (listingOnly ? fallbackResponsible : "");
-  const email = str("email");
-  const country = str("country");
-  const city = str("city");
-  const addressLine1 = str("addressLine1");
 
-  if (!displayName || !legalBusinessName || !vatNumber || !responsiblePersonName || !email || !country || !city || !addressLine1) {
+  let legalBusinessName = str("legalBusinessName") || displayName;
+  const fallbackVat = `FREE-LISTING-${user.id.slice(0, 8)}`;
+  let vatNumber = str("vatNumber") || (listingOnly ? fallbackVat : "");
+  const fallbackResponsible = user.email.split("@")[0] || "Studio owner";
+  let responsiblePersonName = str("responsiblePersonName") || (listingOnly ? fallbackResponsible : "");
+  let email = str("email");
+  let country = str("country");
+  let city = str("city");
+  let addressLine1 = str("addressLine1");
+
+  if (quickStart) {
+    email = str("email") || user.email?.trim() || "";
+    country = str("country");
+    city = str("city") || "Pending";
+    const idCompact = user.id.replace(/-/g, "");
+    vatNumber = `QUICKSTART-${idCompact.slice(0, 8)}-${Date.now().toString(36)}`;
+    responsiblePersonName = fallbackResponsible;
+    legalBusinessName = displayName;
+    addressLine1 = "Pending — complete in Studio profile";
+    if (!displayName || !country) {
+      return NextResponse.json({ error: "Studio name and country are required" }, { status: 400 });
+    }
+    if (!email) {
+      return NextResponse.json(
+        { error: "Add a contact email or verify your account has an email address." },
+        { status: 400 },
+      );
+    }
+  } else if (!displayName || !legalBusinessName || !vatNumber || !responsiblePersonName || !email || !country || !city || !addressLine1) {
     return NextResponse.json({ error: "Missing required studio fields" }, { status: 400 });
   }
 
@@ -64,7 +84,7 @@ export async function POST(req: Request) {
       longitude: num("longitude") ?? undefined,
       shortDescription: opt("shortDescription"),
       longDescription: opt("longDescription"),
-      logoUrl: listingOnly ? null : opt("logoUrl"),
+      logoUrl: listingOnly || quickStart ? null : opt("logoUrl"),
       coverImageUrl: opt("coverImageUrl"),
       instagramUrl: opt("instagramUrl"),
       facebookUrl: opt("facebookUrl"),

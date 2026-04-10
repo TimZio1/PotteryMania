@@ -23,9 +23,12 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
 
   const publicUrl = absoluteUrl || publicPath;
 
+  const profileIncomplete = searchParams.get("profile") === "incomplete";
+
   const clearQuery = useCallback(() => {
     const q = new URLSearchParams(searchParams.toString());
     q.delete("onboarding");
+    q.delete("profile");
     const s = q.toString();
     router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
@@ -43,7 +46,23 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
   if (!show) return null;
 
   return (
-    <div className="mb-6 rounded-2xl border border-emerald-200/90 bg-emerald-50/90 px-4 py-4 shadow-sm sm:px-5">
+    <div className="mb-6 space-y-3">
+      {profileIncomplete ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm sm:px-5">
+          <p className="font-semibold">Finish business details before payouts</p>
+          <p className="mt-1 text-amber-900/95">
+            You started with quick setup. Add your full address, tax ID, and legal name in Studio profile when you&apos;re
+            ready to connect Stripe and receive money.
+          </p>
+          <Link
+            href={`/dashboard/studio/${studioId}`}
+            className="mt-2 inline-block text-sm font-semibold text-amber-950 underline underline-offset-2"
+          >
+            Complete studio profile →
+          </Link>
+        </div>
+      ) : null}
+      <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/90 px-4 py-4 shadow-sm sm:px-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900">Next: get your first sale or booking</p>
@@ -77,6 +96,7 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
             Dismiss
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
