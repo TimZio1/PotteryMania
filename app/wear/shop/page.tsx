@@ -11,6 +11,7 @@ import {
   resolveWearCategory,
   wearCategoryLabel,
 } from "@/lib/wear-categories";
+import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
@@ -141,11 +142,14 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                           <div className="relative aspect-3/4 overflow-hidden bg-neutral-900">
                             {src ? (
                               <Image
-                                src={src}
+                                src={wearListingImageSrc(src, 640)}
                                 alt={p.name}
                                 fill
                                 className="object-cover transition duration-500 group-hover:scale-[1.02]"
-                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 30vw"
+                                quality={68}
+                                loading="lazy"
+                                decoding="async"
                               />
                             ) : (
                               <div className="flex h-full items-center justify-center bg-neutral-900 px-6 text-center text-sm text-neutral-400">

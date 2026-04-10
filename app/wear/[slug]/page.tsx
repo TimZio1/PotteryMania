@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildMetadata } from "@/lib/seo";
 import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
+import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { WearPdpBuySection } from "@/components/wear/wear-pdp-buy-section";
 
@@ -71,12 +72,14 @@ export default async function WearProductPage({ params }: Props) {
           <div className="relative aspect-3/4 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/70 ring-1 ring-white/5 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
             {primary ? (
               <Image
-                src={primary}
+                src={wearListingImageSrc(primary, 960)}
                 alt={p.name}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
+                quality={78}
                 priority
+                fetchPriority="high"
               />
             ) : (
               <div className="flex h-full items-center justify-center px-6 text-center text-sm text-neutral-400">
@@ -91,7 +94,16 @@ export default async function WearProductPage({ params }: Props) {
                   key={src}
                   className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-neutral-900/70 sm:h-24 sm:w-20"
                 >
-                  <Image src={src} alt={`${p.name} detail view`} fill className="object-cover" sizes="80px" />
+                  <Image
+                    src={wearListingImageSrc(src, 320)}
+                    alt={`${p.name} detail view`}
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                    quality={62}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
               ))}
             </div>
