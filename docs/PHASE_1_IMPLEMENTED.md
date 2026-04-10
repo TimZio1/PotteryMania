@@ -67,6 +67,8 @@ Migrations to apply on the database (in order among others): `20260405230000_pas
 
 `railway.json` runs **`npm run db:migrate`** (`prisma migrate deploy`) as **preDeployCommand**, then **`npm run start`**. Pushing/linking the service deploys migrations automatically once `DATABASE_URL` is set.
 
+**GitHub Actions:** workflows use **`npm run build:ci`** (`next build` without Turbopack) because **`next build --turbopack`** is more likely to flake or OOM on `ubuntu-latest`; local and Railway can keep using **`npm run build`**.
+
 **If Railway shows deploy SKIPPED:** with **Wait for CI** enabled, **any** failed GitHub Actions check on that commit skips the deploy. This repo uses **`.github/workflows/ci.yml`** (lint + build on push to `main`) as the lightweight gate; the heavy **`qa-pillars.yml`** suite runs on pull requests, weekly schedule, and manual dispatch—not on every `main` push—so flaky E2E does not block production deploys. Fix or disable failing checks in GitHub, or turn off Wait for CI in the Railway service.
 
 **Railpack build error `GOOGLE_CLIENT_ID_SECRET: no such file or directory`:** Railway’s builder pairs **`GOOGLE_CLIENT_ID`** with a required secret **`GOOGLE_CLIENT_ID_SECRET`**. This app does **not** use those names. Remove **`GOOGLE_CLIENT_ID`** from the service (and any shared env group), and use **`AUTH_GOOGLE_ID`** + **`AUTH_GOOGLE_SECRET`** for “Sign in with Google” (`auth.ts`), or **`GOOGLE_CALENDAR_CLIENT_ID`** + **`GOOGLE_CALENDAR_CLIENT_SECRET`** for studio calendar OAuth. If you must keep `GOOGLE_CLIENT_ID` for an external tool, also add **`GOOGLE_CLIENT_ID_SECRET`** with the matching OAuth client secret so the build can mount both files.

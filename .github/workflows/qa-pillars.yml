@@ -69,7 +69,7 @@ jobs:
         run: npm run lint
 
       - name: Build
-        run: npm run build
+        run: npm run build:ci
 
       - name: Functionality pillar
         run: npm run test:functionality
