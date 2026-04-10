@@ -214,7 +214,8 @@ export default function NewStudioPage() {
   }
 
   const inputInvalidClass = "border-rose-500 ring-1 ring-rose-200";
-  const inputBaseClass = "mt-1 w-full rounded border px-3 py-2";
+  const inputBaseClass =
+    "mt-1 w-full rounded-xl border bg-white px-3 py-2 text-stone-900 shadow-sm placeholder:text-stone-400";
 
   const field = (k: keyof typeof f, label: string, required = false, type = "text") => {
     const fe = fieldErrors[k];
@@ -224,7 +225,7 @@ export default function NewStudioPage() {
         <input
           type={type}
           aria-invalid={fe ? "true" : undefined}
-          className={`${inputBaseClass} ${fe ? inputInvalidClass : "border-stone-300"}`}
+          className={`${inputBaseClass} ${fe ? inputInvalidClass : "border-stone-200"}`}
           value={f[k]}
           onChange={(e) => {
             setF({ ...f, [k]: e.target.value });
@@ -239,34 +240,42 @@ export default function NewStudioPage() {
   };
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-10">
-      <Link href="/dashboard" className="text-sm text-amber-800">
+    <div className="mx-auto max-w-xl px-5 py-12 sm:px-6">
+      <Link href="/dashboard" className="text-sm font-medium text-amber-900 hover:text-amber-950">
         ← Dashboard
       </Link>
-      <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-stone-500">Step 1 · What do you sell first?</p>
-      <h1 className="mt-2 text-2xl font-semibold">Set up your studio</h1>
-      <p className="mt-2 text-sm text-stone-600">{pathCopy.helper}</p>
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+        Step 1 · What do you sell first?
+      </p>
+      <h1 className="mt-2 font-serif text-3xl font-normal tracking-[-0.02em] text-(--brand-ink)">Set up your studio</h1>
+      <p className="mt-2 text-sm leading-relaxed text-stone-600">{pathCopy.helper}</p>
+      <div className="mt-5 grid gap-2 sm:grid-cols-3">
         <Link
           href={`/dashboard/studio/new?setup=bookings${fullForm ? "&full=1" : ""}`}
-          className={`rounded-lg border px-3 py-2 text-sm ${
-            setup === "bookings" ? "border-amber-800 bg-amber-50 text-amber-950" : "border-stone-300 text-stone-700"
+          className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
+            setup === "bookings"
+              ? "border-amber-700/50 bg-amber-50 text-amber-950 shadow-sm"
+              : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
           Book classes
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=shop${fullForm ? "&full=1" : ""}`}
-          className={`rounded-lg border px-3 py-2 text-sm ${
-            setup === "shop" ? "border-amber-800 bg-amber-50 text-amber-950" : "border-stone-300 text-stone-700"
+          className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
+            setup === "shop"
+              ? "border-amber-700/50 bg-amber-50 text-amber-950 shadow-sm"
+              : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
           Sell products
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=both${fullForm ? "&full=1" : ""}`}
-          className={`rounded-lg border px-3 py-2 text-sm ${
-            setup === "both" ? "border-amber-800 bg-amber-50 text-amber-950" : "border-stone-300 text-stone-700"
+          className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
+            setup === "both"
+              ? "border-amber-700/50 bg-amber-50 text-amber-950 shadow-sm"
+              : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
           Both
@@ -293,7 +302,7 @@ export default function NewStudioPage() {
               <span className="text-stone-600">Studio name *</span>
               <input
                 aria-invalid={fieldErrors.displayName ? "true" : undefined}
-                className={`${inputBaseClass} ${fieldErrors.displayName ? inputInvalidClass : "border-stone-300"}`}
+                className={`${inputBaseClass} ${fieldErrors.displayName ? inputInvalidClass : "border-stone-200"}`}
                 value={quick.displayName}
                 onChange={(e) => {
                   setQuick({ ...quick, displayName: e.target.value });
@@ -314,7 +323,7 @@ export default function NewStudioPage() {
               <span className="text-stone-600">Country *</span>
               <input
                 aria-invalid={fieldErrors.country ? "true" : undefined}
-                className={`${inputBaseClass} ${fieldErrors.country ? inputInvalidClass : "border-stone-300"}`}
+                className={`${inputBaseClass} ${fieldErrors.country ? inputInvalidClass : "border-stone-200"}`}
                 value={quick.country}
                 onChange={(e) => {
                   setQuick({ ...quick, country: e.target.value });
@@ -330,7 +339,7 @@ export default function NewStudioPage() {
             <label className="block text-sm">
               <span className="text-stone-600">City or region (optional)</span>
               <input
-                className={`${inputBaseClass} border-stone-300`}
+                className={`${inputBaseClass} border-stone-200`}
                 value={quick.city}
                 onChange={(e) => setQuick({ ...quick, city: e.target.value })}
                 placeholder="Add now or later"
@@ -343,7 +352,7 @@ export default function NewStudioPage() {
               <input
                 type="email"
                 aria-invalid={fieldErrors.email ? "true" : undefined}
-                className={`${inputBaseClass} ${fieldErrors.email ? inputInvalidClass : "border-stone-300"}`}
+                className={`${inputBaseClass} ${fieldErrors.email ? inputInvalidClass : "border-stone-200"}`}
                 value={quick.email}
                 onChange={(e) => {
                   setQuick({ ...quick, email: e.target.value });
@@ -362,7 +371,7 @@ export default function NewStudioPage() {
             <button
               type="submit"
               disabled={submitting || sessionStatus === "loading"}
-              className="w-full rounded bg-amber-800 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+              className="w-full rounded-full bg-amber-950 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 disabled:opacity-60"
             >
               {submitting ? "Creating…" : pathCopy.cta}
             </button>
@@ -417,7 +426,7 @@ export default function NewStudioPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded bg-amber-800 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+              className="w-full rounded-full bg-amber-950 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 disabled:opacity-60"
             >
               {submitting ? "Creating…" : "Create studio"}
             </button>

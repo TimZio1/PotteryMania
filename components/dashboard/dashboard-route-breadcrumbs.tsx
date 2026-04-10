@@ -65,9 +65,17 @@ export function DashboardRouteBreadcrumbs() {
 
   if (!items) return null;
 
+  const newStudioOnboarding = pathname.startsWith("/dashboard/studio/new");
+
   return (
-    <div className="mx-auto max-w-5xl border-b border-white/5 px-4 pb-3 pt-4 sm:px-6">
-      <Breadcrumbs items={items} visualMode="platform" />
+    <div
+      className={
+        newStudioOnboarding
+          ? "mx-auto max-w-5xl border-b border-(--brand-line) bg-background px-4 pb-3 pt-4 sm:px-6"
+          : "mx-auto max-w-5xl border-b border-white/5 px-4 pb-3 pt-4 sm:px-6"
+      }
+    >
+      <Breadcrumbs items={items} visualMode={newStudioOnboarding ? "studio" : "platform"} />
     </div>
   );
 }
