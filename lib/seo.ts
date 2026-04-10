@@ -4,7 +4,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "htt
 
 export const siteMetadata = {
   name: "PotteryMania",
-  description: "Ceramics studio website builder with bookings and shop for independent studios.",
+  description:
+    "Creator platform to run your business online — sell products, take bookings, and manage your studio in one place.",
   url: siteUrl,
   ogImage: "/og-default.png",
 };

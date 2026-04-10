@@ -6,7 +6,7 @@ import { getStripe } from "@/lib/stripe";
 import {
   sendBookingEmails,
   bookingConfirmationCopy,
-  bookingPendingApprovalCopy,
+  bookingPendingStudioConfirmationCopy,
 } from "@/lib/email/booking-notify";
 import { orderConfirmationCopy, sendOrderEmails } from "@/lib/email/order-notify";
 import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
@@ -801,7 +801,7 @@ export async function POST(req: Request) {
       const base = emailBlock(b);
       if (!base) continue;
       base.studioName = it.vendor.displayName;
-      const { customer, studio } = bookingPendingApprovalCopy(base);
+      const { customer, studio } = bookingPendingStudioConfirmationCopy(base);
       await runStripeWebhookSideEffect(event.id, `booking_email_pending:${b.id}`, async () => {
         await sendBookingEmails({
           customerEmail: b.customerEmail,

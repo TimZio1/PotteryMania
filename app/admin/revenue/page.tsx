@@ -309,7 +309,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
             </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
-                label={`Marketplace commission (${windowLabel})`}
+                label={`Platform commission (${windowLabel})`}
                 value={eur(commissionWindowCents)}
                 hint="Snapshot on paid / settled order lines"
               />
@@ -456,7 +456,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-amber-950">Per-studio throughput ({windowLabel})</h2>
         <p className="mt-1 text-xs text-stone-500">
-          Approved studios only, sorted by studio shop order GMV plus class booking deposits. Commission is the platform
+          Live studios only, sorted by studio shop order GMV plus class booking deposits. Commission is the platform
           snapshot on order lines (same window as monetized orders above). Use search to narrow by studio name, city, or
           country.
         </p>
@@ -475,7 +475,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
               className={ui.input}
             />
             <button type="submit" className={ui.buttonSecondary}>
-              Apply
+              Search
             </button>
             {qRaw ? (
               <Link href={revenueHref("overview", "", windowDays)} className={`${ui.buttonGhost} self-center text-sm`}>
@@ -489,7 +489,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
             rows={studioThroughputFiltered}
             empty={
               studioThroughput.length === 0
-                ? "No approved studios yet."
+                ? "No live studios yet."
                 : "No studios match this filter."
             }
             columns={[

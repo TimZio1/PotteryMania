@@ -80,7 +80,7 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
   };
 }
 
-export function bookingPendingApprovalCopy(p: BookingEmailFields): { customer: string; studio: string } {
+export function bookingPendingStudioConfirmationCopy(p: BookingEmailFields): { customer: string; studio: string } {
   const ticket = p.ticketRef
     ? `<p style="margin:0 0 8px;">Your reference: <strong>${escapeHtml(p.ticketRef)}</strong> (save this email)</p>`
     : "";
@@ -98,17 +98,17 @@ export function bookingPendingApprovalCopy(p: BookingEmailFields): { customer: s
   return {
     customer: renderEmailShell({
       eyebrow: "Booking received",
-      title: "Your booking is pending studio approval",
+      title: "Your booking is pending studio confirmation",
       intro: "Your payment was received and the studio has been notified.",
       bodyHtml: block,
       ctaLabel: "View PotteryMania",
       ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
     }),
     studio: renderEmailShell({
-      eyebrow: "Approval required",
+      eyebrow: "Confirmation needed",
       title: "A new booking needs your review",
-      intro: `Please approve or decline the booking for ${p.experienceTitle}.`,
-      bodyHtml: `${block}<p style="margin:16px 0 0;">Please approve or decline in your PotteryMania dashboard.</p>`,
+      intro: `Please confirm or decline the booking for ${p.experienceTitle}.`,
+      bodyHtml: `${block}<p style="margin:16px 0 0;">Please confirm or decline in your PotteryMania dashboard.</p>`,
       ctaLabel: "Open dashboard",
       ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000"}/dashboard`,
     }),
@@ -122,8 +122,8 @@ export function bookingRejectedCopy(p: BookingEmailFields & { reason?: string | 
   const reason = p.reason ? `<p style="margin:0 0 8px;">Note from studio: ${escapeHtml(p.reason)}</p>` : "";
   return renderEmailShell({
     eyebrow: "Booking update",
-    title: "Your booking was not approved",
-    intro: `Your booking for ${p.experienceTitle} at ${p.studioName} was not approved.`,
+    title: "Your booking was not confirmed",
+    intro: `Your booking for ${p.experienceTitle} at ${p.studioName} could not be confirmed.`,
     bodyHtml: `${ticket}${reason}<p style="margin:16px 0 0;">If you were charged, contact the studio for a refund.</p>`,
     ctaLabel: "View PotteryMania",
     ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",

@@ -263,7 +263,7 @@ export default async function StudiosPage({ searchParams }: Props) {
           ) : dbUnavailable ? (
             <p className="mt-10 text-stone-500">Studios are temporarily unavailable. Please try again shortly.</p>
           ) : (
-            <p className="mt-10 text-stone-500">No approved studios yet.</p>
+            <p className="mt-10 text-stone-500">No live studios yet.</p>
           )
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-2">

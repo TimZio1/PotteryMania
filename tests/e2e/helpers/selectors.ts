@@ -1,8 +1,7 @@
 /** Stable locators / copy shared across smoke tests. */
 export const COPY = {
-  earlyAccessHero: /Claim your studio/i,
-  earlyAccessRegisterHeading: /Everything your studio needs/i,
-  marketplaceHeading: /Marketplace/i,
+  /** Shown on `/dashboard/studio/new` when `setup=both` (default). */
+  studioCombinedSetup: /Combined setup/i,
 } as const;
 
 export const earlyAccessIds = {

@@ -111,7 +111,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 href="/early-access"
                 className="text-neutral-200 underline-offset-4 hover:text-white hover:underline"
               >
-                Studio early access
+                Create your studio
               </Link>
             </p>
             {process.env.NODE_ENV === "development" ? (

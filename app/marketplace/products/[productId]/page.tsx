@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       product.shortDescription ||
       product.fullDescription ||
-      `Shop ${product.title} from ${product.studio.displayName} on PotteryMania.`,
+      `Buy ${product.title} directly from ${product.studio.displayName} — studio shop on PotteryMania.`,
     path: `/marketplace/products/${productId}`,
     image: product.images[0]?.imageUrl,
   });

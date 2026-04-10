@@ -103,7 +103,7 @@ export async function runRankingScoreUpdate(): Promise<RankingUpdateResult> {
     studios.push(...batch);
     if (batch.length < PAGE) break;
     if (skip > 0 && skip % 2000 === 0) {
-      console.info(`[ranking] loaded ${studios.length} approved studios…`);
+      console.info(`[ranking] loaded ${studios.length} live studios…`);
     }
   }
 

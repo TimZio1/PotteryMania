@@ -14,8 +14,8 @@ import { resolveShippingZoneForDestination, shipsToZone } from "@/lib/shipping-z
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
-  title: "Marketplace",
-  description: "Browse ceramics from independent pottery studios across Europe.",
+  title: "Shop products from studios",
+  description: "Browse products sold directly by creators — shop, book classes, and run your own studio on PotteryMania.",
   path: "/marketplace",
 });
 
@@ -111,9 +111,9 @@ export default async function MarketplacePage({ searchParams }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
           <p className={ui.overline}>Shop</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Marketplace</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Products from studios</h1>
           <p className="mt-3 text-stone-600">
-            Pieces from approved studios — each listing shows who made it and where they are based.
+            Pieces from live studios — each listing shows who made it and where they are based.
           </p>
           <p className="mt-1 text-sm text-stone-600">
             Region: <strong className="uppercase">{resolvedRegion.region}</strong> {resolvedRegion.country ? `(${resolvedRegion.country})` : ""}

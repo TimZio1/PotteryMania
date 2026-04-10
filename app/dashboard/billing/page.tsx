@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { metaDashboardPage } from "@/lib/seo-routes";
+import Link from "next/link";
 import { annualEquivalentLabel, monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
 
 export const metadata: Metadata = metaDashboardPage(
@@ -37,10 +38,27 @@ export default async function DashboardBillingPage() {
         <p className="text-sm text-stone-600">
           Plans are based on studio usage: bookings-only, shop-only, both, or pro. Platform take-rate stays at 0%.
         </p>
-        <ul className="divide-y divide-stone-100 text-sm">
+        <p className="mt-3 text-sm font-medium text-amber-950">
+          This replaces multiple tools you are currently using — site, bookings, shop, and the glue between them.
+        </p>
+        <p className="mt-2 text-sm text-stone-600">
+          Start free. Upgrade when you&apos;re ready. Public comparison:{" "}
+          <Link href="/pricing" className="font-semibold text-amber-900 underline underline-offset-2">
+            Pricing page
+          </Link>
+          .
+        </p>
+        <ul className="mt-4 divide-y divide-stone-100 text-sm">
           {STUDIO_PLANS.map((plan) => (
             <li key={plan.key} className="py-3">
-              <span className="font-medium text-stone-800">{plan.name}</span>{" "}
+              <span className="font-medium text-stone-800">
+                {plan.name}
+                {plan.recommended ? (
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+                    Most popular
+                  </span>
+                ) : null}
+              </span>{" "}
               <span className="text-stone-500">
                 · {monthlyLabel(plan)} · {annualEquivalentLabel(plan)}
               </span>
@@ -49,6 +67,26 @@ export default async function DashboardBillingPage() {
             </li>
           ))}
         </ul>
+        <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 text-xs">
+          <table className="w-full min-w-[520px] text-left">
+            <thead className="bg-stone-50">
+              <tr>
+                <th className="px-3 py-2 font-semibold text-stone-800">Plan</th>
+                <th className="px-3 py-2 font-semibold text-stone-800">Best for</th>
+                <th className="px-3 py-2 font-semibold text-stone-800">Monthly</th>
+              </tr>
+            </thead>
+            <tbody>
+              {STUDIO_PLANS.map((plan) => (
+                <tr key={plan.key} className="border-t border-stone-100">
+                  <td className="px-3 py-2 font-medium text-stone-800">{plan.name}</td>
+                  <td className="px-3 py-2 text-stone-600">{plan.headline}</td>
+                  <td className="px-3 py-2 text-stone-700">{monthlyLabel(plan)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="text-xs text-stone-500">
           Add-ons are still purchased per studio from Features / Add-ons.
         </p>

@@ -57,11 +57,11 @@ export default async function AdminReportsPage() {
   ]);
 
   const funnelRows = [
-    { step: "Leads (early access, all time)", value: String(earlyAccessTotal), note: `${earlyAccess30} last 30d` },
+    { step: "Leads (legacy capture form, all time)", value: String(earlyAccessTotal), note: `${earlyAccess30} last 30d` },
     { step: "New registered users (30d)", value: String(users30), note: "Accounts created" },
-    { step: "Studios approved", value: String(approvedStudios), note: "Self-serve studio onboarding" },
+    { step: "Studios cleared", value: String(approvedStudios), note: "Self-serve studio onboarding" },
     { step: "Studios activated", value: String(activatedStudios), note: "Stripe Connect enabled" },
-    { step: "Studios with live listing", value: String(vendorsWithListing), note: "Active product or class" },
+    { step: "Studios with live offers", value: String(vendorsWithListing), note: "Active product or class" },
   ];
 
   const activationRate = approvedStudios > 0 ? activatedStudios / approvedStudios : 0;
@@ -88,7 +88,7 @@ export default async function AdminReportsPage() {
       { metric: "Bookings (count)", curKey: "bookingsCount" },
       { metric: "Booking deposits (cents)", curKey: "bookingsDepositTotalCents" },
       { metric: "New users", curKey: "newUsers" },
-      { metric: "Studios approved", curKey: "newStudiosApproved" },
+      { metric: "Studios cleared", curKey: "newStudiosApproved" },
       { metric: "Insight purchases (cents)", curKey: "insightPurchaseTotalCents" },
     ];
     dodRows = pairs.map(({ metric, curKey }) => {
@@ -108,15 +108,15 @@ export default async function AdminReportsPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Reports</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Growth funnel (supply)</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Operational funnel from early-access lead to live studio website supply. Cohort view measures share of each signup
+        Operational funnel from legacy studio lead capture to live studio supply. Cohort view measures share of each signup
         month that placed an order or booking in subsequent calendar months.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Activation rate" value={`${(activationRate * 100).toFixed(1)}%`} hint="Approved → activated" />
-        <StatCard label="Early access (30d)" value={String(earlyAccess30)} hint="Top-of-funnel leads" />
+        <StatCard label="Activation rate" value={`${(activationRate * 100).toFixed(1)}%`} hint="Cleared → activated" />
+        <StatCard label="Studio leads (30d)" value={String(earlyAccess30)} hint="Legacy capture form" />
         <StatCard label="Live listings" value={String(vendorsWithListing)} hint="Sellable supply" />
-        <StatCard label="Approved studios" value={String(approvedStudios)} hint="Pass review" />
+        <StatCard label="Studios cleared" value={String(approvedStudios)} hint="Ready to go live" />
       </div>
 
       {dodRows.length > 0 && latestSnap && priorSnap ? (
@@ -220,7 +220,7 @@ export default async function AdminReportsPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Studio approval cohort — paid add-on penetration (now)</h2>
+        <h2 className="text-lg font-semibold text-amber-950">Studio review cohort — paid add-on penetration (now)</h2>
         <p className="mt-1 max-w-3xl text-xs text-stone-500">
           Cohort month = UTC month of <code className="text-[11px]">approvedAt</code>. “Paid add-on” = any non–grant-by-default
           catalog feature with billable activation today (<code className="text-[11px]">active</code>,{" "}
@@ -230,10 +230,10 @@ export default async function AdminReportsPage() {
         <div className="mt-4">
           <DataTable
             rows={studioAddonCohortRows}
-            empty="No approval cohorts in window."
+            empty="No cohorts in window."
             columns={[
               { key: "c", header: "Cohort", cell: (r) => <span className="font-mono text-xs">{r.cohortMonth}</span> },
-              { key: "a", header: "Approved studios", cell: (r) => String(r.approvedStudios) },
+              { key: "a", header: "Studios in cohort", cell: (r) => String(r.approvedStudios) },
               { key: "p", header: "With paid add-on now", cell: (r) => String(r.withPaidAddonNow) },
               { key: "pct", header: "Penetration", cell: (r) => `${r.penetrationPct.toFixed(1)}%` },
             ]}

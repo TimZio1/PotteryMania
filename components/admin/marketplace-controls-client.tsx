@@ -166,7 +166,7 @@ export default function MarketplaceControlsClient() {
 
   if (loading) {
     return (
-      <div className="space-y-3" role="status" aria-busy="true" aria-label="Loading discovery controls">
+      <div className="space-y-3" role="status" aria-busy="true" aria-label="Loading browse controls">
         <SkeletonText className="max-w-md" lines={2} />
         <SkeletonText className="max-w-xl" lines={4} />
       </div>
@@ -182,8 +182,8 @@ export default function MarketplaceControlsClient() {
       <section className={`${ui.card} space-y-4`}>
         <h2 className="text-lg font-semibold text-amber-950">Featured placements</h2>
         <p className="text-sm text-stone-600">
-          Curated rails (e.g. homepage hero). Discovery is currently dormant in public UX; keep placements ready for
-          future activation and run ranking cron after large changes.
+          Featured studio slots (e.g. homepage hero). Public browsing is off today; keep placements ready if you turn it
+          back on, and run ranking jobs after large changes.
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className={ui.label}>
@@ -239,7 +239,7 @@ export default function MarketplaceControlsClient() {
       <section className={`${ui.card} space-y-4`}>
         <h2 className="text-lg font-semibold text-amber-950">Ranking boosts</h2>
         <p className="text-sm text-stone-600">
-          Time-bounded lift to the manual component of the composite score (dormant while discovery is disabled).
+          Time-bounded lift to the manual part of the composite score (used when public browsing is enabled).
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className={ui.label}>

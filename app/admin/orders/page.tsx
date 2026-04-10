@@ -11,7 +11,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Orders",
   "/admin/orders",
-  "Marketplace and checkout orders.",
+  "Checkout orders across studios.",
 );
 
 export const dynamic = "force-dynamic";
@@ -75,7 +75,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
           </select>
         </label>
         <button type="submit" className={`${ui.buttonPrimary} sm:mb-0`}>
-          Apply
+          Run filters
         </button>
         {filterQs ? (
           <Link href="/admin/orders" className={`${ui.buttonSecondary} sm:mb-0`}>

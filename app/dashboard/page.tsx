@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser, requireAdminUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { metaDashboardPage } from "@/lib/seo-routes";
+import { getStudioIdsWithUpgradeMomentum, UPGRADE_MOMENTUM_MESSAGE } from "@/lib/upgrade-momentum";
 
 export const metadata: Metadata = metaDashboardPage(
   "Studio dashboard",
@@ -86,6 +87,9 @@ export default async function DashboardPage() {
     include: { stripeAccount: true },
   });
 
+  const momentumIds = await getStudioIdsWithUpgradeMomentum(studios.map((s) => s.id));
+  const showUpgradeNudge = momentumIds.size > 0;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-wrap items-center gap-3">
@@ -95,6 +99,19 @@ export default async function DashboardPage() {
       <p className="mt-2 max-w-xl text-stone-600">
         Manage your website, classes, shop, and payouts. Connect Stripe before taking live payments.
       </p>
+
+      {showUpgradeNudge ? (
+        <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm text-amber-950 shadow-sm sm:px-5">
+          <p className="font-semibold">{UPGRADE_MOMENTUM_MESSAGE}</p>
+          <p className="mt-2 text-amber-900/90">
+            You&apos;ve crossed real usage signals (bookings, catalog, or paid orders). Lock in the plan that matches how
+            you operate — add-ons and billing live in one place.
+          </p>
+          <Link href="/dashboard/billing" className="mt-3 inline-flex font-semibold text-amber-950 underline underline-offset-2">
+            View plans &amp; billing →
+          </Link>
+        </div>
+      ) : null}
 
       {studios.length === 0 ? (
         <div className={`${ui.cardMuted} mt-10`}>
@@ -168,7 +185,7 @@ export default async function DashboardPage() {
                       Referrals
                     </Link>
                     <Link href={`/dashboard/waitlist/${s.id}`} className="font-medium text-amber-900 hover:underline">
-                      Waitlist
+                      Class waitlist
                     </Link>
                   </div>
                 )}

@@ -49,8 +49,8 @@ export default async function AdminSystemPage() {
         <h2 className="text-lg font-semibold text-amber-950">Feature flags</h2>
         <p className="mt-2 text-sm text-stone-600">
           Toggle <code className="text-xs">booking_checkout_enabled</code> and{" "}
-          <code className="text-xs">marketplace_checkout_enabled</code> (shop checkout flag) to pause new checkouts
-          without redeploying (60s cache on API nodes).
+          <code className="text-xs">marketplace_checkout_enabled</code> (product / shop checkout; legacy env key name) to
+          pause new checkouts without redeploying (60s cache on API nodes).
         </p>
         <div className="mt-4">
           <FeatureFlagsPanel
@@ -76,7 +76,7 @@ export default async function AdminSystemPage() {
         <h2 className="font-semibold text-amber-950">Environment snapshot</h2>
         <ul className="mt-3 list-inside list-disc space-y-1">
           <li>
-            Preregistration-only:{" "}
+            Guest restricted mode (<code className="text-xs">PREREGISTRATION_ONLY</code>):{" "}
             <code className="text-xs">{process.env.PREREGISTRATION_ONLY === "1" ? "on" : "off"}</code>
           </li>
           <li>

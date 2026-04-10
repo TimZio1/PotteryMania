@@ -518,7 +518,7 @@ export function CartContents() {
                           onClick={applyPromo}
                           className={ui.buttonSecondary}
                         >
-                          Apply
+                          Use code
                         </button>
                         {appliedCode ? (
                           <button type="button" onClick={clearPromo} className={ui.buttonGhost}>

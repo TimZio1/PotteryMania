@@ -176,10 +176,10 @@ export default async function AdminPage() {
 
   const founderSummary = [
     `${formatCurrency(grossRevenueMonthCents)} in paid commerce has flowed through the platform this month, with ${formatCurrency(platformCommissionMonthCents)} captured as platform take and ${formatCurrency(bookingCashMonthCents)} collected as booking cash.`,
-    `${activatedStudiosCount} studios are activated, ${pending.length} are still waiting for review, and ${bookingsAwaitingApprovalCount} bookings are currently blocked on vendor action.`,
+    `${activatedStudiosCount} studios are activated, ${pending.length} are still in review, and ${bookingsAwaitingApprovalCount} bookings are waiting on the studio to confirm.`,
     refundsProxyCents > 0 || manualRefundQueueCount > 0
       ? `The main risk right now is refund and operations pressure: ${formatCurrency(refundsProxyCents)} in refund exposure and ${manualRefundQueueCount} bookings flagged for manual refund review.`
-      : `No major refund pressure is visible right now, so the main opportunity is moving approved studios through activation and turning the early-access pipeline into live supply.`,
+      : `No major refund pressure is visible right now, so the main opportunity is moving reviewed studios through activation and turning legacy leads into live businesses.`,
   ].join(" ");
 
   const alerts = buildAlerts({
@@ -219,7 +219,7 @@ export default async function AdminPage() {
     {
       href: "/admin/operations",
       title: "Operations",
-      desc: "Approvals, early-access, bookings, recovery queues.",
+      desc: "Reviews, legacy leads, bookings, recovery queues.",
     },
     { href: "/admin/users", title: "Users", desc: "Roles, suspension, activity, notes." },
     { href: "/admin/revenue", title: "Revenue", desc: "Commerce throughput, take rate, refunds." },
@@ -520,16 +520,16 @@ function buildAlerts(input: {
   }
   if (input.bookingsAwaitingApprovalCount > 0) {
     alerts.push({
-      title: "Vendor approval backlog",
+      title: "Bookings pending studio confirmation",
       severity: "warning",
-      detail: `${input.bookingsAwaitingApprovalCount} bookings are awaiting vendor action. Slow approvals can hurt conversion and trust.`,
+      detail: `${input.bookingsAwaitingApprovalCount} bookings need a response from the studio. Slow replies can hurt conversion and trust.`,
     });
   }
   if (input.pendingStudios > 0) {
     alerts.push({
       title: "Studio review queue is building",
       severity: "warning",
-      detail: `${input.pendingStudios} studios are still waiting for approval. Review velocity is directly linked to supply growth.`,
+      detail: `${input.pendingStudios} studios are still in your review queue. Review speed is directly linked to how fast new businesses go live.`,
     });
   }
   if (input.calendarErrorsLast30 > 0) {
@@ -543,7 +543,7 @@ function buildAlerts(input: {
     alerts.push({
       title: "Activation conversion is weak",
       severity: "warning",
-      detail: `Only ${formatPercent(input.activationRate)} of approved studios are activated. The main probable cause is onboarding friction after approval.`,
+      detail: `Only ${formatPercent(input.activationRate)} of studios cleared to go live are activated. The main probable cause is onboarding friction after review.`,
     });
   }
   if (alerts.length === 0) {
@@ -580,14 +580,14 @@ function buildOpportunities(input: {
 
   if (input.approvedStudiosCount > input.activatedStudiosCount) {
     items.push({
-      title: "Convert approved studios into revenue faster",
-      detail: `${input.approvedStudiosCount - input.activatedStudiosCount} approved studios still have not activated. A dedicated activation follow-up flow would likely unlock the fastest revenue lift.`,
+      title: "Convert cleared studios into revenue faster",
+      detail: `${input.approvedStudiosCount - input.activatedStudiosCount} cleared studios still have not activated. A dedicated activation follow-up flow would likely unlock the fastest revenue lift.`,
     });
   }
   if (input.earlyAccessCount > input.approvedStudiosCount) {
     items.push({
-      title: "Mine the early-access backlog",
-      detail: `${input.earlyAccessCount} leads are already in the pipeline. Tightening lead scoring, review speed, and outbound follow-up should expand supply without new acquisition spend.`,
+      title: "Work the studio lead backlog",
+      detail: `${input.earlyAccessCount} leads are already in the pipeline. Tightening follow-up and review speed should expand live studios without new acquisition spend.`,
     });
   }
   if (input.referralsAcceptedCount > 0) {
@@ -598,14 +598,14 @@ function buildOpportunities(input: {
   }
   if (input.waitlistEnabledExperienceCount < input.activeExperiencesCount && input.activeExperiencesCount > 0) {
     items.push({
-      title: "Expand waitlist capture",
-      detail: `${input.waitlistEnabledExperienceCount} of ${input.activeExperiencesCount} active experiences have waitlists enabled. More demand capture would improve conversion recovery and demand visibility.`,
+      title: "Expand full-class capture",
+      detail: `${input.waitlistEnabledExperienceCount} of ${input.activeExperiencesCount} active experiences collect names when a class is full. Enabling this on more classes improves demand recovery.`,
     });
   }
   if (input.approvalRequiredExperienceCount > 0) {
     items.push({
-      title: "Audit approval-gated experiences",
-      detail: `${input.approvalRequiredExperienceCount} active experiences require vendor approval. Review whether all of them truly need manual approval or if some can shift to instant confirmation.`,
+      title: "Audit host-confirm experiences",
+      detail: `${input.approvalRequiredExperienceCount} active experiences require the studio to confirm each booking. Check whether all of them need that step or if some can confirm instantly.`,
     });
   }
   if (input.topStudios[0]) {
@@ -618,7 +618,7 @@ function buildOpportunities(input: {
     items.push({
       title: "Package classes and commerce together",
       detail:
-        "Shop and booking surfaces are both active on studio-owned pages. Create bundles and post-class product offers to increase ARPU without extra acquisition cost.",
+        "Shop and bookings are both active on studio-owned pages. Create bundles and post-class product offers to increase revenue per customer without extra acquisition cost.",
     });
   }
 

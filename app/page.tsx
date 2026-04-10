@@ -2,9 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { prisma } from "@/lib/db";
-import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { PROMO_LABEL } from "@/lib/promo";
-import { isPreregistrationOnly } from "@/lib/preregistration";
 import { ClarityCardsStagger } from "@/components/marketing/clarity-cards-stagger";
 import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rail";
 import { HeroPhotography } from "@/components/marketing/hero-photography";
@@ -14,6 +12,7 @@ import { STUDIO_TESTIMONIALS, testimonialAttribution } from "@/lib/marketing-tes
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 import { monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
+import { MARKETING_HERO_PRIMARY } from "@/lib/marketing-hero-variants";
 
 /** Homepage is DB-aware for counters/content and must not prerender at build. */
 export const dynamic = "force-dynamic";
@@ -36,17 +35,17 @@ async function getFeaturedStudiosSafe() {
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
-    title: "Studio website builder for ceramics",
+    title: "Stop losing bookings and sales to chaos | PotteryMania",
     description:
-      "Build your pottery studio website with bookings and shop in one place. Your own page, your own domain, your own shop. Official launch: 1 May 2026. Studio plans start at EUR19/month with 0% platform commission on sales and bookings.",
+      "Sell your work, book your classes, run everything in one place. Replace scattered tools with one studio system. Plans from €19/month · 0% platform commission. Launch 1 May 2026.",
     path: "/",
   });
 }
 
 const clarityItems = [
   {
-    title: "Build your studio website",
-    body: "Launch a pottery-specific website with your own story, visuals, and studio identity.",
+    title: "Set up your studio presence",
+    body: "Launch a pottery-specific site with your story, visuals, and studio identity.",
   },
   {
     title: "Publish classes and take bookings",
@@ -54,7 +53,7 @@ const clarityItems = [
   },
   {
     title: "Sell directly from your studio",
-    body: "Run your own pottery shop under your studio brand, without relying on a global catalog.",
+    body: "Run your own pottery shop under your studio brand, on your own studio page.",
   },
   {
     title: "Your page, your domain, your shop",
@@ -73,11 +72,11 @@ const differentiators = [
   },
   {
     title: "Products and bookings",
-    body: "Bring together your pottery shop and class bookings in one elegant studio website.",
+    body: "Bring together your pottery shop and class bookings in one place.",
   },
   {
     title: "Premium presentation",
-    body: "A warmer, more curated environment that respects handmade work and feels worth belonging to.",
+    body: "A warm, gallery-style presentation that respects handmade work and feels worth belonging to.",
   },
 ];
 
@@ -85,9 +84,9 @@ const trustTags = ["Stoneware", "Porcelain", "Workshops", "Wheel Throwing", "Rak
 const visitorPaths = [
   {
     title: "I run a studio",
-    body: "Set up your studio website with bookings, pottery shop, or both.",
+    body: "Set up your studio with bookings, shop, or both.",
     href: "/dashboard/studio/new?setup=both",
-    cta: "Create studio website",
+    cta: "Create your studio",
   },
   {
     title: "I want bookings only",
@@ -115,7 +114,7 @@ export default async function Home() {
   const preRegCount = await getPreRegCountSafe();
   const featuredStudios = await getFeaturedStudiosSafe();
   const studioBenefits = [
-    "Your own page, your own domain, your own shop — a branded studio home, not a buried profile",
+    "Your page, your domain, your shop — a branded home customers recognize",
     "List products with gallery-quality presentation",
     "Publish workshops and accept bookings online",
     "Pay 0% platform commission on sales and bookings",
@@ -139,34 +138,34 @@ export default async function Home() {
           priority
         >
           <p className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-stone-100 backdrop-blur-sm">
-            Studio website builder for ceramics
+            {MARKETING_HERO_PRIMARY.eyebrow}
           </p>
           <h1 className="mt-6 max-w-4xl font-serif text-5xl leading-[0.94] tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Build a pottery studio website that books classes and sells ceramics.
+            {MARKETING_HERO_PRIMARY.headline}
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg sm:leading-8">
-            A premium home for independent makers. Launch your studio page, fill your classes, and run your shop with
-            one coherent pottery-focused website.
+            {MARKETING_HERO_PRIMARY.subhead}
           </p>
           <p className="mt-5 max-w-2xl text-base font-semibold leading-snug tracking-tight text-white sm:text-lg">
-            Your own page, your own domain, your own shop.
+            One checkout, one calendar, one dashboard — built so you get paid, not buried in admin.
           </p>
-          <p className="mt-4 max-w-2xl text-sm font-medium text-stone-100/85">{EUROPEAN_PREREGISTRATION_NOTE}</p>
+          <p className="mt-4 max-w-2xl text-sm font-medium text-amber-100/95">
+            Official launch 1 May 2026 · start free, subscription billing begins then · plans from €19/month.
+          </p>
           <div className="mt-6 flex max-w-xl flex-col gap-2">
             <div className="inline-flex max-w-fit rounded-full border border-emerald-300/30 bg-emerald-50/10 px-4 py-2 text-sm font-medium text-emerald-50 backdrop-blur-sm">
-              Official launch: 1 May 2026 · plans from €19/month.
+              0% platform commission on your checkout sales and bookings.
             </div>
             <p className="text-sm text-stone-100/80">
-              Present ceramics with gallery-level care. 0% platform commission on sales and bookings. All subscription
-              charges start on 1 May 2026.
+              This replaces the patchwork of DMs, spreadsheets, and generic site builders — without giving up your brand.
             </p>
           </div>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-              Create studio website
+              {MARKETING_HERO_PRIMARY.ctaPrimary}
             </Link>
             <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-              How it works
+              {MARKETING_HERO_PRIMARY.ctaSecondary}
             </Link>
             <Link
               href="/wear/shop"
@@ -176,6 +175,72 @@ export default async function Home() {
             </Link>
           </div>
         </ImageSection>
+
+        <section className="border-b border-(--brand-line) bg-[#23150f] text-stone-100">
+          <div className={`${ui.pageContainer} py-12 sm:py-16`}>
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/90">Money on the table</p>
+              <h2 className="mt-4 font-serif text-3xl leading-tight text-white sm:text-4xl">
+                This is what&apos;s costing you money
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-stone-300 sm:text-base">
+                If any of this sounds familiar, you are leaving bookings and sales on the table every week.
+              </p>
+            </div>
+            <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:gap-5">
+              {[
+                "Customers message you instead of completing real bookings",
+                "Deposits and balances slip through — no reliable payment flow",
+                "No single structure: calendars, inventory, and DMs don’t talk to each other",
+                "No real system — so growth feels like more chaos, not more revenue",
+              ].map((line) => (
+                <li
+                  key={line}
+                  className="flex gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm leading-relaxed text-stone-100 sm:text-base"
+                >
+                  <span className="mt-0.5 font-semibold text-amber-300" aria-hidden>
+                    →
+                  </span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/studio/new?setup=both"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-(--brand-ink) shadow-md transition hover:bg-stone-100"
+              >
+                Create your studio
+              </Link>
+              <Link
+                href="/pricing"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/25 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+              >
+                See plans
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-(--brand-line) bg-white">
+          <div className={`${ui.pageContainer} py-10 sm:py-12`}>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-600">Studios like yours</p>
+            <h2 className="mt-3 max-w-xl font-serif text-2xl text-(--brand-ink) sm:text-3xl">Built to pay for itself</h2>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {STUDIO_TESTIMONIALS.map((t) => (
+                <article
+                  key={t.studio}
+                  className="rounded-[1.25rem] border border-(--brand-line) bg-(--warm-surface) p-5 shadow-sm"
+                >
+                  <p className="text-sm leading-relaxed text-stone-800">&ldquo;{t.quote}&rdquo;</p>
+                  <p className="mt-4 text-xs font-medium uppercase tracking-wide text-stone-500">
+                    {testimonialAttribution(t)}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
 
         <FeaturedStudiosRail studios={featuredStudios} />
 
@@ -212,6 +277,12 @@ export default async function Home() {
                 <p className="mt-2 text-sm text-stone-700 sm:text-base">
                   Pay by studio usage: bookings-only, shop-only, both, or pro. Platform commission stays at 0%.
                 </p>
+                <p className="mt-3 text-sm font-medium text-amber-950">
+                  Start free. Upgrade when you&apos;re ready.
+                </p>
+                <Link href="/pricing" className="mt-3 inline-flex text-sm font-semibold text-amber-900 underline underline-offset-2">
+                  Full comparison →
+                </Link>
               </div>
               <ul className="flex flex-wrap gap-2">
                 {STUDIO_PLANS.map((plan) => (
@@ -220,6 +291,7 @@ export default async function Home() {
                     className="rounded-full border border-(--brand-line) bg-(--warm-surface) px-3 py-1 text-xs font-medium text-stone-700"
                   >
                     {plan.name} · {monthlyLabel(plan)}
+                    {plan.recommended ? " · Most popular" : ""}
                   </li>
                 ))}
               </ul>
@@ -235,8 +307,8 @@ export default async function Home() {
                 A clearer, more beautiful digital home for independent ceramics.
               </h2>
               <p className="mt-4 max-w-xl text-base leading-7 text-stone-600 sm:text-lg">
-                PotteryMania brings together selling, booking, and visibility so studios can grow with less patchwork and
-                more presence.
+                PotteryMania brings together selling, booking, and day-to-day operations so you spend less time on
+                patchwork tools.
               </p>
             </div>
             <ClarityCardsStagger items={clarityItems} />
@@ -269,24 +341,24 @@ export default async function Home() {
               ))}
             </ul>
             <Link href="/dashboard/studio/new?setup=both" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-              Create studio website
+              Create your studio
             </Link>
           </div>
         </ImageSection>
 
         <ImageSection
-          tone="marketplace"
+          tone="showcase"
           minHeight="min-h-[58vh] sm:min-h-[68vh]"
           align="center"
-          artwork={<MarketplaceArtwork />}
+          artwork={<ShelfShowcaseArtwork />}
         >
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Studio-owned shop</p>
             <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
-              Your shop belongs to your studio, not to a global catalog.
+              Your shop lives on your studio page — your brand, your products.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
-              Keep a strong brand voice, present handmade work with care, and manage products from your own studio page.
+              Keep a strong voice, present handmade work with care, and manage products from one dashboard.
             </p>
           </div>
         </ImageSection>
@@ -365,26 +437,24 @@ export default async function Home() {
           artwork={<TextureArtwork />}
         >
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Early access</p>
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Get started</p>
             <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl lg:text-6xl">
-              Your studio deserves a better home online.
+              Your studio deserves a calmer setup online.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
-              Build your studio website now. Studio plans start at €19/month with 0% platform commission on sales and
+              Create your studio when you are ready. Plans from €19/month, 0% platform commission on checkout sales and
               bookings.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                Create studio website
+                Create your studio
               </Link>
               <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                Start website setup
+                Set up your site
               </Link>
-              {!isPreregistrationOnly() ? (
-                <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                  Sign in
-                </Link>
-              ) : null}
+              <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                Sign in
+              </Link>
             </div>
           </div>
         </ImageSection>
@@ -405,11 +475,9 @@ function AnnouncementStrip({ preRegShown }: { preRegShown: number }) {
     <section className="border-b border-(--brand-line) bg-(--warm-surface)">
       <div className={`${ui.pageContainer} flex flex-col gap-3 py-3 text-sm text-stone-700 sm:flex-row sm:items-start sm:justify-between`}>
         <div className="max-w-xl space-y-1">
-          <p className="font-medium text-(--brand-ink)">Curated onboarding for independent ceramic studios and makers.</p>
+          <p className="font-medium text-(--brand-ink)">Built for ceramic studios and makers who sell, teach, and run the business.</p>
           <p className="text-xs leading-relaxed text-stone-600 sm:text-sm">
-            Pre-registration shows interest only. We <strong className="font-medium text-stone-700">evaluate</strong> each
-            studio for quality, authenticity, and fit with the platform before approval — not every signup is guaranteed a
-            spot.
+            Shop and bookings run from your studio dashboard. Start in minutes, grow at your pace.
           </p>
         </div>
         {preRegLine}
@@ -428,7 +496,7 @@ function ImageSection({
 }: {
   children: React.ReactNode;
   artwork: React.ReactNode;
-  tone: "hero" | "studio" | "marketplace" | "classes" | "texture";
+  tone: "hero" | "studio" | "showcase" | "classes" | "texture";
   minHeight: string;
   align: "bottom" | "center" | "end";
   priority?: boolean;
@@ -436,7 +504,7 @@ function ImageSection({
   const overlayClass = {
     hero: "from-[#170d09]/88 via-[#24120d]/50 to-[#3c2618]/12",
     studio: "from-[#120e0b]/84 via-[#21150f]/42 to-[#4b2e21]/15",
-    marketplace: "from-[#100d0b]/82 via-[#1a1411]/35 to-[#594636]/14",
+    showcase: "from-[#100d0b]/82 via-[#1a1411]/35 to-[#594636]/14",
     classes: "from-[#130f0d]/84 via-[#241b15]/45 to-[#5a4636]/14",
     texture: "from-[#120d0a]/90 via-[#271a14]/48 to-[#6b513d]/18",
   }[tone];
@@ -492,17 +560,17 @@ function StudioArtwork() {
   );
 }
 
-function MarketplaceArtwork() {
+function ShelfShowcaseArtwork() {
   return (
     <svg viewBox="0 0 1600 950" className="h-full w-full object-cover" preserveAspectRatio="xMidYMid slice" aria-hidden>
       <defs>
-        <linearGradient id="marketBg" x1="0" x2="1" y1="0" y2="1">
+        <linearGradient id="showcaseBg" x1="0" x2="1" y1="0" y2="1">
           <stop offset="0%" stopColor="#f1e3d7" />
           <stop offset="40%" stopColor="#c89d78" />
           <stop offset="100%" stopColor="#4b3428" />
         </linearGradient>
       </defs>
-      <rect width="1600" height="950" fill="url(#marketBg)" />
+      <rect width="1600" height="950" fill="url(#showcaseBg)" />
       <ellipse cx="430" cy="735" rx="250" ry="88" fill="#f6ede3" fillOpacity="0.68" />
       <ellipse cx="1160" cy="735" rx="250" ry="88" fill="#f6ede3" fillOpacity="0.62" />
       <ellipse cx="430" cy="640" rx="130" ry="170" fill="#d8b393" />

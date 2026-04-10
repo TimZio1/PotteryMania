@@ -14,7 +14,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return metaAdminPage("Order detail", `/admin/orders/${id}`, "Marketplace order detail, refunds, and Stripe links.");
+  return metaAdminPage("Order detail", `/admin/orders/${id}`, "Order detail, refunds, and Stripe links.");
 }
 
 function formatOrderMoney(cents: number, currency: string) {

@@ -15,10 +15,12 @@ import {
 } from "@/lib/csrf-protection";
 
 const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart", "/account"];
-/** Public core pages; no global discovery surfaces. */
+/** Public core pages; legacy catalog entry URLs redirect separately. */
 const BASE_PUBLIC_CORE = [
   "/",
+  "/pricing",
   "/wear",
+  "/early-access",
   "/login",
   "/forgot-password",
   "/reset-password",
@@ -44,8 +46,7 @@ export default auth(async (req) => {
   const path = req.nextUrl.pathname;
   const isApiPath = path.startsWith("/api/");
 
-  // Product pivot: disable global discovery/catalog entry routes.
-  // Keep studio-owned public pages and direct detail routes operational.
+  // Legacy catalog index URLs redirect home; studio pages and deep links stay as implemented.
   if (
     path === "/marketplace" ||
     path === "/classes" ||

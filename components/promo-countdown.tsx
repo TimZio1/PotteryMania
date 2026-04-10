@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { promoTimeLeft, PROMO_COUNTDOWN_HEADLINE, PROMO_LABEL } from "@/lib/promo";
+import { promoTimeLeft, PROMO_LABEL } from "@/lib/promo";
 
 export function PromoCountdown({ className = "" }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
@@ -23,7 +23,6 @@ export function PromoCountdown({ className = "" }: { className?: string }) {
     <div className={`flex items-center gap-2 text-xs text-stone-500 ${className}`}>
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
       <span>
-        <span className="font-semibold tracking-wide">{PROMO_COUNTDOWN_HEADLINE}</span>{" "}
         <span className="tabular-nums font-medium text-stone-700">
           {tl.days}d {pad(tl.hours)}h {pad(tl.minutes)}m {pad(tl.seconds)}s
         </span>

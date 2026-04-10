@@ -59,6 +59,8 @@ describe("API contract: GET /api/products", () => {
       country: null,
       city: null,
       studioId: null,
+      shippingRegion: null,
+      viewerCountry: null,
       minPrice: 100,
       maxPrice: 900,
       sort: "recommended",

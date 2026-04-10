@@ -178,7 +178,7 @@ export default async function AdminStudioDetailPage({ params }: Props) {
                 pending checkout
               </li>
               <li>
-                <span className="text-stone-500">Marketplace rank weight:</span>{" "}
+                <span className="text-stone-500">Rank weight (platform):</span>{" "}
                 <span className="font-mono">{studio.marketplaceRankWeight}</span>
               </li>
             </ul>

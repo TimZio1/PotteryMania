@@ -8,8 +8,8 @@ import { siteMetadata } from "@/lib/seo";
 function staticSitemapFallback(): MetadataRoute.Sitemap {
   const now = new Date();
   const paths = isPreregistrationOnly()
-    ? ["/", "/terms", "/privacy", "/vendor-terms"]
-    : ["/", "/login", "/register", "/terms", "/privacy", "/vendor-terms"];
+    ? ["/", "/pricing", "/terms", "/privacy", "/vendor-terms"]
+    : ["/", "/pricing", "/login", "/register", "/terms", "/privacy", "/vendor-terms"];
   return paths.map((path) => ({
     url: new URL(path, siteMetadata.url).toString(),
     lastModified: now,
@@ -24,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (isPreregistrationOnly()) {
       return [
         { url: `${base}/`, lastModified: now },
+        { url: `${base}/pricing`, lastModified: now },
         { url: `${base}/terms`, lastModified: now },
         { url: `${base}/privacy`, lastModified: now },
         { url: `${base}/vendor-terms`, lastModified: now },
@@ -42,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       { url: `${base}/`, lastModified: now },
+      { url: `${base}/pricing`, lastModified: now },
       { url: `${base}/login`, lastModified: now },
       { url: `${base}/register`, lastModified: now },
       { url: `${base}/terms`, lastModified: now },

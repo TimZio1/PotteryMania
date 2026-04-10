@@ -16,7 +16,7 @@ type Row = {
 function interestFlags(r: Row) {
   const parts = [
     r.wantBooking ? "Booking" : null,
-    r.wantMarket ? "Marketplace" : null,
+    r.wantMarket ? "Shop" : null,
     r.wantBoth ? "Both (full)" : null,
   ].filter(Boolean) as string[];
   return parts.length ? parts.join(", ") : "—";
@@ -29,9 +29,9 @@ export function AdminEarlyAccessList({ rows, totalCount }: { rows: Row[]; totalC
 
   return (
     <div className="mt-10">
-      <h2 className="text-lg font-medium text-amber-950">Early access signups</h2>
+      <h2 className="text-lg font-medium text-amber-950">Studio lead captures</h2>
       <p className="mt-1 text-sm text-stone-500">
-        Leads from <code className="rounded bg-stone-100 px-1">/early-access</code>. Newest first.{capNote} Not the same as
+        Legacy captures from <code className="rounded bg-stone-100 px-1">/early-access</code>. Newest first.{capNote} Not the same as
         registered users — those appear under{" "}
         <Link href="/admin/users" className="font-medium text-amber-900 underline">
           Users

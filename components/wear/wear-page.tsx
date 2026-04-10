@@ -137,7 +137,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
         {/* Statement */}
         <section className="px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-2xl text-center font-serif text-xl leading-relaxed text-neutral-300 sm:text-2xl sm:leading-relaxed">
-            <p>You don’t create for approval.</p>
+            <p>You create on your terms.</p>
             <p className="mt-6">You don’t follow trends.</p>
             <p className="mt-6">You build your own space.</p>
             <p className="mt-10 text-white">Now you can wear it.</p>

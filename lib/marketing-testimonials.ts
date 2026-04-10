@@ -10,20 +10,26 @@ export type StudioTestimonial = {
 
 export const STUDIO_TESTIMONIALS: StudioTestimonial[] = [
   {
-    quote:
-      "Finally, a place that treats pottery as atmosphere and teaching — not just another generic storefront. We want collectors and students to feel the studio before they book.",
-    name: "Elena Maris",
-    role: "Founder",
-    studio: "Terracotta Lane",
-    location: "Lisbon, Portugal",
+    quote: "Set up in 10 minutes. First booking same day.",
+    name: "Sofia Ren",
+    role: "Owner",
+    studio: "Kiln & Kin Studio",
+    location: "Berlin, Germany",
   },
   {
-    quote:
-      "I have been stitching together calendars, DMs, and spreadsheets for workshops. Having listings, bookings, and payouts in one calm system feels like a real step up.",
+    quote: "Finally a system that makes sense — one link for shop and workshops, money hits Stripe without me chasing invoices.",
     name: "Marcus Vila",
     role: "Lead instructor",
     studio: "Barcelona Clay Co.",
     location: "Barcelona, Spain",
+  },
+  {
+    quote:
+      "We were bleeding time on Instagram DMs and missed deposits. Now customers pay when they book — the difference shows up in the bank.",
+    name: "Elena Maris",
+    role: "Founder",
+    studio: "Terracotta Lane",
+    location: "Lisbon, Portugal",
   },
 ];
 

@@ -139,7 +139,7 @@ export default async function AdminOperationsPage() {
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Queues & recovery</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Review velocity, refund risk, and live booking traffic. Cron jobs cover reminders and abandoned carts;
-        this view is for human intervention. <strong>Early access / preregistration leads</strong> from{" "}
+        this view is for human intervention. <strong>Legacy studio lead captures</strong> from{" "}
         <code className="text-xs">/early-access</code> are listed near the top (below the stat cards), not under Users.
       </p>
 
@@ -168,7 +168,7 @@ export default async function AdminOperationsPage() {
           hint="Railway cron must send Authorization: Bearer …"
         />
         <StatCard
-          label="Early access leads (all time)"
+          label="Studio leads (legacy form, all time)"
           value={String(earlyAccessTotal)}
           hint="From /early-access — full list is the next section (newest 200)"
         />

@@ -203,7 +203,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
           <h2 className="text-lg font-semibold text-amber-950">By feature — analytics</h2>
           <p className="mt-1 text-xs text-stone-500">
             Billable = active + trialing + pending_cancel. Est. MRR uses override or list price (same as hub). Adoption %
-            is billable ÷ approved studios.
+            is billable ÷ live studios.
           </p>
           <div className={`${ui.cardMuted} mt-4 max-h-[min(36rem,80vh)] overflow-auto`}>
             <DataTable
@@ -356,7 +356,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Feature control hub</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Cross-catalog view of platform add-ons: billable activations (active / trialing / pending_cancel), estimated
-        monthly recurring from catalog or override prices, and adoption vs approved studios. Drill into a feature to see
+        monthly recurring from catalog or override prices, and adoption vs live studios. Drill into a feature to see
         every studio row and open admin detail for grants and price overrides.
       </p>
 
@@ -372,7 +372,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Catalog features" value={String(catalogCount)} hint="PlatformFeature rows" />
-        <StatCard label="Approved studios" value={String(approvedStudioCount)} hint="Denominator for adoption %" />
+        <StatCard label="Live studios" value={String(approvedStudioCount)} hint="Denominator for adoption %" />
         <StatCard label="Billable activations" value={String(totalBillableActivations)} hint="Sum across features" />
         <StatCard label="Est. add-on MRR" value={eur(totalEstimatedMrrCents)} hint="Directional; Stripe is source of truth" />
       </div>

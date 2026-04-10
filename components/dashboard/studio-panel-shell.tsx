@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import type { StudioPanelNavItem } from "@/lib/studio-panel-nav";
 import { studioPanelNav } from "@/lib/studio-panel-nav";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { OnboardingShareBanner } from "@/components/dashboard/onboarding-share-banner";
 
 export default function StudioPanelShell({
   studioId,
@@ -130,6 +131,9 @@ export default function StudioPanelShell({
             </Link>
           </div>
         ) : null}
+        <Suspense fallback={null}>
+          <OnboardingShareBanner studioId={studioId} />
+        </Suspense>
         <Breadcrumbs items={breadcrumbItems} className="mb-5" />
         {children}
       </main>

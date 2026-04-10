@@ -3,9 +3,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { ui } from "@/lib/ui-styles";
 import { uploadImage } from "@/lib/client-upload";
-import {
-  EUROPEAN_PREREGISTRATION_COUNTRIES,
-} from "@/lib/european-preregistration";
 import { trackMetaPixelEvent } from "@/lib/meta-pixel";
 import { displayedPreRegTotal } from "@/lib/brand";
 
@@ -51,7 +48,7 @@ export function EarlyAccessForm({
         if (typeof d.count === "number") setCount(d.count);
       })
       .catch((error: unknown) => {
-        console.warn("[early-access] failed to refresh count", error);
+        console.warn("[studio-lead] failed to refresh count", error);
       });
   }, []);
 
@@ -137,7 +134,7 @@ export function EarlyAccessForm({
         return;
       }
       if (uploadsSkipped) {
-        setUploadNotice("Photo uploads are temporarily unavailable, so we saved your registration without photos.");
+        setUploadNotice("Photo uploads are temporarily unavailable, so we saved your details without photos.");
       }
       try {
         const cr = await fetch("/api/early-access/count");
@@ -148,10 +145,10 @@ export function EarlyAccessForm({
         setCount((c) => c + 1);
       }
       setDone(true);
-      trackMetaPixelEvent("Lead", { content_name: "early_access" }, { eventID: metaEventId });
+      trackMetaPixelEvent("Lead", { content_name: "studio_lead" }, { eventID: metaEventId });
     } catch (error) {
       if (error instanceof Error && error.message === "Hosted uploads are not configured") {
-        setErr("Photo uploads are temporarily unavailable. You can still register without photos.");
+        setErr("Photo uploads are temporarily unavailable. You can still submit without photos.");
       } else if (error instanceof Error && error.name === "AbortError") {
         setErr("Request timed out. Please try again.");
       } else {
@@ -172,11 +169,11 @@ export function EarlyAccessForm({
         </div>
         <h2 className="mt-5 font-serif text-2xl text-amber-950 sm:text-3xl">Welcome.</h2>
         <p className="mt-3 text-sm leading-7 text-stone-600">
-          Your studio is on the list. We&apos;ll reach out with next steps before launch.
+          Thanks — you can create your studio in the app whenever you are ready.
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
         <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
-          {displayedPreRegTotal(count)} studios on the early access list.
+          {displayedPreRegTotal(count)} studios have started setup.
         </p>
       </div>
     );
@@ -225,23 +222,19 @@ export function EarlyAccessForm({
       {/* Country */}
       <div>
         <label className={ui.label} htmlFor="ea-country">
-          Country (Europe only) <span className="text-red-500">*</span>
+          Country <span className="text-red-500">*</span>
         </label>
-        <select
+        <input
           id="ea-country"
+          type="text"
           required
           disabled={pending}
           className={`${ui.input} mt-1`}
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-        >
-          <option value="">Select your country (Europe only)</option>
-          {EUROPEAN_PREREGISTRATION_COUNTRIES.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+          placeholder="e.g. France"
+          autoComplete="country-name"
+        />
       </div>
 
       {/* Optional fields toggle */}
@@ -328,7 +321,7 @@ export function EarlyAccessForm({
             <legend className={ui.label}>I&apos;m interested in&hellip;</legend>
             <div className="mt-2 flex flex-wrap gap-2">
               <InterestChip label="Booking system" checked={wantBooking} onChange={setWantBooking} disabled={pending} />
-              <InterestChip label="Marketplace" checked={wantMarket} onChange={setWantMarket} disabled={pending} />
+              <InterestChip label="Shop" checked={wantMarket} onChange={setWantMarket} disabled={pending} />
               <InterestChip label="Both" checked={wantBoth} onChange={setWantBoth} disabled={pending} />
             </div>
           </fieldset>
@@ -341,7 +334,7 @@ export function EarlyAccessForm({
         disabled={pending}
         className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-amber-950 px-6 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-950 disabled:pointer-events-none disabled:opacity-45"
       >
-        {pending ? "Securing\u2026" : "Secure your spot"}
+        {pending ? "Sending\u2026" : "Send details"}
       </button>
 
       {/* Trust + counter */}
@@ -352,7 +345,7 @@ export function EarlyAccessForm({
         <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-stone-900 sm:text-lg">
           <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
           <span>
-            {displayedPreRegTotal(count)} studios already registered
+            {displayedPreRegTotal(count)} studios started setup
           </span>
         </p>
       </div>

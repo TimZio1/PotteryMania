@@ -301,7 +301,7 @@ export default async function ClassesPage({ searchParams }: Props) {
           </div>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={ui.buttonPrimary}>
-              Apply filters
+              Update results
             </button>
             {filtered ? (
               <Link href="/classes" className={cn(ui.buttonSecondary, "items-center")}>

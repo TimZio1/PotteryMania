@@ -1,4 +1,3 @@
-import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { escapeHtml, renderBulletList, renderEmailShell, sendEmailMessages } from "./base";
 
 type EarlyAccessMailInput = {
@@ -15,8 +14,8 @@ function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
 }
 
-/** Where to send “new early access signup” alerts. Set on Railway, e.g. theorh72@gmail.com */
-function earlyAccessNotifyRecipient(): string | null {
+/** Where to send new lead alerts. Set on hosting, e.g. HYPERADMIN_ALERT_EMAIL */
+function leadNotifyRecipient(): string | null {
   const a = process.env.EARLY_ACCESS_NOTIFY_EMAIL?.trim();
   if (a) return a;
   const b = process.env.HYPERADMIN_ALERT_EMAIL?.trim();
@@ -28,34 +27,34 @@ function earlyAccessNotifyRecipient(): string | null {
 
 function interests(input: EarlyAccessMailInput) {
   const parts = [
-    input.wantBooking ? "Booking system" : null,
-    input.wantMarket ? "Marketplace" : null,
-    input.wantBoth ? "Both (full platform)" : null,
+    input.wantBooking ? "Bookings" : null,
+    input.wantMarket ? "Shop" : null,
+    input.wantBoth ? "Shop and bookings" : null,
   ].filter(Boolean) as string[];
   return parts.length ? parts : ["Not specified"];
 }
 
 export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
   const customerHtml = renderEmailShell({
-    eyebrow: "Early access confirmed",
-    title: "You are on the PotteryMania list",
-    intro: `Thanks for registering ${input.studioName}. We have saved your early-access request.`,
+    eyebrow: "Thanks for reaching out",
+    title: "We saved your details",
+    intro: `Thanks ${input.studioName}. Your message is on file.`,
     bodyHtml: `
-      <p style="margin:0 0 10px;">We will contact you as onboarding opens for your region.</p>
+      <p style="margin:0 0 10px;">Next step: create your studio in the app when you are ready.</p>
       <p style="margin:0 0 10px;">Country: <strong>${escapeHtml(input.country)}</strong></p>
       <p style="margin:0 0 10px;">Interest:</p>
       ${renderBulletList(interests(input))}
-      <p style="margin:16px 0 0;">${escapeHtml(EUROPEAN_PREREGISTRATION_NOTE)}</p>
+      <p style="margin:16px 0 0;">Sell your work, book your classes, and manage everything in one system.</p>
     `,
-    ctaLabel: "Visit PotteryMania",
+    ctaLabel: "Open PotteryMania",
     ctaUrl: siteUrl(),
-    footerNote: "We will reach out when your studio can move into the next onboarding step.",
+    footerNote: "You can start setup any time from your dashboard.",
   });
 
   const adminHtml = renderEmailShell({
-    eyebrow: "New early access lead",
-    title: `${input.studioName} just registered`,
-    intro: `A new studio joined the PotteryMania early-access pipeline.`,
+    eyebrow: "New studio lead",
+    title: `${input.studioName} submitted details`,
+    intro: `A creator or studio submitted the lead form.`,
     bodyHtml: `
       <p style="margin:0 0 10px;"><strong>Studio:</strong> ${escapeHtml(input.studioName)}</p>
       <p style="margin:0 0 10px;"><strong>Email:</strong> ${escapeHtml(input.email)}</p>
@@ -70,22 +69,22 @@ export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
     `,
     ctaLabel: "Open admin panel",
     ctaUrl: `${siteUrl()}/admin`,
-    footerNote: "PotteryMania hyperadmin notification.",
+    footerNote: "PotteryMania admin notification.",
   });
 
   const messages = [
     {
       to: input.email,
-      subject: "You are on the PotteryMania early-access list",
+      subject: "PotteryMania — we received your details",
       html: customerHtml,
     },
   ];
 
-  const notifyTo = earlyAccessNotifyRecipient();
+  const notifyTo = leadNotifyRecipient();
   if (notifyTo) {
     messages.push({
       to: notifyTo,
-      subject: `New early-access studio: ${input.studioName}`,
+      subject: `New studio lead: ${input.studioName}`,
       html: adminHtml,
     });
   }

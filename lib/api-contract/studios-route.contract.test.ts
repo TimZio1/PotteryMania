@@ -29,7 +29,7 @@ describe("API contract: POST /api/studios", () => {
     });
     studioRouteMocks.studioCreate.mockResolvedValue({
       id: "studio_1",
-      status: "draft",
+      status: "approved",
       ownerUserId: "u-vendor",
     });
   });
@@ -57,11 +57,16 @@ describe("API contract: POST /api/studios", () => {
     expect(res.status).toBe(401);
   });
 
-  it("returns 403 for non-vendor without free-listing flag", async () => {
+  it("allows authenticated customer with full fields to create an approved studio (self-serve)", async () => {
     studioRouteMocks.getSessionUser.mockResolvedValueOnce({
       id: "u-customer",
       email: "customer@example.com",
       role: "customer",
+    });
+    studioRouteMocks.studioCreate.mockResolvedValueOnce({
+      id: "studio_customer_1",
+      status: "approved",
+      ownerUserId: "u-customer",
     });
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",
@@ -71,9 +76,17 @@ describe("API contract: POST /api/studios", () => {
 
     const res = await POST(req);
     const json = (await res.json()) as Record<string, unknown>;
-    expect(res.status).toBe(403);
-    expect(json.error).toBe("Vendor role required");
-    expect(studioRouteMocks.studioCreate).not.toHaveBeenCalled();
+    expect(res.status).toBe(201);
+    expect(json.studio).toMatchObject({ id: "studio_customer_1", status: "approved" });
+    expect(studioRouteMocks.studioCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          ownerUserId: "u-customer",
+          status: "approved",
+          approvedAt: expect.any(Date),
+        }),
+      }),
+    );
   });
 
   it("allows customer free listing and auto-approves profile", async () => {
@@ -114,7 +127,7 @@ describe("API contract: POST /api/studios", () => {
     );
   });
 
-  it("keeps vendor default flow as draft", async () => {
+  it("creates vendor studio as approved (immediate self-serve)", async () => {
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",
       body: JSON.stringify(basePayload),
@@ -126,8 +139,8 @@ describe("API contract: POST /api/studios", () => {
     expect(studioRouteMocks.studioCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          status: "draft",
-          approvedAt: undefined,
+          status: "approved",
+          approvedAt: expect.any(Date),
         }),
       }),
     );

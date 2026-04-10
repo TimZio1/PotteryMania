@@ -143,7 +143,7 @@ export default async function AdminWarRoomPage() {
     { href: "/admin/audit", label: "Audit log" },
     { href: "/admin/users", label: "Users" },
     { href: "/admin/platform-features", label: "Platform add-ons" },
-    { href: "/admin/marketplace-ranking", label: "Discovery ranking (dormant)" },
+    { href: "/admin/marketplace-ranking", label: "Ranking tools (internal)" },
     { href: "/admin/settings", label: "Settings" },
     { href: "/", label: "Public homepage" },
     { href: "/dashboard/studio/new?setup=both", label: "Studio setup" },
@@ -154,8 +154,8 @@ export default async function AdminWarRoomPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Hyperadmin</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">War room</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        One screen for triage: queue depth, the oldest vendor-approval bookings, today&apos;s commerce pulse, shortcuts,
-        and fresh audit lines. Heavy charts stay on the executive overview.
+        One screen for triage: queue depth, the oldest bookings pending studio confirmation, today&apos;s commerce pulse,
+        shortcuts, and fresh audit lines. Heavy charts stay on the executive overview.
       </p>
 
       <section className="mt-10" id="pulse">
@@ -200,7 +200,7 @@ export default async function AdminWarRoomPage() {
       <section className="mt-10">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-amber-950">Oldest vendor-approval bookings</h2>
+            <h2 className="text-lg font-semibold text-amber-950">Oldest bookings pending studio confirmation</h2>
             <p className="mt-1 text-sm text-stone-600">FIFO-style preview — full list lives on Operations.</p>
           </div>
           <Link href="/admin/operations#booking-queue" className={cn(ui.buttonSecondary, "text-sm")}>
@@ -208,7 +208,7 @@ export default async function AdminWarRoomPage() {
           </Link>
         </div>
         {approvalBookingsPreview.length === 0 ? (
-          <p className="mt-4 text-sm text-stone-500">No bookings waiting on vendors right now.</p>
+          <p className="mt-4 text-sm text-stone-500">No bookings waiting on studios right now.</p>
         ) : (
           <ul className="mt-4 divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white shadow-sm">
             {approvalBookingsPreview.map((b) => (

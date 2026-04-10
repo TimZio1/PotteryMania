@@ -62,20 +62,11 @@ type SiteHeaderProps = {
   showPublicSignIn?: boolean;
 };
 
-const SHIPPING_REGION_OPTIONS = [
-  { value: "domestic", label: "Domestic" },
-  { value: "europe", label: "Europe" },
-  { value: "usa", label: "USA" },
-  { value: "canada", label: "Canada" },
-  { value: "asia", label: "Asia" },
-] as const;
-
 export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const wearCount = useWearCartCount();
-  const [region, setRegion] = useState<string>("europe");
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -92,21 +83,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, close]);
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const res = await fetch("/api/geo/region", { cache: "no-store" });
-        const data = (await res.json()) as { region?: string };
-        if (typeof data.region === "string") setRegion(data.region);
-      } catch {
-        /* noop */
-      }
-    })();
-  }, []);
 
   const authed = status === "authenticated" && session?.user;
   const role = session?.user?.role;
-  const isWearPage = wearZoneActive(pathname);
 
   const linkClass = (href: string) =>
     cn(
@@ -130,20 +109,6 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     "min-h-12 justify-start px-4 text-base",
     wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "",
   );
-  async function updateRegion(next: string) {
-    setRegion(next);
-    try {
-      await fetch("/api/geo/region", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ region: next }),
-      });
-    } catch {
-      /* noop */
-    }
-    window.location.reload();
-  }
-
   return (
     <header className="sticky top-0 z-40 border-b border-(--brand-line) bg-[rgba(250,248,245,0.88)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-6">
@@ -168,25 +133,11 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
         </div>
 
         <nav className="flex shrink-0 flex-wrap items-center justify-end gap-1 sm:gap-2" aria-label="Primary">
-          {!isWearPage ? (
-            <label className="hidden items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-700 md:inline-flex">
-              <span>Ship to</span>
-              <select
-                className="bg-transparent text-xs font-medium outline-none"
-                value={region}
-                onChange={(e) => void updateRegion(e.target.value)}
-                aria-label="Shipping region"
-              >
-                {SHIPPING_REGION_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
           {authed ? (
             <div className="hidden items-center gap-1 md:flex">
+              <Link href="/pricing" className={linkClass("/pricing")}>
+                Pricing
+              </Link>
               <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
                 Create studio site
               </Link>
@@ -225,6 +176,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
+                <Link href="/pricing" className={linkClass("/pricing")}>
+                  Pricing
+                </Link>
                 <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
                   For studios
                 </Link>
@@ -299,23 +253,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
             </button>
           </div>
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
-            {!isWearPage ? (
-              <label className="mb-2 block rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-700">
-                <span className="mb-1 block font-medium">Ship to</span>
-                <select
-                  className="w-full rounded border border-stone-200 bg-white px-2 py-1.5 text-sm"
-                  value={region}
-                  onChange={(e) => void updateRegion(e.target.value)}
-                  aria-label="Shipping region"
-                >
-                  {SHIPPING_REGION_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
+            <Link href="/pricing" className={mobileLinkClass("/pricing")}>
+              Pricing
+            </Link>
             <Link href="/dashboard/studio/new?setup=both" className={mobileLinkClass("/dashboard/studio/new")}>
               For studios
             </Link>

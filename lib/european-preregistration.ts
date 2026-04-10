@@ -45,8 +45,9 @@ export const EUROPEAN_PREREGISTRATION_COUNTRIES = [
   "Vatican City",
 ] as const;
 
+/** Legacy export name; copy is SaaS-neutral for any remaining email or error surfaces. */
 export const EUROPEAN_PREREGISTRATION_NOTE =
-  "For now, preregistration is open to European countries only, including the UK and the Balkans.";
+  "Create your studio when you are ready — shop, bookings, and management stay in one place.";
 
 const EUROPEAN_PREREGISTRATION_SET = new Set<string>(EUROPEAN_PREREGISTRATION_COUNTRIES);
 

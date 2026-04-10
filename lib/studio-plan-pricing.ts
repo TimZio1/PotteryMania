@@ -19,7 +19,7 @@ export const STUDIO_PLANS: readonly StudioPlan[] = [
     monthlyCents: 1900,
     annualMonthlyEquivalentCents: 1600,
     headline: "For studios selling classes only.",
-    includes: ["Class calendar", "Online booking checkout", "Policies and waitlist", "0% platform commission"],
+    includes: ["Class calendar", "Online booking checkout", "Policies and full-class alerts", "0% platform commission"],
   },
   {
     key: "shop",

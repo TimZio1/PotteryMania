@@ -2,9 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 
-/**
- * Studio-facing visibility hints for the dormant discovery subsystem.
- */
+/** Studio-facing ranking hints (internal-only; public browsing is off). */
 export default async function StudioMarketplaceVisibility({ studioId }: { studioId: string }) {
   const [studio, publicClassCount, activeProductCount] = await Promise.all([
     prisma.studio.findUnique({
@@ -40,10 +38,10 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
     pct == null
       ? null
       : pct >= 80
-        ? { label: "Strong", hint: "You’re in a strong visibility band compared to other studios." }
+        ? { label: "Strong", hint: "You’re in a strong band compared to other studios on the platform." }
         : pct >= 50
-          ? { label: "Solid", hint: "You’re in a solid mid-range band — small improvements to listings and response time add up." }
-          : { label: "Building", hint: "Visibility is still building — completing your profile and keeping classes active helps the most." };
+          ? { label: "Solid", hint: "You’re mid-range — small improvements to your page and response time add up." }
+          : { label: "Building", hint: "Still building — a complete profile and active classes help the most." };
 
   const tips: string[] = [];
   if (!studio.coverImageUrl?.trim() || !studio.logoUrl?.trim()) {
@@ -59,7 +57,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
     tips.push("List at least one product in your studio shop so visitors can buy directly.");
   }
   if (!studio.stripeAccount?.chargesEnabled) {
-    tips.push("Finish Stripe Connect onboarding so checkout works smoothly when traffic lands on your listings.");
+    tips.push("Finish Stripe Connect onboarding so checkout works smoothly when customers reach your studio page.");
   }
   if (tips.length === 0) {
     tips.push("Keep updating classes and products, confirm bookings promptly, and gather reviews — consistency beats one-off spikes.");
@@ -73,11 +71,11 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
     <section className={cnCard()}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className={ui.overline}>Visibility (dormant)</p>
-          <h2 className="mt-1 text-lg font-semibold text-amber-950">Your visibility</h2>
+          <p className={ui.overline}>Ranking (internal)</p>
+          <h2 className="mt-1 text-lg font-semibold text-amber-950">How you compare</h2>
           <p className="mt-2 max-w-2xl text-sm text-stone-600">
-            Discovery ranking is currently dormant in public UX. We keep these indicators for internal readiness and
-            potential future reactivation.
+            Public browsing is off for now. These scores are for your dashboard only and may be used again when broader
+            browsing returns.
           </p>
         </div>
         {band ? (
@@ -87,7 +85,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
 
       {!rs ? (
         <p className="mt-4 text-sm text-stone-600">
-          A visibility score appears when the ranking update job runs. This score is currently internal-only.
+          A score appears when the ranking job runs. It is internal-only today.
         </p>
       ) : (
         <div className="mt-4 space-y-3 text-sm text-stone-700">

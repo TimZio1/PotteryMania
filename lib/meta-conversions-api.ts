@@ -31,7 +31,7 @@ export type MetaLeadCapiInput = {
 };
 
 /**
- * Server-side Meta Conversions API — Lead (early access).
+ * Server-side Meta Conversions API — Lead events.
  * Uses FB_CONVERSIONS_API (access token) and META_PIXEL_ID or NEXT_PUBLIC_META_PIXEL_ID.
  * Failures are logged only; never throws to callers.
  */
@@ -45,7 +45,7 @@ export async function sendMetaConversionsLead(input: MetaLeadCapiInput): Promise
 
   const eventTime = Math.floor(Date.now() / 1000);
   const base = siteMetadata.url.replace(/\/+$/, "");
-  const eventSourceUrl = `${base}/early-access`;
+  const eventSourceUrl = `${base}/`;
 
   const userData: Record<string, string | string[]> = {
     em: [hashEmailForMeta(input.email)],
@@ -62,7 +62,7 @@ export async function sendMetaConversionsLead(input: MetaLeadCapiInput): Promise
     event_source_url: eventSourceUrl,
     user_data: userData,
     custom_data: {
-      content_name: "early_access",
+      content_name: "studio_lead",
     },
   };
   if (input.eventId) event.event_id = input.eventId;

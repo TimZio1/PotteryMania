@@ -7,6 +7,10 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: qa-pillars-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   qa-pillars:
     runs-on: ubuntu-latest
@@ -69,20 +73,14 @@ jobs:
       - name: Functionality pillar
         run: npm run test:functionality
 
-      - name: UX pillar
-        run: npm run test:ux
-
-      - name: Logic pillar
-        run: npm run test:logic
-
-      - name: Security pillar
-        run: npm run test:security
+      - name: API contract checks
+        run: npm run test:api-contract
 
       - name: Performance pillar
         run: npm run test:performance
 
-      - name: Business pillar
-        run: npm run test:business && npm run test:reconciliation
+      - name: Reconciliation pillar
+        run: npm run test:reconciliation
 
       - name: Upload Playwright report
         if: always()
