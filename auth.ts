@@ -104,7 +104,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     async jwt({ token, user, account, profile, trigger, session: updatePayload }) {
-      if (account?.provider === "google") {
+      /** Middleware uses Edge; Prisma (and admin audit) only run on Node. */
+      const isEdgeRuntime = process.env.NEXT_RUNTIME === "edge";
+
+      if (!isEdgeRuntime && account?.provider === "google") {
         const email =
           (typeof user?.email === "string" && user.email) ||
           (typeof profile?.email === "string" && profile.email) ||
@@ -146,7 +149,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.sub = token.impersonatorSub;
           delete token.impersonatorSub;
           delete token.impersonatorEmail;
-          if (targetUserId) {
+          if (targetUserId && !isEdgeRuntime) {
             void logAdminAction({
               actorUserId: adminId,
               action: "user.impersonate_end",
@@ -156,7 +159,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               reason: null,
             });
           }
-        } else if (typeof payload.impersonationGrantId === "string" && token.sub) {
+        } else if (!isEdgeRuntime && typeof payload.impersonationGrantId === "string" && token.sub) {
           const grantId = payload.impersonationGrantId;
           try {
             const grant = await prisma.impersonationGrant.findUnique({ where: { id: grantId } });
@@ -185,20 +188,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as { role: string }).role;
       }
       // Keep JWT role/email aligned with DB for current `sub` (handles impersonation target + admin promote).
+      // Skipped on Edge (middleware): token keeps last Node refresh until a Node request runs jwt again.
       if (token.sub) {
-        try {
-          const row = await prisma.user.findUnique({
-            where: { id: token.sub },
-            select: { role: true, suspendedAt: true, emailVerifiedAt: true, email: true },
-          });
-          if (row?.role) token.role = row.role;
-          if (row?.email) token.email = row.email;
-          token.suspended = Boolean(row?.suspendedAt);
-          token.emailVerified = Boolean(row?.emailVerifiedAt);
-        } catch (e) {
-          console.error("[auth jwt] user refresh failed", e);
-          if (user && "role" in user) {
-            token.suspended = false;
+        if (!isEdgeRuntime) {
+          try {
+            const row = await prisma.user.findUnique({
+              where: { id: token.sub },
+              select: { role: true, suspendedAt: true, emailVerifiedAt: true, email: true },
+            });
+            if (row?.role) token.role = row.role;
+            if (row?.email) token.email = row.email;
+            token.suspended = Boolean(row?.suspendedAt);
+            token.emailVerified = Boolean(row?.emailVerifiedAt);
+          } catch (e) {
+            console.error("[auth jwt] user refresh failed", e);
+            if (user && "role" in user) {
+              token.suspended = false;
+            }
           }
         }
       } else {
