@@ -22,7 +22,6 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
 export default async function StudioTemplatePage({ params }: Props) {
   const user = await getSessionUser();
   if (!user) redirect("/login?callbackUrl=/dashboard");
-  if (user.role !== "vendor") notFound();
 
   const { studioId } = await params;
   const studio = await prisma.studio.findUnique({

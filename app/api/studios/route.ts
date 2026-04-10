@@ -122,5 +122,13 @@ export async function POST(req: Request) {
     },
   });
 
+  /** Studio panel layout requires `vendor`; first studio creation must promote from `customer`. */
+  if (user.role === "customer") {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { role: "vendor" },
+    });
+  }
+
   return NextResponse.json({ studio }, { status: 201 });
 }

@@ -12,7 +12,6 @@ type Props = { children: React.ReactNode; params: Promise<{ studioId: string }> 
 export default async function StudioPanelLayout({ children, params }: Props) {
   const user = await getSessionUser();
   if (!user) redirect("/login?callbackUrl=/dashboard");
-  if (user.role !== "vendor") notFound();
 
   const { studioId } = await params;
   const studio = await prisma.studio.findUnique({
@@ -20,6 +19,14 @@ export default async function StudioPanelLayout({ children, params }: Props) {
     select: { id: true, displayName: true, ownerUserId: true, businessTemplateSlug: true },
   });
   if (!studio || studio.ownerUserId !== user.id) notFound();
+
+  /** First studio used to leave users as `customer`; panel access is owner-based, but APIs expect `vendor`. */
+  if (user.role === "customer") {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { role: "vendor" },
+    });
+  }
 
   const navItems = await getStudioPanelNavForStudio(studio.id);
   const activeBusinessTemplate = await getBusinessTemplateBySlug(studio.businessTemplateSlug);

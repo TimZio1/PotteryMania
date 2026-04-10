@@ -17,7 +17,10 @@ export default function NotFound() {
           The page you are looking for does not exist or has been moved. Let us help you find what you need.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link href="/" className={ui.buttonPrimary}>
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-amber-900 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900"
+          >
             Back to home
           </Link>
           <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>
