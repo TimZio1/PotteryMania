@@ -53,8 +53,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # region agent log
+      - name: Prisma preflight
+        shell: bash
+        run: |
+          node -e "const u=new URL(process.env.DATABASE_URL); console.log(JSON.stringify({hypothesisId:'H_CI_PREFLIGHT', host:u.hostname, port:u.port, database:u.pathname.slice(1), hasAuthSecret:Boolean(process.env.AUTH_SECRET), hasDatabaseUrl:Boolean(process.env.DATABASE_URL), ts:Date.now()}));"
+          pg_isready -h localhost -p 5432 -U postgres -d potterymania_ci
+          printf 'SELECT 1;\n' | npx prisma db execute --stdin --url "$DATABASE_URL"
+      # endregion
+
+      # region agent log
       - name: Prisma migrate
+        shell: bash
         run: npx prisma migrate deploy
+
+      - name: Prisma migrate diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          echo '{"hypothesisId":"H_CI_MIGRATE_FAIL","message":"prisma migrate deploy failed; collecting diagnostics"}'
+          npx prisma migrate status || true
+          npx prisma validate || true
+      # endregion
 
       - name: Lint
         run: npm run lint
