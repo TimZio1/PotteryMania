@@ -5,6 +5,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
+import { StudioBrandImageField } from "@/components/dashboard/studio-brand-image-field";
+import { studioCoverRequirementsText, studioLogoRequirementsText } from "@/lib/studio-brand-media";
 
 export default function EditStudioPage() {
   const { studioId } = useParams<{ studioId: string }>();
@@ -115,8 +117,6 @@ export default function EditStudioPage() {
     { key: "postalCode", label: "Postal code" },
     { key: "shortDescription", label: "Short description" },
     { key: "longDescription", label: "Long description" },
-    { key: "logoUrl", label: "Logo image URL", type: "url" },
-    { key: "coverImageUrl", label: "Cover image URL", type: "url" },
   ];
 
   return (
@@ -169,12 +169,32 @@ export default function EditStudioPage() {
             />
           </label>
         ))}
+        <StudioBrandImageField
+          kind="logo"
+          label="Logo"
+          requirements={studioLogoRequirementsText()}
+          value={studio.logoUrl || ""}
+          onChange={(logoUrl) => setStudio({ ...studio, logoUrl })}
+        />
+        <StudioBrandImageField
+          kind="cover"
+          label="Cover image"
+          requirements={studioCoverRequirementsText()}
+          value={studio.coverImageUrl || ""}
+          onChange={(coverImageUrl) => setStudio({ ...studio, coverImageUrl })}
+        />
         <button type="submit" className="w-full rounded bg-amber-800 py-2 text-white">
           Save
         </button>
       </form>
 
       <div className="mt-6 flex flex-col gap-2">
+        <Link
+          href={`/dashboard/studio/${studioId}/appearance`}
+          className="rounded border border-stone-300 py-2 text-center text-amber-900"
+        >
+          Public page appearance
+        </Link>
         {activated ? (
           <>
             <Link

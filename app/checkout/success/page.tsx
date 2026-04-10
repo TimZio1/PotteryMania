@@ -39,7 +39,10 @@ export default function CheckoutSuccessPage() {
               </li>
               <li className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-900">3</span>
-                <span>Track everything from your bookings page.</span>
+                <span>
+                  Track everything from your bookings page — including <strong>Add to Google / Outlook / Apple</strong> once you&apos;re
+                  signed in.
+                </span>
               </li>
             </ol>
           </div>

@@ -17,7 +17,8 @@ import {
   syncStudioBillingSubscriptionFromStripe,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
-import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
+import { removeGoogleCalendarEventForBooking, syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
+import { enrichCustomerEmailWithCalendar } from "@/lib/calendar/booking-email-calendar";
 import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
 import { submitPaidWearOrderToSpreadconnect } from "@/lib/wear-order-spreadconnect";
 import {
@@ -779,11 +780,13 @@ export async function POST(req: Request) {
       base.studioName = it.vendor.displayName;
       const { customer, studio } = bookingConfirmationCopy(base);
       await runStripeWebhookSideEffect(event.id, `booking_email_confirmed:${b.id}`, async () => {
+        const enriched = await enrichCustomerEmailWithCalendar(b.id, customer);
         await sendBookingEmails({
           customerEmail: b.customerEmail,
           studioEmail: it.vendor.email,
           subject: `Booking confirmed: ${b.experience.title}`,
-          customerHtml: customer,
+          customerHtml: enriched.customerHtmlWithCalendar,
+          customerAttachments: enriched.customerAttachments,
           studioHtml: studio,
         });
       });
@@ -826,6 +829,12 @@ export async function POST(req: Request) {
           customerHtml: `<p>Hi ${b.customerName},</p><p>Unfortunately your booking for <strong>${b.experience.title}</strong> was automatically cancelled because the session reached capacity before your payment could be confirmed.</p><p>A refund of €${((b.depositAmountCents || b.totalAmountCents) / 100).toFixed(2)} will be processed. If you have questions, contact the studio directly.</p>`,
           studioHtml: `<p>Booking for <strong>${b.customerName}</strong> (${b.customerEmail}) was auto-cancelled for <strong>${b.experience.title}</strong> due to capacity. A refund review is required.</p>`,
         });
+      });
+    }
+
+    for (const bid of processed.autoCancelledIds) {
+      await runStripeWebhookSideEffect(event.id, `calendar_remove_auto_cancel:${bid}`, async () => {
+        await removeGoogleCalendarEventForBooking(bid);
       });
     }
 

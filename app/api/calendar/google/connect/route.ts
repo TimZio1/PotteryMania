@@ -2,10 +2,17 @@ import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/db";
 import { buildGoogleCalendarAuthUrl, googleCalendarOAuthConfigured } from "@/lib/calendar/google-oauth";
+import { assertCalendarOAuthStateSecretForConnect } from "@/lib/calendar/calendar-oauth-secret";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  try {
+    assertCalendarOAuthStateSecretForConnect();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Calendar OAuth not configured";
+    return NextResponse.json({ error: msg }, { status: 503 });
+  }
   if (!googleCalendarOAuthConfigured()) {
     return NextResponse.json(
       { error: "Google Calendar OAuth is not configured (set GOOGLE_CALENDAR_CLIENT_ID and secret)." },

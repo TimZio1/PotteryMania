@@ -1,13 +1,13 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { ui } from "@/lib/ui-styles";
+import { platformUi } from "@/lib/ui-styles";
 
 export function AdminSignOut() {
   return (
     <button
       type="button"
-      className={`${ui.buttonGhost} text-stone-500`}
+      className={`${platformUi.buttonGhost} w-full justify-start text-zinc-500`}
       onClick={() =>
         signOut({
           callbackUrl: `/login?callbackUrl=${encodeURIComponent("/admin")}`,

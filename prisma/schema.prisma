@@ -240,6 +240,12 @@ model Studio {
   /// Vendor-selected growth / layout template (catalog slug). Drives dashboard emphasis and onboarding copy.
   businessTemplateSlug      String?   @map("business_template_slug")
   businessTemplateActivatedAt DateTime? @map("business_template_activated_at")
+  /// IANA zone for class slot wall times (e.g. Europe/Paris). Drives Google Calendar + add-to-calendar links.
+  ianaTimezone          String?                @map("iana_timezone")
+  /// Curated public storefront theme (`/studios/:id` only). Validated in app; no raw hex / font uploads.
+  publicTheme           Json?                  @map("public_theme")
+  /// Per-service visibility on `/studios/:id`: hidden | visible | visible_link | active (+ optional linkUrl for visible_link).
+  publicServiceModes    Json?                  @map("public_service_modes")
   createdAt             DateTime     @default(now()) @map("created_at")
   updatedAt             DateTime     @updatedAt @map("updated_at")
 
@@ -954,6 +960,8 @@ model Booking {
   reminderSentAt             DateTime?             @map("reminder_sent_at")
   /// Google Calendar event id when synced via studio CalendarConnection (Tier 3A).
   googleCalendarEventId      String?              @map("google_calendar_event_id")
+  googleCalendarSyncedAt     DateTime?            @map("google_calendar_synced_at")
+  googleCalendarLastError    String?              @map("google_calendar_last_error") @db.VarChar(500)
   createdAt                  DateTime             @default(now()) @map("created_at")
   updatedAt                  DateTime             @updatedAt @map("updated_at")
 

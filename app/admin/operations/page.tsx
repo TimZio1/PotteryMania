@@ -103,6 +103,7 @@ export default async function AdminOperationsPage() {
   const cronEndpoints = [
     { name: "abandoned-carts", path: "/api/cron/abandoned-carts" },
     { name: "booking-reminders", path: "/api/cron/booking-reminders" },
+    { name: "calendar-sync-reconcile", path: "/api/cron/calendar-sync-reconcile" },
     { name: "expire-pending-bookings", path: "/api/cron/expire-pending-bookings" },
     { name: "finance-reconcile", path: "/api/cron/finance-reconcile" },
     { name: "analytics-snapshots", path: "/api/cron/analytics-snapshots" },
@@ -125,6 +126,8 @@ export default async function AdminOperationsPage() {
     if (typeof p.stripeRows === "number") parts.push(`stripe rows ${p.stripeRows}`);
     if (typeof p.studiosProcessed === "number") parts.push(`studios ${p.studiosProcessed}`);
     if (typeof p.durationMs === "number") parts.push(`${p.durationMs}ms`);
+    if (typeof p.processed === "number") parts.push(`processed ${p.processed}`);
+    if (typeof p.succeeded === "number") parts.push(`ok ${p.succeeded}`);
     if (parts.length) return parts.join(" · ");
     try {
       return JSON.stringify(p).slice(0, 140);

@@ -3,6 +3,7 @@ import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { logCronRun } from "@/lib/cron-audit";
 import type { Prisma } from "@prisma/client";
+import { removeGoogleCalendarEventForBooking } from "@/lib/calendar/google-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ export async function GET(req: Request) {
 
   const minutes = Math.max(5, Number(process.env.PENDING_BOOKING_EXPIRY_MINUTES || 45) || 45);
   const cutoff = new Date(Date.now() - minutes * 60 * 1000);
+
+  const expiredBookingIds: string[] = [];
 
   const result = await prisma.$transaction(async (tx) => {
     const orders = await tx.order.findMany({
@@ -56,6 +59,7 @@ export async function GET(req: Request) {
           },
         });
         bookingsExpired += 1;
+        expiredBookingIds.push(b.id);
       }
 
       await tx.order.update({
@@ -67,6 +71,14 @@ export async function GET(req: Request) {
 
     return { ordersCancelled, bookingsExpired };
   });
+
+  for (const bid of expiredBookingIds) {
+    try {
+      await removeGoogleCalendarEventForBooking(bid);
+    } catch {
+      /* pending bookings normally have no Google event */
+    }
+  }
 
   const body = { ok: true as const, cutoff: cutoff.toISOString(), ...result };
   void logCronRun("expire-pending-bookings", body);

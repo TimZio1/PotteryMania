@@ -58,9 +58,21 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  syncBookingToGoogleCalendar(bookingId).catch((e) =>
-    logApiError("booking_reschedule_google_calendar", e, { bookingId }),
-  );
+  let calendarSync: { ok: boolean; message: string } | null = null;
+  try {
+    calendarSync = await syncBookingToGoogleCalendar(bookingId);
+    if (!calendarSync.ok) {
+      logApiError(
+        "booking_reschedule_google_calendar",
+        new Error(calendarSync.message),
+        { bookingId, calendarSync },
+        req,
+      );
+    }
+  } catch (e) {
+    logApiError("booking_reschedule_google_calendar", e, { bookingId }, req);
+    calendarSync = { ok: false, message: e instanceof Error ? e.message : "Calendar sync failed" };
+  }
 
   try {
     const newSlot = await prisma.bookingSlot.findUnique({ where: { id: newSlotId } });
@@ -85,5 +97,5 @@ export async function POST(req: Request, ctx: Ctx) {
     logApiError("booking_reschedule_email", e, { bookingId }, req);
   }
 
-  return NextResponse.json(result);
+  return NextResponse.json({ ...result, calendarSync });
 }

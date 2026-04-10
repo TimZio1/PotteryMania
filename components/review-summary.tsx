@@ -13,12 +13,47 @@ export function ReviewSummary({
   avgRating,
   count,
   reviews,
+  studioThemed = false,
 }: {
   title: string;
   avgRating: number;
   count: number;
   reviews: Review[];
+  /** Curated variables from `StudioThemeRoot` (public studio page). */
+  studioThemed?: boolean;
 }) {
+  if (studioThemed) {
+    return (
+      <section className="st-review-section">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2>{title}</h2>
+            <p className="st-review-meta mt-1">
+              {count > 0 ? `${avgRating.toFixed(1)} / 5 from ${count} review${count === 1 ? "" : "s"}` : "No reviews yet"}
+            </p>
+          </div>
+        </div>
+        {reviews.length > 0 ? (
+          <div className="mt-6 space-y-4">
+            {reviews.map((review) => (
+              <article key={review.id}>
+                <p className="st-review-stars" aria-label={`${review.rating} out of 5 stars`}>
+                  {"★".repeat(review.rating)}
+                  {"☆".repeat(5 - review.rating)}
+                </p>
+                {review.title ? <h3 className="st-h3 mt-2 text-sm">{review.title}</h3> : null}
+                {review.body ? <p className="st-body mt-2 text-sm leading-relaxed">{review.body}</p> : null}
+                <p className="st-muted mt-2 text-xs">
+                  {review.author?.email ? review.author.email.replace(/(.{2}).+(@.*)/, "$1***$2") : "Verified customer"}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
   return (
     <section className="mt-12 rounded-2xl border border-stone-200/90 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-end justify-between gap-3">

@@ -54,9 +54,21 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  removeGoogleCalendarEventForBooking(bookingId).catch((e) =>
-    logApiError("booking_cancel_google_calendar", e, { bookingId }),
-  );
+  let calendarDelete: { ok: boolean; message: string } | null = null;
+  try {
+    calendarDelete = await removeGoogleCalendarEventForBooking(bookingId);
+    if (!calendarDelete.ok) {
+      logApiError(
+        "booking_cancel_google_calendar",
+        new Error(calendarDelete.message),
+        { bookingId, calendarDelete },
+        req,
+      );
+    }
+  } catch (e) {
+    logApiError("booking_cancel_google_calendar", e, { bookingId }, req);
+    calendarDelete = { ok: false, message: e instanceof Error ? e.message : "Calendar delete failed" };
+  }
 
   let stripeRefund: { refundId: string; amountCents: number } | null = null;
   let stripeRefundError: string | null = null;
@@ -120,5 +132,6 @@ export async function POST(req: Request, ctx: Ctx) {
     ...result,
     stripeRefund,
     stripeRefundError,
+    calendarDelete,
   });
 }

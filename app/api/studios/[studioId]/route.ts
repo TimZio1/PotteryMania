@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
+import { parsePublicServiceModes, validatePublicServiceModesInput } from "@/lib/studio-public-service-modes";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -34,6 +35,11 @@ export async function PATCH(req: Request, ctx: Ctx) {
       : undefined;
 
   const data: Record<string, unknown> = {};
+  const tz = str("ianaTimezone");
+  if (tz !== undefined) {
+    const SAFE_TZ = /^[A-Za-z_]+\/[A-Za-z0-9_+\-]+$/;
+    data.ianaTimezone = tz && SAFE_TZ.test(tz) ? tz : null;
+  }
   const keys = [
     "displayName",
     "legalBusinessName",
@@ -63,6 +69,34 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (body.latitude !== undefined) data.latitude = num("latitude");
   if (body.longitude !== undefined) data.longitude = num("longitude");
   if (body.supportedLanguages !== undefined) data.supportedLanguages = arr("supportedLanguages") ?? ["en"];
+
+  if (body.publicServiceModes !== undefined) {
+    const patch = body.publicServiceModes;
+    if (typeof patch !== "object" || patch === null || Array.isArray(patch)) {
+      return NextResponse.json({ error: "publicServiceModes must be an object" }, { status: 400 });
+    }
+    const base = parsePublicServiceModes(studio.publicServiceModes);
+    const p = patch as Record<string, unknown>;
+    const merged = {
+      classes:
+        p.classes !== undefined && p.classes !== null && typeof p.classes === "object" && !Array.isArray(p.classes)
+          ? p.classes
+          : base.classes,
+      shop:
+        p.shop !== undefined && p.shop !== null && typeof p.shop === "object" && !Array.isArray(p.shop)
+          ? p.shop
+          : base.shop,
+      contact:
+        p.contact !== undefined && p.contact !== null && typeof p.contact === "object" && !Array.isArray(p.contact)
+          ? p.contact
+          : base.contact,
+    };
+    const parsed = validatePublicServiceModesInput(merged);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+    data.publicServiceModes = parsed.value as object;
+  }
 
   const updated = await prisma.studio.update({
     where: { id: studioId },

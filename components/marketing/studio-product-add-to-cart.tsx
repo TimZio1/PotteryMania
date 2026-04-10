@@ -7,9 +7,12 @@ import { ui } from "@/lib/ui-styles";
 export function StudioProductAddToCart({
   productId,
   checkoutEnabled,
+  studioThemed = false,
 }: {
   productId: string;
   checkoutEnabled: boolean;
+  /** When true, buttons inherit curated studio CSS (public `/studios/:id` only). */
+  studioThemed?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -36,19 +39,38 @@ export function StudioProductAddToCart({
   }
 
   if (!checkoutEnabled) {
-    return <p className="text-xs text-stone-500">Checkout is temporarily unavailable for the shop.</p>;
+    return (
+      <p className={studioThemed ? "st-muted text-xs" : "text-xs text-stone-500"}>
+        Checkout is temporarily unavailable for the shop.
+      </p>
+    );
   }
 
   return (
     <div className="mt-3">
-      <button type="button" onClick={add} disabled={busy} className={`${ui.buttonPrimary} w-full text-sm`}>
+      <button
+        type="button"
+        onClick={add}
+        disabled={busy}
+        className={studioThemed ? "st-btn-primary w-full text-sm" : `${ui.buttonPrimary} w-full text-sm`}
+      >
         {busy ? "Adding…" : "Add to cart"}
       </button>
       {msg ? (
-        <p className={`mt-2 text-xs ${msg.type === "ok" ? ui.successText : ui.errorText}`}>
+        <p
+          className={`mt-2 text-xs ${
+            studioThemed
+              ? msg.type === "ok"
+                ? "text-emerald-700"
+                : "text-red-700"
+              : msg.type === "ok"
+                ? ui.successText
+                : ui.errorText
+          }`}
+        >
           {msg.text}{" "}
           {msg.type === "ok" ? (
-            <Link href="/cart" className="font-medium underline underline-offset-2">
+            <Link href="/cart" className={studioThemed ? "st-link font-medium" : "font-medium underline underline-offset-2"}>
               View cart
             </Link>
           ) : null}

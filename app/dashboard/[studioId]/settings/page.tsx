@@ -9,6 +9,8 @@ import GoogleCalendarSettingsCard from "@/components/dashboard/google-calendar-s
 import VendorDomainsSettingsCard from "@/components/dashboard/vendor-domains-settings-card";
 import { googleCalendarOAuthConfigured } from "@/lib/calendar/google-oauth";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
+import { parsePublicServiceModes } from "@/lib/studio-public-service-modes";
+import StudioPublicServicesClient from "@/components/dashboard/studio-public-services-client";
 
 export const dynamic = "force-dynamic";
 
@@ -80,15 +82,24 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
         connectionStatus={calStatus}
         lastSyncAt={googleConn?.lastSyncAt?.toISOString() ?? null}
         syncErrorState={googleConn?.syncErrorState ?? null}
+        syncEnabled={googleConn?.syncEnabled !== false}
+        hasGoogleConnection={Boolean(googleConn)}
       />
 
       <VendorDomainsSettingsCard studioId={studioId} studioApproved={studio.status === "approved"} />
+
+      <StudioPublicServicesClient
+        key={`svc-${studio.updatedAt.toISOString()}`}
+        studioId={studioId}
+        initial={parsePublicServiceModes(studio.publicServiceModes)}
+      />
 
       <StudioSettingsClient
         key={studio.updatedAt.toISOString()}
         studioId={studioId}
         initial={{
           displayName: studio.displayName,
+          ianaTimezone: studio.ianaTimezone,
           shortDescription: studio.shortDescription,
           longDescription: studio.longDescription,
           email: studio.email,

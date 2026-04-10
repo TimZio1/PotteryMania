@@ -53,17 +53,42 @@ export async function POST(req: Request) {
     responsiblePersonName = fallbackResponsible;
     legalBusinessName = displayName;
     addressLine1 = "Pending — complete in Studio profile";
-    if (!displayName || !country) {
-      return NextResponse.json({ error: "Studio name and country are required" }, { status: 400 });
+    const quickMissing: string[] = [];
+    if (!displayName) quickMissing.push("displayName");
+    if (!country) quickMissing.push("country");
+    if (!email) quickMissing.push("email");
+    if (quickMissing.length) {
+      const errMsg =
+        quickMissing.length === 1 && quickMissing[0] === "email"
+          ? "Add a contact email or verify your account has an email address."
+          : quickMissing.includes("displayName") && quickMissing.includes("country")
+            ? "Studio name and country are required."
+            : quickMissing.includes("displayName")
+              ? "Studio name is required."
+              : quickMissing.includes("country")
+                ? "Country is required."
+                : "Please complete the required fields.";
+      return NextResponse.json({ error: errMsg, missing: quickMissing }, { status: 400 });
     }
-    if (!email) {
+  } else {
+    const fullMissing: string[] = [];
+    if (!displayName) fullMissing.push("displayName");
+    if (!legalBusinessName) fullMissing.push("legalBusinessName");
+    if (!vatNumber) fullMissing.push("vatNumber");
+    if (!responsiblePersonName) fullMissing.push("responsiblePersonName");
+    if (!email) fullMissing.push("email");
+    if (!country) fullMissing.push("country");
+    if (!city) fullMissing.push("city");
+    if (!addressLine1) fullMissing.push("addressLine1");
+    if (fullMissing.length) {
       return NextResponse.json(
-        { error: "Add a contact email or verify your account has an email address." },
+        {
+          error: "Fill in every required field (marked with * on the form).",
+          missing: fullMissing,
+        },
         { status: 400 },
       );
     }
-  } else if (!displayName || !legalBusinessName || !vatNumber || !responsiblePersonName || !email || !country || !city || !addressLine1) {
-    return NextResponse.json({ error: "Missing required studio fields" }, { status: 400 });
   }
 
   const studio = await prisma.studio.create({

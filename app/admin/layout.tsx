@@ -4,7 +4,7 @@ import Link from "next/link";
 import { metaAdminPage } from "@/lib/seo-routes";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
-import { ui } from "@/lib/ui-styles";
+import { platformUi } from "@/lib/ui-styles";
 import { AdminSignOut } from "./admin-sign-out";
 import { AdminMobileNav } from "./admin-mobile-nav";
 
@@ -48,17 +48,17 @@ export const metadata: Metadata = metaAdminPage(
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-stone-100/80">
+    <div className="pm-visual-platform min-h-screen bg-zinc-950 text-zinc-100" data-pm-visual="platform">
       <div className="mx-auto grid min-h-screen max-w-[1480px] gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="hidden border-r border-stone-200 bg-white/95 shadow-sm lg:block">
+        <aside className="hidden border-r border-white/10 bg-zinc-950 lg:block">
           <div className="sticky top-0 flex h-full flex-col">
-            <div className="border-b border-stone-200 px-5 py-5">
-              <BrandLogo href="/" size="sm" className="text-amber-950" />
+            <div className="border-b border-white/10 px-5 py-5">
+              <BrandLogo href="/" size="sm" variant="on-dark" />
               <div className="mt-4 flex items-center justify-between gap-3">
-                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">
+                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-200">
                   Hyperadmin
                 </span>
-                <Link href="/dashboard" className="text-xs font-medium text-stone-500 hover:text-amber-950">
+                <Link href="/dashboard" className="text-xs font-medium text-zinc-500 hover:text-zinc-200">
                   Vendor view
                 </Link>
               </div>
@@ -69,25 +69,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={cn(ui.buttonGhost, "w-full justify-start px-4 text-sm font-medium")}
+                  className={cn(platformUi.buttonGhost, "w-full justify-start px-4 text-sm font-medium")}
                 >
                   {link.label}
                 </Link>
               ))}
             </nav>
 
-            <div className="border-t border-stone-200 px-3 py-4">
+            <div className="border-t border-white/10 px-3 py-4">
               <AdminSignOut />
             </div>
           </div>
         </aside>
 
-        <main className="min-w-0">
-          <div className="border-b border-stone-200 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+        <main className="min-w-0 bg-zinc-950">
+          <div className="border-b border-white/10 bg-zinc-950 px-4 py-4 sm:px-6 lg:hidden">
             <div className="flex items-center justify-between gap-3">
-              <BrandLogo href="/" size="sm" className="text-amber-950" />
+              <BrandLogo href="/" size="sm" variant="on-dark" />
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">
+                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-200">
                   Hyperadmin
                 </span>
                 <AdminMobileNav />

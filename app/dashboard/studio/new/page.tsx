@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { monthlyLabel, setupPathToPlanKey, studioPlanByKey } from "@/lib/studio-plan-pricing";
+import { StudioBrandImageField } from "@/components/dashboard/studio-brand-image-field";
+import { studioCoverRequirementsText, studioLogoRequirementsText } from "@/lib/studio-brand-media";
+import { missingStudioFullFields, validateStudioQuickFields } from "@/lib/studio-registration-validation";
 
 type SetupPath = "bookings" | "shop" | "both";
 
@@ -43,6 +46,7 @@ export default function NewStudioPage() {
   const fullForm = searchParams.get("full") === "1";
 
   const [err, setErr] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const [quick, setQuick] = useState({
@@ -80,6 +84,11 @@ export default function NewStudioPage() {
     }
   }, [session?.user?.email, quick.email, f.email]);
 
+  useEffect(() => {
+    setFieldErrors({});
+    setErr("");
+  }, [fullForm]);
+
   const pathCopy = setupCopy(setup);
   const selectedPlan = studioPlanByKey(setupPathToPlanKey(setup));
 
@@ -96,19 +105,44 @@ export default function NewStudioPage() {
     router.push(`/dashboard/${studioId}?${q}`);
   }
 
+  function applyMissingFromResponse(missing: unknown) {
+    if (!Array.isArray(missing)) return;
+    const next: Record<string, string> = {};
+    for (const m of missing) {
+      if (typeof m === "string" && m) next[m] = "Required";
+    }
+    setFieldErrors(next);
+  }
+
   async function submitQuick(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    setFieldErrors({});
+    const qd = {
+      displayName: quick.displayName.trim(),
+      country: quick.country.trim(),
+      email: quick.email.trim(),
+    };
+    const qv = validateStudioQuickFields(qd);
+    if (!qv.ok) {
+      const next: Record<string, string> = {};
+      if (!qd.displayName) next.displayName = "Required";
+      if (!qd.country) next.country = "Required";
+      if (!qd.email) next.email = "Required";
+      setFieldErrors(next);
+      setErr(qv.message);
+      return;
+    }
     setSubmitting(true);
     try {
       const r = await fetch("/api/studios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          displayName: quick.displayName.trim(),
-          country: quick.country.trim(),
+          displayName: qd.displayName,
+          country: qd.country,
           city: quick.city.trim(),
-          email: quick.email.trim(),
+          email: qd.email,
           quickStart: true,
           setupPath: setup,
         }),
@@ -116,6 +150,7 @@ export default function NewStudioPage() {
       const j = await r.json();
       if (!r.ok) {
         setErr(typeof j.error === "string" ? j.error : "Failed");
+        applyMissingFromResponse(j.missing);
         return;
       }
       const studioId = j?.studio?.id as string;
@@ -132,16 +167,30 @@ export default function NewStudioPage() {
   async function submitFull(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+    setFieldErrors({});
+    const trimmed: Record<string, string> = {};
+    for (const key of Object.keys(f) as (keyof typeof f)[]) {
+      trimmed[key] = typeof f[key] === "string" ? (f[key] as string).trim() : String(f[key] ?? "");
+    }
+    const missing = missingStudioFullFields(trimmed);
+    if (missing.length) {
+      const next: Record<string, string> = {};
+      for (const m of missing) next[m] = "Required";
+      setFieldErrors(next);
+      setErr("Please fill in every field marked with *.");
+      return;
+    }
     setSubmitting(true);
     try {
       const r = await fetch("/api/studios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...f, listingOnly: false, setupPath: setup }),
+        body: JSON.stringify({ ...trimmed, listingOnly: false, setupPath: setup }),
       });
       const j = await r.json();
       if (!r.ok) {
         setErr(typeof j.error === "string" ? j.error : "Failed");
+        applyMissingFromResponse(j.missing);
         return;
       }
       const studioId = j?.studio?.id as string;
@@ -155,19 +204,39 @@ export default function NewStudioPage() {
     }
   }
 
-  const field = (k: keyof typeof f, label: string, required = false, type = "text") => (
-    <label key={k} className="block text-sm">
-      <span className="text-stone-600">{label}</span>
-      <input
-        type={type}
-        className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
-        value={f[k]}
-        onChange={(e) => setF({ ...f, [k]: e.target.value })}
-        required={required}
-        disabled={submitting}
-      />
-    </label>
-  );
+  function clearFieldError(key: string) {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
+
+  const inputInvalidClass = "border-rose-500 ring-1 ring-rose-200";
+  const inputBaseClass = "mt-1 w-full rounded border px-3 py-2";
+
+  const field = (k: keyof typeof f, label: string, required = false, type = "text") => {
+    const fe = fieldErrors[k];
+    return (
+      <label key={k} className="block text-sm">
+        <span className="text-stone-600">{required ? `${label} *` : label}</span>
+        <input
+          type={type}
+          aria-invalid={fe ? "true" : undefined}
+          className={`${inputBaseClass} ${fe ? inputInvalidClass : "border-stone-300"}`}
+          value={f[k]}
+          onChange={(e) => {
+            setF({ ...f, [k]: e.target.value });
+            clearFieldError(k);
+          }}
+          required={required}
+          disabled={submitting}
+        />
+        {fe ? <p className="mt-1 text-xs text-rose-600">{fe}</p> : null}
+      </label>
+    );
+  };
 
   return (
     <div className="mx-auto max-w-xl px-4 py-10">
@@ -221,34 +290,47 @@ export default function NewStudioPage() {
               <p className="text-sm text-stone-500">Loading your account…</p>
             ) : null}
             <label className="block text-sm">
-              <span className="text-stone-600">Studio name</span>
+              <span className="text-stone-600">Studio name *</span>
               <input
-                className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
+                aria-invalid={fieldErrors.displayName ? "true" : undefined}
+                className={`${inputBaseClass} ${fieldErrors.displayName ? inputInvalidClass : "border-stone-300"}`}
                 value={quick.displayName}
-                onChange={(e) => setQuick({ ...quick, displayName: e.target.value })}
+                onChange={(e) => {
+                  setQuick({ ...quick, displayName: e.target.value });
+                  clearFieldError("displayName");
+                }}
                 placeholder="e.g. River Clay Studio"
                 required
                 autoComplete="organization"
                 disabled={submitting}
               />
-              <span className="mt-1 block text-xs text-stone-500">Shown on your public page.</span>
+              {fieldErrors.displayName ? (
+                <p className="mt-1 text-xs text-rose-600">{fieldErrors.displayName}</p>
+              ) : (
+                <span className="mt-1 block text-xs text-stone-500">Shown on your public page.</span>
+              )}
             </label>
             <label className="block text-sm">
-              <span className="text-stone-600">Country</span>
+              <span className="text-stone-600">Country *</span>
               <input
-                className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
+                aria-invalid={fieldErrors.country ? "true" : undefined}
+                className={`${inputBaseClass} ${fieldErrors.country ? inputInvalidClass : "border-stone-300"}`}
                 value={quick.country}
-                onChange={(e) => setQuick({ ...quick, country: e.target.value })}
+                onChange={(e) => {
+                  setQuick({ ...quick, country: e.target.value });
+                  clearFieldError("country");
+                }}
                 placeholder="e.g. Portugal"
                 required
                 autoComplete="country-name"
                 disabled={submitting}
               />
+              {fieldErrors.country ? <p className="mt-1 text-xs text-rose-600">{fieldErrors.country}</p> : null}
             </label>
             <label className="block text-sm">
               <span className="text-stone-600">City or region (optional)</span>
               <input
-                className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
+                className={`${inputBaseClass} border-stone-300`}
                 value={quick.city}
                 onChange={(e) => setQuick({ ...quick, city: e.target.value })}
                 placeholder="Add now or later"
@@ -257,17 +339,25 @@ export default function NewStudioPage() {
               />
             </label>
             <label className="block text-sm">
-              <span className="text-stone-600">Contact email</span>
+              <span className="text-stone-600">Contact email *</span>
               <input
                 type="email"
-                className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
+                aria-invalid={fieldErrors.email ? "true" : undefined}
+                className={`${inputBaseClass} ${fieldErrors.email ? inputInvalidClass : "border-stone-300"}`}
                 value={quick.email}
-                onChange={(e) => setQuick({ ...quick, email: e.target.value })}
+                onChange={(e) => {
+                  setQuick({ ...quick, email: e.target.value });
+                  clearFieldError("email");
+                }}
                 required
                 autoComplete="email"
                 disabled={submitting}
               />
-              <span className="mt-1 block text-xs text-stone-500">We pre-fill from your account; change if needed.</span>
+              {fieldErrors.email ? (
+                <p className="mt-1 text-xs text-rose-600">{fieldErrors.email}</p>
+              ) : (
+                <span className="mt-1 block text-xs text-stone-500">We pre-fill from your account; change if needed.</span>
+              )}
             </label>
             <button
               type="submit"
@@ -296,6 +386,7 @@ export default function NewStudioPage() {
           </p>
           <form onSubmit={submitFull} className="mt-6 space-y-3">
             {err ? <p className="text-sm text-red-600">{err}</p> : null}
+            <p className="text-xs text-stone-500">Fields marked with * are required before you can create the studio.</p>
             {field("displayName", "Display name", true)}
             {field("legalBusinessName", "Legal business name", true)}
             {field("vatNumber", "VAT / tax number", true)}
@@ -309,8 +400,20 @@ export default function NewStudioPage() {
             {field("postalCode", "Postal code")}
             {field("shortDescription", "Short description")}
             {field("longDescription", "Long description")}
-            {field("logoUrl", "Logo image URL", false, "url")}
-            {field("coverImageUrl", "Cover image URL", false, "url")}
+            <StudioBrandImageField
+              kind="logo"
+              label="Logo"
+              requirements={studioLogoRequirementsText()}
+              value={f.logoUrl}
+              onChange={(logoUrl) => setF((prev) => ({ ...prev, logoUrl }))}
+            />
+            <StudioBrandImageField
+              kind="cover"
+              label="Cover image"
+              requirements={studioCoverRequirementsText()}
+              value={f.coverImageUrl}
+              onChange={(coverImageUrl) => setF((prev) => ({ ...prev, coverImageUrl }))}
+            />
             <button
               type="submit"
               disabled={submitting}

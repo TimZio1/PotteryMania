@@ -12,6 +12,7 @@ export default function StudioSettingsClient({
   studioId: string;
   initial: {
     displayName: string;
+    ianaTimezone: string | null;
     shortDescription: string | null;
     longDescription: string | null;
     email: string;
@@ -42,6 +43,7 @@ export default function StudioSettingsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName: form.displayName,
+          ianaTimezone: form.ianaTimezone?.trim() || "",
           shortDescription: form.shortDescription?.trim() || "",
           longDescription: form.longDescription?.trim() || "",
           email: form.email,
@@ -104,6 +106,20 @@ export default function StudioSettingsClient({
           <input className={cn(ui.input, "mt-1")} value={form.country ?? ""} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} />
         </label>
       </div>
+      <label>
+        <span className={ui.label}>Booking timezone (IANA)</span>
+        <input
+          className={cn(ui.input, "mt-1 font-mono text-sm")}
+          value={form.ianaTimezone ?? ""}
+          onChange={(e) => setForm((f) => ({ ...f, ianaTimezone: e.target.value }))}
+          placeholder="Europe/Paris"
+          spellCheck={false}
+        />
+        <p className="mt-1 text-xs text-stone-500">
+          Used for Google Calendar sync and add-to-calendar links so class times match your local wall clock. Leave blank to use the platform default (
+          <code className="rounded bg-stone-100 px-1">DEFAULT_BOOKING_IANA_TIMEZONE</code> or Europe/Paris).
+        </p>
+      </label>
       <label>
         <span className={ui.label}>Address line 1</span>
         <input className={cn(ui.input, "mt-1")} value={form.addressLine1 ?? ""} onChange={(e) => setForm((f) => ({ ...f, addressLine1: e.target.value }))} />

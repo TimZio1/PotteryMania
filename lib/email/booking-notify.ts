@@ -6,8 +6,17 @@ export async function sendBookingEmails(opts: {
   subject: string;
   customerHtml: string;
   studioHtml?: string;
+  /** Base64 ICS etc., customer message only */
+  customerAttachments?: { filename: string; content: string }[];
 }): Promise<void> {
-  const messages = [{ to: opts.customerEmail, subject: opts.subject, html: opts.customerHtml }];
+  const messages = [
+    {
+      to: opts.customerEmail,
+      subject: opts.subject,
+      html: opts.customerHtml,
+      ...(opts.customerAttachments?.length ? { attachments: opts.customerAttachments } : {}),
+    },
+  ];
   if (opts.studioEmail && opts.studioHtml) {
     messages.push({
       to: opts.studioEmail,

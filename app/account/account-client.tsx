@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { SkeletonText } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { ui } from "@/lib/ui-styles";
+import { platformUi } from "@/lib/ui-styles";
 
 const LANG_OPTIONS = [
   { value: "", label: "Default" },
@@ -95,26 +95,32 @@ export function AccountClient() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <p className={ui.overline}>Account</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Your profile</h1>
-      <p className="mt-2 text-sm text-stone-600">
+      <p className={platformUi.overline}>Account</p>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Your profile</h1>
+      <p className="mt-2 text-sm text-zinc-400">
         Name and phone can pre-fill bookings and checkout where we use them. Language and currency are preferences for
         future features.
       </p>
 
-      {err ? <p className="mt-6 text-sm font-medium text-red-700">{err}</p> : null}
-      {msg ? <p className="mt-6 text-sm font-medium text-emerald-800">{msg}</p> : null}
+      {err ? <p className="mt-6 text-sm font-medium text-red-400">{err}</p> : null}
+      {msg ? <p className="mt-6 text-sm font-medium text-emerald-400">{msg}</p> : null}
 
-      <form onSubmit={onSubmit} className={`${ui.card} mt-8 space-y-5`}>
+      <form onSubmit={onSubmit} className={`${platformUi.card} mt-8 space-y-5`}>
         <div>
-          <label className={ui.label} htmlFor="acct-email">
+          <label className={platformUi.label} htmlFor="acct-email">
             Email
           </label>
-          <input id="acct-email" type="email" value={email} disabled className={`${ui.input} mt-1.5 bg-stone-50`} />
-          <p className={`${ui.helper} mt-1`}>Sign in email — contact support to change.</p>
+          <input
+            id="acct-email"
+            type="email"
+            value={email}
+            disabled
+            className={`${platformUi.input} mt-1.5 cursor-not-allowed opacity-70`}
+          />
+          <p className={`${platformUi.helper} mt-1`}>Sign in email — contact support to change.</p>
         </div>
         <div>
-          <label className={ui.label} htmlFor="acct-name">
+          <label className={platformUi.label} htmlFor="acct-name">
             Full name
           </label>
           <input
@@ -124,11 +130,11 @@ export function AccountClient() {
             autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className={`${ui.input} mt-1.5`}
+            className={`${platformUi.input} mt-1.5`}
           />
         </div>
         <div>
-          <label className={ui.label} htmlFor="acct-phone">
+          <label className={platformUi.label} htmlFor="acct-phone">
             Phone
           </label>
           <input
@@ -138,11 +144,11 @@ export function AccountClient() {
             autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className={`${ui.input} mt-1.5`}
+            className={`${platformUi.input} mt-1.5`}
           />
         </div>
         <div>
-          <label className={ui.label} htmlFor="acct-lang">
+          <label className={platformUi.label} htmlFor="acct-lang">
             Preferred language
           </label>
           <select
@@ -150,7 +156,7 @@ export function AccountClient() {
             name="preferredLanguage"
             value={preferredLanguage}
             onChange={(e) => setPreferredLanguage(e.target.value)}
-            className={`${ui.input} mt-1.5`}
+            className={`${platformUi.input} mt-1.5`}
           >
             {LANG_OPTIONS.map((o) => (
               <option key={o.value || "default"} value={o.value}>
@@ -160,7 +166,7 @@ export function AccountClient() {
           </select>
         </div>
         <div>
-          <label className={ui.label} htmlFor="acct-curr">
+          <label className={platformUi.label} htmlFor="acct-curr">
             Preferred currency
           </label>
           <select
@@ -168,7 +174,7 @@ export function AccountClient() {
             name="preferredCurrency"
             value={preferredCurrency}
             onChange={(e) => setPreferredCurrency(e.target.value)}
-            className={`${ui.input} mt-1.5`}
+            className={`${platformUi.input} mt-1.5`}
           >
             {CURR_OPTIONS.map((o) => (
               <option key={o.value || "default"} value={o.value}>
@@ -177,7 +183,7 @@ export function AccountClient() {
             ))}
           </select>
         </div>
-        <button type="submit" disabled={saving} className={ui.buttonPrimary}>
+        <button type="submit" disabled={saving} className={platformUi.buttonPrimary}>
           {saving ? "Saving…" : "Save changes"}
         </button>
       </form>

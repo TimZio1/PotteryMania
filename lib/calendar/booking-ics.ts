@@ -1,4 +1,6 @@
 import type { BookingStatus } from "@prisma/client";
+import { bookingSlotUtcRangeInTimezone } from "@/lib/calendar/booking-slot-times";
+import { resolveStudioIanaTimezone } from "@/lib/calendar/booking-timezone";
 
 function publicSiteOrigin(): string {
   return (
@@ -28,7 +30,10 @@ function parseClockParts(t: string | undefined): { h: number; m: number } {
   };
 }
 
-/** Same wall-clock interpretation as `lib/bookings/cancel.ts` (local `setHours` on slot date). */
+/**
+ * @deprecated Use `bookingSlotUtcRangeInTimezone` + studio IANA zone (see customer links / ICS).
+ * Kept for any legacy callers that intentionally used server-local wall time.
+ */
 export function bookingSlotLocalRange(
   slot: { slotDate: Date; startTime: string; endTime: string },
   durationFallbackMinutes: number,
@@ -55,7 +60,12 @@ function formatIcsUtc(dt: Date): string {
 }
 
 function escapeIcsText(s: string): string {
-  return s.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/;/g, "\\;").replace(/,/g, "\\,");
+  const normalized = s.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  return normalized
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,");
 }
 
 /** RFC 5545 line folding (75 octets is ideal; we use 75 chars for Latin-heavy fields). */
@@ -106,6 +116,7 @@ export type BookingIcsRow = {
     addressLine1: string;
     city: string;
     country: string;
+    ianaTimezone?: string | null;
   };
   slot: {
     slotDate: Date;
@@ -136,7 +147,12 @@ function buildDescription(row: BookingIcsRow): string {
 }
 
 function veventForBooking(row: BookingIcsRow): string {
-  const { start, end } = bookingSlotLocalRange(row.slot, row.experience.durationMinutes);
+  const tz = resolveStudioIanaTimezone(row.studio);
+  const { start, end } = bookingSlotUtcRangeInTimezone(
+    row.slot,
+    Math.max(1, row.experience.durationMinutes || 60),
+    tz,
+  );
   const host = icsHostForUid();
   const uid = `pm-booking-${row.id}@${host}`;
   const status = icsStatus(row.bookingStatus);

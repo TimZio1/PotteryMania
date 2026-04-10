@@ -5,6 +5,8 @@ type EmailMessage = {
   to: string;
   subject: string;
   html: string;
+  /** Resend expects Base64 file contents */
+  attachments?: { filename: string; content: string }[];
 };
 
 type EmailShellInput = {
@@ -36,6 +38,14 @@ export async function sendEmailMessages(messages: EmailMessage[]) {
       to: message.to,
       subject: message.subject,
       html: message.html,
+      ...(message.attachments?.length
+        ? {
+            attachments: message.attachments.map((a) => ({
+              filename: a.filename,
+              content: a.content,
+            })),
+          }
+        : {}),
     });
   }
 }

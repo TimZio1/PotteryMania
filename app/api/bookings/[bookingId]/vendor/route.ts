@@ -4,7 +4,8 @@ import { getSessionUser } from "@/lib/auth-session";
 import { safeReleaseCapacity } from "@/lib/bookings/slot-lock";
 import { sendBookingEmails, bookingConfirmationCopy, bookingRejectedCopy } from "@/lib/email/booking-notify";
 import type { Prisma } from "@prisma/client";
-import { syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
+import { removeGoogleCalendarEventForBooking, syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
+import { enrichCustomerEmailWithCalendar } from "@/lib/calendar/booking-email-calendar";
 import { logApiError } from "@/lib/monitoring";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
@@ -102,22 +103,36 @@ export async function POST(req: Request, ctx: Ctx) {
     });
 
     try {
+      const enriched = await enrichCustomerEmailWithCalendar(bookingId, copy.customer);
       await sendBookingEmails({
         customerEmail: booking.customerEmail,
         studioEmail: booking.studio.email,
         subject: `Booking confirmed: ${booking.experience.title}`,
-        customerHtml: copy.customer,
+        customerHtml: enriched.customerHtmlWithCalendar,
+        customerAttachments: enriched.customerAttachments,
         studioHtml: copy.studio,
       });
     } catch (e) {
       logApiError("booking_vendor_approve_email", e, { bookingId }, req);
     }
 
-    syncBookingToGoogleCalendar(bookingId).catch((e) =>
-      logApiError("booking_vendor_approve_google_calendar", e, { bookingId }),
-    );
+    let calendarSync: { ok: boolean; message: string } | null = null;
+    try {
+      calendarSync = await syncBookingToGoogleCalendar(bookingId);
+      if (!calendarSync.ok) {
+        logApiError(
+          "booking_vendor_approve_google_calendar",
+          new Error(calendarSync.message),
+          { bookingId, calendarSync },
+          req,
+        );
+      }
+    } catch (e) {
+      logApiError("booking_vendor_approve_google_calendar", e, { bookingId }, req);
+      calendarSync = { ok: false, message: e instanceof Error ? e.message : "Calendar sync failed" };
+    }
 
-    return NextResponse.json({ ok: true, bookingStatus: "confirmed" });
+    return NextResponse.json({ ok: true, bookingStatus: "confirmed", calendarSync });
   }
 
   const reason = typeof body.reason === "string" ? body.reason.trim() : "";
@@ -175,5 +190,13 @@ export async function POST(req: Request, ctx: Ctx) {
     logApiError("booking_vendor_reject_email", e, { bookingId }, req);
   }
 
-  return NextResponse.json({ ok: true, bookingStatus: "cancelled_by_vendor" });
+  let calendarDelete: { ok: boolean; message: string } | null = null;
+  try {
+    calendarDelete = await removeGoogleCalendarEventForBooking(bookingId);
+  } catch (e) {
+    logApiError("booking_vendor_reject_google_calendar", e, { bookingId }, req);
+    calendarDelete = { ok: false, message: e instanceof Error ? e.message : "Calendar delete failed" };
+  }
+
+  return NextResponse.json({ ok: true, bookingStatus: "cancelled_by_vendor", calendarDelete });
 }

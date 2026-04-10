@@ -65,6 +65,7 @@ Evidence:
 - [x] Top-10 hyperadmin journeys complete.
 - [x] Accessibility baseline pass (Axe/Lighthouse key pages).
 - [x] UI consistency checklist pass.
+- [x] Public studio page: studios control classes, shop, and contact as off / visible / visible-with-link / active (dashboard Settings + `/studios/:id`).
 - [ ] Micro-issue backlog = 0.
 
 Evidence:

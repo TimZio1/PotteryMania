@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
-import { ui } from "@/lib/ui-styles";
+import { platformUi } from "@/lib/ui-styles";
 
 const adminLinks = [
   { href: "/admin", label: "Executive overview" },
@@ -64,7 +64,7 @@ export function AdminMobileNav() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-10 w-10 items-center justify-center rounded-lg border border-stone-200 text-stone-700"
+        className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-zinc-200"
         aria-label="Open admin menu"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -76,14 +76,14 @@ export function AdminMobileNav() {
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Admin navigation">
           <button
             type="button"
-            className="absolute inset-0 bg-stone-900/40"
+            className="absolute inset-0 bg-black/60"
             aria-label="Close menu"
             onClick={close}
           />
-          <div className="absolute right-0 top-0 flex h-full w-[min(100%,18rem)] flex-col border-l border-stone-200 bg-white shadow-xl">
-            <div className="flex h-14 items-center justify-between border-b border-stone-100 px-4">
-              <span className="text-sm font-semibold text-amber-950">Admin</span>
-              <button type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
+          <div className="absolute right-0 top-0 flex h-full w-[min(100%,18rem)] flex-col border-l border-white/10 bg-zinc-950 shadow-xl">
+            <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
+              <span className="text-sm font-semibold text-zinc-100">Admin</span>
+              <button type="button" className={cn(platformUi.buttonGhost, "min-h-10")} onClick={close}>
                 Close
               </button>
             </div>
@@ -93,19 +93,19 @@ export function AdminMobileNav() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    ui.buttonGhost,
+                    platformUi.buttonGhost,
                     "w-full justify-start px-3 py-2 text-sm",
-                    linkActive(link.href) ? "bg-amber-50 text-amber-950" : "",
+                    linkActive(link.href) ? "bg-white/10 text-zinc-100" : "",
                   )}
                 >
                   {link.label}
                 </Link>
               ))}
             </nav>
-            <div className="border-t border-stone-100 p-3">
+            <div className="border-t border-white/10 p-3">
               <Link
                 href="/dashboard"
-                className={cn(ui.buttonGhost, "w-full justify-start px-3 py-2 text-sm text-stone-600")}
+                className={cn(platformUi.buttonGhost, "w-full justify-start px-3 py-2 text-sm text-zinc-400")}
               >
                 Vendor view
               </Link>

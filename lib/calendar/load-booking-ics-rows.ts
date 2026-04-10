@@ -23,6 +23,7 @@ const select = {
       addressLine1: true,
       city: true,
       country: true,
+      ianaTimezone: true,
     },
   },
   slot: {

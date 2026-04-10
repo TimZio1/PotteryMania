@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { MarketingLayout } from "@/components/marketing-layout";
+import { PlatformChrome } from "@/components/platform/platform-chrome";
 import { buildMetadata } from "@/lib/seo";
-import { ui } from "@/lib/ui-styles";
+import { platformUi } from "@/lib/ui-styles";
 import { AccountClient } from "./account-client";
 
 export const metadata: Metadata = buildMetadata({
@@ -12,10 +12,10 @@ export const metadata: Metadata = buildMetadata({
 
 export default function AccountPage() {
   return (
-    <MarketingLayout>
-      <main className={`${ui.pageContainer} py-8 sm:py-12`}>
+    <PlatformChrome headerVariant="account">
+      <main className={`${platformUi.pageContainer} py-8 sm:py-12`}>
         <AccountClient />
       </main>
-    </MarketingLayout>
+    </PlatformChrome>
   );
 }
