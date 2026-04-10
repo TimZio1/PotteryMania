@@ -3,8 +3,11 @@ import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { compare } from "bcryptjs";
-import { prisma } from "@/lib/db";
-import { logAdminAction } from "@/lib/admin-audit";
+// NOTE: prisma and logAdminAction are intentionally NOT imported at the top level.
+// `middleware.ts` imports `auth` from this file, which runs in the Edge runtime.
+// Top-level imports of `@/lib/db` (PrismaClient) would be bundled into the Edge
+// bundle and throw "PrismaClient is unable to run in this browser environment".
+// All Prisma usage is guarded by `!isEdgeRuntime` checks and loaded dynamically.
 
 /** Thrown from authorize so the client can show a specific message (code in Auth.js JSON error URL). */
 class AccountSuspendedSignin extends CredentialsSignin {
@@ -63,6 +66,7 @@ const providers = [
       const email = credentials?.email as string | undefined;
       const password = credentials?.password as string | undefined;
       if (!email || !password) return null;
+      const { prisma } = await import("@/lib/db");
       const user = await prisma.user.findUnique({
         where: { email: email.toLowerCase().trim() },
         select: {
@@ -96,6 +100,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account?.provider !== "google") return true;
       const email = typeof profile?.email === "string" ? profile.email.toLowerCase().trim() : "";
       if (!email) return false;
+      const { prisma } = await import("@/lib/db");
       const existing = await prisma.user.findUnique({
         where: { email },
         select: { suspendedAt: true },
@@ -113,6 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           (typeof profile?.email === "string" && profile.email) ||
           "";
         if (email) {
+          const { prisma } = await import("@/lib/db");
           const dbUser = await prisma.user.upsert({
             where: { email: email.toLowerCase().trim() },
             update: {
@@ -150,18 +156,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           delete token.impersonatorSub;
           delete token.impersonatorEmail;
           if (targetUserId && !isEdgeRuntime) {
-            void logAdminAction({
-              actorUserId: adminId,
-              action: "user.impersonate_end",
-              entityType: "user",
-              entityId: targetUserId,
-              after: { targetUserId },
-              reason: null,
-            });
+            void import("@/lib/admin-audit").then(({ logAdminAction }) =>
+              logAdminAction({
+                actorUserId: adminId,
+                action: "user.impersonate_end",
+                entityType: "user",
+                entityId: targetUserId,
+                after: { targetUserId },
+                reason: null,
+              })
+            );
           }
         } else if (!isEdgeRuntime && typeof payload.impersonationGrantId === "string" && token.sub) {
           const grantId = payload.impersonationGrantId;
           try {
+            const { prisma } = await import("@/lib/db");
             const grant = await prisma.impersonationGrant.findUnique({ where: { id: grantId } });
             const now = new Date();
             if (grant && grant.adminUserId === token.sub && grant.expiresAt > now) {
@@ -169,14 +178,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               token.impersonatorEmail = typeof token.email === "string" ? token.email : undefined;
               token.sub = grant.targetUserId;
               await prisma.impersonationGrant.delete({ where: { id: grant.id } });
-              void logAdminAction({
-                actorUserId: grant.adminUserId,
-                action: "user.impersonate_consumed",
-                entityType: "user",
-                entityId: grant.targetUserId,
-                after: { targetUserId: grant.targetUserId, grantId: grant.id },
-                reason: null,
-              });
+              void import("@/lib/admin-audit").then(({ logAdminAction }) =>
+                logAdminAction({
+                  actorUserId: grant.adminUserId,
+                  action: "user.impersonate_consumed",
+                  entityType: "user",
+                  entityId: grant.targetUserId,
+                  after: { targetUserId: grant.targetUserId, grantId: grant.id },
+                  reason: null,
+                })
+              );
             }
           } catch (e) {
             console.error("[auth jwt] impersonation grant failed", e);
@@ -192,6 +203,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.sub) {
         if (!isEdgeRuntime) {
           try {
+            const { prisma } = await import("@/lib/db");
             const row = await prisma.user.findUnique({
               where: { id: token.sub },
               select: { role: true, suspendedAt: true, emailVerifiedAt: true, email: true },
