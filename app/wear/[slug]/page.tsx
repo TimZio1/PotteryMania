@@ -65,11 +65,11 @@ export default async function WearProductPage({ params }: Props) {
   }));
 
   return (
-    <main className="bg-linear-to-b from-[#181818] via-neutral-950 to-[#15120f] px-4 py-12 text-neutral-100 sm:px-6 sm:py-16">
-      <div className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-black/35 p-5 shadow-[0_22px_80px_-32px_rgba(0,0,0,0.8)] backdrop-blur-sm sm:p-7 lg:p-8">
+    <main className="bg-linear-to-b from-[#231a15] via-[#1a1310] to-[#14100d] px-4 py-12 text-stone-100 sm:px-6 sm:py-16">
+      <div className="mx-auto max-w-6xl rounded-3xl border border-stone-700/40 bg-[#1f1814]/75 p-5 shadow-[0_22px_80px_-32px_rgba(20,12,8,0.55)] backdrop-blur-sm sm:p-7 lg:p-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
         <div>
-          <div className="relative aspect-3/4 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/70 ring-1 ring-white/5 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
+          <div className="relative aspect-3/4 overflow-hidden rounded-2xl border border-stone-700/40 bg-[#2c221c]/80 ring-1 ring-stone-800/50 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
             {primary ? (
               <Image
                 src={wearListingImageSrc(primary, 960)}
@@ -82,7 +82,7 @@ export default async function WearProductPage({ params }: Props) {
                 fetchPriority="high"
               />
             ) : (
-              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-neutral-400">
+              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-stone-500">
                 Image coming soon
               </div>
             )}
@@ -92,7 +92,7 @@ export default async function WearProductPage({ params }: Props) {
               {rest.map((src) => (
                 <div
                   key={src}
-                  className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-neutral-900/70 sm:h-24 sm:w-20"
+                  className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-stone-700/40 bg-[#2c221c]/80 sm:h-24 sm:w-20"
                 >
                   <Image
                     src={wearListingImageSrc(src, 320)}
@@ -112,15 +112,15 @@ export default async function WearProductPage({ params }: Props) {
         <div className="flex flex-col justify-center lg:pr-2">
           <Link
             href="/wear/shop"
-            className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-400 transition hover:text-neutral-200"
+            className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400 transition hover:text-amber-100/90"
           >
             ← Shop
           </Link>
-          <h1 className="mt-6 font-serif text-3xl leading-tight tracking-tight text-white sm:text-4xl">{p.name}</h1>
+          <h1 className="mt-6 font-serif text-3xl leading-tight tracking-tight text-stone-50 sm:text-4xl">{p.name}</h1>
           <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/80">
             {wearCategoryLabel(category)}
           </p>
-          {p.subtitle ? <p className="mt-3 text-lg text-neutral-300">{p.subtitle}</p> : null}
+          {p.subtitle ? <p className="mt-3 text-lg text-stone-300">{p.subtitle}</p> : null}
           <WearPdpBuySection
             productId={p.id}
             basePriceCents={p.priceCents}
@@ -128,9 +128,9 @@ export default async function WearProductPage({ params }: Props) {
             variants={variantProps}
           />
           {p.description ? (
-            <div className="mt-12 border-t border-white/15 pt-10">
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-400">Details</p>
-              <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-neutral-300">{p.description}</p>
+            <div className="mt-12 border-t border-stone-700/40 pt-10">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Details</p>
+              <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-stone-300">{p.description}</p>
             </div>
           ) : null}
         </div>
