@@ -14,15 +14,15 @@ type Props = {
 
 export function MarketingLayout({ children, toolbar }: Props) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="pm-marketing-shell flex min-h-screen flex-col text-stone-900">
       <SiteHeader showPublicSignIn={!isPreregistrationOnly()} />
       {toolbar ? (
-        <div className="border-b border-(--brand-line) bg-white/80">
+        <div className="border-b border-stone-200/60 bg-white/70 backdrop-blur-sm">
           <div className={`${ui.pageContainer} py-3`}>{toolbar}</div>
         </div>
       ) : null}
       <MarketingPageTransition>{children}</MarketingPageTransition>
-      <footer className="mt-auto border-t border-(--brand-line) bg-(--brand-soft)">
+      <footer className="mt-auto border-t border-(--brand-line) bg-white/80 backdrop-blur-sm">
         <div className={`${ui.pageContainer} py-12 sm:py-14`}>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-md">

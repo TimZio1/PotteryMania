@@ -27,7 +27,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#fafaf9",
+  themeColor: "#fcfaf7",
 };
 
 export const metadata: Metadata = {
@@ -73,7 +73,7 @@ export default function RootLayout({
       >
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only fixed left-4 top-4 z-200 rounded-lg bg-amber-950 px-4 py-2 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
+          className="sr-only focus:not-sr-only fixed left-4 top-4 z-200 rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
         >
           Skip to content
         </a>

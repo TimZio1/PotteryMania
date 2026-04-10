@@ -28,12 +28,12 @@ export function ClarityCardsStagger({ items }: { items: Item[] }) {
           key={item.title}
           variants={itemVars}
           transition={modalTransition(reduced)}
-          className="rounded-[1.75rem] border border-(--brand-line) bg-white/80 p-7 shadow-[0_20px_60px_rgba(61,36,23,0.06)] backdrop-blur-sm"
+          className="rounded-3xl border border-stone-200/80 bg-white p-7 shadow-[0_2px_24px_rgba(28,25,23,0.05)]"
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-(--brand-soft) text-sm font-semibold text-(--brand-ink)">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200/80 bg-stone-50 text-xs font-semibold tabular-nums text-stone-600">
             0{index + 1}
           </div>
-          <h3 className="mt-5 font-serif text-2xl text-(--brand-ink)">{item.title}</h3>
+          <h3 className="mt-5 font-serif text-xl font-normal tracking-[-0.01em] text-(--brand-ink) sm:text-2xl">{item.title}</h3>
           <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">{item.body}</p>
         </motion.article>
       ))}

@@ -1,22 +1,27 @@
 @import "tailwindcss";
 
-/* Light, warm ceramic palette — single theme for predictable production UI */
+/* Warm editorial palette — marketing reads like a landing page, not a dense SaaS chrome */
 :root {
-  --background: #faf8f5;
-  --foreground: #241813;
+  --background: #fcfaf7;
+  --foreground: #1c1917;
   --surface: #ffffff;
-  --muted: #7b6b60;
-  --border: rgba(36, 24, 19, 0.1);
-  --warm-surface: #f3ece4;
-  --warm-surface-strong: #e9ddd0;
-  --brand-ink: #2c1810;
-  --brand-soft: #f7f1ea;
-  --brand-line: rgba(79, 52, 37, 0.16);
+  --muted: #78716c;
+  --border: rgba(28, 25, 23, 0.08);
+  --warm-surface: #f4efe8;
+  --warm-surface-strong: #e8e0d6;
+  --brand-ink: #1a1411;
+  --brand-soft: #f8f5f1;
+  --brand-line: rgba(28, 25, 23, 0.1);
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
+}
+
+/* Marketing layout: soft vertical wash + paper edge (no extra assets) */
+.pm-marketing-shell {
+  background: linear-gradient(180deg, #fdfcfa 0%, var(--background) 22%, #f7f2ec 100%);
 }
 
 @theme inline {
@@ -31,6 +36,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* PotteryMania **platform** shell — system tools only; do not wrap public studio pages. */

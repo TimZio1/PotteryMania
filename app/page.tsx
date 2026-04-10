@@ -145,57 +145,53 @@ export default async function Home() {
           artwork={<HeroPhotography />}
           priority
         >
-          <p className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-stone-100 backdrop-blur-sm">
+          <p className="inline-flex rounded-full border border-white/20 bg-white/[0.08] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/90 backdrop-blur-md">
             {MARKETING_HERO_PRIMARY.eyebrow}
           </p>
-          <h1 className="mt-6 max-w-4xl font-serif text-5xl leading-[0.94] tracking-tight text-white sm:text-6xl lg:text-7xl">
+          <h1 className="mt-7 max-w-[18ch] font-serif text-[2.35rem] font-normal leading-[1.05] tracking-[-0.02em] text-white sm:max-w-4xl sm:text-5xl sm:leading-[1.04] lg:text-6xl lg:tracking-[-0.025em]">
             {MARKETING_HERO_PRIMARY.headline}
           </h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg sm:leading-8">
+          <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-white/88 sm:max-w-2xl sm:text-lg sm:leading-8">
             {MARKETING_HERO_PRIMARY.subhead}
           </p>
-          <p className="mt-5 max-w-2xl text-base font-semibold leading-snug tracking-tight text-white sm:text-lg">
+          <p className="mt-5 max-w-xl text-base font-medium leading-snug text-white/95 sm:max-w-2xl sm:text-lg">
             One checkout, one calendar, one dashboard — built so you get paid, not buried in admin.
           </p>
-          <p className="mt-4 max-w-2xl text-sm font-medium text-amber-100/95">
-            Official launch 1 May 2026 · start free, subscription billing begins then · plans from €19/month.
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/70">
+            Official launch 1 May 2026 · start free, then plans from €19/month.{" "}
+            <span className="text-white/90">0% platform commission</span> on checkout sales and bookings.
           </p>
-          <div className="mt-6 flex max-w-xl flex-col gap-2">
-            <div className="inline-flex max-w-fit rounded-full border border-emerald-300/30 bg-emerald-50/10 px-4 py-2 text-sm font-medium text-emerald-50 backdrop-blur-sm">
-              0% platform commission on your checkout sales and bookings.
-            </div>
-            <p className="text-sm text-stone-100/80">
-              This replaces the patchwork of DMs, spreadsheets, and generic site builders — without giving up your brand.
-            </p>
-          </div>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/65 sm:max-w-2xl">
+            Replaces the patchwork of DMs, spreadsheets, and generic site builders — without giving up your brand.
+          </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-medium text-stone-900 shadow-[0_4px_24px_rgba(0,0,0,0.18)] transition hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               {MARKETING_HERO_PRIMARY.ctaPrimary}
             </Link>
-            <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 bg-transparent px-8 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               {MARKETING_HERO_PRIMARY.ctaSecondary}
             </Link>
             <Link
               href="/wear/shop"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-amber-200/50 bg-amber-400/15 px-7 py-3 text-sm font-semibold text-amber-50 backdrop-blur-sm transition hover:bg-amber-400/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 px-8 py-3 text-sm font-medium text-white/95 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Shop wearables
             </Link>
           </div>
         </ImageSection>
 
-        <section className="border-b border-(--brand-line) bg-[#23150f] text-stone-100">
-          <div className={`${ui.pageContainer} py-12 sm:py-16`}>
+        <section className="border-b border-stone-800/80 bg-gradient-to-b from-stone-950 via-stone-950 to-[#14110f] text-stone-100">
+          <div className={`${ui.pageContainer} py-14 sm:py-20`}>
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/90">Money on the table</p>
-              <h2 className="mt-4 font-serif text-3xl leading-tight text-white sm:text-4xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">Money on the table</p>
+              <h2 className="mt-5 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-white sm:text-4xl">
                 This is what&apos;s costing you money
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-stone-300 sm:text-base">
+              <p className="mt-4 text-sm leading-relaxed text-stone-400 sm:text-base">
                 If any of this sounds familiar, you are leaving bookings and sales on the table every week.
               </p>
             </div>
-            <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:gap-5">
+            <ul className="mt-12 grid gap-3 sm:grid-cols-2 sm:gap-4">
               {[
                 "Customers message you instead of completing real bookings",
                 "Deposits and balances slip through — no reliable payment flow",
@@ -204,25 +200,25 @@ export default async function Home() {
               ].map((line) => (
                 <li
                   key={line}
-                  className="flex gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm leading-relaxed text-stone-100 sm:text-base"
+                  className="flex gap-3.5 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-5 py-4 text-sm leading-relaxed text-stone-200 sm:text-base"
                 >
-                  <span className="mt-0.5 font-semibold text-amber-300" aria-hidden>
-                    →
+                  <span className="mt-0.5 shrink-0 font-medium text-white/35" aria-hidden>
+                    —
                   </span>
                   <span>{line}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-12 flex flex-wrap gap-3">
               <Link
                 href="/dashboard/studio/new?setup=both"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-(--brand-ink) shadow-md transition hover:bg-stone-100"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-7 py-2.5 text-sm font-medium text-stone-900 shadow-sm transition hover:bg-stone-100"
               >
                 Create your studio
               </Link>
               <Link
                 href="/pricing"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/25 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 px-7 py-2.5 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/[0.06]"
               >
                 See plans
               </Link>
@@ -231,17 +227,19 @@ export default async function Home() {
         </section>
 
         <section className="border-b border-(--brand-line) bg-white">
-          <div className={`${ui.pageContainer} py-10 sm:py-12`}>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-600">Studios like yours</p>
-            <h2 className="mt-3 max-w-xl font-serif text-2xl text-(--brand-ink) sm:text-3xl">Built to pay for itself</h2>
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className={`${ui.pageContainer} py-14 sm:py-16`}>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">Studios like yours</p>
+            <h2 className="mt-4 max-w-xl font-serif text-2xl font-normal leading-tight tracking-[-0.02em] text-(--brand-ink) sm:text-3xl">
+              Built to pay for itself
+            </h2>
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
               {STUDIO_TESTIMONIALS.map((t) => (
                 <article
                   key={t.studio}
-                  className="rounded-[1.25rem] border border-(--brand-line) bg-(--warm-surface) p-5 shadow-sm"
+                  className="rounded-3xl border border-stone-200/80 bg-[#fdfcfa] p-6 shadow-[0_1px_0_rgba(28,25,23,0.04)] sm:p-7"
                 >
-                  <p className="text-sm leading-relaxed text-stone-800">&ldquo;{t.quote}&rdquo;</p>
-                  <p className="mt-4 text-xs font-medium uppercase tracking-wide text-stone-500">
+                  <p className="text-[0.9375rem] leading-relaxed text-stone-700">&ldquo;{t.quote}&rdquo;</p>
+                  <p className="mt-5 text-xs font-medium uppercase tracking-[0.12em] text-stone-400">
                     {testimonialAttribution(t)}
                   </p>
                 </article>
@@ -253,22 +251,27 @@ export default async function Home() {
         <FeaturedStudiosRail studios={featuredStudios} />
 
         <section className="border-b border-(--brand-line) bg-white">
-          <div className={`${ui.pageContainer} py-12 sm:py-14`}>
+          <div className={`${ui.pageContainer} py-14 sm:py-20`}>
             <div className="max-w-2xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Start in one click</p>
-              <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">Start in one click</p>
+              <h2 className="mt-4 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-(--brand-ink) sm:text-4xl">
                 Choose your path on PotteryMania.
               </h2>
             </div>
-            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+            <div className="mt-10 grid gap-5 lg:grid-cols-3">
               {visitorPaths.map((path) => (
                 <article
                   key={path.title}
-                  className="rounded-[1.4rem] border border-(--brand-line) bg-(--warm-surface) p-6 shadow-[0_20px_54px_rgba(61,36,23,0.05)]"
+                  className="rounded-3xl border border-stone-200/80 bg-white p-7 shadow-[0_2px_20px_rgba(28,25,23,0.04)]"
                 >
-                  <h3 className="font-serif text-2xl text-(--brand-ink)">{path.title}</h3>
+                  <h3 className="font-serif text-xl font-normal tracking-[-0.01em] text-(--brand-ink) sm:text-2xl">
+                    {path.title}
+                  </h3>
                   <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">{path.body}</p>
-                  <Link href={path.href} className={`${ui.buttonGhost} mt-5 inline-flex text-sm text-amber-900`}>
+                  <Link
+                    href={path.href}
+                    className={`${ui.buttonGhost} mt-6 inline-flex text-sm font-medium text-stone-800 underline decoration-stone-300 underline-offset-4 hover:decoration-stone-500`}
+                  >
                     {path.cta}
                   </Link>
                 </article>
@@ -278,17 +281,18 @@ export default async function Home() {
         </section>
 
         <section className="border-b border-(--brand-line) bg-(--warm-surface)">
-          <div className={`${ui.pageContainer} py-10 sm:py-12`}>
-            <div className="flex flex-col gap-5 rounded-[1.4rem] border border-(--brand-line) bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className={`${ui.pageContainer} py-12 sm:py-14`}>
+            <div className="flex flex-col gap-6 rounded-3xl border border-stone-200/70 bg-white/90 p-7 shadow-[0_2px_20px_rgba(28,25,23,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-8">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Pricing model</p>
-                <p className="mt-2 text-sm text-stone-700 sm:text-base">
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">Pricing model</p>
+                <p className="mt-3 text-sm leading-relaxed text-stone-600 sm:text-base">
                   Pay by studio usage: bookings-only, shop-only, both, or pro. Platform commission stays at 0%.
                 </p>
-                <p className="mt-3 text-sm font-medium text-amber-950">
-                  Start free. Upgrade when you&apos;re ready.
-                </p>
-                <Link href="/pricing" className="mt-3 inline-flex text-sm font-semibold text-amber-900 underline underline-offset-2">
+                <p className="mt-3 text-sm font-medium text-stone-800">Start free. Upgrade when you&apos;re ready.</p>
+                <Link
+                  href="/pricing"
+                  className="mt-4 inline-flex text-sm font-medium text-stone-800 underline decoration-stone-300 underline-offset-4 transition hover:decoration-stone-500"
+                >
                   Full comparison →
                 </Link>
               </div>
@@ -296,7 +300,7 @@ export default async function Home() {
                 {STUDIO_PLANS.map((plan) => (
                   <li
                     key={plan.key}
-                    className="rounded-full border border-(--brand-line) bg-(--warm-surface) px-3 py-1 text-xs font-medium text-stone-700"
+                    className="rounded-full border border-stone-200/90 bg-stone-50/80 px-3.5 py-1.5 text-xs font-medium text-stone-600"
                   >
                     {plan.name} · {monthlyLabel(plan)}
                     {plan.recommended ? " · Most popular" : ""}
@@ -308,13 +312,13 @@ export default async function Home() {
         </section>
 
         <section id="clarity" className="border-y border-(--brand-line) bg-(--warm-surface)">
-          <div className={`${ui.pageContainer} py-16 sm:py-24`}>
+          <div className={`${ui.pageContainer} py-20 sm:py-24`}>
             <div className="max-w-2xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">What PotteryMania is</p>
-              <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">What PotteryMania is</p>
+              <h2 className="mt-5 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-(--brand-ink) sm:text-4xl">
                 A clearer, more beautiful digital home for independent ceramics.
               </h2>
-              <p className="mt-4 max-w-xl text-base leading-7 text-stone-600 sm:text-lg">
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-stone-600 sm:text-lg">
                 PotteryMania brings together selling, booking, and day-to-day operations so you spend less time on
                 patchwork tools.
               </p>
@@ -510,7 +514,7 @@ function ImageSection({
   priority?: boolean;
 }) {
   const overlayClass = {
-    hero: "from-[#170d09]/88 via-[#24120d]/50 to-[#3c2618]/12",
+    hero: "from-stone-950/82 via-stone-950/45 to-stone-900/10",
     studio: "from-[#120e0b]/84 via-[#21150f]/42 to-[#4b2e21]/15",
     showcase: "from-[#100d0b]/82 via-[#1a1411]/35 to-[#594636]/14",
     classes: "from-[#130f0d]/84 via-[#241b15]/45 to-[#5a4636]/14",
