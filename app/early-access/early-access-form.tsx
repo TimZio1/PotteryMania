@@ -26,10 +26,8 @@ function readMetaCookie(name: "_fbc" | "_fbp"): string | undefined {
 
 export function EarlyAccessForm({
   initialCount = 0,
-  preRegCap,
 }: {
   initialCount?: number;
-  preRegCap: number;
 }) {
   const [email, setEmail] = useState("");
   const [studioName, setStudioName] = useState("");
@@ -178,7 +176,7 @@ export function EarlyAccessForm({
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
         <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
-          {displayedPreRegTotal(count)}/{preRegCap} studios on the early access list.
+          {displayedPreRegTotal(count)} studios on the early access list.
         </p>
       </div>
     );
@@ -354,7 +352,7 @@ export function EarlyAccessForm({
         <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-stone-900 sm:text-lg">
           <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
           <span>
-            {displayedPreRegTotal(count)}/{preRegCap} studios already registered
+            {displayedPreRegTotal(count)} studios already registered
           </span>
         </p>
       </div>

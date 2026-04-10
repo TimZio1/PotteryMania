@@ -7,7 +7,6 @@ import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { isPromoActive } from "@/lib/promo";
 import { STUDIO_TESTIMONIALS, testimonialAttribution } from "@/lib/marketing-testimonials";
 import { buildMetadata } from "@/lib/seo";
-import { PREREG_STUDIO_CAP } from "@/lib/brand";
 import { EarlyAccessForm } from "./early-access-form";
 
 export const dynamic = "force-dynamic";
@@ -112,7 +111,7 @@ export default async function EarlyAccessPage() {
 
           {/* Form card */}
           <div className="mt-8 rounded-3xl border border-white/10 bg-white/95 p-6 shadow-2xl shadow-black/30 backdrop-blur-md sm:mt-10 sm:p-8">
-            <EarlyAccessForm initialCount={initialCount} preRegCap={PREREG_STUDIO_CAP} />
+            <EarlyAccessForm initialCount={initialCount} />
           </div>
         </div>
       </section>

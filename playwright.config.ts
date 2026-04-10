@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 dotenv.config({ path: path.resolve(__dirname, ".env.local") });
 
 const baseURL = process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const useExternalServer = process.env.PLAYWRIGHT_EXTERNAL_SERVER === "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -22,13 +23,12 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer:
-    process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL
-      ? undefined
-      : {
-          command: "npm run dev",
-          url: baseURL,
-          reuseExistingServer: !process.env.CI,
-          timeout: 120_000,
-        },
+  webServer: useExternalServer
+    ? undefined
+    : {
+        command: process.env.CI ? "npm run start" : "npm run dev",
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });

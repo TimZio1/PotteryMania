@@ -5,6 +5,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { PrismaClient } = require("@prisma/client");
 
+const RETRY_ATTEMPTS = Number.parseInt(process.env.RECONCILIATION_RETRY_ATTEMPTS || "6", 10);
+const RETRY_DELAY_MS = Number.parseInt(process.env.RECONCILIATION_RETRY_DELAY_MS || "2000", 10);
+
 function asPct(n, d) {
   if (!d) return "0.00%";
   return `${((n / d) * 100).toFixed(2)}%`;
@@ -19,6 +22,41 @@ function writeReport(lines) {
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, lines.join("\n"), "utf8");
   return outPath;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableDbError(error) {
+  if (!error) return false;
+  const name = typeof error.name === "string" ? error.name : "";
+  const code = typeof error.code === "string" ? error.code : "";
+  const message = typeof error.message === "string" ? error.message : String(error);
+  return (
+    name.includes("PrismaClientInitializationError") ||
+    code === "P1001" ||
+    message.includes("Can't reach database server")
+  );
+}
+
+async function withRetry(label, fn) {
+  let attempt = 0;
+  let lastError;
+  while (attempt < RETRY_ATTEMPTS) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      attempt += 1;
+      if (!isRetryableDbError(error) || attempt >= RETRY_ATTEMPTS) break;
+      console.warn(
+        `[reconciliation-check] ${label} transient DB error (${attempt}/${RETRY_ATTEMPTS}), retrying in ${RETRY_DELAY_MS}ms...`,
+      );
+      await sleep(RETRY_DELAY_MS);
+    }
+  }
+  throw lastError;
 }
 
 async function main() {
@@ -64,6 +102,8 @@ async function main() {
   const failures = [];
 
   try {
+    await withRetry("prisma.$connect()", () => prisma.$connect());
+
     async function scanPaymentConsistency() {
       const PAGE_SIZE = 500;
       let cursorId = null;
@@ -71,16 +111,18 @@ async function main() {
       let orphanPayments = 0;
       let currencyMismatches = 0;
       for (;;) {
-        const rows = await prisma.payment.findMany({
-          take: PAGE_SIZE,
-          ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
-          orderBy: { id: "asc" },
-          select: {
-            id: true,
-            currency: true,
-            order: { select: { id: true, currency: true } },
-          },
-        });
+        const rows = await withRetry("scan payment batch", () =>
+          prisma.payment.findMany({
+            take: PAGE_SIZE,
+            ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+            orderBy: { id: "asc" },
+            select: {
+              id: true,
+              currency: true,
+              order: { select: { id: true, currency: true } },
+            },
+          }),
+        );
         if (rows.length === 0) break;
         for (const row of rows) {
           inspected += 1;
@@ -106,17 +148,19 @@ async function main() {
       partialRefundPayments,
       negativeOrders,
       paymentIntegrity,
-    ] = await Promise.all([
-      prisma.order.count(),
-      prisma.order.count({ where: { paymentStatus: "paid" } }),
-      prisma.order.count({ where: { paymentStatus: "refunded" } }),
-      prisma.order.count({ where: { paymentStatus: "partially_refunded" } }),
-      prisma.payment.count({ where: { paymentStatus: "succeeded" } }),
-      prisma.payment.count({ where: { paymentStatus: "refunded" } }),
-      prisma.payment.count({ where: { paymentStatus: "partially_refunded" } }),
-      prisma.order.count({ where: { totalCents: { lt: 0 } } }),
-      scanPaymentConsistency(),
-    ]);
+    ] = await withRetry("snapshot aggregate queries", () =>
+      Promise.all([
+        prisma.order.count(),
+        prisma.order.count({ where: { paymentStatus: "paid" } }),
+        prisma.order.count({ where: { paymentStatus: "refunded" } }),
+        prisma.order.count({ where: { paymentStatus: "partially_refunded" } }),
+        prisma.payment.count({ where: { paymentStatus: "succeeded" } }),
+        prisma.payment.count({ where: { paymentStatus: "refunded" } }),
+        prisma.payment.count({ where: { paymentStatus: "partially_refunded" } }),
+        prisma.order.count({ where: { totalCents: { lt: 0 } } }),
+        scanPaymentConsistency(),
+      ]),
+    );
     const { orphanPayments, currencyMismatches, inspected: inspectedPayments } = paymentIntegrity;
 
     // Sanity assertions for money-path consistency.
