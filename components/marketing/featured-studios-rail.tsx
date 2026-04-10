@@ -35,7 +35,7 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
           </div>
           <Link
             href="/studios"
-            className="text-sm font-medium text-stone-700 underline decoration-stone-300 underline-offset-4 transition hover:text-stone-900 hover:decoration-stone-500"
+            className="text-sm font-medium text-stone-700 underline decoration-stone-300 underline-offset-4 transition hover:text-(--brand-ink) hover:decoration-amber-600/50"
           >
             Browse all studios →
           </Link>
@@ -72,7 +72,7 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
                 ) : null}
               </div>
               <div className="flex flex-1 flex-col p-4">
-                <h3 className="font-semibold text-(--brand-ink) transition group-hover:text-stone-700">{s.displayName}</h3>
+                <h3 className="font-semibold text-(--brand-ink) transition group-hover:text-amber-950">{s.displayName}</h3>
                 {(s.city || s.country) && (
                   <p className="mt-1 text-xs text-stone-500">
                     {[s.city, s.country].filter(Boolean).join(", ")}

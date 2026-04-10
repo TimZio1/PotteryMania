@@ -14,7 +14,7 @@ type Props = {
 
 export function MarketingLayout({ children, toolbar }: Props) {
   return (
-    <div className="pm-marketing-shell flex min-h-screen flex-col text-stone-900">
+    <div className="pm-marketing-shell flex min-h-screen flex-col text-(--brand-ink)">
       <SiteHeader showPublicSignIn={!isPreregistrationOnly()} />
       {toolbar ? (
         <div className="border-b border-stone-200/60 bg-white/70 backdrop-blur-sm">

@@ -165,7 +165,7 @@ export default async function Home() {
             Replaces the patchwork of DMs, spreadsheets, and generic site builders — without giving up your brand.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-medium text-stone-900 shadow-[0_4px_24px_rgba(0,0,0,0.18)] transition hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-medium text-(--brand-ink) shadow-[0_4px_24px_rgba(44,24,16,0.2)] transition hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               {MARKETING_HERO_PRIMARY.ctaPrimary}
             </Link>
             <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 bg-transparent px-8 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
@@ -180,7 +180,7 @@ export default async function Home() {
           </div>
         </ImageSection>
 
-        <section className="border-b border-stone-800/80 bg-gradient-to-b from-stone-950 via-stone-950 to-[#14110f] text-stone-100">
+        <section className="border-b border-[rgba(62,42,30,0.35)] bg-gradient-to-b from-[#2a1810] via-[#23150f] to-[#1a100c] text-stone-100">
           <div className={`${ui.pageContainer} py-14 sm:py-20`}>
             <div className="max-w-2xl">
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">Money on the table</p>
@@ -212,7 +212,7 @@ export default async function Home() {
             <div className="mt-12 flex flex-wrap gap-3">
               <Link
                 href="/dashboard/studio/new?setup=both"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-7 py-2.5 text-sm font-medium text-stone-900 shadow-sm transition hover:bg-stone-100"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-7 py-2.5 text-sm font-medium text-(--brand-ink) shadow-sm transition hover:bg-stone-100"
               >
                 Create your studio
               </Link>
@@ -270,7 +270,7 @@ export default async function Home() {
                   <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">{path.body}</p>
                   <Link
                     href={path.href}
-                    className={`${ui.buttonGhost} mt-6 inline-flex text-sm font-medium text-stone-800 underline decoration-stone-300 underline-offset-4 hover:decoration-stone-500`}
+                    className={`${ui.buttonGhost} mt-6 inline-flex text-sm font-medium text-amber-950 underline decoration-amber-200/80 underline-offset-4 hover:decoration-amber-400/80`}
                   >
                     {path.cta}
                   </Link>
@@ -288,10 +288,10 @@ export default async function Home() {
                 <p className="mt-3 text-sm leading-relaxed text-stone-600 sm:text-base">
                   Pay by studio usage: bookings-only, shop-only, both, or pro. Platform commission stays at 0%.
                 </p>
-                <p className="mt-3 text-sm font-medium text-stone-800">Start free. Upgrade when you&apos;re ready.</p>
+                <p className="mt-3 text-sm font-medium text-amber-950">Start free. Upgrade when you&apos;re ready.</p>
                 <Link
                   href="/pricing"
-                  className="mt-4 inline-flex text-sm font-medium text-stone-800 underline decoration-stone-300 underline-offset-4 transition hover:decoration-stone-500"
+                  className="mt-4 inline-flex text-sm font-medium text-amber-950 underline decoration-amber-200/80 underline-offset-4 transition hover:decoration-amber-500/80"
                 >
                   Full comparison →
                 </Link>
@@ -514,7 +514,7 @@ function ImageSection({
   priority?: boolean;
 }) {
   const overlayClass = {
-    hero: "from-stone-950/82 via-stone-950/45 to-stone-900/10",
+    hero: "from-[#170d09]/85 via-[#2c1810]/48 to-[#4a3228]/14",
     studio: "from-[#120e0b]/84 via-[#21150f]/42 to-[#4b2e21]/15",
     showcase: "from-[#100d0b]/82 via-[#1a1411]/35 to-[#594636]/14",
     classes: "from-[#130f0d]/84 via-[#241b15]/45 to-[#5a4636]/14",

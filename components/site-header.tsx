@@ -52,7 +52,7 @@ function useWearCartCount() {
 function CartBadge({ count }: { count: number }) {
   if (count <= 0) return null;
     return (
-    <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-stone-800 px-1.5 text-[10px] font-bold text-white">
+    <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-900 px-1.5 text-[10px] font-bold text-white">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -91,7 +91,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     cn(
       ui.buttonGhost,
       pathname === href || (href !== "/" && pathname.startsWith(href + "/"))
-        ? "bg-stone-100 text-stone-900"
+        ? "bg-amber-50 text-amber-950"
         : "",
     );
 
@@ -100,14 +100,14 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
       ui.buttonGhost,
       "min-h-12 justify-start px-4 text-base",
       pathname === href || (href !== "/" && pathname.startsWith(href + "/"))
-        ? "bg-stone-100 text-stone-900"
+        ? "bg-amber-50 text-amber-950"
         : "",
     );
 
   const mobileWearClass = cn(
     ui.buttonGhost,
     "min-h-12 justify-start px-4 text-base",
-    wearZoneActive(pathname) ? "bg-stone-100 text-stone-900" : "",
+    wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "",
   );
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200/60 bg-white/75 backdrop-blur-xl supports-backdrop-filter:bg-white/65">
@@ -143,7 +143,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </Link>
               <Link
                 href="/wear/shop"
-                className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-stone-100 text-stone-900" : "")}
+                className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
               >
                 Wearables
                 <CartBadge count={wearCount} />
@@ -184,7 +184,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                 </Link>
                 <Link
                   href="/wear/shop"
-                  className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-stone-100 text-stone-900" : "")}
+                  className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
                 >
                   Wearables
                   <CartBadge count={wearCount} />
@@ -192,13 +192,13 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </div>
               <Link
                 href="/dashboard/studio/new?setup=both"
-                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-stone-900 px-3.5 text-xs font-medium text-white shadow-sm transition hover:bg-stone-800 sm:max-w-none sm:px-5 sm:text-sm md:hidden"
+                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.18)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm md:hidden"
               >
                 Create studio website
               </Link>
               <Link
                 href="/dashboard/studio/new?setup=both"
-                className="hidden min-h-11 items-center justify-center truncate rounded-full bg-stone-900 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-stone-800 md:inline-flex"
+                className="hidden min-h-11 items-center justify-center truncate rounded-full bg-(--brand-ink) px-5 text-sm font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.18)] transition hover:bg-[#3a241a] md:inline-flex"
               >
                 Create studio website
               </Link>
@@ -236,7 +236,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
       >
         <button
           type="button"
-          className={cn("absolute inset-0 bg-stone-900/40 transition-opacity", open ? "opacity-100" : "opacity-0")}
+          className={cn("absolute inset-0 bg-[rgba(44,24,16,0.35)] transition-opacity", open ? "opacity-100" : "opacity-0")}
           aria-label="Close menu"
           onClick={close}
         />
@@ -247,7 +247,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           )}
         >
           <div className="flex h-14 items-center justify-between border-b border-stone-100 px-4">
-            <span className="text-sm font-semibold text-stone-900">Menu</span>
+            <span className="text-sm font-semibold text-(--brand-ink)">Menu</span>
             <button type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
               Close
             </button>
