@@ -20,8 +20,8 @@ export default function NotFound() {
           <Link href="/" className={ui.buttonPrimary}>
             Back to home
           </Link>
-          <Link href="/marketplace" className={ui.buttonSecondary}>
-            Explore studios
+          <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>
+            Start studio website
           </Link>
           <Link href="/wear/shop" className={ui.buttonSecondary}>
             Shop wearables

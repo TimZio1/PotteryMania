@@ -9,7 +9,7 @@ import { DashboardRouteBreadcrumbs } from "@/components/dashboard/dashboard-rout
 export const metadata: Metadata = metaDashboardPage(
   "Dashboard",
   "/dashboard",
-  "Manage your ceramic studio: listings, classes, bookings, and Stripe payouts on PotteryMania.",
+  "Manage your ceramic studio website: shop, bookings, branding, and Stripe payouts.",
 );
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -33,12 +33,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             </Link>
             <Link href="/dashboard/billing" className="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-amber-950">
               Billing
-            </Link>
-            <Link href="/marketplace" className="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-amber-950">
-              Shop
-            </Link>
-            <Link href="/classes" className="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-amber-950">
-              Classes
             </Link>
             <Link href="/cart" className="rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-amber-950">
               Cart

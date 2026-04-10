@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { prisma } from "@/lib/db";
 import { PromoCountdown } from "@/components/promo-countdown";
@@ -37,6 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function EarlyAccessPage() {
+  redirect("/dashboard/studio/new?setup=both");
   const initialCount = await getInitialCountSafe();
   const promoActive = isPromoActive();
   const commissionLabel = await getCommissionLabelSafe();

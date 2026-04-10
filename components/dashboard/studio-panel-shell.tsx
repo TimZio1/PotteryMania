@@ -100,10 +100,10 @@ export default function StudioPanelShell({
             All studios
           </Link>
           <Link
-            href="/marketplace"
+            href={`/studios/${studioId}`}
             className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-stone-50 hover:text-amber-950"
           >
-            View marketplace
+            View public studio page
           </Link>
           <button
             type="button"

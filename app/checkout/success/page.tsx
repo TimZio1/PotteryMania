@@ -45,8 +45,8 @@ export default function CheckoutSuccessPage() {
           </div>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link href="/marketplace" className={ui.buttonPrimary}>
-              Keep shopping
+            <Link href="/dashboard/studio/new?setup=shop" className={ui.buttonPrimary}>
+              Open shop setup
             </Link>
             <Link href="/my-bookings" className={ui.buttonSecondary}>
               View my bookings
@@ -56,8 +56,8 @@ export default function CheckoutSuccessPage() {
           <div className="mt-10 rounded-2xl border border-stone-200/80 bg-stone-50/80 p-5">
             <p className="text-sm font-medium text-amber-950">Explore more</p>
             <div className="mt-3 flex flex-wrap justify-center gap-3">
-              <Link href="/classes" className={cn(ui.buttonGhost, "text-sm")}>
-                Browse classes
+              <Link href="/dashboard/studio/new?setup=bookings" className={cn(ui.buttonGhost, "text-sm")}>
+                Start bookings setup
               </Link>
               <Link href="/wear/shop" className={cn(ui.buttonGhost, "text-sm")}>
                 Shop wearables

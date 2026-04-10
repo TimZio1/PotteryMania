@@ -51,12 +51,12 @@ export async function PATCH(req: Request) {
     entityId: rule.id,
     before: { itemType, percentageBasisPoints: bps },
     after: { itemType, percentageBasisPoints: DEFAULT_PLATFORM_COMMISSION_BPS },
-    reason: "Global commission is locked to 5% by marketplace policy.",
+    reason: "Global commission is locked to 0% by platform policy.",
   });
 
   return NextResponse.json(
     {
-      error: "Global commission is locked to 5% for both bookings and product sales.",
+      error: "Global commission is locked to 0% for both bookings and product sales.",
       locked: true,
       percentageBasisPoints: DEFAULT_PLATFORM_COMMISSION_BPS,
     },

@@ -10,19 +10,20 @@ export type StudioPanelNavItem = {
 export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
   const b = (path: string) => `/dashboard/${studioId}${path}`;
   return [
-    { href: b(""), label: "Dashboard" },
-    { href: b("/template"), label: "Studio template" },
-    { href: b("/calendar"), label: "Calendar" },
+    { href: b(""), label: "Website" },
+    { href: b("/template"), label: "Branding" },
     { href: b("/bookings"), label: "Bookings" },
-    { href: b("/students"), label: "Students" },
-    { href: b("/classes"), label: "Classes" },
-    { href: b("/shop"), label: "Products / Shop" },
-    { href: b("/kiln"), label: "Kiln / Production" },
+    { href: b("/classes"), label: "Class offerings" },
+    { href: b("/shop"), label: "Shop" },
+    { href: b("/calendar"), label: "Calendar" },
     { href: b("/payments"), label: "Payments" },
-    { href: b("/analytics"), label: "Analytics" },
+    { href: b("/analytics"), label: "Insights" },
+    { href: b("/settings"), label: "Settings" },
+    { href: `/studios/${studioId}`, label: "Preview" },
+    { href: b("/students"), label: "Students" },
     { href: b("/ai"), label: "AI Advisor" },
     { href: b("/features"), label: "Features / Add-ons" },
-    { href: b("/settings"), label: "Settings" },
+    { href: b("/kiln"), label: "Kiln / Production" },
   ];
 }
 

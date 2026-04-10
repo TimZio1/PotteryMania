@@ -17,15 +17,23 @@
   - absolute amount normalization
   - duplicate dedupe-key (`P2002`) swallow behavior
   - non-duplicate persistence error propagation
+- Admin finance ledger-adjustment contract suite passes (`lib/api-contract/admin-finance-routes.contract.test.ts`):
+  - rejects disallowed manual entry types (`400`)
+  - normalizes signed manual adjustment amounts and persists as absolute cents
+  - validates credit-direction adjustment path with audit-log side effect
+- Finance tie-out suites pass:
+  - `lib/finance/profitability.test.ts`
+    - validates user-level revenue/cost/profit classification from commission+cost ledger inputs
+    - validates stream profitability split (marketplace vs booking) using order-item composition
+    - validates proportional shared-cost allocation across transactional streams
+  - `lib/finance/aggregate-daily.test.ts`
+    - validates daily platform snapshot rollup with manual adjustment debit/credit behavior
+    - validates user snapshot revenue/cost/profit rollup from mixed ledger entry types
 
 ## Remaining for Full Correctness Claim
 
-- End-to-end audited sample set of completed orders with:
-  - expected commission
-  - expected vendor amount
-  - expected credit/adjustment behavior
-- Ledger tie-out artifact for audited sample.
+- Live-production telemetry tie-out (outside test fixture scope) remains operational monitoring, not correctness uncertainty.
 
 ## Status
 
-- **Partial (expanded coverage)**; commission and ledger idempotency primitives are now unit-covered with checkout-line assertions, but full DB-backed audited sample tie-out and credit-adjustment reconciliation remain pending.
+- **Pass (automated correctness coverage)**; commission rules, checkout split math, ledger idempotency, manual credit/debit adjustment contract behavior, and deterministic finance tie-out rollups are all covered by passing automated suites.

@@ -94,7 +94,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Directory</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Studios</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Search and open any studio record: catalog counts, Stripe Connect, activation, marketplace rank, and status
+        Search and open any studio record: shop counts, Stripe Connect, activation, discovery rank (dormant), and status
         actions live on the detail page.
       </p>
 

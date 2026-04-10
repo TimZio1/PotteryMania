@@ -30,7 +30,7 @@ export default function VendorTermsPage() {
 
       <h2>1. Seller relationship</h2>
       <p>
-        You operate as an independent business. PotteryMania is a software and marketplace layer — not the seller of
+        You operate as an independent business. PotteryMania is a software platform layer — not the seller of
         your goods or classes. You are responsible for your listings, pricing, taxes where applicable, consumer rights,
         and compliance with craft, safety, and professional regulations in your markets.
       </p>
@@ -56,7 +56,7 @@ export default function VendorTermsPage() {
         refunds through integrated payment flows.
       </p>
 
-      <h2>5. Marketplace conduct</h2>
+      <h2>5. Platform conduct</h2>
       <ul>
         <li>No counterfeit, unsafe, or prohibited items; no harassment or fraud.</li>
         <li>No circumvention of checkout to avoid agreed fees without our written consent.</li>

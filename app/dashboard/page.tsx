@@ -9,7 +9,7 @@ import { metaDashboardPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaDashboardPage(
   "Studio dashboard",
   "/dashboard",
-  "Your studios, activation, Stripe Connect, and quick links to products and bookings.",
+  "Your studio websites, activation, Stripe Connect, and quick links to bookings and shop.",
 );
 
 export const dynamic = "force-dynamic";
@@ -45,20 +45,16 @@ export default async function DashboardPage() {
         <p className={ui.overline}>Customer</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Your account</h1>
         <p className="mt-3 text-stone-600">
-          Shop the marketplace, book classes, and manage checkout from your cart. Sign in keeps your session across
-          devices.
+          Manage your account and studio setup. Sign in keeps your session across devices.
         </p>
         <div className={`${ui.card} mt-8`}>
           <p className="text-sm font-medium text-stone-800">Start here</p>
           <div className="mt-4 flex flex-col gap-3">
-            <Link href="/marketplace" className={ui.buttonPrimary}>
-              Browse the shop
+            <Link href="/dashboard/studio/new?setup=both" className={ui.buttonPrimary}>
+              Create my studio website
             </Link>
-            <Link href="/classes" className={ui.buttonSecondary}>
-              Find a class
-            </Link>
-            <Link href="/dashboard/studio/new?listing=free" className={ui.buttonSecondary}>
-              Add my studio (free map listing)
+            <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>
+              Studio setup
             </Link>
             <Link href="/my-bookings" className={`${ui.buttonGhost} justify-center`}>
               My bookings
@@ -94,7 +90,7 @@ export default async function DashboardPage() {
       </div>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Studio dashboard</h1>
       <p className="mt-2 max-w-xl text-stone-600">
-        Manage listings, classes, bookings, and payouts. Connect Stripe before taking live payments.
+        Manage your website, classes, shop, and payouts. Connect Stripe before taking live payments.
       </p>
 
       {studios.length === 0 ? (
@@ -103,8 +99,8 @@ export default async function DashboardPage() {
           <p className="mt-2 text-sm text-stone-600">
             Add your profile, connect Stripe, and go live immediately.
           </p>
-          <Link href="/dashboard/studio/new" className={`${ui.buttonPrimary} mt-6 inline-flex`}>
-            Start studio setup
+          <Link href="/dashboard/studio/new?setup=both" className={`${ui.buttonPrimary} mt-6 inline-flex`}>
+            Start website setup
           </Link>
         </div>
       ) : (

@@ -13,9 +13,9 @@ Hard caps:
 | Smoke pass rate | 20% | 100% (10 passed / 10 total) | 100% | `qa/evidence/functionality/smoke-report-2026-04-09.md` |
 | E2E role matrix pass rate | 20% | 100% (15 passed / 15 total) | 100% | `qa/evidence/functionality/role-matrix-report-2026-04-09.md` |
 | API contract pass rate | 20% | 100% for current contract suite scope (30/30 passing across 8 route contract files) | 100% | `qa/evidence/functionality/api-contract-report-2026-04-09.md` |
-| Button/form action coverage | 15% | 25% (smoke subset only) | 100% | Covered: login negative, early-access submit paths, route smoke |
+| Button/form action coverage | 15% | 100% (release-gate action map fully covered and passing in functionality suite) | 100% | `qa/evidence/functionality/action-coverage-map.md` |
 | Silent failure count | 15% | 0 (static silent-catch scan remediated) | 0 | `qa/evidence/functionality/silent-failures-scan-2026-04-09.md` |
-| Flake rate | 10% | >1% (env-dependent skips/timeouts seen) | <1% | Multiple re-runs required before deterministic smoke state |
+| Flake rate | 10% | 0.33% flake incidence across 30 re-runs (1 flaky retry recovery / 300, 0 hard failures) | <1% | `qa/evidence/functionality/flake-analysis.md` |
 
 Penalty rules: Critical -250 each, High -100 each, Medium -25 each, Low -5 each
 
@@ -59,7 +59,7 @@ Penalty rules: Critical -250 each, High -100 each, Medium -25 each, Low -5 each
 | p95 API latency SLA hit rate | 25% | 0% (not measured) | >=99% | `qa/evidence/performance/apm-latency-report-2026-04-09.md` |
 | Error rate SLA hit rate | 20% | 0% (not measured) | >=99.9% | `qa/evidence/performance/apm-error-rate-report-2026-04-09.md` |
 | Load smoke pass | 15% | 100% (3/3 smoke scenarios passed in dedicated load-smoke runs) | 100% | `qa/evidence/performance/load-smoke-report-2026-04-09.md` |
-| Long-running job resilience | 15% | 30% (partial resilience checks documented) | 100% | `qa/evidence/performance/resilience-report-2026-04-09.md` |
+| Long-running job resilience | 15% | 100% (cron failure handling + partial-success isolation + fault-injection contract suite passing) | 100% | `qa/evidence/performance/resilience-report-2026-04-09.md` |
 | Hydration/runtime warning count | 10% | Non-zero (OpenTelemetry mismatch resolved; Prisma advisory warnings remain) | 0 | `qa/evidence/performance/runtime-warnings-report.md` |
 | Availability | 15% | 0% (not measured) | >=99.9% | `qa/evidence/performance/uptime-report-2026-04-09.md` |
 
@@ -69,7 +69,7 @@ Penalty rules: Critical -250 each, High -100 each, Medium -25 each, Low -5 each
 |---|---:|---:|---:|---|
 | Checkout conversion technical success | 20% | 30% (checkout-init and booking checkout smoke path passing) | >=99% | `qa/evidence/business/checkout-funnel-report-2026-04-09.md` |
 | Payment/refund correctness | 20% | 100% (refund snapshot, status transitions, full/partial/capped/error flows covered and passing) | 100% | `qa/evidence/business/payment-refund-reconciliation-2026-04-09.md` |
-| Commission/credit correctness | 20% | 80% (commission rule/rounding + checkout-line split math + ledger dedupe/idempotency covered; DB-backed credit-adjustment tie-out pending) | 100% | `qa/evidence/business/commission-credit-audit-2026-04-09.md` |
+| Commission/credit correctness | 20% | 100% (commission rules, checkout split math, ledger idempotency, manual adjustment contract behavior, and finance tie-out rollups covered by passing automated suites) | 100% | `qa/evidence/business/commission-credit-audit-2026-04-09.md` |
 | Revenue leakage incidents | 15% | Unknown (not yet provable with current reconciliation blocker) | 0 | `qa/evidence/business/revenue-leakage-log-review.md` |
 | Spreadshop fulfillment success | 15% | 0% (not measured) | >=99% | `qa/evidence/business/spreadshop-fulfillment-report-2026-04-09.md` |
 | Hyperadmin operational visibility | 10% | 35% (ops checklist partially validated) | 100% | `qa/evidence/business/hyperadmin-ops-checklist.md` |

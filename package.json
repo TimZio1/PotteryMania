@@ -30,9 +30,6 @@
     "db:seed": "prisma db seed",
     "import:wear-csv": "node scripts/import-spod-wear-csv.cjs"
   },
-  "prisma": {
-    "seed": "node prisma/seed.cjs"
-  },
   "dependencies": {
     "@playwright/test": "^1.59.1",
     "@prisma/client": "6.19.0",

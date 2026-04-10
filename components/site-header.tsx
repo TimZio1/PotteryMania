@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
-import { allCeramicCategories } from "@/lib/ceramic-categories";
 import { ui } from "@/lib/ui-styles";
 
 function adminVisible(role: string | undefined) {
@@ -131,8 +130,6 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     "min-h-12 justify-start px-4 text-base",
     wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "",
   );
-  const ceramicCategories = allCeramicCategories();
-
   async function updateRegion(next: string) {
     setRegion(next);
     try {
@@ -190,46 +187,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : null}
           {authed ? (
             <div className="hidden items-center gap-1 md:flex">
-              <Link href="/marketplace" className={linkClass("/marketplace")}>
-                Shop
+              <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
+                Create studio site
               </Link>
-              <Link href="/classes" className={linkClass("/classes")}>
-                Classes
-              </Link>
-              <div className="group relative">
-                <Link
-                  href="/category/tableware"
-                  className={cn(
-                    ui.buttonGhost,
-                    pathname.startsWith("/category/") ? "bg-amber-50 text-amber-950" : "",
-                  )}
-                >
-                  Shop by Category
-                </Link>
-                <div className="invisible absolute left-0 top-[calc(100%+8px)] z-50 w-[560px] rounded-2xl border border-stone-200 bg-white p-3 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100">
-                  <div className="grid grid-cols-2 gap-2">
-                    {ceramicCategories.map((category) => (
-                      <Link
-                        key={category.slug}
-                        href={`/category/${category.slug}`}
-                        className="group/category flex items-center gap-2 rounded-xl border border-stone-100 p-2 transition hover:scale-[1.01] hover:shadow-sm"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={category.imageUrl}
-                          alt={category.title}
-                          className="h-10 w-10 rounded-lg object-cover"
-                          loading="lazy"
-                        />
-                        <div>
-                          <p className="text-sm font-medium text-stone-900">{category.title}</p>
-                          <p className="text-xs text-stone-500">{category.shortDescription}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
               <Link
                 href="/wear/shop"
                 className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
@@ -265,46 +225,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
-                <Link href="/marketplace" className={linkClass("/marketplace")}>
-                  Shop
+                <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
+                  For studios
                 </Link>
-                <Link href="/classes" className={linkClass("/classes")}>
-                  Classes
-                </Link>
-                <div className="group relative">
-                  <Link
-                    href="/category/tableware"
-                    className={cn(
-                      ui.buttonGhost,
-                      pathname.startsWith("/category/") ? "bg-amber-50 text-amber-950" : "",
-                    )}
-                  >
-                    Shop by Category
-                  </Link>
-                  <div className="invisible absolute left-0 top-[calc(100%+8px)] z-50 w-[560px] rounded-2xl border border-stone-200 bg-white p-3 opacity-0 shadow-xl transition duration-150 group-hover:visible group-hover:opacity-100">
-                    <div className="grid grid-cols-2 gap-2">
-                      {ceramicCategories.map((category) => (
-                        <Link
-                          key={category.slug}
-                          href={`/category/${category.slug}`}
-                          className="group/category flex items-center gap-2 rounded-xl border border-stone-100 p-2 transition hover:scale-[1.01] hover:shadow-sm"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={category.imageUrl}
-                            alt={category.title}
-                            className="h-10 w-10 rounded-lg object-cover"
-                            loading="lazy"
-                          />
-                          <div>
-                            <p className="text-sm font-medium text-stone-900">{category.title}</p>
-                            <p className="text-xs text-stone-500">{category.shortDescription}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
                 <Link
                   href="/wear/shop"
                   className={cn(ui.buttonGhost, wearZoneActive(pathname) ? "bg-amber-50 text-amber-950" : "")}
@@ -314,16 +237,16 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                 </Link>
               </div>
               <Link
-                href="/early-access"
+                href="/dashboard/studio/new?setup=both"
                 className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm md:hidden"
               >
-                Register your studio
+                Create studio website
               </Link>
               <Link
-                href="/early-access"
+                href="/dashboard/studio/new?setup=both"
                 className="hidden min-h-11 items-center justify-center truncate rounded-full bg-(--brand-ink) px-5 text-sm font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.14)] transition hover:bg-[#3a241a] md:inline-flex"
               >
-                Register your studio
+                Create studio website
               </Link>
               {showPublicSignIn ? (
                 <Link href="/login" className={cn(linkClass("/login"), "hidden md:inline-flex")}>
@@ -393,26 +316,9 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                 </select>
               </label>
             ) : null}
-            <Link href="/marketplace" className={mobileLinkClass("/marketplace")}>
-              Shop
+            <Link href="/dashboard/studio/new?setup=both" className={mobileLinkClass("/dashboard/studio/new")}>
+              For studios
             </Link>
-            <Link href="/classes" className={mobileLinkClass("/classes")}>
-              Classes
-            </Link>
-            <Link href="/category/tableware" className={mobileLinkClass("/category/tableware")}>
-              Shop by Category
-            </Link>
-            <div className="grid grid-cols-2 gap-1 px-1 pb-2">
-              {ceramicCategories.map((category) => (
-                <Link
-                  key={category.slug}
-                  href={`/category/${category.slug}`}
-                  className="rounded-lg border border-stone-200 px-2 py-1.5 text-xs text-stone-700"
-                >
-                  {category.title}
-                </Link>
-              ))}
-            </div>
             <Link href="/wear/shop" className={mobileWearClass}>
               Wearables
               <CartBadge count={wearCount} />
@@ -447,8 +353,8 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
             ) : (
               <>
                 <hr className="my-2 border-stone-100" />
-                <Link href="/early-access" className={mobileLinkClass("/early-access")}>
-                  Register your studio
+                <Link href="/dashboard/studio/new?setup=both" className={mobileLinkClass("/dashboard/studio/new")}>
+                  Create studio website
                 </Link>
                 {showPublicSignIn ? (
                   <Link href="/login" className={mobileLinkClass("/login")}>

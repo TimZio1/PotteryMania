@@ -13,14 +13,14 @@ export default function ClassesError({ error, reset }: { error: Error & { digest
     <main className={`${ui.pageContainer} flex min-h-[60vh] flex-col items-center justify-center py-16 text-center`}>
       <h1 className="text-2xl font-semibold tracking-tight text-amber-950">Could not load classes</h1>
       <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
-        Something went wrong. Please try again or explore the marketplace.
+        Something went wrong. Please try again or return to studio setup.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button type="button" onClick={reset} className={ui.buttonPrimary}>
           Try again
         </button>
-        <Link href="/marketplace" className={ui.buttonSecondary}>
-          Browse marketplace
+        <Link href="/dashboard/studio/new?setup=bookings" className={ui.buttonSecondary}>
+          Open bookings setup
         </Link>
       </div>
     </main>

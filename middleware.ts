@@ -1,11 +1,6 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import {
-  canBrowseDuringPreregistration,
-  isPreregistrationClosedPath,
-  isPreregistrationOnly,
-} from "@/lib/preregistration";
-import {
   canonicalPublicOrigin,
   normalizeDomainName,
   primaryAppHostname,
@@ -20,10 +15,9 @@ import {
 } from "@/lib/csrf-protection";
 
 const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart", "/account"];
-/** Public without marketplace; /register only when browsing is open (not preregistration-only). */
+/** Public core pages; no global discovery surfaces. */
 const BASE_PUBLIC_CORE = [
   "/",
-  "/early-access",
   "/wear",
   "/login",
   "/forgot-password",
@@ -34,11 +28,9 @@ const BASE_PUBLIC_CORE = [
   "/checkout/success",
   "/unauthorized-admin",
 ];
-const BROWSING_PUBLIC = ["/marketplace", "/classes", "/studios"];
 
 function publicAllowlist(): string[] {
-  if (isPreregistrationOnly()) return BASE_PUBLIC_CORE;
-  return [...BASE_PUBLIC_CORE, "/register", ...BROWSING_PUBLIC];
+  return [...BASE_PUBLIC_CORE, "/register"];
 }
 
 export default auth(async (req) => {
@@ -51,6 +43,17 @@ export default auth(async (req) => {
 
   const path = req.nextUrl.pathname;
   const isApiPath = path.startsWith("/api/");
+
+  // Product pivot: disable global discovery/catalog entry routes.
+  // Keep studio-owned public pages and direct detail routes operational.
+  if (
+    path === "/marketplace" ||
+    path === "/classes" ||
+    path === "/studios" ||
+    path.startsWith("/category/")
+  ) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
 
   if (isApiPath) {
     if (isStateChangingMethod(req.method) && !isCsrfExemptPath(path)) {
@@ -114,34 +117,14 @@ export default auth(async (req) => {
   const isPublic = allow.some((p) => path === p || (p !== "/" && path.startsWith(p + "/")));
   const needsLogin = LOGIN_REQUIRED.some((p) => path === p || path.startsWith(p + "/"));
 
-  // During preregistration, the conversion-focused landing lives at /early-access.
-  // Guests and customers still matched "/" to the old long homepage — send them to the new page.
-  // Vendors and admins keep "/" for demos and QA.
-  if (
-    isPreregistrationOnly() &&
-    path === "/" &&
-    !canBrowseDuringPreregistration(req.auth?.user?.role)
-  ) {
-    return NextResponse.redirect(new URL("/early-access", req.url));
-  }
-
   if (needsLogin && !req.auth) {
     const u = new URL("/login", req.url);
     u.searchParams.set("callbackUrl", path);
     return NextResponse.redirect(u);
   }
 
-  if (
-    isPreregistrationOnly() &&
-    isPreregistrationClosedPath(path) &&
-    !canBrowseDuringPreregistration(req.auth?.user?.role)
-  ) {
-    const dest = req.auth ? "/" : "/early-access";
-    return NextResponse.redirect(new URL(dest, req.url));
-  }
-
   if (!isPublic && !needsLogin && !req.auth) {
-    return NextResponse.redirect(new URL("/early-access", req.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();

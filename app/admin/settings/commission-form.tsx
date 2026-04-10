@@ -26,10 +26,9 @@ export function CommissionForm() {
     <div className="space-y-6">
       {msg ? <p className="text-sm text-stone-600">{msg}</p> : null}
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Global marketplace commission (locked)</p>
+        <p className="text-sm font-semibold text-amber-950">Global platform commission (locked to 0%)</p>
         <p className="mt-2 text-sm text-stone-700">
-          Product sales and bookings both use <strong>{(DEFAULT_PLATFORM_COMMISSION_BPS / 100).toFixed(1)}%</strong>.
-          No per-stream or per-studio overrides are allowed.
+          Product sales and bookings both use <strong>0%</strong>. No per-stream or per-studio overrides are allowed.
         </p>
       </div>
     </div>

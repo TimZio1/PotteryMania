@@ -108,7 +108,7 @@ export default async function AdminReportsPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Reports</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Growth funnel (supply)</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Operational funnel from early-access lead to live marketplace supply. Cohort view measures share of each signup
+        Operational funnel from early-access lead to live studio website supply. Cohort view measures share of each signup
         month that placed an order or booking in subsequent calendar months.
       </p>
 

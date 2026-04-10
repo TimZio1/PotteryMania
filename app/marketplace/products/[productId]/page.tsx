@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!result) {
     return buildMetadata({
       title: "Product not found",
-      description: "This marketplace product could not be found.",
+      description: "This studio product could not be found.",
       path: `/marketplace/products/${productId}`,
     });
   }
@@ -77,7 +77,7 @@ export default async function ProductPage({ params }: Props) {
   const toolbar = (
     <Breadcrumbs
       items={[
-        { label: "Marketplace", href: "/marketplace" },
+        { label: product.studio.displayName, href: `/studios/${product.studio.id}` },
         { label: product.title },
       ]}
     />

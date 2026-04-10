@@ -28,24 +28,27 @@ export function MarketingLayout({ children, toolbar }: Props) {
             <div className="max-w-md">
               <BrandLogo size="md" className="text-(--brand-ink)" />
               <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">
-                The ceramics platform for independent studios and makers. Built to sell work beautifully, fill classes,
-                and help serious studios grow with more presence.
+                The ceramics website platform for independent studios and makers. Built to sell work beautifully, fill
+                classes, and help serious studios grow with more presence.
               </p>
             </div>
             <div className="grid gap-x-12 gap-y-6 text-sm text-stone-700 sm:grid-cols-3">
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Product</p>
-                <Link href="/marketplace" className="block transition hover:text-(--brand-ink)">
-                  Shop
+                <Link href="/dashboard/studio/new?setup=both" className="block transition hover:text-(--brand-ink)">
+                  Studio website
                 </Link>
-                <Link href="/classes" className="block transition hover:text-(--brand-ink)">
-                  Classes
+                <Link href="/dashboard/studio/new?setup=bookings" className="block transition hover:text-(--brand-ink)">
+                  Bookings setup
+                </Link>
+                <Link href="/dashboard/studio/new?setup=shop" className="block transition hover:text-(--brand-ink)">
+                  Shop setup
                 </Link>
                 <Link href="/wear/shop" className="block transition hover:text-(--brand-ink)">
                   Wearables
                 </Link>
-                <Link href="/early-access" className="block transition hover:text-(--brand-ink)">
-                  Early access
+                <Link href="/dashboard/studio/new?setup=both" className="block transition hover:text-(--brand-ink)">
+                  Create studio website
                 </Link>
               </div>
               <div className="space-y-2.5">
@@ -67,8 +70,8 @@ export function MarketingLayout({ children, toolbar }: Props) {
                     Sign in
                   </Link>
                 ) : null}
-                <Link href="/early-access" className="block transition hover:text-(--brand-ink)">
-                  Register your studio
+                <Link href="/dashboard/studio/new?setup=both" className="block transition hover:text-(--brand-ink)">
+                  Create studio website
                 </Link>
               </div>
             </div>

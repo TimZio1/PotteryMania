@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 
 /**
- * P4-F: Studio-facing marketplace visibility hints (no formula, no exact rank).
+ * Studio-facing visibility hints for the dormant discovery subsystem.
  */
 export default async function StudioMarketplaceVisibility({ studioId }: { studioId: string }) {
   const [studio, publicClassCount, activeProductCount] = await Promise.all([
@@ -47,19 +47,16 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
 
   const tips: string[] = [];
   if (!studio.coverImageUrl?.trim() || !studio.logoUrl?.trim()) {
-    tips.push("Add a cover image and logo on your public profile — richer profiles tend to earn more trust in discovery.");
+    tips.push("Add a cover image and logo on your public profile — richer profiles tend to earn more trust.");
   }
   if (!studio.shortDescription?.trim()) {
     tips.push("Write a short studio description so visitors immediately understand what you offer.");
   }
-  if (studio.latitude == null || studio.longitude == null) {
-    tips.push("Set your studio location (coordinates) so “near me” and map discovery can include you.");
-  }
   if (publicClassCount === 0) {
-    tips.push("Publish at least one public class — discovery prioritizes studios with bookable sessions.");
+    tips.push("Publish at least one public class so visitors can book directly from your studio page.");
   }
   if (activeProductCount === 0) {
-    tips.push("List a product in the marketplace — catalog activity is one signal we use for freshness.");
+    tips.push("List at least one product in your studio shop so visitors can buy directly.");
   }
   if (!studio.stripeAccount?.chargesEnabled) {
     tips.push("Finish Stripe Connect onboarding so checkout works smoothly when traffic lands on your listings.");
@@ -76,11 +73,11 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
     <section className={cnCard()}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className={ui.overline}>Marketplace</p>
+          <p className={ui.overline}>Visibility (dormant)</p>
           <h2 className="mt-1 text-lg font-semibold text-amber-950">Your visibility</h2>
           <p className="mt-2 max-w-2xl text-sm text-stone-600">
-            PotteryMania ranks studios using recent bookings, shop activity, catalog freshness, and fair admin boosts. We
-            don’t show exact rank or the full formula — only a simple band and practical tips.
+            Discovery ranking is currently dormant in public UX. We keep these indicators for internal readiness and
+            potential future reactivation.
           </p>
         </div>
         {band ? (
@@ -90,8 +87,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
 
       {!rs ? (
         <p className="mt-4 text-sm text-stone-600">
-          A visibility score will appear after the platform runs its next ranking update (daily job). If you just
-          launched, check back within 24 hours.
+          A visibility score appears when the ranking update job runs. This score is currently internal-only.
         </p>
       ) : (
         <div className="mt-4 space-y-3 text-sm text-stone-700">

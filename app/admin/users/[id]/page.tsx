@@ -234,7 +234,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-amber-950">Recent activity</h2>
         <p className="mt-1 text-xs text-stone-500">
-          Newest first: marketplace orders and class bookings as this customer, plus platform add-on changes on studios
+          Newest first: studio shop orders and class bookings as this customer, plus platform add-on changes on studios
           they own.
         </p>
         {timelineTop.length === 0 ? (

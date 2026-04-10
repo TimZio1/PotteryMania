@@ -33,7 +33,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               Wear the work you actually ship.
             </p>
             <p className="mt-8 font-serif text-xl text-neutral-300 sm:text-2xl">
-              Studio-grade merch without handing your story to another marketplace. Built for makers who outgrew
+              Studio-grade merch without handing your story to generic platforms. Built for makers who outgrew
               templates.
             </p>
             <p className="mt-12 text-sm font-medium uppercase tracking-[0.35em] text-neutral-500">Wear what you build.</p>
@@ -149,20 +149,20 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
           <div className="mx-auto max-w-xl text-center">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-neutral-500">PotteryMania</p>
             <p className="mt-4 text-sm leading-relaxed text-neutral-400">
-              Classes, ceramics, and a platform built for studios — not algorithms.
+              Bookings, ceramics, and a website platform built for studios — not algorithms.
             </p>
             <nav
               className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8"
               aria-label="Continue on PotteryMania"
             >
-              <Link href="/classes" className={bridgeLinkClass}>
-                Explore classes
+              <Link href="/dashboard/studio/new?setup=bookings" className={bridgeLinkClass}>
+                Start bookings setup
               </Link>
-              <Link href="/marketplace" className={bridgeLinkClass}>
-                View ceramics
+              <Link href="/dashboard/studio/new?setup=shop" className={bridgeLinkClass}>
+                Start shop setup
               </Link>
-              <Link href="/early-access" className={bridgeLinkClass}>
-                Join the platform
+              <Link href="/dashboard/studio/new?setup=both" className={bridgeLinkClass}>
+                Create studio website
               </Link>
             </nav>
           </div>

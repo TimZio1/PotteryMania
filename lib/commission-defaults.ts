@@ -1,5 +1,5 @@
-/** Locked global take rate for all commerce (500 = 5.0%). */
-export const DEFAULT_PLATFORM_COMMISSION_BPS = 500;
+/** Locked global take rate for all commerce (0 = 0.0%). */
+export const DEFAULT_PLATFORM_COMMISSION_BPS = 0;
 
 /** Human label for marketing / UI, e.g. 500 → "5%". */
 export function platformCommissionPercentLabel(bps: number): string {

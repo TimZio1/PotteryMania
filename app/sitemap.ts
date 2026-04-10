@@ -3,14 +3,13 @@ import { prisma } from "@/lib/db";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { captureError } from "@/lib/monitoring";
 import { siteMetadata } from "@/lib/seo";
-import { allCeramicCategories } from "@/lib/ceramic-categories";
 
 /** Lets `next build` succeed when no DB is reachable (CI, fresh clone). */
 function staticSitemapFallback(): MetadataRoute.Sitemap {
   const now = new Date();
   const paths = isPreregistrationOnly()
-    ? ["/", "/early-access", "/terms", "/privacy", "/vendor-terms"]
-    : ["/", "/early-access", "/login", "/register", "/terms", "/privacy", "/vendor-terms"];
+    ? ["/", "/terms", "/privacy", "/vendor-terms"]
+    : ["/", "/login", "/register", "/terms", "/privacy", "/vendor-terms"];
   return paths.map((path) => ({
     url: new URL(path, siteMetadata.url).toString(),
     lastModified: now,
@@ -25,7 +24,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (isPreregistrationOnly()) {
       return [
         { url: `${base}/`, lastModified: now },
-        { url: `${base}/early-access`, lastModified: now },
         { url: `${base}/terms`, lastModified: now },
         { url: `${base}/privacy`, lastModified: now },
         { url: `${base}/vendor-terms`, lastModified: now },
@@ -44,19 +42,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       { url: `${base}/`, lastModified: now },
-      { url: `${base}/early-access`, lastModified: now },
       { url: `${base}/login`, lastModified: now },
       { url: `${base}/register`, lastModified: now },
       { url: `${base}/terms`, lastModified: now },
       { url: `${base}/privacy`, lastModified: now },
       { url: `${base}/vendor-terms`, lastModified: now },
-      { url: `${base}/marketplace`, lastModified: now },
-      ...allCeramicCategories().map((category) => ({
-        url: `${base}/category/${category.slug}`,
-        lastModified: now,
-      })),
-      { url: `${base}/classes`, lastModified: now },
-      { url: `${base}/studios`, lastModified: now },
       ...products.map((product) => ({
         url: `${base}/marketplace/products/${product.id}`,
         lastModified: product.updatedAt,

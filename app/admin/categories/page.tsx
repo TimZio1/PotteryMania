@@ -9,7 +9,7 @@ import CategoriesAdminClient from "@/components/admin/categories-admin-client";
 export const metadata: Metadata = metaAdminPage(
   "Ceramic categories",
   "/admin/categories",
-  "Manage category copy and imagery for ceramic discovery.",
+  "Manage category copy and imagery for studio-owned shop pages.",
 );
 
 export const dynamic = "force-dynamic";
@@ -25,10 +25,10 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Marketplace</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Shop taxonomy</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Ceramic categories</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Locked 10-category system for discovery. Edit hero image and SEO descriptions here.
+        Locked 10-category system for studio-owned shop pages. Edit hero image and SEO descriptions here.
       </p>
       <CategoriesAdminClient initial={categories} />
     </div>

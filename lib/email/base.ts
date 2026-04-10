@@ -59,7 +59,9 @@ export function renderEmailShell(input: EmailShellInput) {
   const eyebrow = input.eyebrow
     ? `<p style="margin:0 0 14px;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#8b6f5e;">${escapeHtml(input.eyebrow)}</p>`
     : "";
-  const footer = escapeHtml(input.footerNote || "PotteryMania helps ceramic studios sell, teach, and get discovered.");
+  const footer = escapeHtml(
+    input.footerNote || "PotteryMania helps ceramic studios run their website, bookings, and shop in one place.",
+  );
 
   return `<!doctype html>
 <html>

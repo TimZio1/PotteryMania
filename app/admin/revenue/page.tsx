@@ -447,7 +447,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       <div className="mt-10">
         <TimeSeriesChart
           title={`Paid GMV / day (${windowLabel})`}
-          subtitle="EUR, marketplace orders"
+          subtitle="EUR, studio shop orders"
           points={trend}
           prefix="€"
         />
@@ -456,7 +456,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-amber-950">Per-studio throughput ({windowLabel})</h2>
         <p className="mt-1 text-xs text-stone-500">
-          Approved studios only, sorted by marketplace order GMV plus class booking deposits. Commission is the platform
+          Approved studios only, sorted by studio shop order GMV plus class booking deposits. Commission is the platform
           snapshot on order lines (same window as monetized orders above). Use search to narrow by studio name, city, or
           country.
         </p>

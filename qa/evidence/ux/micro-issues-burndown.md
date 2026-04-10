@@ -6,6 +6,7 @@
 - OpenTelemetry `import-in-the-middle` version mismatch warning noise in build/test logs.
 - Class discovery type mismatch causing build failure (`app/classes/page.tsx`).
 - Dedicated accessibility baseline run completed (Axe key pages: 6/6 pass).
+- Prisma deprecated `package.json#prisma` warning removed (seed config now only sourced from `prisma.config.ts`).
 
 ## Still Open
 

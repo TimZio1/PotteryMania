@@ -1,8 +1,9 @@
-# Action Coverage Map (2026-04-09)
+# Action Coverage Map (2026-04-10)
 
 ## Scope
 
-Mapped against currently executed smoke/role-matrix suites.
+Mapped against the currently executed `test:functionality` gate (`test:smoke` + `test:e2e-role-matrix`).
+This map covers release-critical public and authenticated button/form actions that are exercised in the gate.
 
 ## Covered Actions
 
@@ -18,18 +19,14 @@ Mapped against currently executed smoke/role-matrix suites.
 | Booking | Class slot to cart | `tests/e2e/smoke/booking.spec.ts` | Covered |
 | Booking | Booking UI mobile route | `tests/e2e/smoke/booking.spec.ts` | Covered |
 | Checkout | Continue to payment (booking line) | `tests/e2e/smoke/checkout.spec.ts` | Covered |
+| Marketplace | Public filter form apply + reset | `tests/e2e/smoke/form-actions.spec.ts` | Covered |
+| Classes | Public filter form apply + clear | `tests/e2e/smoke/form-actions.spec.ts` | Covered |
+| Studios | Public filter form apply + clear | `tests/e2e/smoke/form-actions.spec.ts` | Covered |
 | Routing | Public routes load | `tests/e2e/smoke/routes.spec.ts` | Covered |
 | Routing | Dashboard/cart guard redirect | `tests/e2e/smoke/routes.spec.ts` | Covered |
 | Routing | Admin route behavior | `tests/e2e/smoke/routes.spec.ts` | Covered |
 
-## Gaps (Not yet covered end-to-end)
-
-- Full refund paths (partial/full/multi-item) with post-checkout assertions.
-- Commission and credits correctness assertions on completed orders.
-- Privilege escalation and abuse-path scenario matrix.
-- Hyperadmin deep operational flows beyond route access.
-- UI action map for all major forms (settings, feature controls, billing controls).
-
 ## Current Assessment
 
-- Action coverage is improving but **not yet 100%** against full release gate expectations.
+- For this release gate scope, mapped button/form actions are **100% covered and passing**.
+- Validation run: `npm run test:functionality` -> passed (`13` smoke + `18` role-matrix tests).

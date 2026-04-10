@@ -148,7 +148,7 @@ export async function POST(req: Request) {
   }
   if (hasProductsInCart && !(await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.marketplaceCheckoutEnabled))) {
     return NextResponse.json(
-      { error: "Marketplace checkout is temporarily unavailable. Please try again later." },
+      { error: "Shop checkout is temporarily unavailable. Please try again later." },
       { status: 503 },
     );
   }
@@ -353,7 +353,7 @@ export async function POST(req: Request) {
       cancel_url: `${baseUrl()}/cart?cancelled=1`,
       automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
       payment_intent_data: {
-        application_fee_amount: commissionTotal,
+        ...(commissionTotal > 0 ? { application_fee_amount: commissionTotal } : {}),
         metadata: {
           orderId: order.id,
           ...(couponIdForMeta ? { couponId: couponIdForMeta, discountCents: String(discountAppliedCents) } : {}),

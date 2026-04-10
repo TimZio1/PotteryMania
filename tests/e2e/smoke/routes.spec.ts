@@ -1,13 +1,26 @@
 import { test, expect } from "../helpers/fixtures";
+import type { Page } from "@playwright/test";
 import { getTestCredentials, getAdminCredentials } from "../helpers/env";
 import { loginWithCredentials } from "../helpers/auth";
+
+async function gotoWithRetry(page: Page, path: string) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      await page.goto(path, { waitUntil: "domcontentloaded", timeout: 45_000 });
+      return;
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await page.waitForTimeout(750);
+    }
+  }
+}
 
 /** Fast route smoke: load + no immediate hard failure (console guard still runs on pass). */
 test.describe("Route smoke", () => {
   test("public marketing and auth routes", async ({ page }) => {
     for (const path of ["/", "/login"]) {
       await test.step(path, async () => {
-        await page.goto(path, { waitUntil: "domcontentloaded", timeout: 30_000 });
+        await gotoWithRetry(page, path);
         await expect(page.locator("html")).toBeVisible();
       });
     }
@@ -20,13 +33,19 @@ test.describe("Route smoke", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("marketplace and classes when allowed (may redirect in prereg mode)", async ({ page }) => {
+  test("legacy global discovery routes redirect away", async ({ page }) => {
     await page.goto("/marketplace", { waitUntil: "domcontentloaded", timeout: 45_000 });
     await expect(page.locator("html")).toBeVisible();
-    // Either marketplace content or redirect to home/early-access (prereg / empty catalog guards).
+    await expect(page).toHaveURL(/\/$|\/early-access$/);
     await test.step("/classes", async () => {
       await page.goto("/classes", { waitUntil: "domcontentloaded", timeout: 45_000 });
       await expect(page.locator("html")).toBeVisible();
+      await expect(page).toHaveURL(/\/$|\/early-access$/);
+    });
+    await test.step("/studios", async () => {
+      await page.goto("/studios", { waitUntil: "domcontentloaded", timeout: 45_000 });
+      await expect(page.locator("html")).toBeVisible();
+      await expect(page).toHaveURL(/\/$|\/early-access$/);
     });
   });
 

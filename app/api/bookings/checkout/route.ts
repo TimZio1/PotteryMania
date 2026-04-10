@@ -201,7 +201,7 @@ export async function POST(req: Request) {
       success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl()}/classes/${experience.id}?cancelled=1`,
       payment_intent_data: {
-        application_fee_amount: commissionTotal,
+        ...(commissionTotal > 0 ? { application_fee_amount: commissionTotal } : {}),
         metadata: { orderId: order.id },
       },
       metadata: { orderId: order.id },

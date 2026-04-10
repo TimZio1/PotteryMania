@@ -20,7 +20,7 @@ export default function PrivacyPage() {
       {/* TODO (counsel): jurisdiction-specific sections, subprocessors list, DPA, international transfers, retention table per data category, studio CRM / student contact retention aligned with DELETE /api/studios/.../contacts/[id]. */}
       <p>
         This policy describes how PotteryMania (&quot;we&quot;, &quot;us&quot;) handles personal information. It is a
-        practical outline for a marketplace and booking product — replace placeholders and have it reviewed for GDPR,
+        practical outline for a studio-website and booking product — replace placeholders and have it reviewed for GDPR,
         CCPA, or other regimes that apply to you.
       </p>
 

@@ -7,9 +7,9 @@ import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
 
 export const metadata: Metadata = metaAdminPage(
-  "Marketplace ranking",
+  "Discovery ranking (dormant)",
   "/admin/marketplace-ranking",
-  "Search ranking weights and boosts.",
+  "Dormant studio ranking weights and boosts.",
 );
 
 export const dynamic = "force-dynamic";
@@ -33,11 +33,12 @@ export default async function AdminMarketplaceRankingPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Discovery</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Marketplace ranking</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Discovery (dormant)</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Discovery ranking</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Adjust <strong>rank weight</strong> per approved studio to influence default ordering on the product marketplace
-        (Recommended sort) and the public studio directory. Featured products still sort ahead within the same studio
+        Adjust <strong>rank weight</strong> per approved studio for dormant discovery ordering controls. This does not
+        affect the current studio-website-first public navigation while discovery remains disabled.
+        Featured products still sort ahead within the same studio
         bucket.
       </p>
 

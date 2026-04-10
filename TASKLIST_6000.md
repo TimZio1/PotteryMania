@@ -46,9 +46,9 @@ Done when:
 - [x] Role matrix pass rate = 100% (customer/studio/hyperadmin).
 - [x] API contract pass rate = 100%.
 - [x] Ceramic 10-category system implemented end-to-end (nav, pages, API, admin assignment/manager, SEO).
-- [ ] Button/form action coverage map completed and 100% tested.
+- [x] Button/form action coverage map completed and 100% tested.
 - [x] Silent failures = 0 (server + client).
-- [ ] Flake rate < 1% across 30 re-runs.
+- [x] Flake rate < 1% across 30 re-runs.
 
 Evidence:
 - [x] `qa/evidence/functionality/smoke-report.*`
@@ -114,7 +114,7 @@ Evidence:
 - [ ] p95 API latency SLA hit rate >= 99%.
 - [ ] Error rate SLA hit rate >= 99.9%.
 - [x] Load smoke pass = 100%.
-- [ ] Long-running job resilience pass.
+- [x] Long-running job resilience pass.
 - [ ] Hydration/runtime warnings = 0 on target paths.
 - [ ] Availability >= 99.9%.
 
@@ -132,7 +132,7 @@ Evidence:
 - [x] Registered-user free studio listing enabled (map/database), with limited functionality.
 - [x] Wearables categorized across shop + admin listing surfaces.
 - [x] Payment/refund correctness = 100%.
-- [ ] Commission/credit correctness = 100%.
+- [x] Commission/credit correctness = 100%.
 - [ ] Revenue leakage incidents = 0.
 - [ ] Spreadshop fulfillment success >= 99%.
 - [ ] Hyperadmin operational visibility checklist = 100%.

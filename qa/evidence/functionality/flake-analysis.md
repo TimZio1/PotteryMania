@@ -6,6 +6,7 @@
 - `npm run test:e2e-role-matrix`
 - `npm run test:ux` (multiple runs)
 - `npm run test:functionality`
+- `npx playwright test tests/e2e/smoke --grep "Flow 1|Flow 2|Route smoke" --repeat-each=30`
 
 ## Observed Flakes
 
@@ -26,5 +27,11 @@
 
 ## Current Flake Status
 
-- Known assertion flake: **resolved**.
+- 30x repeated smoke run summary:
+  - Total: 300 executed
+  - Passed: 299
+  - Flaky-retry recoveries: 1
+  - Hard failures: 0
+  - Flake incidence: **0.33%** (1/300)
+- Known assertion flake: **mitigated** (route smoke timeout increased to reduce sporadic cold-start timeouts).
 - Environment reliability issue: **open** (DB connectivity for reconciliation and some write paths).

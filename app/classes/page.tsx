@@ -342,15 +342,11 @@ export default async function ClassesPage({ searchParams }: Props) {
               <>
                 <p className="font-medium text-stone-800">No classes match these filters</p>
                 <p className="mt-2 text-sm text-stone-600">
-                  Try clearing filters or browse{" "}
-                  <Link href="/studios" className="font-medium text-amber-900 underline underline-offset-2">
-                    studios
+                  Try clearing filters or open{" "}
+                  <Link href="/dashboard/studio/new?setup=bookings" className="font-medium text-amber-900 underline underline-offset-2">
+                    bookings setup
                   </Link>{" "}
-                  and the{" "}
-                  <Link href="/marketplace" className="font-medium text-amber-900 underline underline-offset-2">
-                    marketplace
-                  </Link>
-                  .
+                  to publish your own sessions.
                 </p>
                 <Link
                   href="/classes"
@@ -363,15 +359,11 @@ export default async function ClassesPage({ searchParams }: Props) {
               <>
                 <p className="font-medium text-stone-800">No public classes yet</p>
                 <p className="mt-2 text-sm text-stone-600">
-                  Explore{" "}
-                  <Link href="/studios" className="font-medium text-amber-900 underline underline-offset-2">
-                    studios
+                  Start with{" "}
+                  <Link href="/dashboard/studio/new?setup=bookings" className="font-medium text-amber-900 underline underline-offset-2">
+                    bookings setup
                   </Link>{" "}
-                  or the{" "}
-                  <Link href="/marketplace" className="font-medium text-amber-900 underline underline-offset-2">
-                    marketplace
-                  </Link>
-                  .
+                  and publish classes on your own studio page.
                 </p>
               </>
             )}

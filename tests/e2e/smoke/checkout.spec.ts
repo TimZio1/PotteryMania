@@ -10,11 +10,7 @@ test.describe("Flow 5 — Checkout init", () => {
   test("booking line: cart summary then Continue to payment returns Stripe session URL", async ({ page }) => {
     const expId = getExperienceId();
     const creds = getTestCredentials() ?? getVendorCredentials();
-    if (!expId || !creds) {
-      await page.goto("/cart");
-      await expect(page).toHaveURL(/\/login/);
-      return;
-    }
+    test.skip(!expId || !creds, "TEST_EXPERIENCE_ID + TEST credentials required for checkout technical-success flow.");
 
     await loginWithCredentials(page, creds!.email, creds!.password, `/classes/${expId}`);
 

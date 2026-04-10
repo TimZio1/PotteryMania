@@ -617,7 +617,8 @@ function buildOpportunities(input: {
   if (input.activeProductsCount > 0 && input.activeExperiencesCount > 0) {
     items.push({
       title: "Package classes and commerce together",
-      detail: "The marketplace and booking surfaces are both active. Create bundles and post-class product offers to increase ARPU without extra acquisition cost.",
+      detail:
+        "Shop and booking surfaces are both active on studio-owned pages. Create bundles and post-class product offers to increase ARPU without extra acquisition cost.",
     });
   }
 

@@ -143,10 +143,10 @@ export default async function AdminWarRoomPage() {
     { href: "/admin/audit", label: "Audit log" },
     { href: "/admin/users", label: "Users" },
     { href: "/admin/platform-features", label: "Platform add-ons" },
-    { href: "/admin/marketplace-ranking", label: "Marketplace ranking" },
+    { href: "/admin/marketplace-ranking", label: "Discovery ranking (dormant)" },
     { href: "/admin/settings", label: "Settings" },
-    { href: "/marketplace", label: "Public marketplace" },
-    { href: "/studios", label: "Public studios" },
+    { href: "/", label: "Public homepage" },
+    { href: "/dashboard/studio/new?setup=both", label: "Studio setup" },
   ] as const;
 
   return (

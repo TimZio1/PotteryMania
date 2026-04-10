@@ -146,7 +146,7 @@ export default async function StudioPage({ params }: Props) {
   const toolbar = (
     <Breadcrumbs
       items={[
-        { label: "Studios", href: "/studios" },
+        { label: "Studio website" },
         { label: studio.displayName },
       ]}
     />
@@ -243,9 +243,9 @@ export default async function StudioPage({ params }: Props) {
           <section id="upcoming-sessions" className="mt-12 scroll-mt-24">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <h2 className="text-xl font-semibold text-amber-950">Upcoming sessions</h2>
-              <Link href="/classes" className="text-sm font-medium text-amber-900 hover:underline">
-                Browse all classes
-              </Link>
+              <a href="#studio-classes" className="text-sm font-medium text-amber-900 hover:underline">
+                View this studio&apos;s classes
+              </a>
             </div>
             <p className="mt-1 text-sm text-stone-600">Open times with availability — reserve on the class page.</p>
             <ul className="mt-6 divide-y divide-stone-200/90 rounded-2xl border border-stone-200/90 bg-white shadow-sm">
@@ -277,9 +277,9 @@ export default async function StudioPage({ params }: Props) {
         <section id="studio-classes" className="mt-12 scroll-mt-24">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <h2 className="text-xl font-semibold text-amber-950">Classes</h2>
-            <Link href="/classes" className="text-sm font-medium text-amber-900 hover:underline">
-              Browse all classes
-            </Link>
+            <a href="#upcoming-sessions" className="text-sm font-medium text-amber-900 hover:underline">
+              Jump to upcoming sessions
+            </a>
           </div>
           <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {experiences.map((experience) => (
@@ -303,9 +303,9 @@ export default async function StudioPage({ params }: Props) {
         <section id="studio-shop" className="mt-12 scroll-mt-24">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <h2 className="text-xl font-semibold text-amber-950">Products</h2>
-            <Link href="/marketplace" className="text-sm font-medium text-amber-900 hover:underline">
-              Browse marketplace
-            </Link>
+            <a href="#studio-shop" className="text-sm font-medium text-amber-900 hover:underline">
+              Studio-owned shop
+            </a>
           </div>
           <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (

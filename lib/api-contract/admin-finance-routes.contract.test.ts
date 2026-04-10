@@ -62,6 +62,58 @@ describe("API contract: admin finance routes", () => {
     expect(json.error).toBe("Forbidden");
   });
 
+  it("returns 400 for disallowed manual ledger entry type", async () => {
+    const req = new Request("http://localhost:3000/api/admin/finance/ledger-adjustment", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        entryType: "platform_commission",
+        amountCents: 1500,
+        direction: "credit",
+        dedupeKey: "manual:test:bad-type",
+      }),
+    });
+    const res = await postLedgerAdjustment(req);
+    const json = (await res.json()) as Record<string, unknown>;
+    expect(res.status).toBe(400);
+    expect(json.error).toBe("entryType not allowed for manual POST");
+    expect(financeRouteMocks.upsertLedgerEntry).not.toHaveBeenCalled();
+  });
+
+  it("normalizes and persists allowed manual credit adjustment with audit trail", async () => {
+    const req = new Request("http://localhost:3000/api/admin/finance/ledger-adjustment", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        entryType: "manual_adjustment",
+        amountCents: -1234.9,
+        direction: "credit",
+        entryDate: "2026-04-10T21:31:00.000Z",
+        dedupeKey: "manual:adjustment:case-1",
+        notes: "Ops correction",
+      }),
+    });
+    const res = await postLedgerAdjustment(req);
+    const json = (await res.json()) as Record<string, unknown>;
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
+    expect(json.dedupeKey).toBe("manual:adjustment:case-1");
+    expect(financeRouteMocks.upsertLedgerEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entryType: "manual_adjustment",
+        amountCents: 1235,
+        direction: "credit",
+        dedupeKey: "manual:adjustment:case-1",
+      }),
+    );
+    expect(financeRouteMocks.logAdminAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "finance.ledger_manual_entry",
+        reason: "Ops correction",
+      }),
+    );
+  });
+
   it("returns 400 for invalid JSON on finance scenario route", async () => {
     const req = new Request("http://localhost:3000/api/admin/finance/scenarios", {
       method: "POST",

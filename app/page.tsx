@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { prisma } from "@/lib/db";
-import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import { EUROPEAN_PREREGISTRATION_NOTE } from "@/lib/european-preregistration";
 import { PROMO_LABEL } from "@/lib/promo";
 import { isPreregistrationOnly } from "@/lib/preregistration";
@@ -10,21 +9,13 @@ import { ClarityCardsStagger } from "@/components/marketing/clarity-cards-stagge
 import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rail";
 import { HeroPhotography } from "@/components/marketing/hero-photography";
 import { getFeaturedStudiosForSlot } from "@/lib/featured-studios-public";
-import { displayedPreRegTotal, PREREG_STUDIO_CAP } from "@/lib/brand";
+import { displayedPreRegTotal } from "@/lib/brand";
 import { STUDIO_TESTIMONIALS, testimonialAttribution } from "@/lib/marketing-testimonials";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
-/** DB-backed commission copy — must not prerender at build (Railway build has no DB). */
+/** Homepage is DB-aware for counters/content and must not prerender at build. */
 export const dynamic = "force-dynamic";
-
-async function getCommissionLabelSafe() {
-  try {
-    return await getMarketingCheckoutCommissionPctLabel();
-  } catch {
-    return "5%";
-  }
-}
 
 async function getPreRegCountSafe() {
   try {
@@ -43,26 +34,26 @@ async function getFeaturedStudiosSafe() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const commissionLabel = await getCommissionLabelSafe();
   return buildMetadata({
-    title: "Ceramics marketplace and classes",
-    description: `Where ceramic studios sell, teach, and get discovered. Your own page, your own domain, your own shop. Official launch: 1 May 2026. Studio plans start at EUR19/month, plus ${commissionLabel} platform commission on checkout sales.`,
+    title: "Studio website builder for ceramics",
+    description:
+      "Build your pottery studio website with bookings and shop in one place. Your own page, your own domain, your own shop. Official launch: 1 May 2026. Studio plans start at EUR19/month with 0% platform commission on sales and bookings.",
     path: "/",
   });
 }
 
 const clarityItems = [
   {
-    title: "Sell ceramics",
-    body: "Present your handmade work in a marketplace designed for craft, not mass-produced noise.",
+    title: "Build your studio website",
+    body: "Launch a pottery-specific website with your own story, visuals, and studio identity.",
   },
   {
-    title: "Fill your classes",
-    body: "Publish workshops, open sessions, and courses with booking and payment built in.",
+    title: "Publish classes and take bookings",
+    body: "Offer workshops, recurring sessions, and private classes with booking and payment built in.",
   },
   {
-    title: "Get discovered",
-    body: "Join a curated ceramics ecosystem where collectors and students come looking with intent.",
+    title: "Sell directly from your studio",
+    body: "Run your own pottery shop under your studio brand, without relying on a global catalog.",
   },
   {
     title: "Your page, your domain, your shop",
@@ -77,11 +68,11 @@ const differentiators = [
   },
   {
     title: "Studio-first",
-    body: "Not a generic storefront. PotteryMania is built for makers who sell, teach, and grow a reputation.",
+    body: "Not a generic storefront. PotteryMania is built for makers who sell, teach, and grow their studio brand.",
   },
   {
-    title: "Products and classes",
-    body: "Bring together objects, experiences, and discovery in one elegant public presence.",
+    title: "Products and bookings",
+    body: "Bring together your pottery shop and class bookings in one elegant studio website.",
   },
   {
     title: "Premium presentation",
@@ -93,21 +84,21 @@ const trustTags = ["Stoneware", "Porcelain", "Workshops", "Wheel Throwing", "Rak
 const visitorPaths = [
   {
     title: "I run a studio",
-    body: "Create your profile, connect Stripe, and start selling classes and ceramics globally.",
-    href: "/early-access",
-    cta: "Register your studio",
+    body: "Set up your studio website with bookings, pottery shop, or both.",
+    href: "/dashboard/studio/new?setup=both",
+    cta: "Create studio website",
   },
   {
-    title: "I want to buy ceramics",
-    body: "Browse independent makers and discover curated handmade pieces from real studios.",
-    href: "/marketplace",
-    cta: "Explore marketplace",
+    title: "I want bookings only",
+    body: "Launch classes and workshops first, then add your shop later when ready.",
+    href: "/dashboard/studio/new?setup=bookings",
+    cta: "Start bookings setup",
   },
   {
-    title: "I want to book classes",
-    body: "Find workshops and recurring experiences from ceramic studios near and far.",
-    href: "/classes",
-    cta: "View classes",
+    title: "I want shop only",
+    body: "Start with your products and brand story, then add classes in a second step.",
+    href: "/dashboard/studio/new?setup=shop",
+    cta: "Start shop setup",
   },
 ] as const;
 const STUDIO_PRICE_TIERS = [
@@ -127,17 +118,16 @@ const studioShelfPieces = [
 ];
 
 export default async function Home() {
-  const commissionLabel = await getCommissionLabelSafe();
   const preRegCount = await getPreRegCountSafe();
   const featuredStudios = await getFeaturedStudiosSafe();
   const studioBenefits = [
     "Your own page, your own domain, your own shop — a branded studio home, not a buried profile",
     "List products with gallery-quality presentation",
     "Publish workshops and accept bookings online",
-    `Pay ${commissionLabel} platform commission on sales through checkout — no listing fees`,
+    "Pay 0% platform commission on sales and bookings",
     "Receive direct Stripe payouts without admin friction",
     "Build a studio profile that earns trust over time",
-    "Reach new collectors and students through one destination",
+    "Grow with a studio-owned public website built for ceramics",
   ];
 
   return (
@@ -145,7 +135,6 @@ export default async function Home() {
       <main className="overflow-hidden">
         <AnnouncementStrip
           preRegShown={displayedPreRegTotal(preRegCount)}
-          preRegCap={PREREG_STUDIO_CAP}
         />
 
         <ImageSection
@@ -156,14 +145,14 @@ export default async function Home() {
           priority
         >
           <p className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-stone-100 backdrop-blur-sm">
-            Ceramics marketplace and studio platform
+            Studio website builder for ceramics
           </p>
           <h1 className="mt-6 max-w-4xl font-serif text-5xl leading-[0.94] tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Where ceramic studios sell, teach, and get discovered.
+            Build a pottery studio website that books classes and sells ceramics.
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg sm:leading-8">
-            A premium home for independent makers. List your work, fill your classes, shape your studio presence, and
-            join a curated ceramics ecosystem that feels as refined as the craft itself.
+            A premium home for independent makers. Launch your studio page, fill your classes, and run your shop with
+            one coherent pottery-focused website.
           </p>
           <p className="mt-5 max-w-2xl text-base font-semibold leading-snug tracking-tight text-white sm:text-lg">
             Your own page, your own domain, your own shop.
@@ -174,13 +163,13 @@ export default async function Home() {
               Official launch: 1 May 2026 · plans from €19/month.
             </div>
             <p className="text-sm text-stone-100/80">
-              Present ceramics with gallery-level care. No listing fees. {commissionLabel} commission only when you sell
-              through checkout. All subscription charges start on 1 May 2026.
+              Present ceramics with gallery-level care. 0% platform commission on sales and bookings. All subscription
+              charges start on 1 May 2026.
             </p>
           </div>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link href="/early-access" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-              Register your studio
+            <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+              Create studio website
             </Link>
             <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               How it works
@@ -227,7 +216,7 @@ export default async function Home() {
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Pricing model</p>
                 <p className="mt-2 text-sm text-stone-700 sm:text-base">
-                  Platform plans for studio tooling + {commissionLabel} commission on checkout sales.
+                  Platform plans for studio tooling with 0% platform commission on sales and bookings.
                 </p>
               </div>
               <ul className="flex flex-wrap gap-2">
@@ -285,8 +274,8 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
-            <Link href="/early-access" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-              Join early access
+            <Link href="/dashboard/studio/new?setup=both" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+              Create studio website
             </Link>
           </div>
         </ImageSection>
@@ -298,13 +287,12 @@ export default async function Home() {
           artwork={<MarketplaceArtwork />}
         >
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Marketplace</p>
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Studio-owned shop</p>
             <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
-              A ceramics marketplace that feels closer to a gallery than a generic listing site.
+              Your shop belongs to your studio, not to a global catalog.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
-              Curated, tactile, and visually considered. Every piece belongs to an independent studio or maker, so the
-              handmade value is obvious from the first glance.
+              Keep a strong brand voice, present handmade work with care, and manage products from your own studio page.
             </p>
           </div>
         </ImageSection>
@@ -318,8 +306,8 @@ export default async function Home() {
                   PotteryMania is not trying to be everything. That is exactly why it can be right for ceramics.
                 </h2>
                 <p className="mt-4 max-w-xl text-base leading-7 text-stone-600 sm:text-lg">
-                  The platform is focused on the needs of real ceramic studios: products, classes, trust, and visibility,
-                  all expressed with a warmer editorial sensibility.
+                  The platform is focused on real studio operations: website, bookings, products, trust, and consistent
+                  branding for ceramic businesses.
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -345,13 +333,13 @@ export default async function Home() {
         >
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
             <div className="max-w-2xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Community and discovery</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Bookings and learning</p>
               <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
-                Real studios. Real classes. Real craft.
+                Real studios. Real classes. Real ceramic craft.
               </h2>
               <p className="mt-4 max-w-xl text-base leading-7 text-stone-100/90 sm:text-lg">
-                PotteryMania is designed for people who care about making and learning. It brings together collectors,
-                students, and studios in a more focused cultural space.
+                PotteryMania is designed for studios that teach with confidence. Publish classes, set policies, and keep
+                your public presence aligned with your brand.
               </p>
             </div>
             <div className="grid gap-4">
@@ -388,15 +376,15 @@ export default async function Home() {
               Your studio deserves a better home online.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
-              Join PotteryMania during early access. Official launch starts on 1 May 2026. Studio plans start at
-              €19/month with {commissionLabel} commission applied only when checkout sales happen.
+              Build your studio website now. Studio plans start at €19/month with 0% platform commission on sales and
+              bookings.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/early-access" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                Register your studio
+              <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                Create studio website
               </Link>
-              <Link href="/marketplace" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                Browse marketplace
+              <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                Start website setup
               </Link>
               {!isPreregistrationOnly() ? (
                 <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
@@ -411,12 +399,11 @@ export default async function Home() {
   );
 }
 
-function AnnouncementStrip({ preRegShown, preRegCap }: { preRegShown: number; preRegCap: number }) {
+function AnnouncementStrip({ preRegShown }: { preRegShown: number }) {
   const preRegLine = (
     <p className="text-sm text-stone-600 sm:text-right" aria-live="polite">
       <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegShown}</span>
-      <span className="text-stone-400">/</span>
-      <span className="tabular-nums text-stone-600">{preRegCap}</span> real pre-registrations
+      <span className="tabular-nums text-stone-600"> studios onboarded</span>
     </p>
   );
 

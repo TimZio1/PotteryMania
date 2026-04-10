@@ -7,10 +7,7 @@
  * Default: closed in production, open in development (set PREREGISTRATION_ONLY=1 locally to test).
  */
 export function isPreregistrationOnly(): boolean {
-  const v = process.env.PREREGISTRATION_ONLY?.toLowerCase();
-  if (v === "0" || v === "false" || v === "off") return false;
-  if (v === "1" || v === "true" || v === "on") return true;
-  return process.env.NODE_ENV === "production";
+  return false;
 }
 
 /** URL prefixes that are hidden during preregistration (not admin). */

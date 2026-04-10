@@ -134,7 +134,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
   const toolbar = (
     <Breadcrumbs
       items={[
-        { label: "Classes", href: "/classes" },
+        { label: experience.studio.displayName, href: `/studios/${experience.studio.id}` },
         { label: experience.title },
       ]}
     />

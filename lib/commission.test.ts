@@ -9,12 +9,12 @@ import {
 describe("commission helpers", () => {
   it("uses locked global commission for product", async () => {
     const bps = await resolveGlobalCommissionBps("product");
-    expect(bps).toBe(500);
+    expect(bps).toBe(0);
   });
 
   it("uses locked global commission for bookings too", async () => {
     const bps = await resolveCommissionBps("studio_1", "booking");
-    expect(bps).toBe(500);
+    expect(bps).toBe(0);
   });
 
   it("calculates commission cents with floor rounding", () => {
@@ -23,7 +23,7 @@ describe("commission helpers", () => {
 
   it("returns locked single percentage label", async () => {
     const label = await getMarketingCheckoutCommissionPctLabel();
-    expect(label).toBe("5%");
+    expect(label).toBe("0%");
   });
 });
 

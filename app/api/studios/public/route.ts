@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  const discoveryEnabled = await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.publicDiscoveryEnabled, false);
+  if (!discoveryEnabled) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();
   const city = searchParams.get("city")?.trim();

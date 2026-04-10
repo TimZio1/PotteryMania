@@ -19,6 +19,11 @@ const MAX_PHOTOS = 3;
 const MAX_URL_LEN = 2048;
 
 export async function POST(req: Request) {
+  return NextResponse.json(
+    { error: "Studio preregistration is closed. Use direct studio setup instead." },
+    { status: 410 },
+  );
+
   const rate = assertRateLimit(req, "early-access", 12, 60_000);
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many submissions. Please try again shortly." }, { status: 429 });

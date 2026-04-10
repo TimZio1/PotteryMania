@@ -223,11 +223,11 @@ export function CartContents() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex flex-wrap gap-3 text-sm">
-        <Link href="/marketplace" className="font-medium text-amber-900 hover:underline">
-          ← Shop
+        <Link href="/dashboard/studio/new?setup=shop" className="font-medium text-amber-900 hover:underline">
+          ← Shop setup
         </Link>
-        <Link href="/classes" className="font-medium text-amber-900 hover:underline">
-          Browse classes
+        <Link href="/dashboard/studio/new?setup=bookings" className="font-medium text-amber-900 hover:underline">
+          Bookings setup
         </Link>
       </div>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-amber-950">Cart</h1>
@@ -243,12 +243,12 @@ export function CartContents() {
         <div className={`${ui.cardMuted} mt-10`}>
           <p className="font-medium text-stone-800">Your cart is empty</p>
           <p className="mt-2 text-sm text-stone-600">
-            <Link href="/marketplace" className="font-medium text-amber-900 underline underline-offset-2">
-              Browse the marketplace
+            <Link href="/dashboard/studio/new?setup=shop" className="font-medium text-amber-900 underline underline-offset-2">
+              Start shop setup
             </Link>{" "}
             or{" "}
-            <Link href="/classes" className="font-medium text-amber-900 underline underline-offset-2">
-              book a class
+            <Link href="/dashboard/studio/new?setup=bookings" className="font-medium text-amber-900 underline underline-offset-2">
+              start bookings setup
             </Link>
             .
           </p>

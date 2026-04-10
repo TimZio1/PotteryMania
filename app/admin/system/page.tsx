@@ -49,8 +49,8 @@ export default async function AdminSystemPage() {
         <h2 className="text-lg font-semibold text-amber-950">Feature flags</h2>
         <p className="mt-2 text-sm text-stone-600">
           Toggle <code className="text-xs">booking_checkout_enabled</code> and{" "}
-          <code className="text-xs">marketplace_checkout_enabled</code> to pause new checkouts without redeploying (60s cache
-          on API nodes).
+          <code className="text-xs">marketplace_checkout_enabled</code> (shop checkout flag) to pause new checkouts
+          without redeploying (60s cache on API nodes).
         </p>
         <div className="mt-4">
           <FeatureFlagsPanel

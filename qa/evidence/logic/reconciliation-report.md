@@ -1,19 +1,12 @@
 # Reconciliation Report
 
-- Timestamp: 2026-04-09T20:59:39.549Z
+- Timestamp: 2026-04-09T22:19:27.404Z
 - Environment: unknown
 
 ## Verdict
 
 BLOCKED
 
-- Reconciliation query execution failed: 
-Invalid `prisma.payment.count()` invocation in
-C:\Users\theor\Desktop\POTTERYMANIA -NEW\potterymania\scripts\qa\reconciliation-check.cjs:116:22
+- Reconciliation query execution failed: Can't reach database server at `localhost:5432`
 
-  113 prisma.order.count({ where: { paymentStatus: "partially_refunded" } }),
-  114 prisma.payment.count({ where: { paymentStatus: "succeeded" } }),
-  115 prisma.payment.count({ where: { paymentStatus: "refunded" } }),
-→ 116 prisma.payment.count(
-Cannot fetch data from service:
-fetch failed
+Please make sure your database server is running at `localhost:5432`.
