@@ -27,7 +27,7 @@ export async function optimizeImageForUpload(file: File, opts: OptimizeImageOpts
   try {
     const { maxWidth, maxHeight } = opts;
     const quality = opts.quality ?? 0.82;
-    let { width, height } = bitmap;
+    const { width, height } = bitmap;
     const scale = Math.min(1, maxWidth / width, maxHeight / height);
     const w = Math.max(1, Math.round(width * scale));
     const h = Math.max(1, Math.round(height * scale));

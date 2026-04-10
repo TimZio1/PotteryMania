@@ -33,13 +33,21 @@ async function getFeaturedStudiosSafe() {
   }
 }
 
+const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
+
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({
+  const base = buildMetadata({
     title: "Stop losing bookings and sales to chaos | PotteryMania",
     description:
       "Sell your work, book your classes, run everything in one place. Replace scattered tools with one studio system. Plans from €19/month · 0% platform commission. Launch 1 May 2026.",
     path: "/",
   });
+  return {
+    ...base,
+    other: {
+      "impact-site-verification": IMPACT_SITE_VERIFICATION,
+    },
+  };
 }
 
 const clarityItems = [
