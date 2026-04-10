@@ -80,8 +80,10 @@ jobs:
           if [ -f prisma-migrate.log ]; then
             echo '--- prisma migrate log ---'
             cat prisma-migrate.log
-            summary="$(tr '\n' ' ' < prisma-migrate.log | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g' | cut -c1-900)"
-            echo "::error title=Prisma migrate stderr::$summary"
+            head_summary="$(head -c 900 prisma-migrate.log | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g')"
+            tail_summary="$(tail -c 1400 prisma-migrate.log | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g')"
+            echo "::error title=Prisma migrate stderr (head)::$head_summary"
+            echo "::error title=Prisma migrate stderr (tail)::$tail_summary"
           fi
           npx prisma migrate status || true
           npx prisma validate || true
