@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "node scripts/railway-build.mjs",
-    "build:next": "next build --turbopack",
+    "build": "next build --turbopack",
     "build:ci": "next build",
     "start": "next start",
     "test": "vitest run",
