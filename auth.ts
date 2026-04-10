@@ -20,11 +20,25 @@ const configuredAuthSecret =
   process.env.NEXTAUTH_SECRET?.trim() ||
   undefined;
 
-if (!configuredAuthSecret && process.env.NODE_ENV === "production") {
+/**
+ * `next build` sets NODE_ENV=production. Hosts (e.g. Railway PR checks) often omit AUTH_SECRET from the *build*
+ * environment while it exists at runtime — importing this module would otherwise throw during static generation.
+ * Placeholder is only used during the build phase; `next start` still requires a real secret below.
+ */
+function isProductionBuildPhase(): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
+  if (process.env.npm_lifecycle_event === "build") return true;
+  const phase = process.env.NEXT_PHASE;
+  return phase === "phase-production-build" || phase === "phase-export";
+}
+
+if (!configuredAuthSecret && process.env.NODE_ENV === "production" && !isProductionBuildPhase()) {
   throw new Error("AUTH_SECRET or NEXTAUTH_SECRET must be configured in production");
 }
 
-const authSecret = configuredAuthSecret || "dev-only-auth-secret-change-me";
+const authSecret =
+  configuredAuthSecret ||
+  (isProductionBuildPhase() ? "__potterymania_build_time_auth_secret__" : "dev-only-auth-secret-change-me");
 
 const googleId = process.env.AUTH_GOOGLE_ID?.trim();
 const googleSecret = process.env.AUTH_GOOGLE_SECRET?.trim();
