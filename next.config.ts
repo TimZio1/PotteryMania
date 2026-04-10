@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Prevent Prisma (and its native bindings) from being bundled into the
+  // Edge runtime or client bundles. Prisma must only run on the Node.js
+  // server; the Edge middleware imports `auth` which transitively imports
+  // `@/lib/db`, so without this exclusion the build bundles PrismaClient
+  // for the browser/Edge and throws at runtime.
+  serverExternalPackages: ["@prisma/client", "prisma"],
   async headers() {
     return [
       {
