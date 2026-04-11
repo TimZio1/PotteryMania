@@ -7,10 +7,25 @@ import {
   vendorDomainTxtHostname,
   expectedVendorDomainTxtValue,
 } from "@/lib/vendor-domain";
+import {
+  vendorDomainCanonicalOrigin,
+  vendorDomainConnectTargetHostname,
+  vendorDomainResolveFetchBaseUrl,
+  vendorDomainSetupReady,
+} from "@/lib/vendor-domain-core";
 
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ studioId: string }> };
+
+function setupPayload() {
+  return {
+    connectTargetHostname: vendorDomainConnectTargetHostname(),
+    canonicalOrigin: vendorDomainCanonicalOrigin(),
+    resolveBaseUrl: vendorDomainResolveFetchBaseUrl(),
+    setupReady: vendorDomainSetupReady(),
+  };
+}
 
 export async function GET(_req: Request, ctx: Ctx) {
   const user = await getSessionUser();
@@ -51,7 +66,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     updatedAt: d.updatedAt.toISOString(),
   }));
 
-  return NextResponse.json({ domains: payload });
+  return NextResponse.json({ domains: payload, setup: setupPayload() });
 }
 
 export async function POST(req: Request, ctx: Ctx) {
@@ -117,5 +132,6 @@ export async function POST(req: Request, ctx: Ctx) {
       txtHostname: vendorDomainTxtHostname(row.domainName),
       txtValue: row.verificationToken ? expectedVendorDomainTxtValue(row.verificationToken) : null,
     },
+    setup: setupPayload(),
   });
 }

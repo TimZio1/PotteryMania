@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { dnsTxtContainsVerifyToken } from "@/lib/vendor-domain";
+import { vendorDomainConnectTargetHostname, vendorDomainSetupReady } from "@/lib/vendor-domain-core";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,17 @@ export async function POST(_req: Request, ctx: Ctx) {
 
   const ok = await dnsTxtContainsVerifyToken(row.domainName, row.verificationToken);
   if (!ok) {
+    const connectTargetHostname = vendorDomainConnectTargetHostname();
+    const setupReady = vendorDomainSetupReady();
+    const connectHint = connectTargetHostname
+      ? ` Also make sure your CNAME/ALIAS points to ${connectTargetHostname}.`
+      : "";
+    const envHint = setupReady ? "" : " PotteryMania domain routing is still being configured for this environment.";
     return NextResponse.json(
-      { error: "DNS verification failed", hint: "Add the TXT record, wait for DNS propagation, then try again." },
+      {
+        error: "DNS verification failed",
+        hint: `Add the TXT record exactly as shown, wait for DNS propagation, then try again.${connectHint}${envHint}`,
+      },
       { status: 422 },
     );
   }

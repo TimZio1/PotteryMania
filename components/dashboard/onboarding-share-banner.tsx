@@ -75,11 +75,20 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
             <p className="mt-3 text-sm text-stone-600">
               New: use the step-by-step helper — add a listing, a class, or payouts without digging through menus.
             </p>
+            <p className="mt-2 text-sm text-stone-600">
+              Want your own storefront domain? Add it in studio settings once your studio is approved.
+            </p>
             <Link
               href={`/dashboard/${studioId}/guided`}
               className="mt-2 inline-block text-sm font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
             >
               Open simple setup →
+            </Link>
+            <Link
+              href={`/dashboard/${studioId}/settings`}
+              className="mt-2 ml-0 inline-block text-sm font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-800 sm:ml-4"
+            >
+              Connect custom domain →
             </Link>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:items-end">

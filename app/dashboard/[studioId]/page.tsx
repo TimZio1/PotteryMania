@@ -27,7 +27,7 @@ export default async function StudioPanelHomePage({ params }: Props) {
   const ago30 = new Date(dayStart);
   ago30.setDate(ago30.getDate() - 30);
 
-  const [orderAgg, bookingAgg, upcomingSlots, distinctStudents, slotFill, emptySlots, studio] = await Promise.all([
+  const [orderAgg, bookingAgg, upcomingSlots, distinctStudents, slotFill, emptySlots, studio, activeDomain] = await Promise.all([
     prisma.orderItem.aggregate({
       where: {
         vendorId: studioId,
@@ -83,6 +83,10 @@ export default async function StudioPanelHomePage({ params }: Props) {
     prisma.studio.findUnique({
       where: { id: studioId },
       select: { displayName: true, activationPaidAt: true, businessTemplateSlug: true },
+    }),
+    prisma.vendorDomain.findFirst({
+      where: { studioId, isActive: true, verificationStatus: "verified" },
+      select: { domainName: true },
     }),
   ]);
 
@@ -167,13 +171,25 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
         <div className={ui.card}>
           <h2 className="text-lg font-semibold text-amber-950">Your studio page</h2>
-          <p className="mt-2 text-sm text-stone-600">Preview the public page your guests see and update the presentation when needed.</p>
+          <p className="mt-2 text-sm text-stone-600">
+            Preview the public page your guests see, update the presentation, and connect your own storefront domain when ready.
+          </p>
+          {activeDomain ? (
+            <p className="mt-2 text-xs text-emerald-700">
+              Custom storefront domain live: <span className="font-medium">{activeDomain.domainName}</span>
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-stone-500">No custom storefront domain linked yet.</p>
+          )}
           <div className="mt-4 flex flex-col gap-2">
             <Link href={`/studios/${studioId}`} className={ui.buttonPrimary}>
               View public page
             </Link>
             <Link href={`/dashboard/${studioId}/template`} className={ui.buttonSecondary}>
               Edit page design
+            </Link>
+            <Link href={`/dashboard/${studioId}/settings`} className={ui.buttonSecondary}>
+              Connect domain
             </Link>
           </div>
         </div>

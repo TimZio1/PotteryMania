@@ -25,6 +25,11 @@ export function isPlausiblePublicHostname(domain: string): boolean {
   return HOSTNAME_RE.test(d);
 }
 
+export function isLocalDevHostname(hostname: string | null | undefined): boolean {
+  const d = normalizeDomainName(hostname ?? "");
+  return !d || d === "localhost" || d === "127.0.0.1" || d.endsWith(".local");
+}
+
 /** Reject path/query injection and obviously invalid host shapes before DNS. */
 export function parseVendorDomainInput(raw: string): string | null {
   const t = raw.trim();
@@ -58,6 +63,12 @@ export function primaryAppHostname(): string | null {
     }
   }
   return null;
+}
+
+export function vendorDomainConnectTargetHostname(): string | null {
+  const host = primaryAppHostname();
+  if (!host || isLocalDevHostname(host) || !isPlausiblePublicHostname(host)) return null;
+  return host;
 }
 
 /** Origin (no trailing slash) for server-side fetch to the resolve API from Edge middleware. */
@@ -120,4 +131,21 @@ export function canonicalPublicOrigin(): string | null {
     }
   }
   return null;
+}
+
+export function vendorDomainCanonicalOrigin(): string | null {
+  const origin = canonicalPublicOrigin();
+  if (!origin) return null;
+  try {
+    const parsed = new URL(origin);
+    const host = parsed.hostname.toLowerCase();
+    if (isLocalDevHostname(host) || !isPlausiblePublicHostname(host)) return null;
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+export function vendorDomainSetupReady(): boolean {
+  return Boolean(vendorDomainConnectTargetHostname() && vendorDomainCanonicalOrigin() && vendorDomainResolveFetchBaseUrl());
 }

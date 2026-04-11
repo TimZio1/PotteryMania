@@ -178,6 +178,12 @@ export default async function DashboardPage() {
                     >
                       Packs, subscriptions &amp; add-ons
                     </Link>
+                    <Link
+                      href={`/dashboard/${s.id}/settings`}
+                      className="text-center text-xs text-stone-500 underline hover:text-amber-950"
+                    >
+                      Storefront domain
+                    </Link>
                   </div>
                 </div>
                 {activated ? (
@@ -205,6 +211,9 @@ export default async function DashboardPage() {
                     </Link>
                     <Link href={`/studios/${s.id}`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
                       Public page
+                    </Link>
+                    <Link href={`/dashboard/${s.id}/settings`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                      Storefront domain
                     </Link>
                   </div>
                 ) : null}
