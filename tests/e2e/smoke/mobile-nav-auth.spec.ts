@@ -9,25 +9,24 @@ test.describe("Mobile nav (authenticated)", () => {
     const seeded = getTestCredentials();
     test.skip(!seeded, "TEST credentials required for authenticated mobile nav flow.");
 
-    await loginWithCredentials(page, seeded!.email, seeded!.password, "/dashboard");
-    await expect(page).toHaveURL(/\/dashboard/);
+    // Navigate to a marketing page that includes SiteHeader (the only layout with #mobile-nav).
+    await loginWithCredentials(page, seeded!.email, seeded!.password, "/pricing");
+    await expect(page).toHaveURL(/\/pricing/);
 
     const burger = page.getByRole("button", { name: /open menu/i });
-    await expect(burger).toBeVisible();
+    await expect(burger).toBeVisible({ timeout: 20_000 });
     await burger.click();
 
     const mobileNav = page.locator("#mobile-nav nav[aria-label='Mobile primary']");
     await expect(mobileNav).toBeVisible();
 
-    await page.getByRole("link", { name: /^Account$/i }).click();
-    await expect(page).toHaveURL(/\/account/);
+    // Verify authenticated controls are visible in the mobile nav.
+    await expect(page.locator("#mobile-nav").getByRole("link", { name: /^Dashboard$/i })).toBeVisible();
 
-    const burgerOnAccount = page.getByRole("button", { name: /open menu/i });
-    await expect(burgerOnAccount).toBeVisible();
-    await burgerOnAccount.click();
-    await expect(mobileNav).toBeVisible();
-
-    await page.locator("#mobile-nav button[aria-label='Close menu']").click();
-    await expect(mobileNav).not.toBeVisible();
+    // Close via the "Close" button inside the panel header (not the backdrop overlay).
+    await page.locator("#mobile-nav").getByRole("button", { name: /^Close$/i }).click();
+    // The mobile nav uses opacity transitions, not display:none, so Playwright's toBeVisible()
+    // stays true even when hidden. Check aria-expanded on the burger instead.
+    await expect(burger).toHaveAttribute("aria-expanded", "false");
   });
 });

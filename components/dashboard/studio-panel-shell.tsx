@@ -85,9 +85,10 @@ export default function StudioPanelShell({
         className="flex items-center justify-between border-b border-white/10 bg-zinc-900/80 px-4 py-3 text-left text-sm font-medium text-zinc-100 lg:hidden"
         onClick={() => setMobileOpen((o) => !o)}
         aria-expanded={mobileOpen}
+        aria-label={mobileOpen ? "Close menu" : "Open menu"}
       >
         <span>Menu · {studioName}</span>
-        <span className="text-zinc-500">{mobileOpen ? "Close" : "Open"}</span>
+        <span className="text-zinc-500" aria-hidden="true">{mobileOpen ? "Close" : "Open"}</span>
       </button>
 
       <aside

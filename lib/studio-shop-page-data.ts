@@ -50,60 +50,66 @@ export type StudioShopOrderRow = {
 };
 
 export async function loadStudioShopPageData(prisma: PrismaClient, studioId: string) {
-  const [products, orders] = await Promise.all([
-    prisma.product.findMany({
-      where: { studioId, status: { not: "archived" } },
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        subcategory: true,
-        shortDescription: true,
-        status: true,
-        priceCents: true,
-        salePriceCents: true,
-        pricingType: true,
-        recurringPriceCents: true,
-        billingInterval: true,
-        billingIntervalCount: true,
-        minimumCommitmentCycles: true,
-        autoRenew: true,
-        trialPeriodDays: true,
-        cancellationPolicyText: true,
-        gracePeriodDays: true,
-        paymentRetryMax: true,
-        failedPaymentAction: true,
-        sku: true,
-        shippingDomesticCents: true,
-        shippingEuropeCents: true,
-        shippingUsaCents: true,
-        shippingCanadaCents: true,
-        shippingAsiaCents: true,
-        stockQuantity: true,
-        stockStatus: true,
-        categoryMeta: {
-          select: {
-            slug: true,
-            name: true,
+  let products: Awaited<ReturnType<typeof prisma.product.findMany>> = [];
+  let orders: Awaited<ReturnType<typeof prisma.order.findMany>> = [];
+  try {
+    [products, orders] = await Promise.all([
+      prisma.product.findMany({
+        where: { studioId, status: { not: "archived" } },
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          subcategory: true,
+          shortDescription: true,
+          status: true,
+          priceCents: true,
+          salePriceCents: true,
+          pricingType: true,
+          recurringPriceCents: true,
+          billingInterval: true,
+          billingIntervalCount: true,
+          minimumCommitmentCycles: true,
+          autoRenew: true,
+          trialPeriodDays: true,
+          cancellationPolicyText: true,
+          gracePeriodDays: true,
+          paymentRetryMax: true,
+          failedPaymentAction: true,
+          sku: true,
+          shippingDomesticCents: true,
+          shippingEuropeCents: true,
+          shippingUsaCents: true,
+          shippingCanadaCents: true,
+          shippingAsiaCents: true,
+          stockQuantity: true,
+          stockStatus: true,
+          categoryMeta: {
+            select: {
+              slug: true,
+              name: true,
+            },
           },
         },
-      },
-    }),
-    prisma.order.findMany({
-      where: {
-        items: { some: { vendorId: studioId, itemType: "product" } },
-      },
-      orderBy: { createdAt: "desc" },
-      include: {
-        items: {
-          where: { vendorId: studioId },
-          include: { product: { select: { title: true } } },
+      }),
+      prisma.order.findMany({
+        where: {
+          items: { some: { vendorId: studioId, itemType: "product" } },
         },
-      },
-      take: 100,
-    }),
-  ]);
+        orderBy: { createdAt: "desc" },
+        include: {
+          items: {
+            where: { vendorId: studioId },
+            include: { product: { select: { title: true } } },
+          },
+        },
+        take: 100,
+      }),
+    ]);
+  } catch {
+    return { products: [] satisfies StudioShopProductRow[], orders: [] satisfies StudioShopOrderRow[], unavailable: true };
+  }
 
   const productRows: StudioShopProductRow[] = products.map((p) => ({
     id: p.id,
@@ -154,5 +160,5 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
     })),
   }));
 
-  return { products: productRows, orders: orderRows };
+  return { products: productRows, orders: orderRows, unavailable: false };
 }

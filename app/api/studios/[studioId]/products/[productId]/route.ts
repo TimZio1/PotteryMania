@@ -66,12 +66,22 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (!category) {
       return NextResponse.json({ error: "Invalid ceramic category" }, { status: 400 });
     }
-    await syncLockedCeramicCategories(prisma);
-    const categoryMeta = await prisma.productCategory.findUnique({
-      where: { slug: ceramicCategoryMetaByValue(category).slug },
-      select: { id: true },
-    });
-    data.categoryId = categoryMeta?.id ?? null;
+    try {
+      await syncLockedCeramicCategories(prisma);
+      const categoryMeta = await prisma.productCategory.findUnique({
+        where: { slug: ceramicCategoryMetaByValue(category).slug },
+        select: { id: true },
+      });
+      data.categoryId = categoryMeta?.id ?? null;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+        return NextResponse.json(
+          { error: "Products are temporarily unavailable while schema updates finish deploying." },
+          { status: 503 },
+        );
+      }
+      throw error;
+    }
   }
   if (body.subcategory === null || typeof body.subcategory === "string") {
     data.subcategory = typeof body.subcategory === "string" ? body.subcategory.trim() || null : null;

@@ -6,14 +6,14 @@ import { useState } from "react";
 import { ui } from "@/lib/ui-styles";
 
 export function ImpersonationBanner() {
-  const { data: session, update } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   const adminEmail = session?.user?.impersonatorEmail;
   const impersonating = Boolean(session?.user?.impersonatorId);
 
-  if (!impersonating || !adminEmail) return null;
+  if (status === "loading" || !impersonating || !adminEmail) return null;
 
   async function exit() {
     setBusy(true);

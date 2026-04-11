@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     initMonitoring();
   }, []);
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <ImpersonationBanner />
       {children}
     </SessionProvider>

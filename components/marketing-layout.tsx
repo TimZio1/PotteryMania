@@ -77,7 +77,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
             </div>
           </div>
           <div className="mt-8 flex flex-col gap-3 border-t border-(--brand-line) pt-6 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} PotteryMania.</p>
+            <p>© PotteryMania.</p>
             <p>Made with clay and code.</p>
           </div>
         </div>

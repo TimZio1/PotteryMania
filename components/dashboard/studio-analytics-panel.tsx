@@ -35,14 +35,28 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
   const [err, setErr] = useState("");
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/studios/${studioId}/analytics?days=${days}`);
-    const json = await res.json();
-    if (!res.ok) {
-      setErr(json.error || "Could not load analytics");
-      return;
+    try {
+      const res = await fetch(`/api/studios/${studioId}/analytics?days=${days}`);
+      const text = await res.text();
+      let json: { error?: string; metrics?: Metrics } | null = null;
+      if (text) {
+        try {
+          json = JSON.parse(text) as { error?: string; metrics?: Metrics };
+        } catch {
+          json = null;
+        }
+      }
+      if (!res.ok) {
+        setMetrics(null);
+        setErr(json?.error || "Could not load analytics");
+        return;
+      }
+      setErr("");
+      setMetrics(json?.metrics ?? null);
+    } catch {
+      setMetrics(null);
+      setErr("Could not load analytics");
     }
-    setErr("");
-    setMetrics(json.metrics);
   }, [studioId, days]);
 
   useEffect(() => {

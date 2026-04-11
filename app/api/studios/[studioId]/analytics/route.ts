@@ -76,13 +76,19 @@ export async function GET(req: Request, ctx: Ctx) {
       }),
     ]);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+    const isKnownPrismaError =
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientInitializationError ||
+      error instanceof Prisma.PrismaClientRustPanicError ||
+      error instanceof Prisma.PrismaClientUnknownRequestError;
+    if (isKnownPrismaError) {
       return NextResponse.json(
         { error: "Analytics is temporarily unavailable while product schema updates finish deploying." },
         { status: 503 },
       );
     }
-    throw error;
+    console.error("[analytics route]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 
   const orderRevenueCents = orders.reduce((sum, order) => sum + order.totalCents, 0);

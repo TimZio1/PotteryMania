@@ -18,10 +18,16 @@ export default async function AdminCategoriesPage() {
   const user = await requireHyperAdminUser();
   if (!user) redirect("/unauthorized-admin");
 
-  await syncLockedCeramicCategories(prisma);
-  const categories = await prisma.productCategory.findMany({
-    orderBy: { name: "asc" },
-  });
+  let unavailable = false;
+  let categories: Awaited<ReturnType<typeof prisma.productCategory.findMany>> = [];
+  try {
+    await syncLockedCeramicCategories(prisma);
+    categories = await prisma.productCategory.findMany({
+      orderBy: { name: "asc" },
+    });
+  } catch {
+    unavailable = true;
+  }
 
   return (
     <div>
@@ -30,7 +36,13 @@ export default async function AdminCategoriesPage() {
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Locked 10-category system for studio-owned shop pages. Edit hero image and SEO descriptions here.
       </p>
-      <CategoriesAdminClient initial={categories} />
+      {unavailable ? (
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Category data is temporarily unavailable while schema updates finish deploying.
+        </div>
+      ) : (
+        <CategoriesAdminClient initial={categories} />
+      )}
     </div>
   );
 }

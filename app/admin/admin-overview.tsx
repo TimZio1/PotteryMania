@@ -172,7 +172,7 @@ function TrendCard({
             <div key={point.label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
               <div className="text-[11px] font-medium text-stone-500">
                 {prefix}
-                {Math.round(point.value).toLocaleString()}
+                {Math.round(point.value).toLocaleString("en")}
               </div>
               <div className="w-full rounded-full bg-stone-100" style={{ height: `${height}%` }}>
                 <div

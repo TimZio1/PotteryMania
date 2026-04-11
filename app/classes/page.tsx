@@ -5,7 +5,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
-import { redirectEndUserIfNoPublicClasses } from "@/lib/public-catalog-guard";
 import {
   DISCOVER_EXPERIENCE_TYPE_OPTIONS,
   GEO_SCAN_LIMIT,
@@ -66,7 +65,6 @@ function hasActiveClassFilters(sp: Record<string, string | string[] | undefined>
 
 export default async function ClassesPage({ searchParams }: Props) {
   const session = await auth();
-  await redirectEndUserIfNoPublicClasses(session?.user?.role);
   const raw = (await searchParams) ?? {};
   const filters = parseClassesSearchParams(raw);
   const filtered = hasActiveClassFilters(raw);

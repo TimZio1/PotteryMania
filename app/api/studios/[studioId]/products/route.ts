@@ -180,63 +180,73 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: shippingZones.error }, { status: 400 });
   }
 
-  await syncLockedCeramicCategories(prisma);
-  const categorySlug = ceramicCategoryMetaByValue(category).slug;
-  const categoryMeta = await prisma.productCategory.findUnique({
-    where: { slug: categorySlug },
-    select: { id: true },
-  });
+  try {
+    await syncLockedCeramicCategories(prisma);
+    const categorySlug = ceramicCategoryMetaByValue(category).slug;
+    const categoryMeta = await prisma.productCategory.findUnique({
+      where: { slug: categorySlug },
+      select: { id: true },
+    });
 
-  const product = await prisma.product.create({
-    data: {
-      studioId,
-      subcategory,
-      title,
-      slug,
-      shortDescription: body.shortDescription?.trim() || null,
-      fullDescription: body.fullDescription?.trim() || null,
-      priceCents,
-      salePriceCents: body.salePriceCents ?? null,
-      pricingType: pricing.value.pricingType,
-      recurringPriceCents: pricing.value.recurringPriceCents,
-      billingInterval: pricing.value.billingInterval,
-      billingIntervalCount: pricing.value.billingIntervalCount,
-      minimumCommitmentCycles: pricing.value.minimumCommitmentCycles,
-      autoRenew: pricing.value.autoRenew,
-      trialPeriodDays: pricing.value.trialPeriodDays,
-      cancellationPolicyText: pricing.value.cancellationPolicyText,
-      gracePeriodDays: pricing.value.gracePeriodDays,
-      paymentRetryMax: pricing.value.paymentRetryMax,
-      failedPaymentAction: pricing.value.failedPaymentAction,
-      sku: body.sku ?? null,
-      stockQuantity: body.stockQuantity ?? 0,
-      stockStatus:
-        body.stockStatus === "out_of_stock" || body.stockStatus === "backorder" ? body.stockStatus : "in_stock",
-      categoryId: categoryMeta?.id ?? body.categoryId ?? null,
-      materials: body.materials ?? null,
-      careInstructions: body.careInstructions ?? null,
-      weightGrams: body.weightGrams ?? null,
-      dimensionsText: body.dimensionsText ?? null,
-      shippingDomesticCents: shippingZones.value.shippingDomesticCents,
-      shippingEuropeCents: shippingZones.value.shippingEuropeCents,
-      shippingUsaCents: shippingZones.value.shippingUsaCents,
-      shippingCanadaCents: shippingZones.value.shippingCanadaCents,
-      shippingAsiaCents: shippingZones.value.shippingAsiaCents,
-      shippingNotes: body.shippingNotes ?? null,
-      returnNotes: body.returnNotes ?? null,
-      status: status as "draft" | "active" | "inactive" | "archived",
-      isFeatured: Boolean(body.isFeatured),
-      images: {
-        create: images.map((im, idx) => ({
-          imageUrl: im.imageUrl,
-          altText: im.altText ?? null,
-          sortOrder: idx,
-          isPrimary: Boolean(im.isPrimary),
-        })),
+    const product = await prisma.product.create({
+      data: {
+        studioId,
+        subcategory,
+        title,
+        slug,
+        shortDescription: body.shortDescription?.trim() || null,
+        fullDescription: body.fullDescription?.trim() || null,
+        priceCents,
+        salePriceCents: body.salePriceCents ?? null,
+        pricingType: pricing.value.pricingType,
+        recurringPriceCents: pricing.value.recurringPriceCents,
+        billingInterval: pricing.value.billingInterval,
+        billingIntervalCount: pricing.value.billingIntervalCount,
+        minimumCommitmentCycles: pricing.value.minimumCommitmentCycles,
+        autoRenew: pricing.value.autoRenew,
+        trialPeriodDays: pricing.value.trialPeriodDays,
+        cancellationPolicyText: pricing.value.cancellationPolicyText,
+        gracePeriodDays: pricing.value.gracePeriodDays,
+        paymentRetryMax: pricing.value.paymentRetryMax,
+        failedPaymentAction: pricing.value.failedPaymentAction,
+        sku: body.sku ?? null,
+        stockQuantity: body.stockQuantity ?? 0,
+        stockStatus:
+          body.stockStatus === "out_of_stock" || body.stockStatus === "backorder" ? body.stockStatus : "in_stock",
+        categoryId: categoryMeta?.id ?? body.categoryId ?? null,
+        materials: body.materials ?? null,
+        careInstructions: body.careInstructions ?? null,
+        weightGrams: body.weightGrams ?? null,
+        dimensionsText: body.dimensionsText ?? null,
+        shippingDomesticCents: shippingZones.value.shippingDomesticCents,
+        shippingEuropeCents: shippingZones.value.shippingEuropeCents,
+        shippingUsaCents: shippingZones.value.shippingUsaCents,
+        shippingCanadaCents: shippingZones.value.shippingCanadaCents,
+        shippingAsiaCents: shippingZones.value.shippingAsiaCents,
+        shippingNotes: body.shippingNotes ?? null,
+        returnNotes: body.returnNotes ?? null,
+        status: status as "draft" | "active" | "inactive" | "archived",
+        isFeatured: Boolean(body.isFeatured),
+        images: {
+          create: images.map((im, idx) => ({
+            imageUrl: im.imageUrl,
+            altText: im.altText ?? null,
+            sortOrder: idx,
+            isPrimary: Boolean(im.isPrimary),
+          })),
+        },
       },
-    },
-    include: { images: true },
-  });
+      include: { images: true },
+    });
 
-  return NextResponse.json({ product }, { status: 201 });
+    return NextResponse.json({ product }, { status: 201 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+      return NextResponse.json(
+        { error: "Products are temporarily unavailable while schema updates finish deploying." },
+        { status: 503 },
+      );
+    }
+    throw error;
+  }
 }
