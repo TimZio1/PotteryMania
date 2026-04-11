@@ -8,7 +8,6 @@ import { ui } from "@/lib/ui-styles";
 export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"customer" | "vendor">("customer");
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [pending, setPending] = useState(false);
@@ -35,7 +34,7 @@ export function RegisterForm() {
       const r = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role, marketingConsent }),
+        body: JSON.stringify({ email, password, marketingConsent }),
       });
       const j = (await r.json()) as { ok?: boolean; error?: string; user?: unknown };
       if (!r.ok) {
@@ -45,7 +44,7 @@ export function RegisterForm() {
       }
       if (j.user) {
         setOk(
-          "Account created. We sent a verification link to your email — confirm it when you can. You can sign in right away.",
+          "Account created. We sent a verification link to your email. Confirm it before you sign in.",
         );
       } else {
         setOk(
@@ -90,35 +89,22 @@ export function RegisterForm() {
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignUp()} className={`${ui.buttonSecondary} w-full`}>
             {googlePending ? "Connecting Google…" : "Continue with Google"}
           </button>
-          <div className={`flex items-center gap-[var(--pm-space-3)] ${ui.overline} text-stone-400`}>
+          <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-stone-400`}>
             <span className="h-px flex-1 bg-stone-200" />
             <span>or register with email</span>
             <span className="h-px flex-1 bg-stone-200" />
           </div>
         </>
       ) : null}
-      <div>
-        <span className={ui.label}>Account type</span>
-        <p className={`mt-1 ${ui.helper}`}>Vendors manage a studio; customers shop and book classes.</p>
-        <select
-          className={`${ui.select} mt-2`}
-          value={role}
-          onChange={(e) => setRole(e.target.value as "customer" | "vendor")}
-          aria-label="Account type"
-          disabled={pending}
-        >
-          <option value="customer">Customer — shop &amp; book</option>
-          <option value="vendor">Studio / vendor — sell &amp; schedule</option>
-        </select>
-        {role === "vendor" ? (
-          <p className="mt-2 text-xs text-stone-500">
-            By choosing a studio account you also agree to our{" "}
-            <Link href="/vendor-terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
-              studio &amp; vendor terms
-            </Link>
-            .
-          </p>
-        ) : null}
+      <div className={`${ui.cardMuted} border-stone-200/80 bg-stone-50/90`}>
+        <p className="text-sm font-medium text-stone-900">Create your customer account first.</p>
+        <p className="mt-2 text-sm text-stone-600">
+          Studio owners can create a studio after signing in and will review the{" "}
+          <Link href="/vendor-terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+            studio terms
+          </Link>{" "}
+          during setup.
+        </p>
       </div>
       <div>
         <label className={ui.label} htmlFor="reg-email">

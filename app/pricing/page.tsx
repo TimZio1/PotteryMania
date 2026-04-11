@@ -9,7 +9,7 @@ import { annualEquivalentLabel, monthlyLabel, STUDIO_PLANS } from "@/lib/studio-
 export const metadata: Metadata = buildMetadata({
   title: "Plans & pricing — studio shop + bookings",
   description:
-    "Start free. Upgrade when you're ready. One system replaces scattered tools — sell products, book classes, run your studio from €19/month.",
+    "Free until 1 May 2026. No payment required. One system replaces scattered tools — sell products, book classes, and run your studio from €19/month after launch.",
   path: "/pricing",
 });
 
@@ -46,10 +46,10 @@ export default function PricingPage() {
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             This replaces multiple tools you are currently using — site, bookings, shop, and the messy glue between them.
           </p>
-          <p className="mt-3 text-base font-semibold text-amber-950">Start free. Upgrade when you&apos;re ready.</p>
+          <p className="mt-3 text-base font-semibold text-amber-950">Free until 1 May 2026. No payment required.</p>
           <p className="mt-2 text-sm text-stone-600">
-            Subscription billing for these plans begins at official launch (1 May 2026). You can set up your studio now and
-            go live before then.
+            Your studio is free until official launch on 1 May 2026. After that, choose a plan to continue. No credit card
+            needed to start.
           </p>
         </div>
 
@@ -136,7 +136,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <div className="mt-12 rounded-2xl border border-(--brand-line) bg-(--warm-surface) p-6 sm:p-8">
+        <div id="faq" className="mt-12 rounded-2xl border border-(--brand-line) bg-(--warm-surface) p-6 sm:p-8">
           <h2 className="font-serif text-xl text-(--brand-ink) sm:text-2xl">Questions studios actually ask</h2>
           <dl className="mt-4 space-y-4 text-sm text-stone-700">
             <div>
@@ -146,6 +146,30 @@ export default function PricingPage() {
             <div>
               <dt className="font-semibold text-stone-900">Can I start with only classes or only products?</dt>
               <dd className="mt-1">Yes — pick Bookings or Shop at €19 each, then upgrade to Studio when both are live.</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-stone-900">Can I cancel anytime?</dt>
+              <dd className="mt-1">Yes. You can change or cancel your paid plan from your studio settings based on the billing terms in effect at that time.</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-stone-900">What happens after the free period ends?</dt>
+              <dd className="mt-1">You will choose the plan that matches your studio setup. If you do nothing, paid features may be limited until a plan is selected.</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-stone-900">How is VAT handled?</dt>
+              <dd className="mt-1">Applicable taxes may be added where required by law. Your studio remains responsible for its own tax setup and obligations.</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-stone-900">Which countries are supported?</dt>
+              <dd className="mt-1">PotteryMania is built for studios serving customers across Europe first, with broader support expanding over time as payments and operations mature.</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-stone-900">Can I use my own domain?</dt>
+              <dd className="mt-1">Yes. PotteryMania is built around a studio-owned public page and supports a path toward using your own domain as your studio grows.</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-stone-900">What payment methods do my customers see?</dt>
+              <dd className="mt-1">Customer payment methods depend on your Stripe setup and the checkout options supported in your region.</dd>
             </div>
           </dl>
           <Link

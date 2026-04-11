@@ -10,6 +10,12 @@ function messageForAuthError(error: string | undefined, code: string | undefined
   if (code === "suspended" || error === "AccessDenied") {
     return "This account has been suspended. Contact support if you think this is a mistake.";
   }
+  if (code === "email_not_verified") {
+    return "Verify your email before signing in. Use a fresh verification link or register again if the link expired.";
+  }
+  if (code === "rate_limited") {
+    return "Too many sign-in attempts. Wait a few minutes and try again.";
+  }
   if (error === "Configuration") {
     return "Sign-in is temporarily unavailable. Please try again later.";
   }
@@ -125,7 +131,7 @@ export default function LoginInner() {
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignIn()} className={`${ui.buttonSecondary} w-full`}>
             {googlePending ? "Connecting Google…" : "Continue with Google"}
           </button>
-          <div className={`flex items-center gap-[var(--pm-space-3)] ${ui.overline} text-stone-400`}>
+          <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-stone-400`}>
             <span className="h-px flex-1 bg-stone-200" />
             <span>or sign in with email</span>
             <span className="h-px flex-1 bg-stone-200" />

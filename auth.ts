@@ -5,10 +5,20 @@ import Google from "next-auth/providers/google";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-audit";
+import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
 
 /** Thrown from authorize so the client can show a specific message (code in Auth.js JSON error URL). */
 class AccountSuspendedSignin extends CredentialsSignin {
   code = "suspended";
+}
+
+/** Credentials sign-in requires a verified email to reduce fake-account abuse and account confusion. */
+class EmailNotVerifiedSignin extends CredentialsSignin {
+  code = "email_not_verified";
+}
+
+class TooManySignInAttemptsSignin extends CredentialsSignin {
+  code = "rate_limited";
 }
 
 /**
@@ -49,7 +59,6 @@ const providers = [
         Google({
           clientId: googleId,
           clientSecret: googleSecret,
-          allowDangerousEmailAccountLinking: true,
         }),
       ]
     : []),
@@ -59,12 +68,19 @@ const providers = [
       email: { label: "Email", type: "email" },
       password: { label: "Password", type: "password" },
     },
-    authorize: async (credentials) => {
+    authorize: async (credentials, request) => {
       const email = credentials?.email as string | undefined;
       const password = credentials?.password as string | undefined;
       if (!email || !password) return null;
+      const normalizedEmail = email.toLowerCase().trim();
+      const ipKey = getClientKey(request);
+      const emailLimit = checkRateLimit(`signin:email:${normalizedEmail}`, 8, 15 * 60_000);
+      const ipLimit = checkRateLimit(`signin:ip:${ipKey}`, 25, 15 * 60_000);
+      if (!emailLimit.allowed || !ipLimit.allowed) {
+        throw new TooManySignInAttemptsSignin();
+      }
       const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase().trim() },
+        where: { email: normalizedEmail },
         select: {
           id: true,
           email: true,
@@ -76,6 +92,7 @@ const providers = [
       });
       if (!user?.passwordHash) return null;
       if (user.suspendedAt) throw new AccountSuspendedSignin();
+      if (!user.emailVerifiedAt) throw new EmailNotVerifiedSignin();
       const ok = await compare(password, user.passwordHash);
       if (!ok) return null;
       return {

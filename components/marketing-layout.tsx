@@ -24,31 +24,40 @@ export function MarketingLayout({ children, toolbar }: Props) {
       <MarketingPageTransition>{children}</MarketingPageTransition>
       <footer className="mt-auto border-t border-(--brand-line) bg-white/80 backdrop-blur-sm">
         <div className={`${ui.pageContainer} py-12 sm:py-14`}>
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
             <div className="max-w-md">
               <BrandLogo size="md" className="text-(--brand-ink)" />
               <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">
-                The ceramics website platform for independent studios and makers. Built to sell work beautifully, fill
-                classes, and help serious studios grow with more presence.
+                The platform for pottery studios to create their website, sell their work, and manage bookings without
+                stitching together five half-working tools.
               </p>
             </div>
-            <div className="grid gap-x-12 gap-y-6 text-sm text-stone-700 sm:grid-cols-3">
+            <div className="grid gap-x-12 gap-y-6 text-sm text-stone-700 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Product</p>
-                <Link href="/dashboard/studio/new?setup=both" className="block transition hover:text-(--brand-ink)">
-                  Studio website
+                <Link href="/demo" className="block transition hover:text-(--brand-ink)">
+                  Create your studio
                 </Link>
                 <Link href="/dashboard/studio/new?setup=bookings" className="block transition hover:text-(--brand-ink)">
-                  Bookings setup
+                  Start with bookings
                 </Link>
                 <Link href="/dashboard/studio/new?setup=shop" className="block transition hover:text-(--brand-ink)">
-                  Shop setup
+                  Start with shop
                 </Link>
-                <Link href="/wear/shop" className="block transition hover:text-(--brand-ink)">
-                  Wearables
+                <Link href="/pricing" className="block transition hover:text-(--brand-ink)">
+                  Pricing
                 </Link>
-                <Link href="/dashboard/studio/new?setup=both" className="block transition hover:text-(--brand-ink)">
-                  Create studio website
+              </div>
+              <div className="space-y-2.5">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Resources</p>
+                <Link href="/demo" className="block transition hover:text-(--brand-ink)">
+                  Demo studio
+                </Link>
+                <Link href="/#clarity" className="block transition hover:text-(--brand-ink)">
+                  How it works
+                </Link>
+                <Link href="/pricing#faq" className="block transition hover:text-(--brand-ink)">
+                  FAQ
                 </Link>
               </div>
               <div className="space-y-2.5">
@@ -64,21 +73,20 @@ export function MarketingLayout({ children, toolbar }: Props) {
                 </Link>
               </div>
               <div className="space-y-2.5">
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Account</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-600">Contact</p>
                 {!isPreregistrationOnly() ? (
                   <Link href="/login" className="block transition hover:text-(--brand-ink)">
                     Sign in
                   </Link>
                 ) : null}
-                <Link href="/dashboard/studio/new?setup=both" className="block transition hover:text-(--brand-ink)">
-                  Create studio website
-                </Link>
+                <span className="block text-stone-500">Support details are available inside the app during early access.</span>
+                <span className="block text-stone-500">Social links will be published here before launch.</span>
               </div>
             </div>
           </div>
           <div className="mt-8 flex flex-col gap-3 border-t border-(--brand-line) pt-6 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
-            <p>© PotteryMania.</p>
-            <p>Made with clay and code.</p>
+            <p>© PotteryMania. All rights reserved.</p>
+            <p>Free until 1 May 2026. No payment required.</p>
           </div>
         </div>
       </footer>

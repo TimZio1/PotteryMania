@@ -11,9 +11,8 @@ export async function loginWithCredentials(page: Page, email: string, password: 
 }
 
 /** Register a new account; does not sign in. */
-export async function registerAccount(page: Page, email: string, password: string, role: "customer" | "vendor") {
+export async function registerAccount(page: Page, email: string, password: string) {
   await page.goto("/register");
-  await page.getByLabel(/Account type/i).selectOption(role);
   await page.locator(registerIds.email).fill(email);
   await page.locator(registerIds.password).fill(password);
   await page.getByRole("button", { name: /Create account/i }).click();

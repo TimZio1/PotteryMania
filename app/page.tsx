@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { prisma } from "@/lib/db";
 import { PROMO_LABEL } from "@/lib/promo";
@@ -8,7 +9,7 @@ import { FeaturedStudiosRail } from "@/components/marketing/featured-studios-rai
 import { HeroPhotography } from "@/components/marketing/hero-photography";
 import { getFeaturedStudiosForSlot } from "@/lib/featured-studios-public";
 import { displayedPreRegTotal } from "@/lib/brand";
-import { STUDIO_TESTIMONIALS, testimonialAttribution } from "@/lib/marketing-testimonials";
+import { EARLY_ACCESS_PROOF } from "@/lib/marketing-testimonials";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 import { monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
@@ -39,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
     title: "Stop losing bookings and sales to chaos | PotteryMania",
     description:
-      "Sell your work, book your classes, run everything in one place. Replace scattered tools with one studio system. Plans from €19/month · 0% platform commission. Launch 1 May 2026.",
+      "Sell your work, book your classes, and run your studio in one place. Free until 1 May 2026 with no payment required, then plans from €19/month.",
     path: "/",
   });
   return {
@@ -88,12 +89,11 @@ const differentiators = [
   },
 ];
 
-const trustTags = ["Stoneware", "Porcelain", "Workshops", "Wheel Throwing", "Raku", "Studio Shelf", "Glaze", "Handbuilt"];
 const visitorPaths = [
   {
     title: "I run a studio",
     body: "Set up your studio with bookings, shop, or both.",
-    href: "/dashboard/studio/new?setup=both",
+    href: "/demo",
     cta: "Create your studio",
   },
   {
@@ -109,15 +109,6 @@ const visitorPaths = [
     cta: "Start shop setup",
   },
 ] as const;
-const studioShelfPieces = [
-  { x: 220, y: 205, w: 110, h: 140, fill: "#dfc0a3" },
-  { x: 370, y: 205, w: 88, h: 120, fill: "#b1774f" },
-  { x: 500, y: 202, w: 120, h: 160, fill: "#efdecc" },
-  { x: 660, y: 198, w: 92, h: 126, fill: "#c99772" },
-  { x: 800, y: 210, w: 125, h: 135, fill: "#e7cfb5" },
-  { x: 960, y: 202, w: 88, h: 152, fill: "#b88263" },
-];
-
 export default async function Home() {
   const preRegCount = await getPreRegCountSafe();
   const featuredStudios = await getFeaturedStudiosSafe();
@@ -145,7 +136,7 @@ export default async function Home() {
           artwork={<HeroPhotography />}
           priority
         >
-          <p className="inline-flex rounded-full border border-white/20 bg-white/[0.08] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/90 backdrop-blur-md">
+          <p className="inline-flex rounded-full border border-white/20 bg-white/8 px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/90 backdrop-blur-md">
             {MARKETING_HERO_PRIMARY.eyebrow}
           </p>
           <h1 className="mt-7 max-w-[18ch] font-serif text-[2.35rem] font-normal leading-[1.05] tracking-[-0.02em] text-white sm:max-w-4xl sm:text-5xl sm:leading-[1.04] lg:text-6xl lg:tracking-[-0.025em]">
@@ -158,29 +149,29 @@ export default async function Home() {
             One checkout, one calendar, one dashboard — built so you get paid, not buried in admin.
           </p>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/70">
-            Official launch 1 May 2026 · start free, then plans from €19/month.{" "}
+            Free until 1 May 2026. No credit card required. Plans from €19/month after launch.{" "}
             <span className="text-white/90">0% platform commission</span> on checkout sales and bookings.
           </p>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/65 sm:max-w-2xl">
             Replaces the patchwork of DMs, spreadsheets, and generic site builders — without giving up your brand.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-medium text-(--brand-ink) shadow-[0_4px_24px_rgba(44,24,16,0.2)] transition hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="/demo" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-medium text-(--brand-ink) shadow-[0_4px_24px_rgba(44,24,16,0.2)] transition hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               {MARKETING_HERO_PRIMARY.ctaPrimary}
             </Link>
             <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 bg-transparent px-8 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               {MARKETING_HERO_PRIMARY.ctaSecondary}
             </Link>
             <Link
-              href="/wear/shop"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 px-8 py-3 text-sm font-medium text-white/95 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              href="/pricing"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 px-8 py-3 text-sm font-medium text-white/95 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              Shop wearables
+              See plans
             </Link>
           </div>
         </ImageSection>
 
-        <section className="border-b border-[rgba(62,42,30,0.35)] bg-gradient-to-b from-[#2a1810] via-[#23150f] to-[#1a100c] text-stone-100">
+        <section className="border-b border-[rgba(62,42,30,0.35)] bg-linear-to-b from-[#2a1810] via-[#23150f] to-[#1a100c] text-stone-100">
           <div className={`${ui.pageContainer} py-14 sm:py-20`}>
             <div className="max-w-2xl">
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">Money on the table</p>
@@ -200,7 +191,7 @@ export default async function Home() {
               ].map((line) => (
                 <li
                   key={line}
-                  className="flex gap-3.5 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-5 py-4 text-sm leading-relaxed text-stone-200 sm:text-base"
+                  className="flex gap-3.5 rounded-2xl border border-white/[0.07] bg-white/3 px-5 py-4 text-sm leading-relaxed text-stone-200 sm:text-base"
                 >
                   <span className="mt-0.5 shrink-0 font-medium text-white/35" aria-hidden>
                     —
@@ -211,14 +202,14 @@ export default async function Home() {
             </ul>
             <div className="mt-12 flex flex-wrap gap-3">
               <Link
-                href="/dashboard/studio/new?setup=both"
+                href="/demo"
                 className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-7 py-2.5 text-sm font-medium text-(--brand-ink) shadow-sm transition hover:bg-stone-100"
               >
                 Create your studio
               </Link>
               <Link
                 href="/pricing"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 px-7 py-2.5 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/[0.06]"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 px-7 py-2.5 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/6"
               >
                 See plans
               </Link>
@@ -228,22 +219,27 @@ export default async function Home() {
 
         <section className="border-b border-(--brand-line) bg-white">
           <div className={`${ui.pageContainer} py-14 sm:py-16`}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">Studios like yours</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">{EARLY_ACCESS_PROOF.eyebrow}</p>
             <h2 className="mt-4 max-w-xl font-serif text-2xl font-normal leading-tight tracking-[-0.02em] text-(--brand-ink) sm:text-3xl">
-              Built to pay for itself
+              {EARLY_ACCESS_PROOF.headline}
             </h2>
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {STUDIO_TESTIMONIALS.map((t) => (
-                <article
-                  key={t.studio}
-                  className="rounded-3xl border border-stone-200/80 bg-[#fdfcfa] p-6 shadow-[0_1px_0_rgba(28,25,23,0.04)] sm:p-7"
-                >
-                  <p className="text-[0.9375rem] leading-relaxed text-stone-700">&ldquo;{t.quote}&rdquo;</p>
-                  <p className="mt-5 text-xs font-medium uppercase tracking-[0.12em] text-stone-400">
-                    {testimonialAttribution(t)}
-                  </p>
-                </article>
-              ))}
+            <div className="mt-6 max-w-3xl rounded-3xl border border-stone-200/80 bg-[#fdfcfa] p-6 shadow-[0_1px_0_rgba(28,25,23,0.04)] sm:p-8">
+              <p className="text-base leading-relaxed text-stone-700">{EARLY_ACCESS_PROOF.body}</p>
+              <ul className="mt-5 grid gap-3 sm:grid-cols-3">
+                {EARLY_ACCESS_PROOF.bullets.map((line) => (
+                  <li key={line} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-700">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 flex flex-wrap items-center gap-4">
+                <p className="text-sm font-semibold text-amber-950">
+                  {displayedPreRegTotal(preRegCount)} studios joined early access.
+                </p>
+                <Link href={EARLY_ACCESS_PROOF.ctaHref} className="inline-flex min-h-11 items-center justify-center rounded-full bg-(--brand-ink) px-6 py-2.5 text-sm font-medium text-white transition hover:opacity-95">
+                  {EARLY_ACCESS_PROOF.ctaLabel}
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -288,7 +284,7 @@ export default async function Home() {
                 <p className="mt-3 text-sm leading-relaxed text-stone-600 sm:text-base">
                   Pay by studio usage: bookings-only, shop-only, both, or pro. Platform commission stays at 0%.
                 </p>
-                <p className="mt-3 text-sm font-medium text-amber-950">Start free. Upgrade when you&apos;re ready.</p>
+                <p className="mt-3 text-sm font-medium text-amber-950">Free until 1 May 2026. No payment required.</p>
                 <Link
                   href="/pricing"
                   className="mt-4 inline-flex text-sm font-medium text-amber-950 underline decoration-amber-200/80 underline-offset-4 transition hover:decoration-amber-500/80"
@@ -352,7 +348,7 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
-            <Link href="/dashboard/studio/new?setup=both" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="/demo" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               Create your studio
             </Link>
           </div>
@@ -421,26 +417,14 @@ export default async function Home() {
               </p>
             </div>
             <div className="grid gap-4">
-              <TestimonialCard quote={STUDIO_TESTIMONIALS[0].quote} author={testimonialAttribution(STUDIO_TESTIMONIALS[0])} />
-              <TestimonialCard quote={STUDIO_TESTIMONIALS[1].quote} author={testimonialAttribution(STUDIO_TESTIMONIALS[1])} />
-            </div>
-          </div>
-        </ImageSection>
-
-        <section className="border-t border-(--brand-line) bg-(--warm-surface)">
-          <div className={`${ui.pageContainer} py-10 sm:py-14`}>
-            <div className="flex flex-wrap gap-3">
-              {trustTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center rounded-full border border-(--brand-line) bg-white/80 px-4 py-2 text-sm font-medium text-stone-700"
-                >
-                  {tag}
-                </span>
+              {EARLY_ACCESS_PROOF.bullets.map((line) => (
+                <article key={line} className="rounded-[1.6rem] border border-white/10 bg-white/10 p-5 text-left backdrop-blur-md">
+                  <p className="text-base leading-7 text-stone-100">{line}</p>
+                </article>
               ))}
             </div>
           </div>
-        </section>
+        </ImageSection>
 
         <ImageSection
           tone="texture"
@@ -454,15 +438,15 @@ export default async function Home() {
               Your studio deserves a calmer setup online.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
-              Create your studio when you are ready. Plans from €19/month, 0% platform commission on checkout sales and
-              bookings.
+              Create your studio when you are ready. Free until 1 May 2026, then plans from €19/month with 0% platform
+              commission on checkout sales and bookings.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+              <Link href="/demo" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
                 Create your studio
               </Link>
-              <Link href="/dashboard/studio/new?setup=both" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
-                Set up your site
+              <Link href="/pricing" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                See plans
               </Link>
               <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
                 Sign in
@@ -479,7 +463,7 @@ function AnnouncementStrip({ preRegShown }: { preRegShown: number }) {
   const preRegLine = (
     <p className="text-sm text-stone-600 sm:text-right" aria-live="polite">
       <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegShown}</span>
-      <span className="tabular-nums text-stone-600"> studios onboarded</span>
+      <span className="tabular-nums text-stone-600"> studios joined early access</span>
     </p>
   );
 
@@ -489,7 +473,7 @@ function AnnouncementStrip({ preRegShown }: { preRegShown: number }) {
         <div className="max-w-xl space-y-1">
           <p className="font-medium text-(--brand-ink)">Built for ceramic studios and makers who sell, teach, and run the business.</p>
           <p className="text-xs leading-relaxed text-stone-600 sm:text-sm">
-            Shop and bookings run from your studio dashboard. Start in minutes, grow at your pace.
+            Build your studio site, launch classes, and start selling in one calm system.
           </p>
         </div>
         {preRegLine}
@@ -537,128 +521,50 @@ function ImageSection({
   );
 }
 
-function TestimonialCard({ quote, author }: { quote: string; author: string }) {
-  return (
-    <article className="rounded-[1.6rem] border border-white/10 bg-white/10 p-5 text-left backdrop-blur-md">
-      <p className="text-base leading-7 text-stone-100">“{quote}”</p>
-      <p className="mt-4 text-sm font-medium uppercase tracking-[0.16em] text-stone-300">{author}</p>
-    </article>
-  );
-}
-
 function StudioArtwork() {
   return (
-    <svg viewBox="0 0 1600 1000" className="h-full w-full object-cover" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <defs>
-        <linearGradient id="studioBg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="#e8d7c5" />
-          <stop offset="45%" stopColor="#b38869" />
-          <stop offset="100%" stopColor="#493225" />
-        </linearGradient>
-      </defs>
-      <rect width="1600" height="1000" fill="url(#studioBg)" />
-      <rect x="150" y="130" width="1040" height="490" rx="36" fill="#8f6b53" fillOpacity="0.36" />
-      {studioShelfPieces.map(({ x, y, w, h, fill }) => (
-        <g key={`${x}-${y}`}>
-          <rect x={x} y={y} width={w} height={14} rx={7} fill="#533829" fillOpacity="0.58" />
-          <ellipse cx={x + w / 2} cy={y + h} rx={w / 2} ry={h / 6} fill={fill} />
-          <rect x={x + w * 0.2} y={y + h * 0.22} width={w * 0.6} height={h * 0.46} rx={w * 0.18} fill={fill} />
-        </g>
-      ))}
-      <rect x="1180" y="0" width="240" height="1000" fill="#f4e5d7" fillOpacity="0.2" />
-      <ellipse cx="1315" cy="305" rx="92" ry="160" fill="#fff6ec" fillOpacity="0.38" />
-      <ellipse cx="1280" cy="765" rx="205" ry="115" fill="#2f221b" fillOpacity="0.58" />
-    </svg>
+    <Image
+      src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=2400&q=85"
+      alt="Ceramic pieces arranged on studio shelving"
+      fill
+      className="object-cover object-center"
+      sizes="100vw"
+    />
   );
 }
 
 function ShelfShowcaseArtwork() {
   return (
-    <svg viewBox="0 0 1600 950" className="h-full w-full object-cover" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <defs>
-        <linearGradient id="showcaseBg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="#f1e3d7" />
-          <stop offset="40%" stopColor="#c89d78" />
-          <stop offset="100%" stopColor="#4b3428" />
-        </linearGradient>
-      </defs>
-      <rect width="1600" height="950" fill="url(#showcaseBg)" />
-      <ellipse cx="430" cy="735" rx="250" ry="88" fill="#f6ede3" fillOpacity="0.68" />
-      <ellipse cx="1160" cy="735" rx="250" ry="88" fill="#f6ede3" fillOpacity="0.62" />
-      <ellipse cx="430" cy="640" rx="130" ry="170" fill="#d8b393" />
-      <ellipse cx="430" cy="606" rx="95" ry="140" fill="#b7794f" />
-      <ellipse cx="430" cy="586" rx="55" ry="55" fill="#efe3d5" />
-      <ellipse cx="1160" cy="630" rx="160" ry="182" fill="#ead6c1" />
-      <ellipse cx="1160" cy="598" rx="112" ry="144" fill="#c49370" />
-      <ellipse cx="1160" cy="575" rx="63" ry="58" fill="#fff1df" />
-      <rect x="640" y="214" width="320" height="430" rx="40" fill="#f8efe6" fillOpacity="0.2" />
-      <path d="M800 312c76 0 137 42 137 95 0 52-61 95-137 95s-137-43-137-95c0-53 61-95 137-95Z" fill="#f7eadc" fillOpacity="0.42" />
-      <rect x="738" y="384" width="124" height="172" rx="56" fill="#8a593d" fillOpacity="0.76" />
-      <ellipse cx="800" cy="554" rx="82" ry="34" fill="#d7b091" fillOpacity="0.65" />
-    </svg>
+    <Image
+      src="https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=2400&q=85"
+      alt="Handmade stoneware bowls and serving pieces"
+      fill
+      className="object-cover object-center"
+      sizes="100vw"
+    />
   );
 }
 
 function ClassesArtwork() {
   return (
-    <svg viewBox="0 0 1600 980" className="h-full w-full object-cover" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <defs>
-        <linearGradient id="classesBg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="#ecdcca" />
-          <stop offset="46%" stopColor="#b98969" />
-          <stop offset="100%" stopColor="#473126" />
-        </linearGradient>
-      </defs>
-      <rect width="1600" height="980" fill="url(#classesBg)" />
-      <ellipse cx="380" cy="588" rx="110" ry="170" fill="#8c5d42" fillOpacity="0.88" />
-      <circle cx="380" cy="386" r="66" fill="#e1bc9c" fillOpacity="0.86" />
-      <ellipse cx="750" cy="598" rx="118" ry="176" fill="#6a4838" fillOpacity="0.9" />
-      <circle cx="752" cy="392" r="70" fill="#d7af8a" fillOpacity="0.88" />
-      <ellipse cx="1110" cy="598" rx="110" ry="168" fill="#9b6b50" fillOpacity="0.88" />
-      <circle cx="1112" cy="388" r="68" fill="#e4c2a2" fillOpacity="0.86" />
-      <ellipse cx="380" cy="748" rx="152" ry="74" fill="#2f211a" fillOpacity="0.44" />
-      <ellipse cx="752" cy="748" rx="164" ry="74" fill="#2f211a" fillOpacity="0.44" />
-      <ellipse cx="1112" cy="748" rx="152" ry="74" fill="#2f211a" fillOpacity="0.44" />
-      <path d="M320 660c38-55 82-82 131-82 49 0 89 21 121 64-58-12-113-9-167 6-32 8-61 14-85 12Z" fill="#ceb49d" fillOpacity="0.8" />
-      <path d="M688 668c35-52 81-78 129-78 48 0 86 18 117 58-54-10-107-7-159 7-31 8-59 14-87 13Z" fill="#dac3ad" fillOpacity="0.76" />
-      <path d="M1048 666c34-48 76-73 121-73 46 0 84 18 112 54-49-8-99-5-146 10-29 8-57 13-87 9Z" fill="#e0c7b1" fillOpacity="0.76" />
-    </svg>
+    <Image
+      src="https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=2400&q=85"
+      alt="Pottery workshop students shaping clay together"
+      fill
+      className="object-cover object-center"
+      sizes="100vw"
+    />
   );
 }
 
 function TextureArtwork() {
   return (
-    <svg viewBox="0 0 1600 900" className="h-full w-full object-cover" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <defs>
-        <linearGradient id="textureBg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="#e6cfbb" />
-          <stop offset="45%" stopColor="#9f6f54" />
-          <stop offset="100%" stopColor="#2e1f18" />
-        </linearGradient>
-      </defs>
-      <rect width="1600" height="900" fill="url(#textureBg)" />
-      {[
-        "M0 186C110 148 208 149 316 185s217 56 338 37c145-23 214-90 338-94 101-3 205 36 314 76 94 35 186 49 294 36v77H0Z",
-        "M0 401c149-54 277-56 423-5 172 60 249 93 383 72 132-22 210-83 350-90 138-7 242 42 444 129v86H0Z",
-        "M0 656c119-46 236-50 375-13 157 42 270 106 415 109 135 3 232-54 334-85 158-48 302-31 476 58v175H0Z",
-      ].map((d, index) => (
-        <path
-          key={d}
-          d={d}
-          fill={index === 0 ? "#f5e7da" : index === 1 ? "#c69471" : "#704a37"}
-          fillOpacity={index === 2 ? 0.62 : 0.4}
-        />
-      ))}
-      {[
-        [210, 210, 65],
-        [394, 312, 48],
-        [626, 248, 76],
-        [880, 330, 58],
-        [1112, 248, 82],
-        [1378, 334, 60],
-      ].map(([cx, cy, r]) => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} fill="#fff8ef" fillOpacity="0.08" />
-      ))}
-    </svg>
+    <Image
+      src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=2400&q=85"
+      alt="Studio table with handmade ceramics and warm natural light"
+      fill
+      className="object-cover object-center"
+      sizes="100vw"
+    />
   );
 }

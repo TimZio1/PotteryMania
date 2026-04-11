@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/db";
+import { checkAiUserRateLimit } from "@/lib/ai/ai-rate-limiter";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -11,6 +12,10 @@ type Ctx = { params: Promise<{ studioId: string }> };
 export async function POST(req: Request, ctx: Ctx) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const rate = checkAiUserRateLimit("guided-suggest", user.id, 20, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many AI requests" }, { status: 429 });
+  }
   const { studioId } = await ctx.params;
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
   if (!studio || studio.ownerUserId !== user.id) {

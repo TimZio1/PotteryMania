@@ -41,8 +41,20 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
   const order = await prisma.order.findFirst({
     where: { id: orderId, items: { some: { vendorId: studioId } } },
+    include: {
+      items: {
+        select: { vendorId: true },
+      },
+    },
   });
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  const distinctVendorIds = new Set(order.items.map((item) => item.vendorId));
+  if (distinctVendorIds.size !== 1 || !distinctVendorIds.has(studioId)) {
+    return NextResponse.json(
+      { error: "This order includes multiple studios and must be managed by platform support." },
+      { status: 409 },
+    );
+  }
 
   const data: Prisma.OrderUpdateInput = {};
 

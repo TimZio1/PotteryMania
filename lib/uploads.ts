@@ -28,3 +28,15 @@ export function uploadConfigPayload(folder = "potterymania/products") {
     signature: createCloudinarySignature(params),
   };
 }
+
+const ALLOWED_UPLOAD_FOLDERS = new Set([
+  "potterymania/studio-brand",
+]);
+
+export function resolveAllowedUploadFolder(folder: string | undefined, userId: string): string {
+  const requested = (folder || "").trim();
+  if (ALLOWED_UPLOAD_FOLDERS.has(requested)) {
+    return requested;
+  }
+  return `potterymania/users/${userId}/uploads`;
+}

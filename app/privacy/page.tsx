@@ -17,27 +17,24 @@ export default function PrivacyPage() {
       <p className="text-sm text-stone-500">
         Last updated: <time dateTime={LAST_UPDATED}>{LAST_UPDATED}</time>
       </p>
-      {/* TODO (counsel): jurisdiction-specific sections, subprocessors list, DPA, international transfers, retention table per data category, studio CRM / student contact retention aligned with DELETE /api/studios/.../contacts/[id]. */}
       <p>
-        This policy describes how PotteryMania (&quot;we&quot;, &quot;us&quot;) handles personal information. It is a
-        practical outline for a studio-website and booking product — replace placeholders and have it reviewed for GDPR,
-        CCPA, or other regimes that apply to you.
+        This policy explains how PotteryMania collects, uses, stores, and shares personal data when you use the public
+        website, create an account, run a studio on the platform, make a purchase, or book a class.
       </p>
 
       <h2>1. Who we are</h2>
       <p>
-        The data controller is the legal entity operating PotteryMania. Insert registered name, address, and contact
-        email for privacy requests.
+        PotteryMania is the controller for the personal data we process to operate the platform, secure accounts,
+        support studios, and run customer-facing bookings and commerce. During early access, privacy-related requests are
+        handled through the support pathways available inside the product. Public contact details will be published on the
+        website before the end of the early-access period.
       </p>
 
-      <h2>2. Retention (summary)</h2>
+      <h2>2. Data we collect</h2>
       <p>
-        Studios may remove individual student contacts from their CRM via the dashboard; deletion calls remove that
-        contact row for that studio. Broader retention for orders, bookings, and logs follows operational and legal
-        needs — set explicit periods with counsel.
+        We collect account details, transaction information, booking information, customer support communications,
+        technical logs, and analytics events required to operate PotteryMania safely and effectively.
       </p>
-
-      <h2>3. Data we collect</h2>
       <ul>
         <li>
           <strong>Account data:</strong> email, password (hashed), role, and profile details you provide.
@@ -60,7 +57,7 @@ export default function PrivacyPage() {
         </li>
       </ul>
 
-      <h2>4. Why we use data</h2>
+      <h2>3. Why we use data</h2>
       <ul>
         <li>Provide, secure, and improve the platform.</li>
         <li>Process checkout, payouts, and customer support.</li>
@@ -68,49 +65,65 @@ export default function PrivacyPage() {
         <li>Send service-related messages; marketing only where you have opted in or the law allows.</li>
       </ul>
 
-      <h2>5. Sharing</h2>
+      <h2>4. Legal bases</h2>
       <p>
-        We share data with studios when they need it to fulfil your order or booking, with payment and email providers
-        that process data on our instructions, and with authorities when required by law. We do not sell personal
-        information as a business model; adjust this sentence if your practices differ.
+        Where GDPR or similar rules apply, we rely on contractual necessity, legitimate interests, legal obligations,
+        and consent where appropriate. For example, we process data to create accounts, complete bookings, operate
+        checkout, detect abuse, and communicate essential service updates.
+      </p>
+
+      <h2>5. Sharing and subprocessors</h2>
+      <p>
+        We share data with studios when they need it to fulfil an order or booking, with payment processors such as
+        Stripe, hosting and infrastructure providers such as Vercel, media and upload providers such as Cloudinary when
+        enabled, email providers that deliver transactional messages, and authorities when disclosure is legally required.
+        We do not sell personal data as a business model.
       </p>
 
       <h2>6. Cookies and analytics</h2>
       <p>
-        We may use cookies and similar technologies for session management, preferences, and measurement (for example
-        Google Analytics or Meta Pixel when configured). Manage or block cookies through your browser; some features may
-        not work without essential cookies.
+        We use cookies and similar technologies for authentication, session continuity, security, preferences, and
+        measurement. Blocking essential cookies may prevent sign-in, checkout, or dashboard features from working
+        correctly.
       </p>
 
       <h2>7. Retention</h2>
       <p>
-        We keep data as long as needed for the purposes above, including legal, tax, and dispute resolution. Specific
-        retention periods should be documented in your internal records.
+        We keep personal data only for as long as needed to operate the service, comply with legal and tax obligations,
+        resolve disputes, and maintain basic security records. Studios may remove certain customer records through the
+        dashboard, but some transaction records must be retained for operational and compliance reasons.
       </p>
 
       <h2>8. Your rights</h2>
       <p>
-        Depending on where you live, you may have rights to access, correct, delete, or export your data, and to object
-        to certain processing. Contact us at your designated privacy address to exercise these rights. You may also lodge
-        a complaint with a supervisory authority.
+        Depending on your location, you may have rights to access, correct, delete, export, or object to certain uses of
+        your data. You may also have the right to withdraw consent where processing depends on consent. Requests can be
+        submitted through the support pathways available inside PotteryMania during early access.
       </p>
 
-      <h2>9. Security</h2>
+      <h2>9. International transfers</h2>
       <p>
-        We use industry-standard measures to protect data. No method of transmission over the internet is completely
-        secure; we encourage strong passwords and careful handling of sign-in links.
+        If we transfer personal data across borders, we take reasonable steps to do so using appropriate legal and
+        operational safeguards required by applicable law.
       </p>
 
-      <h2>10. Children</h2>
+      <h2>10. Security</h2>
       <p>
-        The service is not directed at children under the age where parental consent is required in your jurisdiction.
-        If you believe we have collected such data, contact us for deletion.
+        We use technical and organisational safeguards intended to protect personal data. No internet-based service can be
+        guaranteed perfectly secure, so you should also use strong passwords and keep sign-in methods private.
       </p>
 
-      <h2>11. Changes</h2>
+      <h2>11. Children</h2>
       <p>
-        We may update this policy and will adjust the &quot;Last updated&quot; date on the page. Material changes may be
-        communicated by email or in-product notice where appropriate.
+        PotteryMania is not directed at children below the age at which parental consent is required under applicable
+        law. If you believe personal data has been collected from a child inappropriately, contact us through support so
+        we can review and delete it where required.
+      </p>
+
+      <h2>12. Changes</h2>
+      <p>
+        We may update this policy and will revise the &quot;Last updated&quot; date when we do. Material changes may also
+        be communicated by email or in-product notice where appropriate.
       </p>
 
       <p className="border-t border-stone-200 pt-6 text-stone-500">
@@ -120,7 +133,7 @@ export default function PrivacyPage() {
         </Link>
         {" · "}
         <Link href="/vendor-terms" className="font-medium text-amber-900 hover:underline">
-          Studio &amp; vendor terms
+          Studio terms
         </Link>
         .
       </p>

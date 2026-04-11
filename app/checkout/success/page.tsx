@@ -62,8 +62,8 @@ export default function CheckoutSuccessPage() {
               <Link href="/dashboard/studio/new?setup=bookings" className={cn(ui.buttonGhost, "text-sm")}>
                 Start bookings setup
               </Link>
-              <Link href="/wear/shop" className={cn(ui.buttonGhost, "text-sm")}>
-                Shop wearables
+              <Link href="/demo" className={cn(ui.buttonGhost, "text-sm")}>
+                Create your studio
               </Link>
             </div>
           </div>

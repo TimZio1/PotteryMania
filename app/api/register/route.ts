@@ -22,8 +22,7 @@ export async function POST(req: Request) {
   }
   const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
   const password = typeof body.password === "string" ? body.password : "";
-  let role: UserRole = "customer";
-  if (body.role === "vendor") role = "vendor";
+  const role: UserRole = "customer";
   if (!EMAIL.test(email) || password.length < 8) {
     return NextResponse.json(
       { error: "Valid email and password (min 8 characters) required" },

@@ -23,27 +23,58 @@ export function WearPdpBuySection({
   currency: string;
   variants: WearPdpVariant[];
 }) {
-  const [variantId, setVariantId] = useState<string>("");
+  const variantMeta = useMemo(() => {
+    return variants.map((variant) => {
+      const [sizeRaw, colorRaw] = variant.label.split(" · ");
+      return {
+        ...variant,
+        size: sizeRaw?.trim() || variant.label,
+        color: colorRaw?.trim() || "Default",
+      };
+    });
+  }, [variants]);
+
+  const colors = useMemo(() => [...new Set(variantMeta.map((variant) => variant.color))], [variantMeta]);
+  const [selectedColor, setSelectedColor] = useState<string>(colors[0] ?? "");
+  const [selectedSize, setSelectedSize] = useState<string>("");
 
   useEffect(() => {
     trackWearEvent(WEAR_EVENT_KINDS.productView, { productId });
   }, [productId]);
 
-  const needsVariant = variants.length > 0;
+  useEffect(() => {
+    setSelectedColor(colors[0] ?? "");
+  }, [colors]);
+
+  const needsVariant = variantMeta.length > 0;
+
+  const colorVariants = useMemo(
+    () => variantMeta.filter((variant) => variant.color === selectedColor),
+    [selectedColor, variantMeta],
+  );
+
+  const sizes = useMemo(() => [...new Set(colorVariants.map((variant) => variant.size))], [colorVariants]);
+
+  useEffect(() => {
+    setSelectedSize((current) => (sizes.includes(current) ? current : ""));
+  }, [sizes]);
 
   const selected = useMemo(
-    () => (variantId ? variants.find((v) => v.id === variantId) ?? null : null),
-    [variantId, variants],
+    () =>
+      selectedColor && selectedSize
+        ? variantMeta.find((variant) => variant.color === selectedColor && variant.size === selectedSize) ?? null
+        : null,
+    [selectedColor, selectedSize, variantMeta],
   );
 
   const displayCents = selected ? (selected.priceCents ?? basePriceCents) : basePriceCents;
 
   const fromCents = useMemo(() => {
-    if (variants.length === 0) return basePriceCents;
-    const inStock = variants.filter((v) => v.stockQuantity == null || v.stockQuantity > 0);
-    const prices = (inStock.length ? inStock : variants).map((v) => v.priceCents ?? basePriceCents);
+    if (variantMeta.length === 0) return basePriceCents;
+    const inStock = variantMeta.filter((v) => v.stockQuantity == null || v.stockQuantity > 0);
+    const prices = (inStock.length ? inStock : variantMeta).map((v) => v.priceCents ?? basePriceCents);
     return Math.min(basePriceCents, ...prices);
-  }, [variants, basePriceCents]);
+  }, [variantMeta, basePriceCents]);
 
   const soldOut =
     selected && selected.stockQuantity != null && selected.stockQuantity <= 0
@@ -53,33 +84,65 @@ export function WearPdpBuySection({
         : false;
 
   const canAdd =
-    !soldOut && (!needsVariant || (variantId.length > 0 && selected && (selected.stockQuantity == null || selected.stockQuantity > 0)));
+    !soldOut && (!needsVariant || (selected && (selected.stockQuantity == null || selected.stockQuantity > 0)));
+
+  const swatchClass = (active: boolean) =>
+    `inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-3 text-xs font-medium transition ${
+      active
+        ? "border-amber-300 bg-amber-100 text-amber-950"
+        : "border-white/15 bg-neutral-900 text-neutral-200 hover:border-white/30"
+    }`;
+
+  const sizeClass = (active: boolean, disabled: boolean) =>
+    `inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition ${
+      disabled
+        ? "cursor-not-allowed border-white/10 bg-neutral-900/50 text-neutral-500"
+        : active
+          ? "border-amber-300 bg-amber-100 text-amber-950"
+          : "border-white/15 bg-neutral-900 text-neutral-200 hover:border-white/30"
+    }`;
 
   return (
     <div>
       {needsVariant ? (
-        <div className="mt-2">
-          <label htmlFor="wear-variant" className="text-xs font-medium uppercase tracking-wider text-neutral-500">
-            Option
-          </label>
-          <select
-            id="wear-variant"
-            value={variantId}
-            onChange={(e) => setVariantId(e.target.value)}
-            className="mt-2 w-full border border-white/15 bg-neutral-900 px-4 py-3 text-sm text-white"
-          >
-            <option value="">Choose…</option>
-            {variants.map((v) => {
-              const oos = v.stockQuantity != null && v.stockQuantity <= 0;
-              const price = v.priceCents != null ? v.priceCents : basePriceCents;
-              return (
-                <option key={v.id} value={v.id} disabled={oos}>
-                  {v.label}
-                  {oos ? " — sold out" : ` — ${formatWearMoney(price, currency)}`}
-                </option>
-              );
-            })}
-          </select>
+        <div className="mt-2 space-y-5">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">Color</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {colors.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  className={swatchClass(color === selectedColor)}
+                  onClick={() => setSelectedColor(color)}
+                  aria-pressed={color === selectedColor}
+                >
+                  {color}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">Size</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {sizes.map((size) => {
+                const variant = colorVariants.find((row) => row.size === size) ?? null;
+                const disabled = variant?.stockQuantity != null && variant.stockQuantity <= 0;
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    className={sizeClass(size === selectedSize, Boolean(disabled))}
+                    onClick={() => setSelectedSize(size)}
+                    disabled={disabled}
+                    aria-pressed={size === selectedSize}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -98,7 +161,7 @@ export function WearPdpBuySection({
         {canAdd ? (
           <WearAddToCartButton
             productId={productId}
-            variantId={needsVariant ? variantId : null}
+            variantId={needsVariant ? selected?.id ?? null : null}
             label="Add to cart"
           />
         ) : (

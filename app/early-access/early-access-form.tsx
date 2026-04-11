@@ -173,7 +173,7 @@ export function EarlyAccessForm({
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
         <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
-          {displayedPreRegTotal(count)} studios have started setup.
+          {displayedPreRegTotal(count)} studios joined early access.
         </p>
       </div>
     );
@@ -246,7 +246,7 @@ export function EarlyAccessForm({
         <button
           type="button"
           onClick={() => setShowOptional(true)}
-          className={`flex w-full items-center justify-center gap-[var(--pm-space-2)] rounded-[length:var(--pm-radius-control)] border border-dashed border-stone-200 bg-stone-50/80 py-[var(--pm-space-2)] text-xs font-medium text-stone-500 transition hover:border-amber-300 hover:text-stone-700`}
+          className={`flex w-full items-center justify-center gap-(--pm-space-2) rounded-(--pm-radius-control) border border-dashed border-stone-200 bg-stone-50/80 py-(--pm-space-2) text-xs font-medium text-stone-500 transition hover:border-amber-300 hover:text-stone-700`}
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -256,7 +256,7 @@ export function EarlyAccessForm({
       )}
 
       {showOptional && (
-        <div className={`${ui.cardMuted} space-y-[var(--pm-space-4)] !p-[var(--pm-space-4)]`}>
+        <div className={`${ui.cardMuted} space-y-(--pm-space-4) p-(--pm-space-4)!`}>
           {/* Website / Instagram */}
           <div>
             <label className={ui.label} htmlFor="ea-web">
@@ -303,7 +303,7 @@ export function EarlyAccessForm({
             )}
 
             {photos.length < MAX_PHOTOS && (
-              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-[length:var(--pm-radius-control)] border border-dashed border-stone-300 bg-white px-[var(--pm-space-3)] py-[var(--pm-space-2)] text-xs font-medium text-stone-600 transition hover:border-amber-400 hover:bg-amber-50/40">
+              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-(--pm-radius-control) border border-dashed border-stone-300 bg-white px-(--pm-space-3) py-(--pm-space-2) text-xs font-medium text-stone-600 transition hover:border-amber-400 hover:bg-amber-50/40">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -338,14 +338,14 @@ export function EarlyAccessForm({
       </button>
 
       {/* Trust + counter */}
-      <div className="flex flex-col items-center gap-[var(--pm-space-3)] border-t border-stone-200/80 pt-[var(--pm-space-5)]">
+      <div className="flex flex-col items-center gap-(--pm-space-3) border-t border-stone-200/80 pt-(--pm-space-5)">
         <p className="text-center text-base font-semibold leading-snug text-stone-800 sm:text-lg">
           No credit card. No commitment. Cancel anytime.
         </p>
         <p className="flex items-center justify-center gap-2 text-center text-base font-semibold text-stone-900 sm:text-lg">
           <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
           <span>
-            {displayedPreRegTotal(count)} studios started setup
+            {displayedPreRegTotal(count)} studios joined early access
           </span>
         </p>
       </div>

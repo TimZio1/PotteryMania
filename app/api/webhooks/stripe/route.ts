@@ -189,6 +189,9 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+    if (session.payment_status !== "paid") {
+      return ack();
+    }
 
     if (session.metadata?.type === "offering_subscription") {
       const targetType = session.metadata.targetType;
@@ -483,12 +486,21 @@ export async function POST(req: Request) {
         const amountTotal = session.amount_total ?? null;
         try {
           const applied = await prisma.$transaction(async (tx) => {
+            const lockedRows = await tx.$queryRawUnsafe<{ id: string; status: string; stripe_checkout_session_id: string | null }[]>(
+              `SELECT id, status::text, stripe_checkout_session_id
+               FROM wear_orders
+               WHERE id = $1::uuid
+               FOR UPDATE`,
+              wearOrderId
+            );
+            if (!lockedRows.length || lockedRows[0].status !== "pending") return false;
+            if (lockedRows[0].stripe_checkout_session_id && lockedRows[0].stripe_checkout_session_id !== session.id) return false;
+
             const order = await tx.wearOrder.findUnique({
               where: { id: wearOrderId },
               include: { items: true },
             });
             if (!order || order.status !== "pending") return false;
-            if (order.stripeCheckoutSessionId && order.stripeCheckoutSessionId !== session.id) return false;
 
             const paidNow = new Date();
             await tx.wearOrder.update({
@@ -504,14 +516,18 @@ export async function POST(req: Request) {
 
             for (const item of order.items) {
               if (!item.wearProductVariantId) continue;
-              const v = await tx.wearProductVariant.findUnique({
-                where: { id: item.wearProductVariantId },
+              const updatedStock = await tx.wearProductVariant.updateMany({
+                where: {
+                  id: item.wearProductVariantId,
+                  OR: [{ stockQuantity: null }, { stockQuantity: { gte: item.quantity } }],
+                },
+                data: {
+                  ...(typeof item.quantity === "number" ? { stockQuantity: { decrement: item.quantity } } : {}),
+                },
               });
-              if (!v || v.stockQuantity == null) continue;
-              await tx.wearProductVariant.update({
-                where: { id: v.id },
-                data: { stockQuantity: Math.max(0, v.stockQuantity - item.quantity) },
-              });
+              if (updatedStock.count === 0) {
+                throw new Error(`WEAR_STOCK_RACE:${item.wearProductVariantId}`);
+              }
             }
 
             await tx.wearAnalyticsEvent.create({

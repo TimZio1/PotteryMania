@@ -29,8 +29,16 @@ export async function POST(req: Request) {
   }
 
   const day = utcDay(new Date());
-  const studioId = typeof body.studioId === "string" ? body.studioId : null;
-  const costCents = typeof body.costCents === "number" && body.costCents >= 0 ? Math.floor(body.costCents) : 0;
+  const rawStudioId = typeof body.studioId === "string" ? body.studioId : null;
+  const studioId = rawStudioId
+    ? (
+        await prisma.studio.findFirst({
+          where: { id: rawStudioId, ownerUserId: user.id },
+          select: { id: true },
+        })
+      )?.id ?? null
+    : null;
+  const costCents = 0;
 
   const existing = await prisma.featureUsageFact.findFirst({
     where: {

@@ -9,9 +9,6 @@ export async function GET(_req: Request, ctx: Ctx) {
   const reviews = await prisma.review.findMany({
     where: { productId, isVisible: true },
     orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    include: {
-      author: { select: { email: true } },
-    },
     take: 20,
   });
   const avg = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;

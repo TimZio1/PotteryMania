@@ -6,11 +6,11 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col bg-stone-50">
       <header className="border-b border-(--brand-line) bg-[rgba(250,248,245,0.88)] backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center px-[var(--pm-space-4)] sm:h-18 sm:px-[var(--pm-space-8)]">
+        <div className="mx-auto flex h-16 max-w-6xl items-center px-(--pm-space-4) sm:h-18 sm:px-(--pm-space-8)">
           <BrandLogo className="text-(--brand-ink)" />
         </div>
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center px-[var(--pm-space-4)] py-[var(--pm-space-16)] text-center">
+      <main className="flex flex-1 flex-col items-center justify-center px-(--pm-space-4) py-(--pm-space-16) text-center">
         <p className="text-6xl font-bold text-stone-300">404</p>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-amber-950">Page not found</h1>
         <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
@@ -20,11 +20,8 @@ export default function NotFound() {
           <Link href="/" className={ui.buttonPrimary}>
             Back to home
           </Link>
-          <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>
-            Start studio website
-          </Link>
-          <Link href="/wear/shop" className={ui.buttonSecondary}>
-            Shop wearables
+          <Link href="/demo" className={ui.buttonSecondary}>
+            Create your studio
           </Link>
         </div>
       </main>
