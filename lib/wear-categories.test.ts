@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   isWearCategory,
   isWearTopSubcategory,
+  resolveWearCatalogCategory,
   resolveWearCategory,
+  resolveWearProviderCategory,
   resolveWearTopSubcategory,
   wearCategoryLabel,
   wearTopSubcategoryLabel,
@@ -35,6 +37,35 @@ describe("wear category resolver", () => {
     expect(isWearCategory("tops")).toBe(true);
     expect(isWearCategory("foo")).toBe(false);
     expect(wearCategoryLabel("headwear")).toBe("Headwear");
+  });
+
+  it("prefers stored Spreadconnect provider category data when available", () => {
+    const resolved = resolveWearCatalogCategory({
+      name: "Studio Mark Tee",
+      spreadconnectProductTypeName: "Premium Unisex Hoodie",
+      spreadconnectCategoryData: {
+        categories: [
+          {
+            id: "outerwear",
+            translation: "Outerwear",
+            children: [{ id: "hoodies", translation: "Hoodies", children: [] }],
+          },
+        ],
+      },
+    });
+
+    expect(resolved.categorySlug).toBe("hoodies");
+    expect(resolved.categoryLabel).toBe("Hoodies");
+    expect(resolved.source).toBe("spreadconnect");
+    expect(resolved.fallbackCategory).toBe("hoodies");
+  });
+
+  it("falls back to product type name when category tree data is missing", () => {
+    expect(resolveWearProviderCategory({ spreadconnectProductTypeName: "Snapback Cap" })).toEqual({
+      slug: "snapback-cap",
+      label: "Snapback Cap",
+      path: ["Snapback Cap"],
+    });
   });
 });
 

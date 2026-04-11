@@ -122,9 +122,9 @@ export default function EditStudioPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-10">
       <Link href="/dashboard" className="text-sm text-amber-800">
-        ← Dashboard
+        ← Studio control panel
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold">Studio</h1>
+      <h1 className="mt-4 text-2xl font-semibold">Studio workspace</h1>
       <p className="text-sm text-stone-500">Status: {studio.status}</p>
       {studio.rejectionReason && (
         <p className="mt-2 text-sm text-red-600">Reason: {studio.rejectionReason}</p>
@@ -132,16 +132,16 @@ export default function EditStudioPage() {
 
       {justActivated && (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          Studio activated successfully. You can now list products and experiences.
+          Studio activated successfully. You can now take direct reservations and product sales.
         </div>
       )}
 
       {/* ── Activation gate ── */}
       {!activated && (
         <div className="mt-6 rounded-2xl border-2 border-emerald-300 bg-emerald-50/60 p-5">
-          <h2 className="text-lg font-semibold text-amber-950">Activate commerce</h2>
+          <h2 className="text-lg font-semibold text-amber-950">Activate direct payments</h2>
           <p className="mt-2 text-sm text-stone-700">
-            Connect Stripe first. Once Stripe is enabled, your shop and bookings activate automatically.
+            Connect Stripe first. Once payouts are enabled, direct product sales and reservations activate automatically.
           </p>
           <button
             type="button"
@@ -149,7 +149,7 @@ export default function EditStudioPage() {
             disabled={activating}
             className={`${ui.buttonPrimary} mt-5`}
           >
-            {activating ? "Checking Stripe status…" : "Activate now"}
+            {activating ? "Checking Stripe status…" : "Check setup & activate"}
           </button>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
         </div>
@@ -201,31 +201,31 @@ export default function EditStudioPage() {
               href={`/dashboard/experiences/${studioId}`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
-              Classes &amp; experiences
+              Experiences
             </Link>
             <Link
               href={`/dashboard/bookings/${studioId}`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
-              Bookings
+              Session calendar
             </Link>
             <Link
               href={`/dashboard/waitlist/${studioId}`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
-              Class waitlist
+              Session waitlist
             </Link>
           </>
         ) : (
           <p className="rounded-lg bg-stone-100 p-3 text-center text-sm text-stone-500">
-            Connect Stripe to unlock products, experiences, and bookings.
+            Connect payouts to unlock products, experiences, and reservations.
           </p>
         )}
         <button type="button" onClick={publishProfile} className="rounded border border-amber-800 py-2 text-amber-900">
-          Publish profile
+          Publish studio page
         </button>
         <button type="button" onClick={stripeOnboard} className="rounded bg-stone-800 py-2 text-white">
-          Connect Stripe
+          Connect payouts
         </button>
         <button type="button" onClick={stripeSync} className="text-sm text-stone-600 underline">
           Refresh Stripe status

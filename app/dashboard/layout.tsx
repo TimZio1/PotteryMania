@@ -7,9 +7,9 @@ import { DashboardRouteBreadcrumbs } from "@/components/dashboard/dashboard-rout
 import { PlatformHeader } from "@/components/platform/platform-header";
 
 export const metadata: Metadata = metaDashboardPage(
-  "Dashboard",
+  "Studio control panel",
   "/dashboard",
-  "Manage your ceramic studio website: shop, bookings, branding, and Stripe payouts.",
+  "Studio control panel for sessions, public pages, payments, and direct studio sales.",
 );
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     Boolean(session?.user?.email) && session?.user.emailVerified !== true;
 
   return (
-    <div className="pm-visual-platform min-h-screen bg-zinc-950 text-zinc-100" data-pm-visual="platform">
+    <div className="pm-visual-platform min-h-screen" data-pm-visual="platform">
       {showVerifyBanner && session?.user?.email ? (
         <EmailVerificationBanner email={session.user.email} />
       ) : null}

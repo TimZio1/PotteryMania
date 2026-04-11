@@ -286,7 +286,7 @@ export default function DemoPage() {
               title="What this kind of page should make a studio owner feel"
               avgRating={5}
               count={reviews.length}
-              reviews={reviews}
+              reviews={[...reviews]}
               studioThemed
             />
           </section>

@@ -5,6 +5,7 @@ import { AddToCart } from "./add-to-cart";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ReviewSummary } from "@/components/review-summary";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { ProductImageGallery } from "@/components/marketplace/product-image-gallery";
 import { ui } from "@/lib/ui-styles";
 import { getMarketplaceProduct } from "@/lib/products";
 import { prisma } from "@/lib/db";
@@ -88,27 +89,14 @@ export default async function ProductPage({ params }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
-            <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
-              {product.images[0] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={product.images[0].imageUrl} alt={product.title} className="aspect-square w-full object-cover" />
-              ) : (
-                <div className="flex aspect-square items-center justify-center text-stone-400">No image</div>
-              )}
-            </div>
-            {product.images.length > 1 ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {product.images.slice(1).map((im) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={im.id}
-                    src={im.imageUrl}
-                    alt={`${product.title} detail view`}
-                    className="h-16 w-16 rounded-lg object-cover ring-1 ring-stone-200"
-                  />
-                ))}
-              </div>
-            ) : null}
+            <ProductImageGallery
+              title={product.title}
+              images={product.images.map((image, index) => ({
+                id: image.id,
+                url: image.imageUrl,
+                alt: index === 0 ? product.title : `${product.title} detail view`,
+              }))}
+            />
           </div>
           <div>
             <p className="text-sm text-stone-500">

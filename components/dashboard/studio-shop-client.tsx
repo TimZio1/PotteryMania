@@ -316,7 +316,7 @@ export default function StudioShopClient({
           )}
           onClick={() => setTab("orders")}
         >
-          Orders ({orders.length})
+          Sales ({orders.length})
         </button>
       </div>
 
@@ -783,7 +783,7 @@ export default function StudioShopClient({
             <thead className="border-b border-stone-200 bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-500">
               <tr>
                 <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Customer</th>
+                <th className="px-4 py-3">Buyer</th>
                 <th className="px-4 py-3">Items</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Payment</th>
@@ -794,7 +794,7 @@ export default function StudioShopClient({
               {orders.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
-                    No product orders yet.
+                    No product sales yet.
                   </td>
                 </tr>
               ) : (

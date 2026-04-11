@@ -62,12 +62,12 @@ export function MyBookingsClient() {
   }, []);
 
   async function handleCancel(bookingId: string) {
-    if (!confirm("Cancel this booking? Refunds follow the studio’s policy.")) return;
+    if (!confirm("Cancel this reservation? Refunds follow the studio’s policy.")) return;
     setActionMsg("");
     const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason: "Customer requested cancellation" }),
+      body: JSON.stringify({ reason: "Participant requested cancellation" }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -96,23 +96,23 @@ export function MyBookingsClient() {
     <div className="mx-auto max-w-3xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className={platformUi.overline}>Bookings</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">My bookings</h1>
-          <p className="mt-2 text-sm text-zinc-400">Classes and experiences you&apos;ve reserved.</p>
+          <p className={platformUi.overline}>Today / upcoming sessions</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Session calendar</h1>
+          <p className="mt-2 text-sm text-stone-600">Upcoming reservations, reschedules, and calendar links for your studio visits.</p>
         </div>
-        <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center sm:!w-auto`}>
+        <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center sm:w-auto!`}>
           View waitlist
         </Link>
       </div>
 
       {actionMsg ? (
-        <div className="mt-6 rounded-xl border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-200">
+        <div className="mt-6 rounded-xl border border-stone-200/80 bg-white px-4 py-3 text-sm text-stone-700 shadow-(--pm-shadow-rest)">
           {actionMsg}
         </div>
       ) : null}
 
       {calendarLinkErr ? (
-        <p className="mt-4 text-sm text-zinc-500">{calendarLinkErr}</p>
+        <p className="mt-4 text-sm text-stone-500">{calendarLinkErr}</p>
       ) : null}
 
       {calendarLink ? (
@@ -152,7 +152,7 @@ export function MyBookingsClient() {
           <p className={platformUi.helper}>
             In Apple Calendar: File → New Calendar Subscription. Google Calendar: Settings → Add calendar → From URL.
             You can also try{" "}
-            <a href={calendarLink.webcalUrl} className="font-medium text-zinc-200 underline underline-offset-2 hover:text-white">
+            <a href={calendarLink.webcalUrl} className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-800">
               open in calendar app (webcal)
             </a>
             .
@@ -163,10 +163,10 @@ export function MyBookingsClient() {
       <div className="mt-8 space-y-4">
         {bookings.length === 0 ? (
           <div className={`${platformUi.cardMuted}`}>
-            <p className="font-medium text-zinc-100">No bookings yet</p>
-            <p className="mt-2 text-sm text-zinc-400">
-              <Link href="/classes" className="font-medium text-zinc-200 underline underline-offset-2 hover:text-white">
-                Browse classes
+            <p className="font-medium text-stone-900">No reservations yet</p>
+            <p className="mt-2 text-sm text-stone-600">
+              <Link href="/classes" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-800">
+                Browse studio sessions
               </Link>{" "}
               to get started.
             </p>
@@ -176,34 +176,34 @@ export function MyBookingsClient() {
           <div key={b.id} className={platformUi.card}>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
               <div className="min-w-0">
-                <p className="font-semibold text-zinc-50">{b.experience.title}</p>
-                <p className="mt-1 text-sm text-zinc-500">{b.studio.displayName}</p>
-                <p className="mt-2 text-sm text-zinc-400">
+                <p className="font-semibold text-amber-950">{b.experience.title}</p>
+                <p className="mt-1 text-sm text-stone-500">{b.studio.displayName}</p>
+                <p className="mt-2 text-sm text-stone-600">
                   {b.slot.slotDate.slice(0, 10)} · {b.slot.startTime}–{b.slot.endTime}
                 </p>
-                <p className="mt-1 text-sm text-zinc-400">{b.participantCount} participants</p>
-                {b.seatType ? <p className="mt-1 text-sm text-zinc-400">Seat: {b.seatType}</p> : null}
-                {b.ticketRef ? <p className="mt-2 text-sm font-medium text-zinc-200">Ref: {b.ticketRef}</p> : null}
+                <p className="mt-1 text-sm text-stone-600">{b.participantCount} participants</p>
+                {b.seatType ? <p className="mt-1 text-sm text-stone-600">Seat: {b.seatType}</p> : null}
+                {b.ticketRef ? <p className="mt-2 text-sm font-medium text-stone-800">Ref: {b.ticketRef}</p> : null}
               </div>
               <div className="text-left sm:text-right">
-                <p className="text-lg font-semibold text-zinc-50">€{(b.totalAmountCents / 100).toFixed(2)}</p>
+                <p className="text-lg font-semibold text-amber-950">€{(b.totalAmountCents / 100).toFixed(2)}</p>
                 {b.remainingBalanceCents > 0 ? (
-                  <p className="mt-1 text-xs text-zinc-500">
+                  <p className="mt-1 text-xs text-stone-500">
                     Paid online €{(b.depositAmountCents / 100).toFixed(2)} · Balance €
                     {(b.remainingBalanceCents / 100).toFixed(2)}
                   </p>
                 ) : null}
-                <p className="mt-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                  {b.bookingStatus} · {b.paymentStatus}
+                <p className="mt-2 text-xs font-medium uppercase tracking-wide text-stone-500">
+                  {b.bookingStatus.replace(/_/g, " ").replace("vendor", "studio")} · {b.paymentStatus.replace(/_/g, " ")}
                 </p>
                 {b.cancellations.length > 0 ? (
-                  <p className="mt-2 text-xs text-red-400">
-                    Cancelled ({b.cancellations[0].cancelledByRole}) — {b.cancellations[0].refundOutcome}
+                  <p className="mt-2 text-xs text-red-700">
+                    Cancelled ({b.cancellations[0].cancelledByRole.replace("vendor", "studio")}) — {b.cancellations[0].refundOutcome}
                   </p>
                 ) : null}
               </div>
             </div>
-            <div className="mt-5 space-y-4 border-t border-white/10 pt-4">
+            <div className="mt-5 space-y-4 border-t border-stone-200/80 pt-4">
               <AddToCalendarButtons bookingId={b.id} bookingStatus={b.bookingStatus} visualMode="platform" />
               <a
                 href={`/api/bookings/${b.id}/calendar`}
@@ -222,9 +222,9 @@ export function MyBookingsClient() {
                 <button
                   type="button"
                   onClick={() => handleCancel(b.id)}
-                  className="rounded-full border border-red-500/40 bg-transparent px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/10"
+                  className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"
                 >
-                  Cancel booking
+                  Cancel reservation
                 </button>
               ) : null}
             </div>

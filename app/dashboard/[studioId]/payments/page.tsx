@@ -12,7 +12,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Payments", "payments", "Payouts and payment history.");
+  return dashboardStudioMeta(studioId, "Payments & payouts", "payments", "Payouts, direct sales, and studio payment history.");
 }
 
 export default async function StudioPaymentsPage({ params }: Props) {
@@ -83,24 +83,24 @@ export default async function StudioPaymentsPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-8">
       <div>
         <p className={ui.overline}>Money in</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Payments</h1>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Payments &amp; payouts</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Tracking only — payouts use Stripe Connect. Shop totals are your share on listed orders; class totals are deposits on
-          listed bookings. Stripe rows are gross charges on checkout (order-level), not your net share.
+          Tracking only — payouts use Stripe Connect. Product totals are your share from direct sales; class totals are deposits
+          on reservations. Stripe rows are gross payment charges, not your final net share.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Shop (your share, listed)</p>
+          <p className="text-sm text-stone-500">Product sales (your share)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{(orderVendor / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Classes (deposits, listed)</p>
+          <p className="text-sm text-stone-500">Experiences (deposits)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{(bookingPaid / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Stripe captured (orders)</p>
+          <p className="text-sm text-stone-500">Stripe captured (product sales)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{(stripeSucceededCents / 100).toFixed(2)}</p>
           <p className="mt-1 text-xs text-stone-500">{stripeSucceeded.length} succeeded · €{(stripePendingCents / 100).toFixed(2)} pending</p>
         </div>
@@ -113,13 +113,13 @@ export default async function StudioPaymentsPage({ params }: Props) {
 
       <div>
         <h2 className="text-lg font-semibold text-amber-950">Stripe payment records</h2>
-        <p className="mt-1 text-sm text-stone-600">Latest checkout captures and refunds touching your product orders.</p>
+        <p className="mt-1 text-sm text-stone-600">Latest Stripe captures and refunds touching your direct product sales.</p>
         <div className="mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-500">
               <tr>
                 <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Customer</th>
+                <th className="px-3 py-2">Buyer</th>
                 <th className="px-3 py-2">Type</th>
                 <th className="px-3 py-2">Amount</th>
                 <th className="px-3 py-2">Status</th>
@@ -129,7 +129,7 @@ export default async function StudioPaymentsPage({ params }: Props) {
               {stripePayments.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-3 py-6 text-center text-stone-500">
-                    No Stripe payment rows yet for this studio&apos;s orders.
+                    No Stripe payment rows yet for this studio&apos;s direct sales.
                   </td>
                 </tr>
               ) : (
@@ -161,13 +161,13 @@ export default async function StudioPaymentsPage({ params }: Props) {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-amber-950">Recent orders</h2>
+        <h2 className="text-lg font-semibold text-amber-950">Recent product sales</h2>
         <div className="mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-500">
               <tr>
                 <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Customer</th>
+                <th className="px-3 py-2">Buyer</th>
                 <th className="px-3 py-2">Your share</th>
                 <th className="px-3 py-2">Status</th>
               </tr>
@@ -187,20 +187,17 @@ export default async function StudioPaymentsPage({ params }: Props) {
             </tbody>
           </table>
         </div>
-        <Link href={`/dashboard/orders/${studioId}`} className={`${ui.buttonGhost} mt-3 text-sm`}>
-          Full order workspace
-        </Link>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-amber-950">Recent class payments</h2>
+        <h2 className="text-lg font-semibold text-amber-950">Recent experience payments</h2>
         <div className="mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-500">
               <tr>
                 <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Class</th>
-                <th className="px-3 py-2">Guest</th>
+                <th className="px-3 py-2">Experience</th>
+                <th className="px-3 py-2">Participant</th>
                 <th className="px-3 py-2">Collected</th>
               </tr>
             </thead>
@@ -217,7 +214,7 @@ export default async function StudioPaymentsPage({ params }: Props) {
           </table>
         </div>
         <Link href={`/dashboard/${studioId}/bookings`} className={`${ui.buttonGhost} mt-3 text-sm`}>
-          All bookings
+          Open session calendar
         </Link>
       </div>
     </div>

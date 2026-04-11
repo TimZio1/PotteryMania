@@ -62,17 +62,19 @@ body {
 
 /* PotteryMania **platform** shell — system tools only; do not wrap public studio pages. */
 .pm-visual-platform {
-  --pm-platform-canvas: #09090b;
-  --pm-platform-elevated: #18181b;
-  background-color: var(--pm-platform-canvas);
-  color: #fafafa;
-  --pm-shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --pm-shadow-lift: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --pm-platform-canvas: #f6f1eb;
+  --pm-platform-elevated: #fffdf9;
+  background:
+    radial-gradient(circle at top, rgba(184, 118, 64, 0.08), transparent 42%),
+    linear-gradient(180deg, #fbf8f4 0%, var(--pm-platform-canvas) 100%);
+  color: #1c1917;
+  --pm-shadow-rest: 0 1px 2px rgba(28, 25, 23, 0.07);
+  --pm-shadow-lift: 0 16px 40px rgba(44, 24, 16, 0.12);
 }
 
 .pm-visual-platform ::selection {
-  background: rgba(250, 250, 250, 0.12);
-  color: #fafafa;
+  background: rgba(120, 77, 42, 0.18);
+  color: #1c1917;
 }
 
 ::selection {

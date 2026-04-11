@@ -14,7 +14,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Features", "features", "Add-ons and subscriptions.");
+  return dashboardStudioMeta(studioId, "Packs & add-ons", "features", "Studio subscriptions, packs, and add-ons.");
 }
 
 export default async function StudioFeaturesPage({ params }: Props) {
@@ -27,12 +27,11 @@ export default async function StudioFeaturesPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <p className={ui.overline}>Add-ons</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Features / Add-ons</h1>
+        <p className={ui.overline}>Billing & add-ons</p>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Packs, subscriptions & add-ons</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Use <strong>Bundles</strong> when the platform offers a package, or enable add-ons individually. Hyperadmin
-          controls the catalog; paid add-ons open Stripe Checkout (one subscription per feature, or one for a bundle when
-          configured).
+          Buy studio packs, start feature subscriptions, or enable individual add-ons from one place. Bundles cover grouped
+          capabilities, while paid add-ons open Stripe Checkout per feature or per pack when configured.
         </p>
       </div>
       <Suspense

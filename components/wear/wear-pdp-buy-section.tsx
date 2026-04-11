@@ -17,11 +17,15 @@ export function WearPdpBuySection({
   basePriceCents,
   currency,
   variants,
+  selectedColor: controlledSelectedColor,
+  onSelectedColorChange,
 }: {
   productId: string;
   basePriceCents: number;
   currency: string;
   variants: WearPdpVariant[];
+  selectedColor?: string;
+  onSelectedColorChange?: (color: string) => void;
 }) {
   const variantMeta = useMemo(() => {
     return variants.map((variant) => {
@@ -35,16 +39,25 @@ export function WearPdpBuySection({
   }, [variants]);
 
   const colors = useMemo(() => [...new Set(variantMeta.map((variant) => variant.color))], [variantMeta]);
-  const [selectedColor, setSelectedColor] = useState<string>(colors[0] ?? "");
+  const [internalSelectedColor, setInternalSelectedColor] = useState<string>(colors[0] ?? "");
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const isColorControlled = controlledSelectedColor !== undefined;
+  const selectedColor = isColorControlled ? controlledSelectedColor : internalSelectedColor;
 
   useEffect(() => {
     trackWearEvent(WEAR_EVENT_KINDS.productView, { productId });
   }, [productId]);
 
   useEffect(() => {
-    setSelectedColor(colors[0] ?? "");
-  }, [colors]);
+    const fallbackColor = colors[0] ?? "";
+    if (isColorControlled) {
+      if ((!controlledSelectedColor || !colors.includes(controlledSelectedColor)) && fallbackColor) {
+        onSelectedColorChange?.(fallbackColor);
+      }
+      return;
+    }
+    setInternalSelectedColor(fallbackColor);
+  }, [colors, controlledSelectedColor, isColorControlled, onSelectedColorChange]);
 
   const needsVariant = variantMeta.length > 0;
 
@@ -90,24 +103,31 @@ export function WearPdpBuySection({
     `inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-3 text-xs font-medium transition ${
       active
         ? "border-amber-300 bg-amber-100 text-amber-950"
-        : "border-white/15 bg-neutral-900 text-neutral-200 hover:border-white/30"
+        : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:bg-amber-50/60"
     }`;
 
   const sizeClass = (active: boolean, disabled: boolean) =>
     `inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition ${
       disabled
-        ? "cursor-not-allowed border-white/10 bg-neutral-900/50 text-neutral-500"
+        ? "cursor-not-allowed border-stone-200 bg-stone-100 text-stone-400"
         : active
           ? "border-amber-300 bg-amber-100 text-amber-950"
-          : "border-white/15 bg-neutral-900 text-neutral-200 hover:border-white/30"
+          : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:bg-amber-50/60"
     }`;
+
+  function setSelectedColor(nextColor: string) {
+    if (!isColorControlled) {
+      setInternalSelectedColor(nextColor);
+    }
+    onSelectedColorChange?.(nextColor);
+  }
 
   return (
     <div>
       {needsVariant ? (
         <div className="mt-2 space-y-5">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">Color</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-stone-500">Color</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {colors.map((color) => (
                 <button
@@ -123,7 +143,7 @@ export function WearPdpBuySection({
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">Size</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-stone-500">Size</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {sizes.map((size) => {
                 const variant = colorVariants.find((row) => row.size === size) ?? null;
@@ -146,10 +166,10 @@ export function WearPdpBuySection({
         </div>
       ) : null}
 
-      <p className="mt-6 text-2xl text-neutral-200">
+      <p className="mt-6 text-2xl text-amber-950">
         {needsVariant && !selected ? (
           <>
-            <span className="text-neutral-500">From </span>
+            <span className="text-stone-500">From </span>
             {formatWearMoney(fromCents, currency)}
           </>
         ) : (
@@ -165,7 +185,7 @@ export function WearPdpBuySection({
             label="Add to cart"
           />
         ) : (
-          <p className="text-sm text-neutral-500">{soldOut ? "This option is sold out." : "Choose an option to continue."}</p>
+          <p className="text-sm text-stone-500">{soldOut ? "This option is sold out." : "Choose an option to continue."}</p>
         )}
       </div>
     </div>

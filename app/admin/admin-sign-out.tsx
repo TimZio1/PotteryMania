@@ -7,7 +7,7 @@ export function AdminSignOut() {
   return (
     <button
       type="button"
-      className={`${platformUi.buttonGhost} w-full justify-start text-zinc-500`}
+      className={`${platformUi.buttonGhost} w-full justify-start`}
       onClick={() =>
         signOut({
           callbackUrl: `/login?callbackUrl=${encodeURIComponent("/admin")}`,

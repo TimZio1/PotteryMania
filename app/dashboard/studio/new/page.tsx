@@ -20,20 +20,20 @@ function setupCopy(path: SetupPath) {
   if (path === "bookings") {
     return {
       title: "Step 2 · Quick setup",
-      helper: "Two fields to start — then you’ll add your first class and share your link.",
+      helper: "Two fields to start — then you’ll add your first experience and preview your page.",
       cta: "Create studio & continue",
     };
   }
   if (path === "shop") {
     return {
       title: "Step 2 · Quick setup",
-      helper: "Two fields to start — then you’ll add your first product and share your link.",
+      helper: "Two fields to start — then you’ll add your first product and preview your page.",
       cta: "Create studio & continue",
     };
   }
   return {
     title: "Step 2 · Quick setup",
-    helper: "Two fields to start — then add a product or class and share your public page.",
+    helper: "Two fields to start — then add your first experience or product and preview your public page.",
     cta: "Create studio & continue",
   };
 }
@@ -235,10 +235,10 @@ export default function NewStudioPage() {
   return (
     <div className="mx-auto max-w-xl px-5 py-12 sm:px-6">
       <Link href="/dashboard" className="text-sm font-medium text-amber-900 hover:text-amber-950">
-        ← Dashboard
+        ← Studio control panel
       </Link>
       <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
-        Step 1 · What do you sell first?
+        Step 1 · What do you want to set up first?
       </p>
       <h1 className="mt-2 font-serif text-3xl font-normal tracking-[-0.02em] text-(--brand-ink)">Set up your studio</h1>
       <p className="mt-2 text-sm leading-relaxed text-stone-600">{pathCopy.helper}</p>
@@ -251,7 +251,7 @@ export default function NewStudioPage() {
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
-          Book classes
+          Experiences
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=shop${fullForm ? "&full=1" : ""}`}
@@ -261,7 +261,7 @@ export default function NewStudioPage() {
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
-          Sell products
+          Products
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=both${fullForm ? "&full=1" : ""}`}
@@ -276,15 +276,15 @@ export default function NewStudioPage() {
       </div>
       <p className="mt-3 text-sm font-medium text-amber-900">{pathCopy.title}</p>
       <p className="mt-1 text-sm text-stone-600">
-        Plan: <span className="font-medium text-stone-800">{selectedPlan.name}</span> ({monthlyLabel(selectedPlan)}, 0%
-        platform commission).
+        Workspace plan: <span className="font-medium text-stone-800">{selectedPlan.name}</span> ({monthlyLabel(selectedPlan)},
+        no PotteryMania transaction fee).
       </p>
 
       {!fullForm ? (
         <>
           <p className="mt-4 rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
             Tax ID, full address, and branding can wait — add them anytime in{" "}
-            <strong>Studio profile</strong> before you turn on payouts.
+            <strong>Studio details</strong> before you turn on payouts.
           </p>
           <form onSubmit={submitQuick} className="mt-6 space-y-4">
             {err ? <p className="text-sm text-red-600">{err}</p> : null}

@@ -12,8 +12,8 @@ export const metadata: Metadata = buildMetadata({
 
 function SuccessFallback() {
   return (
-    <main className="flex min-h-[40vh] items-center justify-center bg-neutral-950 px-4 py-20 text-neutral-100">
-      <Spinner className="text-neutral-500" />
+    <main className="flex min-h-[40vh] items-center justify-center bg-[#f7f2ec] px-4 py-20 text-(--brand-ink)">
+      <Spinner className="text-stone-500" />
     </main>
   );
 }

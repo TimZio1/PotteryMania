@@ -31,13 +31,13 @@ export default function VendorBookingActions({
   const canMarkCompleted = bookingStatus === "confirmed";
 
   async function handleCancel() {
-    if (!confirm("Cancel this booking? The customer will be notified.")) return;
+    if (!confirm("Cancel this reservation? The participant will be notified.")) return;
     setMsg("");
     setBusyAction("cancel");
     const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason: "Vendor cancelled" }),
+      body: JSON.stringify({ reason: "Studio cancelled" }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -68,7 +68,7 @@ export default function VendorBookingActions({
   }
 
   async function handleReject() {
-    const reason = prompt("Optional note to the customer (decline reason):") ?? "";
+    const reason = prompt("Optional note to the participant (decline reason):") ?? "";
     if (reason === null) return;
     setMsg("");
     setBusyAction("reject");
@@ -79,7 +79,7 @@ export default function VendorBookingActions({
     });
     const data = await res.json();
     if (res.ok) {
-      setMsg("Declined. Customer notified.");
+      setMsg("Declined. Participant notified.");
       router.refresh();
     } else {
       setMsg(`Error: ${data.error}`);
@@ -104,7 +104,7 @@ export default function VendorBookingActions({
   }
 
   async function handleMarkCompleted() {
-    if (!confirm("Mark this booking as completed (attended)?")) return;
+    if (!confirm("Mark this reservation as completed (attended)?")) return;
     setMsg("");
     setBusyAction("complete");
     const res = await fetch(`/api/bookings/${bookingId}/vendor`, {
@@ -124,7 +124,7 @@ export default function VendorBookingActions({
 
   const showBlock = needsApproval || isCancellable || canMarkCompleted;
   const showReschedule = isReschedulable(bookingStatus as BookingStatus);
-  const showCalVendor =
+  const showCalStudio =
     (bookingStatus === "confirmed" || bookingStatus === "completed") && Boolean(studioId);
 
   return (
@@ -135,7 +135,7 @@ export default function VendorBookingActions({
       >
         Calendar (.ics)
       </a>
-      {showCalVendor ? (
+      {showCalStudio ? (
         <div className="text-xs text-stone-600">
           {calendarSync ? (
             <>
@@ -163,7 +163,7 @@ export default function VendorBookingActions({
             </>
           ) : (
             <>
-              <span>No Google Calendar sync logged yet for this booking.</span>
+              <span>No Google Calendar sync logged yet for this reservation.</span>
               <button
                 type="button"
                 disabled={busyAction !== null}
@@ -249,7 +249,7 @@ export default function VendorBookingActions({
                   Cancelling…
                 </span>
               ) : (
-                "Cancel booking"
+                "Cancel reservation"
               )}
             </button>
           )}
@@ -261,7 +261,7 @@ export default function VendorBookingActions({
               participantCount={participantCount}
               seatType={seatType}
               onSuccess={() => router.refresh()}
-              className={showBlock ? "!border-t-0 !pt-3" : "!border-t-0 !pt-0"}
+              className={showBlock ? "border-t-0! pt-3!" : "border-t-0! pt-0!"}
             />
           ) : null}
         </div>

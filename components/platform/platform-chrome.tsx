@@ -3,7 +3,7 @@ import { PlatformHeader } from "./platform-header";
 
 type Props = {
   children: ReactNode;
-  /** `account` = slightly smaller nav (my bookings, account, waitlist). */
+  /** `account` = session calendar, account, and studio control-panel links. */
   headerVariant?: "dashboard" | "account";
 };
 
@@ -14,7 +14,7 @@ type Props = {
 export function PlatformChrome({ children, headerVariant = "account" }: Props) {
   return (
     <div
-      className="pm-visual-platform flex min-h-screen flex-col bg-zinc-950 text-zinc-100 antialiased"
+      className="pm-visual-platform flex min-h-screen flex-col antialiased"
       data-pm-visual="platform"
     >
       <PlatformHeader variant={headerVariant} />

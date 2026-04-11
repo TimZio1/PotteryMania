@@ -1,12 +1,15 @@
 import { createHash } from "crypto";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { SpreadconnectConfig } from "@/lib/spreadconnect-config";
 import { prisma } from "@/lib/db";
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 import { normalizeWearSlug } from "@/lib/wear-slug";
 import { listUnknownWearImageHostsForActiveCatalog } from "@/lib/wear-catalog-health";
+import { wearImagesToJson, type WearCatalogImage } from "@/lib/wear-product-json";
 
 type SpreadconnectArticleVariant = {
+  productTypeId?: number | null;
+  productTypeName?: string | null;
   sku?: string | null;
   sizeName?: string | null;
   appearanceName?: string | null;
@@ -14,6 +17,10 @@ type SpreadconnectArticleVariant = {
 };
 
 type SpreadconnectArticleImage = {
+  id?: number | null;
+  appearanceId?: number | null;
+  appearanceName?: string | null;
+  perspective?: string | null;
   imageUrl?: string | null;
 };
 
@@ -39,10 +46,13 @@ type PreparedArticle = {
   name: string;
   slugBase: string;
   description: string | null;
-  images: string[];
+  images: WearCatalogImage[];
   priceCents: number;
   currency: string;
   externalFulfillmentId: string | null;
+  spreadconnectProductTypeId: number | null;
+  spreadconnectProductTypeName: string | null;
+  spreadconnectCategoryData: Prisma.InputJsonValue | null;
   variants: SyncedVariant[];
 };
 
@@ -102,6 +112,49 @@ function uniqueHttpsUrls(values: Array<string | null | undefined>) {
   return out;
 }
 
+function uniqueWearImages(images: WearCatalogImage[]) {
+  const seen = new Set<string>();
+  const out: WearCatalogImage[] = [];
+  for (const image of images) {
+    const key = [image.url, image.appearanceName ?? "", image.perspective ?? "", image.imageId ?? ""].join("::");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(image);
+  }
+  return out;
+}
+
+function nullableJsonInput(value: Prisma.InputJsonValue | null): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+  return value ?? Prisma.JsonNull;
+}
+
+function dominantProductTypeId(variants: SpreadconnectArticleVariant[]) {
+  const counts = new Map<number, number>();
+  for (const variant of variants) {
+    if (typeof variant.productTypeId !== "number" || !Number.isFinite(variant.productTypeId)) continue;
+    counts.set(variant.productTypeId, (counts.get(variant.productTypeId) ?? 0) + 1);
+  }
+  const winner = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
+  return winner?.[0] ?? null;
+}
+
+function dominantProductTypeName(variants: SpreadconnectArticleVariant[], productTypeId: number | null) {
+  if (productTypeId != null) {
+    const match = variants.find(
+      (variant) =>
+        variant.productTypeId === productTypeId &&
+        typeof variant.productTypeName === "string" &&
+        variant.productTypeName.trim() !== "",
+    );
+    if (match?.productTypeName?.trim()) return match.productTypeName.trim();
+  }
+
+  const fallback = variants.find(
+    (variant) => typeof variant.productTypeName === "string" && variant.productTypeName.trim() !== "",
+  );
+  return fallback?.productTypeName?.trim() ?? null;
+}
+
 function preferredCurrency() {
   return (process.env.SPREADCONNECT_CATALOG_CURRENCY?.trim().toUpperCase() || "EUR").slice(0, 8);
 }
@@ -119,8 +172,19 @@ function catalogFingerprint(prepared: PreparedArticle): string {
     id: prepared.articleId,
     name: prepared.name,
     description: prepared.description,
-    images: [...prepared.images].sort(),
+    images: [...prepared.images]
+      .map((image) => ({
+        url: image.url,
+        appearanceName: image.appearanceName,
+        appearanceId: image.appearanceId,
+        perspective: image.perspective,
+        imageId: image.imageId,
+      }))
+      .sort((a, b) => a.url.localeCompare(b.url)),
     priceCents: prepared.priceCents,
+    spreadconnectProductTypeId: prepared.spreadconnectProductTypeId,
+    spreadconnectProductTypeName: prepared.spreadconnectProductTypeName,
+    spreadconnectCategoryData: prepared.spreadconnectCategoryData,
     variants: prepared.variants
       .map((v) => ({
         sku: v.sku,
@@ -251,12 +315,35 @@ async function fetchSpreadconnectArticleById(
   return json as SpreadconnectArticle;
 }
 
-function prepareArticle(article: SpreadconnectArticle): PreparedArticle | null {
+async function fetchSpreadconnectProductTypeCategories(
+  cfg: SpreadconnectConfig,
+  productTypeId: number,
+): Promise<Prisma.InputJsonValue | null> {
+  const res = await fetch(`${cfg.baseUrl}/productTypes/${productTypeId}/categories`, {
+    headers: { "X-SPOD-ACCESS-TOKEN": cfg.apiKey },
+    cache: "no-store",
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      `Spreadconnect product type ${productTypeId} categories fetch failed (${res.status}): ${text || res.statusText}`,
+    );
+  }
+  return (await res.json().catch(() => null)) as Prisma.InputJsonValue | null;
+}
+
+async function prepareArticle(
+  article: SpreadconnectArticle,
+  cfg: SpreadconnectConfig,
+  categoryCache: Map<number, Prisma.InputJsonValue | null>,
+): Promise<PreparedArticle | null> {
   const name = article.title?.trim() || "";
   const slugBase = normalizeWearSlug(name);
   if (!name || !slugBase) return null;
 
-  const mappedVariants = (article.variants ?? [])
+  const sourceVariants = article.variants ?? [];
+  const mappedVariants = sourceVariants
     .map((variant, index) => {
       const sku = variant.sku?.trim();
       if (!sku) return null;
@@ -272,20 +359,53 @@ function prepareArticle(article: SpreadconnectArticle): PreparedArticle | null {
     .filter((value): value is SyncedVariant => value !== null);
 
   const imageUrls = uniqueHttpsUrls((article.images ?? []).map((image) => image.imageUrl));
-  if (mappedVariants.length === 0 || imageUrls.length === 0) return null;
+  const mappedImages = uniqueWearImages(
+    (article.images ?? [])
+      .map((image) => {
+        const url = image.imageUrl?.trim();
+        if (!url || !/^https?:\/\//i.test(url)) return null;
+        return {
+          url,
+          appearanceName: image.appearanceName?.trim() || null,
+          appearanceId:
+            typeof image.appearanceId === "number" && Number.isFinite(image.appearanceId)
+              ? Math.trunc(image.appearanceId)
+              : null,
+          perspective: image.perspective?.trim() || null,
+          imageId: typeof image.id === "number" && Number.isFinite(image.id) ? Math.trunc(image.id) : null,
+        } satisfies WearCatalogImage;
+      })
+      .filter((value): value is WearCatalogImage => value !== null),
+  );
+  if (mappedVariants.length === 0 || imageUrls.length === 0 || mappedImages.length === 0) return null;
 
   const priceCandidates = mappedVariants.map((variant) => variant.priceCents).filter((value): value is number => value != null);
   if (priceCandidates.length === 0) return null;
+
+  const spreadconnectProductTypeId = dominantProductTypeId(sourceVariants);
+  const spreadconnectProductTypeName = dominantProductTypeName(sourceVariants, spreadconnectProductTypeId);
+  let spreadconnectCategoryData: Prisma.InputJsonValue | null = null;
+  if (spreadconnectProductTypeId != null) {
+    if (categoryCache.has(spreadconnectProductTypeId)) {
+      spreadconnectCategoryData = categoryCache.get(spreadconnectProductTypeId) ?? null;
+    } else {
+      spreadconnectCategoryData = await fetchSpreadconnectProductTypeCategories(cfg, spreadconnectProductTypeId);
+      categoryCache.set(spreadconnectProductTypeId, spreadconnectCategoryData);
+    }
+  }
 
   return {
     articleId: typeof article.id === "number" ? article.id : null,
     name,
     slugBase,
     description: article.description?.trim() || null,
-    images: imageUrls,
+    images: mappedImages,
     priceCents: Math.min(...priceCandidates),
     currency: preferredCurrency(),
     externalFulfillmentId: mappedVariants.length === 1 ? mappedVariants[0].sku : null,
+    spreadconnectProductTypeId,
+    spreadconnectProductTypeName,
+    spreadconnectCategoryData,
     variants: mappedVariants,
   };
 }
@@ -359,12 +479,15 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           slug,
           name: prepared.name,
           description: prepared.description,
-          images: prepared.images,
+          images: wearImagesToJson(prepared.images),
           priceCents: prepared.priceCents,
           currency: existing.currency || prepared.currency,
           isActive: true,
           archivedAt: null,
           externalFulfillmentId: prepared.externalFulfillmentId,
+          spreadconnectProductTypeId: prepared.spreadconnectProductTypeId,
+          spreadconnectProductTypeName: prepared.spreadconnectProductTypeName,
+          spreadconnectCategoryData: nullableJsonInput(prepared.spreadconnectCategoryData),
           spreadconnectCatalogFingerprint: fp,
           ...articleIdData,
         },
@@ -376,10 +499,13 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           description: prepared.description,
           priceCents: prepared.priceCents,
           currency: prepared.currency,
-          images: prepared.images,
+          images: wearImagesToJson(prepared.images),
           isActive: true,
           archivedAt: null,
           externalFulfillmentId: prepared.externalFulfillmentId,
+          spreadconnectProductTypeId: prepared.spreadconnectProductTypeId,
+          spreadconnectProductTypeName: prepared.spreadconnectProductTypeName,
+          spreadconnectCategoryData: nullableJsonInput(prepared.spreadconnectCategoryData),
           spreadconnectCatalogFingerprint: fp,
           ...articleIdData,
         },
@@ -485,6 +611,7 @@ export async function syncSpreadconnectCatalogToWearProducts(
 
   const articlesToProcess: SpreadconnectArticle[] = [];
   const seenArticleIds = new Set<number>();
+  const categoryCache = new Map<number, Prisma.InputJsonValue | null>();
   let refreshedByArticleId = 0;
   let discoveryListPages = 0;
   let fullCatalogScanCompleted = false;
@@ -542,7 +669,7 @@ export async function syncSpreadconnectCatalogToWearProducts(
   const syncedIds: string[] = [];
 
   for (const article of articlesToProcess) {
-    const prepared = prepareArticle(article);
+    const prepared = await prepareArticle(article, cfg, categoryCache);
     if (!prepared) {
       skippedArticles += 1;
       continue;

@@ -13,12 +13,12 @@ export const metadata: Metadata = buildMetadata({
 function CartFallback() {
   return (
     <main
-      className="flex min-h-[40vh] flex-col items-center justify-center gap-4 bg-neutral-950 px-4 py-16 text-neutral-100"
+      className="flex min-h-[40vh] flex-col items-center justify-center gap-4 bg-[#f7f2ec] px-4 py-16 text-(--brand-ink)"
       role="status"
       aria-busy="true"
       aria-label="Loading cart"
     >
-      <Spinner className="text-neutral-400" size="lg" />
+      <Spinner className="text-stone-500" size="lg" />
     </main>
   );
 }

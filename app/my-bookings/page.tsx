@@ -5,9 +5,9 @@ import { platformUi } from "@/lib/ui-styles";
 import { MyBookingsClient } from "./my-bookings-client";
 
 export const metadata: Metadata = metaPublicPage(
-  "My bookings",
+  "Session calendar",
   "/my-bookings",
-  "Your class bookings, tickets, and reschedule options on PotteryMania.",
+  "Today and upcoming studio sessions, reschedules, and calendar links.",
 );
 
 export default function MyBookingsPage() {

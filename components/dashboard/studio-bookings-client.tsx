@@ -16,8 +16,8 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "cancellation_requested", label: "Cancellation requested" },
   { value: "completed", label: "Completed" },
   { value: "no_show", label: "No-show" },
-  { value: "cancelled_by_customer", label: "Cancelled (customer)" },
-  { value: "cancelled_by_vendor", label: "Cancelled (vendor)" },
+  { value: "cancelled_by_customer", label: "Cancelled (participant)" },
+  { value: "cancelled_by_vendor", label: "Cancelled (studio)" },
   { value: "cancelled_by_admin", label: "Cancelled (admin)" },
   { value: "refunded", label: "Refunded" },
   { value: "partially_refunded", label: "Partially refunded" },
@@ -141,7 +141,7 @@ export default function StudioBookingsClient({
       <div className="space-y-4">
         {pendingApprovalCount > 0 && (
           <p className="text-sm text-amber-900">
-            {pendingApprovalCount} booking(s) awaiting your approval (payment captured; slot reserved).
+            {pendingApprovalCount} reservation(s) awaiting your approval (payment captured; slot reserved).
           </p>
         )}
 
@@ -153,7 +153,7 @@ export default function StudioBookingsClient({
                 className={cn(ui.input, "mt-1")}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Guest, email, class, ref…"
+                placeholder="Participant, email, experience, ref…"
               />
             </label>
             <label className="block w-full min-w-[140px] lg:w-48">
@@ -230,9 +230,9 @@ export default function StudioBookingsClient({
             <thead className="border-b border-stone-200 bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-500">
               <tr>
                 <th className="w-10 px-2 py-3" aria-label="Select" />
-                <th className="px-4 py-3">Class</th>
+                <th className="px-4 py-3">Experience</th>
                 <th className="px-4 py-3">When</th>
-                <th className="px-4 py-3">Guest</th>
+                <th className="px-4 py-3">Participant</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Amount</th>
               </tr>
@@ -241,7 +241,7 @@ export default function StudioBookingsClient({
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
-                    No bookings match filters.
+                    No reservations match these filters.
                   </td>
                 </tr>
               ) : (
@@ -298,7 +298,7 @@ export default function StudioBookingsClient({
                         <br />
                         <span className="text-xs">{booking.customerEmail}</span>
                       </td>
-                      <td className="px-4 py-3 text-stone-600">{booking.bookingStatus}</td>
+                      <td className="px-4 py-3 text-stone-600">{booking.bookingStatus.replace(/_/g, " ").replace("vendor", "studio")}</td>
                       <td className="px-4 py-3 text-stone-600">€{(booking.totalAmountCents / 100).toFixed(2)}</td>
                     </tr>
                   );
@@ -318,7 +318,7 @@ export default function StudioBookingsClient({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold uppercase text-stone-500">Booking</p>
+              <p className="text-xs font-semibold uppercase text-stone-500">Reservation</p>
               <p className="mt-1 text-sm font-medium text-amber-950">{selected.experience.title}</p>
             </div>
             <button type="button" className={ui.buttonGhost} onClick={() => setSelected(null)}>
@@ -334,7 +334,7 @@ export default function StudioBookingsClient({
               </dd>
             </div>
             <div>
-              <dt className={ui.label}>Guest</dt>
+              <dt className={ui.label}>Participant</dt>
               <dd>
                 {selected.customerName}
                 <br />
@@ -366,7 +366,7 @@ export default function StudioBookingsClient({
             <div>
               <dt className={ui.label}>Status</dt>
               <dd>
-                {selected.bookingStatus} / {selected.paymentStatus}
+                {selected.bookingStatus.replace(/_/g, " ").replace("vendor", "studio")} / {selected.paymentStatus.replace(/_/g, " ")}
               </dd>
             </div>
             <div>
@@ -381,7 +381,7 @@ export default function StudioBookingsClient({
             ) : null}
             {selected.lastCancellation ? (
               <div className="rounded-lg border border-red-100 bg-red-50/80 p-2 text-xs text-red-900">
-                Cancelled by {selected.lastCancellation.cancelledByRole}
+                Cancelled by {selected.lastCancellation.cancelledByRole.replace("vendor", "studio")}
                 {selected.lastCancellation.refundOutcome ? ` · ${selected.lastCancellation.refundOutcome}` : null}
               </div>
             ) : null}

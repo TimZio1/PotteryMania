@@ -20,16 +20,16 @@ const adminLinks = [
   { href: "/admin/ai-insights", label: "AI insights" },
   { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/wear-products", label: "Wear products" },
-  { href: "/admin/wear-orders", label: "Wear orders" },
+  { href: "/admin/wear-orders", label: "Wear sales" },
   { href: "/admin/wear-analytics", label: "Wear analytics" },
-  { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/orders", label: "Studio sales" },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/operations", label: "Operations" },
   { href: "/admin/content", label: "Content" },
   { href: "/admin/platform-features", label: "Platform add-ons" },
   { href: "/admin/feature-bundles", label: "Feature bundles" },
   { href: "/admin/business-templates", label: "Business templates" },
-  { href: "/admin/marketplace", label: "Public browse (off)" },
+  { href: "/admin/marketplace", label: "Discovery controls (off)" },
   { href: "/admin/categories", label: "Ceramic categories" },
   { href: "/admin/experiments", label: "Experiments" },
   { href: "/admin/reports", label: "Reports" },
@@ -43,23 +43,23 @@ export { adminLinks };
 export const metadata: Metadata = metaAdminPage(
   "Hyperadmin",
   "/admin",
-  "PotteryMania internal console for operations, studios, orders, bookings, and platform tools. Not indexed in search engines.",
+  "PotteryMania platform control center for studios, activity, finance, and system tools. Not indexed in search engines.",
 );
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="pm-visual-platform min-h-screen bg-zinc-950 text-zinc-100" data-pm-visual="platform">
+    <div className="pm-visual-platform min-h-screen" data-pm-visual="platform">
       <div className="mx-auto grid min-h-screen max-w-[1480px] gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="hidden border-r border-white/10 bg-zinc-950 lg:block">
+        <aside className="hidden border-r border-stone-200/80 bg-stone-50/80 lg:block">
           <div className="sticky top-0 flex h-full flex-col">
-            <div className="border-b border-white/10 px-5 py-5">
-              <BrandLogo href="/" size="sm" variant="on-dark" />
+            <div className="border-b border-stone-200/80 px-5 py-5">
+              <BrandLogo href="/" size="sm" />
               <div className="mt-4 flex items-center justify-between gap-3">
-                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-200">
+                <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
                   Hyperadmin
                 </span>
-                <Link href="/dashboard" className="text-xs font-medium text-zinc-500 hover:text-zinc-200">
-                  Vendor view
+                <Link href="/dashboard" className="text-xs font-medium text-stone-500 hover:text-amber-950">
+                  Studio view
                 </Link>
               </div>
             </div>
@@ -76,18 +76,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
 
-            <div className="border-t border-white/10 px-3 py-4">
+            <div className="border-t border-stone-200/80 px-3 py-4">
               <AdminSignOut />
             </div>
           </div>
         </aside>
 
-        <main className="min-w-0 bg-zinc-950">
-          <div className="border-b border-white/10 bg-zinc-950 px-4 py-4 sm:px-6 lg:hidden">
+        <main className="min-w-0">
+          <div className="border-b border-stone-200/80 bg-white/90 px-4 py-4 backdrop-blur-md sm:px-6 lg:hidden">
             <div className="flex items-center justify-between gap-3">
-              <BrandLogo href="/" size="sm" variant="on-dark" />
+              <BrandLogo href="/" size="sm" />
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-200">
+                <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
                   Hyperadmin
                 </span>
                 <AdminMobileNav />

@@ -11,7 +11,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Executive overview",
   "/admin",
-  "Hyperadmin dashboard: signups, orders, bookings, and platform health.",
+  "Hyperadmin control center for signups, studio activity, finance, and platform health.",
 );
 
 export const dynamic = "force-dynamic";
@@ -175,10 +175,10 @@ export default async function AdminPage() {
   const topStudios = buildTopStudios(paidOrdersMonth);
 
   const founderSummary = [
-    `${formatCurrency(grossRevenueMonthCents)} in paid commerce has flowed through the platform this month, with ${formatCurrency(platformCommissionMonthCents)} captured as platform take and ${formatCurrency(bookingCashMonthCents)} collected as booking cash.`,
-    `${activatedStudiosCount} studios are activated, ${pending.length} are still in review, and ${bookingsAwaitingApprovalCount} bookings are waiting on the studio to confirm.`,
+    `${formatCurrency(grossRevenueMonthCents)} in studio-originated commerce has flowed through the platform this month, with ${formatCurrency(platformCommissionMonthCents)} recorded as platform take and ${formatCurrency(bookingCashMonthCents)} collected as booking cash.`,
+    `${activatedStudiosCount} studios are activated, ${pending.length} are still in review, and ${bookingsAwaitingApprovalCount} reservations are waiting on studio confirmation.`,
     refundsProxyCents > 0 || manualRefundQueueCount > 0
-      ? `The main risk right now is refund and operations pressure: ${formatCurrency(refundsProxyCents)} in refund exposure and ${manualRefundQueueCount} bookings flagged for manual refund review.`
+      ? `The main risk right now is refund and operations pressure: ${formatCurrency(refundsProxyCents)} in refund exposure and ${manualRefundQueueCount} reservations flagged for manual refund review.`
       : `No major refund pressure is visible right now, so the main opportunity is moving reviewed studios through activation and turning legacy leads into live businesses.`,
   ].join(" ");
 
@@ -235,7 +235,7 @@ export default async function AdminPage() {
     <div>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Founder operating system</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Platform operator console</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Hyperadmin control center</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600 sm:text-base">
             Executive visibility, financial control, risk detection, operational queues, and growth intelligence in one place.
@@ -277,9 +277,9 @@ export default async function AdminPage() {
             delta: "Platform take minus tracked refunds",
           },
           {
-            label: "Active users",
+            label: "Active buyers",
             value: formatCompactNumber(activeUsersProxy),
-            delta: "Commerce-based 30-day activity proxy",
+            delta: "Cross-studio commerce activity proxy (30d)",
           },
           {
             label: "New users",
@@ -320,7 +320,7 @@ export default async function AdminPage() {
           {
             label: "ARPU proxy",
             value: formatCurrency(arpuMonthCents),
-            delta: "Per monetized customer this month",
+            delta: "Per paying buyer this month",
           },
           {
             label: "LTV proxy",
@@ -357,7 +357,7 @@ export default async function AdminPage() {
               href={card.href}
               className={cn(
                 "rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-amber-900/25 hover:shadow-md",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900",
               )}
             >
               <p className="font-semibold text-amber-950">{card.title}</p>
@@ -501,28 +501,28 @@ function buildAlerts(input: {
     alerts.push({
       title: "Manual refund queue detected",
       severity: "critical",
-      detail: `${input.manualRefundQueueCount} bookings require manual refund handling. This risks customer trust and should be cleared before it grows.`,
+      detail: `${input.manualRefundQueueCount} reservations require manual refund handling. This risks participant trust and should be cleared before it grows.`,
     });
   }
   if (input.failedPaymentRate > 0.05) {
     alerts.push({
       title: "Failed payment rate is elevated",
       severity: "critical",
-      detail: `${formatPercent(input.failedPaymentRate)} of recent commerce attempts failed. Investigate checkout, Stripe account readiness, and vendor-side setup quality.`,
+      detail: `${formatPercent(input.failedPaymentRate)} of recent commerce attempts failed. Investigate checkout reliability, Stripe account readiness, and studio-side setup quality.`,
     });
   }
   if (input.stalePendingOrdersCount > 0) {
     alerts.push({
-      title: "Pending orders are aging",
+      title: "Pending product sales are aging",
       severity: "warning",
-      detail: `${input.stalePendingOrdersCount} orders have stayed pending for more than 24 hours, which may signal webhook or checkout leakage.`,
+      detail: `${input.stalePendingOrdersCount} sales have stayed pending for more than 24 hours, which may signal webhook or checkout leakage.`,
     });
   }
   if (input.bookingsAwaitingApprovalCount > 0) {
     alerts.push({
-      title: "Bookings pending studio confirmation",
+      title: "Reservations pending studio confirmation",
       severity: "warning",
-      detail: `${input.bookingsAwaitingApprovalCount} bookings need a response from the studio. Slow replies can hurt conversion and trust.`,
+      detail: `${input.bookingsAwaitingApprovalCount} reservations need a response from the studio. Slow replies can hurt conversion and trust.`,
     });
   }
   if (input.pendingStudios > 0) {
@@ -580,8 +580,8 @@ function buildOpportunities(input: {
 
   if (input.approvedStudiosCount > input.activatedStudiosCount) {
     items.push({
-      title: "Convert cleared studios into revenue faster",
-      detail: `${input.approvedStudiosCount - input.activatedStudiosCount} cleared studios still have not activated. A dedicated activation follow-up flow would likely unlock the fastest revenue lift.`,
+      title: "Convert cleared studios into live commerce faster",
+      detail: `${input.approvedStudiosCount - input.activatedStudiosCount} cleared studios still have not activated. A dedicated activation follow-up flow would likely unlock the fastest path to direct studio revenue.`,
     });
   }
   if (input.earlyAccessCount > input.approvedStudiosCount) {
@@ -611,14 +611,14 @@ function buildOpportunities(input: {
   if (input.topStudios[0]) {
     items.push({
       title: `Study the playbook of ${input.topStudios[0].name}`,
-      detail: `${input.topStudios[0].name} is currently leading on revenue contribution. Replicate its catalog, pricing, and merchandising patterns across newer studios.`,
+      detail: `${input.topStudios[0].name} is currently leading on revenue contribution. Replicate its catalog, pricing, and page-structure patterns across newer studios.`,
     });
   }
   if (input.activeProductsCount > 0 && input.activeExperiencesCount > 0) {
     items.push({
-      title: "Package classes and commerce together",
+      title: "Package experiences and products together",
       detail:
-        "Shop and bookings are both active on studio-owned pages. Create bundles and post-class product offers to increase revenue per customer without extra acquisition cost.",
+        "Catalog and reservations are both active on studio-owned pages. Create bundles and post-session product offers to increase revenue per buyer without extra acquisition cost.",
     });
   }
 

@@ -10,21 +10,21 @@ export type StudioPanelNavItem = {
 export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
   const b = (path: string) => `/dashboard/${studioId}${path}`;
   return [
-    { href: b("/guided"), label: "Simple setup" },
-    { href: b(""), label: "Website" },
-    { href: b("/template"), label: "Branding" },
-    { href: b("/bookings"), label: "Bookings" },
-    { href: b("/classes"), label: "Class offerings" },
-    { href: b("/shop"), label: "Shop" },
-    { href: b("/calendar"), label: "Calendar" },
-    { href: b("/payments"), label: "Payments" },
-    { href: b("/analytics"), label: "Insights" },
+    { href: b(""), label: "Today" },
+    { href: b("/bookings"), label: "Session calendar" },
+    { href: b("/classes"), label: "Experiences" },
+    { href: b("/shop"), label: "Catalog" },
+    { href: b("/payments"), label: "Payments & payouts" },
+    { href: b("/students"), label: "Participants" },
+    { href: b("/calendar"), label: "Schedule" },
+    { href: b("/template"), label: "Studio page" },
+    { href: `/studios/${studioId}`, label: "View public page" },
     { href: b("/settings"), label: "Settings" },
-    { href: `/studios/${studioId}`, label: "Preview" },
-    { href: b("/students"), label: "Students" },
+    { href: b("/guided"), label: "Guided setup" },
+    { href: b("/analytics"), label: "Reports" },
     { href: b("/ai"), label: "AI Advisor" },
-    { href: b("/features"), label: "Features / Add-ons" },
-    { href: b("/kiln"), label: "Kiln / Production" },
+    { href: b("/features"), label: "Packs & add-ons" },
+    { href: b("/kiln"), label: "Production" },
   ];
 }
 

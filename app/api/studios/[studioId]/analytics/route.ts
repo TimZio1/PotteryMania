@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 
 type Ctx = { params: Promise<{ studioId: string }> };
+type OrderWithItems = Prisma.OrderGetPayload<{ include: { items: true } }>;
 
 function parseDays(req: Request): number {
   const u = new URL(req.url);
@@ -41,7 +42,7 @@ export async function GET(req: Request, ctx: Ctx) {
   const days = parseDays(req);
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  let orders: Awaited<ReturnType<typeof prisma.order.findMany>> = [];
+  let orders: OrderWithItems[] = [];
   let bookings: Awaited<ReturnType<typeof prisma.booking.findMany>> = [];
   let products: Array<{ id: string; title: string }> = [];
   let experiences: Awaited<ReturnType<typeof prisma.experience.findMany>> = [];
@@ -87,7 +88,7 @@ export async function GET(req: Request, ctx: Ctx) {
         { status: 503 },
       );
     }
-    console.error("[analytics route]", error);
+    console.warn("[analytics route]", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 

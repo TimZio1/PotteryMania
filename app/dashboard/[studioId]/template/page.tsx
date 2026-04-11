@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
+import StudioTemplateGalleryClient from "@/components/dashboard/studio-template-gallery-client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import {
@@ -9,10 +9,6 @@ import {
 } from "@/lib/business-templates";
 import { resolveStudioRecommendedTemplateSlug } from "@/lib/business-template-recommendation";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
-
-const StudioTemplateGalleryClient = dynamic(() => import("@/components/dashboard/studio-template-gallery-client"), {
-  ssr: false,
-});
 
 export const dynamic = "force-dynamic";
 

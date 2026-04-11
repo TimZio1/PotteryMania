@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
-import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
+import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import WearProductEditorClient from "@/components/admin/wear-product-editor-client";
 import { metaAdminPage } from "@/lib/seo-routes";
 
@@ -29,18 +29,20 @@ export default async function AdminWearProductEditPage({ params }: WearProductPa
     },
   });
   if (!p) notFound();
-  const category = resolveWearCategory({
+  const category = resolveWearCatalogCategory({
     slug: p.slug,
     name: p.name,
     subtitle: p.subtitle,
     description: p.description,
+    spreadconnectProductTypeName: p.spreadconnectProductTypeName,
+    spreadconnectCategoryData: p.spreadconnectCategoryData,
   });
 
   const initial = {
     slug: p.slug,
     name: p.name,
-    category,
-    categoryLabel: wearCategoryLabel(category),
+    category: category.categorySlug,
+    categoryLabel: category.categoryLabel,
     subtitle: p.subtitle,
     description: p.description,
     priceCents: p.priceCents,
@@ -72,7 +74,7 @@ export default async function AdminWearProductEditPage({ params }: WearProductPa
         Slug: <span className="font-mono text-xs">{p.slug}</span>
       </p>
       <p className="mt-1 text-sm text-stone-600">
-        Category: <span className="font-medium">{wearCategoryLabel(category)}</span>
+        Category: <span className="font-medium">{category.categoryLabel}</span>
       </p>
       <WearProductEditorClient productId={p.id} initial={initial} />
     </div>

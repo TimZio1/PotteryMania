@@ -64,7 +64,7 @@ export function WearAddToCartButton({ productId, variantId = null, className, la
       disabled={busy}
       className={
         className ??
-        "inline-flex min-h-11 items-center justify-center border border-neutral-800 bg-neutral-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-neutral-800 disabled:opacity-60"
+        "inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60"
       }
     >
       {label}

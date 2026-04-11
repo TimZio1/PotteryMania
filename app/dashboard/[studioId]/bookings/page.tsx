@@ -13,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Bookings", "bookings", "Review and manage class bookings.");
+  return dashboardStudioMeta(studioId, "Session calendar", "bookings", "Review and manage studio reservations.");
 }
 
 export default async function StudioPanelBookingsPage({ params }: Props) {
@@ -61,10 +61,9 @@ export default async function StudioPanelBookingsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Operations</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Bookings</h1>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Session calendar</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Filter by status, class, and session date. Open a row for actions, reschedule, and calendar export. Batch-mark confirmed
-          bookings as attended.
+          Filter by status, experience, and session date. Open a row for approvals, reschedules, participant details, and calendar exports.
         </p>
       </div>
 

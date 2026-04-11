@@ -123,18 +123,18 @@ export function RescheduleBookingPanel({
   }
 
   return (
-    <div className={`border-t border-white/10 pt-4 ${className}`}>
+    <div className={`border-t border-stone-200/80 pt-4 ${className}`}>
       {!open ? (
         <button type="button" onClick={handleOpen} className={platformUi.buttonSecondary}>
           Reschedule to another session
         </button>
       ) : (
-        <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-4">
+        <div className="rounded-xl border border-stone-200/80 bg-white p-4 shadow-(--pm-shadow-rest)">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-medium text-zinc-100">Pick a new open session</p>
+            <p className="text-sm font-medium text-stone-900">Pick a new open session</p>
             <button
               type="button"
-              className="text-xs font-medium text-zinc-500 hover:text-zinc-200"
+              className="text-xs font-medium text-stone-500 hover:text-amber-950"
               onClick={() => {
                 setOpen(false);
                 setData(null);
@@ -148,30 +148,30 @@ export function RescheduleBookingPanel({
             </button>
           </div>
           {participantCount > 1 ? (
-            <p className="mt-2 text-xs text-zinc-500">
+            <p className="mt-2 text-xs text-stone-500">
               {participantCount} spots must be available on the new session
               {seatType ? ` (${seatType})` : ""}.
             </p>
           ) : null}
 
           {loading ? (
-            <div className="mt-3 flex items-center gap-2 text-sm text-zinc-500" role="status" aria-busy="true">
+            <div className="mt-3 flex items-center gap-2 text-sm text-stone-500" role="status" aria-busy="true">
               <Spinner size="sm" />
               <span className="sr-only">Loading sessions</span>
             </div>
           ) : null}
 
-          {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
-          {msg ? <p className="mt-3 text-sm text-emerald-400">{msg}</p> : null}
+          {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+          {msg ? <p className="mt-3 text-sm text-emerald-800">{msg}</p> : null}
 
           {data && !data.reschedulable ? (
-            <p className="mt-3 text-sm text-zinc-400">{data.reason ?? "This booking cannot be rescheduled."}</p>
+            <p className="mt-3 text-sm text-stone-600">{data.reason ?? "This booking cannot be rescheduled."}</p>
           ) : null}
 
           {data?.reschedulable && !loading ? (
             <form onSubmit={handleSubmit} className="mt-4 space-y-3">
               {data.slots.length === 0 ? (
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-stone-600">
                   No open sessions with enough capacity in the next 90 days. Ask the studio to add dates or free capacity.
                 </p>
               ) : (

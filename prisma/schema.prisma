@@ -455,6 +455,12 @@ model WearProduct {
   externalFulfillmentId String?  @map("external_fulfillment_id")
   /// Spreadconnect `Article.id` — used for GET /articles/{id} refresh without listing the full catalog.
   spreadconnectArticleId            Int?    @unique @map("spreadconnect_article_id")
+  /// Dominant Spreadconnect product type backing this article.
+  spreadconnectProductTypeId        Int?    @map("spreadconnect_product_type_id")
+  /// Readable product type name from the Spreadconnect article variant payload.
+  spreadconnectProductTypeName      String? @map("spreadconnect_product_type_name")
+  /// Spreadconnect `/productTypes/{productTypeId}/categories` payload for storefront filters.
+  spreadconnectCategoryData         Json?   @map("spreadconnect_category_data")
   /// SHA-256 (hex) of synced catalog fields; unchanged fingerprints skip DB writes.
   spreadconnectCatalogFingerprint   String? @map("spreadconnect_catalog_fingerprint") @db.VarChar(64)
   createdAt             DateTime @default(now()) @map("created_at")
@@ -465,6 +471,7 @@ model WearProduct {
 
   @@index([isActive, sortOrder])
   @@index([archivedAt])
+  @@index([spreadconnectProductTypeId])
   @@map("wear_products")
 }
 

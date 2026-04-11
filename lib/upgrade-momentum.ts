@@ -4,7 +4,7 @@ const BOOKING_THRESHOLD = 3;
 const PRODUCT_THRESHOLD = 5;
 
 export const UPGRADE_MOMENTUM_MESSAGE =
-  "You're now using this like a real studio. Upgrade to unlock full control.";
+  "Your studio is getting active. Review workspace billing when you are ready.";
 
 /**
  * Studios that hit momentum signals: real usage → nudge toward paid tier / billing.

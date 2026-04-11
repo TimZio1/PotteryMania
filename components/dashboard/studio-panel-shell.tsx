@@ -82,23 +82,23 @@ export default function StudioPanelShell({
     <div className="flex min-h-[calc(100vh-3.5rem)] w-full max-w-none flex-col sm:min-h-[calc(100vh-4rem)] lg:flex-row">
       <button
         type="button"
-        className="flex items-center justify-between border-b border-white/10 bg-zinc-900/80 px-4 py-3 text-left text-sm font-medium text-zinc-100 lg:hidden"
+        className="flex items-center justify-between border-b border-stone-200/80 bg-white/90 px-4 py-3 text-left text-sm font-medium text-stone-900 backdrop-blur-md lg:hidden"
         onClick={() => setMobileOpen((o) => !o)}
         aria-expanded={mobileOpen}
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
       >
         <span>Menu · {studioName}</span>
-        <span className="text-zinc-500" aria-hidden="true">{mobileOpen ? "Close" : "Open"}</span>
+        <span className="text-stone-500" aria-hidden="true">{mobileOpen ? "Close" : "Open"}</span>
       </button>
 
       <aside
         className={`${
           mobileOpen ? "flex" : "hidden"
-        } w-full shrink-0 flex-col border-white/10 bg-zinc-900/50 lg:flex lg:w-56 lg:border-r lg:pt-0`}
+        } w-full shrink-0 flex-col border-stone-200/80 bg-stone-50/80 lg:flex lg:w-56 lg:border-r lg:pt-0`}
       >
-        <div className="hidden border-b border-white/10 px-4 py-4 lg:block">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Studio</p>
-          <p className="mt-1 truncate text-sm font-semibold text-zinc-100">{studioName}</p>
+        <div className="hidden border-b border-stone-200/80 px-4 py-4 lg:block">
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Studio</p>
+          <p className="mt-1 truncate text-sm font-semibold text-stone-900">{studioName}</p>
         </div>
         <nav className="flex flex-col gap-0.5 p-2 lg:p-3" aria-label="Studio panel">
           {nav.map((item) => {
@@ -109,7 +109,7 @@ export default function StudioPanelShell({
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                  active ? "bg-zinc-100 text-zinc-950" : "text-zinc-300 hover:bg-white/5 hover:text-zinc-50"
+                  active ? "bg-amber-950 text-white" : "text-stone-600 hover:bg-white hover:text-amber-950"
                 }`}
               >
                 {item.label}
@@ -117,35 +117,35 @@ export default function StudioPanelShell({
             );
           })}
         </nav>
-        <div className="mt-auto border-t border-white/10 p-3">
+        <div className="mt-auto border-t border-stone-200/80 p-3">
           <Link
             href="/dashboard"
-            className="block rounded-lg px-3 py-2 text-sm text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+            className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
           >
             All studios
           </Link>
           <Link
             href={`/studios/${studioId}`}
-            className="block rounded-lg px-3 py-2 text-sm text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+            className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
           >
             View public studio page
           </Link>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+            className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-stone-500 hover:bg-white hover:text-amber-950"
           >
             Sign out
           </button>
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 bg-zinc-950 px-4 py-6 sm:px-6 lg:py-8">
+      <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:py-8">
         {activeBusinessTemplateName ? (
-          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-white/10 bg-zinc-900/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-            <p className="text-sm text-zinc-200">
-              <span className="font-medium text-zinc-500">Using:</span>{" "}
-              <span className="font-semibold text-zinc-50">{activeBusinessTemplateName}</span>
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-stone-200/80 bg-white/90 px-4 py-3 shadow-(--pm-shadow-rest) sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <p className="text-sm text-stone-700">
+              <span className="font-medium text-stone-500">Using:</span>{" "}
+              <span className="font-semibold text-stone-900">{activeBusinessTemplateName}</span>
             </p>
             <Link href={`/dashboard/${studioId}/template`} className={`${platformUi.buttonSecondary} shrink-0`}>
               Change template

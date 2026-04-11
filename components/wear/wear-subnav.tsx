@@ -10,8 +10,8 @@ import {
 } from "@/lib/wear-cart";
 
 const linkBase =
-  "text-xs font-medium uppercase tracking-[0.2em] text-stone-400 transition hover:text-amber-50";
-const linkOn = "text-amber-50";
+  "text-xs font-medium uppercase tracking-[0.2em] text-stone-500 transition hover:text-amber-950";
+const linkOn = "text-amber-950";
 
 function cartItemCount(): number {
   if (typeof window === "undefined") return 0;
@@ -37,7 +37,7 @@ export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
   }, [initialCount]);
 
   return (
-    <div className="border-b border-stone-800/40 bg-gradient-to-r from-[#1e1612] to-[#1a1310] text-stone-100">
+    <div className="border-b border-stone-200/80 bg-white/90 text-(--brand-ink) backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 sm:justify-between sm:px-6">
         <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2" aria-label="Wear">
           <Link href="/wear" className={pathname === "/wear" ? `${linkBase} ${linkOn}` : linkBase}>
@@ -53,7 +53,7 @@ export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
             href="/wear/cart"
             className={pathname.startsWith("/wear/cart") ? `${linkBase} ${linkOn}` : linkBase}
           >
-            Cart{count > 0 ? <span className="ml-1.5 text-stone-200">({count})</span> : null}
+            Cart{count > 0 ? <span className="ml-1.5 text-stone-700">({count})</span> : null}
           </Link>
         </nav>
         <p className="hidden text-center text-[11px] uppercase tracking-[0.25em] text-stone-500 sm:block">

@@ -48,36 +48,36 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
   return (
     <div className="mb-6 space-y-3">
       {profileIncomplete ? (
-        <div className="rounded-[length:var(--pm-radius-card)] border border-amber-500/25 bg-amber-500/10 p-[var(--pm-space-4)] text-sm text-zinc-100 sm:p-[var(--pm-space-5)]">
-          <p className="font-semibold text-zinc-50">Finish business details before payouts</p>
-          <p className="mt-1 text-zinc-300">
+        <div className="rounded-(--pm-radius-card) border border-amber-300/70 bg-amber-50/90 p-(--pm-space-4) text-sm text-stone-700 sm:p-(--pm-space-5)">
+          <p className="font-semibold text-amber-950">Finish business details before payouts</p>
+          <p className="mt-1 text-stone-600">
             You started with quick setup. Add your full address, tax ID, and legal name in Studio profile when you&apos;re
             ready to connect Stripe and receive money.
           </p>
           <Link
             href={`/dashboard/studio/${studioId}`}
-            className="mt-2 inline-block text-sm font-semibold text-zinc-100 underline underline-offset-2 hover:text-white"
+            className="mt-2 inline-block text-sm font-semibold text-amber-950 underline underline-offset-2 hover:text-amber-800"
           >
             Complete studio profile →
           </Link>
         </div>
       ) : null}
-      <div className="rounded-[length:var(--pm-radius-card)] border border-emerald-500/25 bg-emerald-500/10 p-[var(--pm-space-4)] sm:p-[var(--pm-space-5)]">
+      <div className="rounded-(--pm-radius-card) border border-emerald-200 bg-emerald-50/95 p-(--pm-space-4) sm:p-(--pm-space-5)">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-200/90">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">
               Next: get your first sale or booking
             </p>
-            <p className="mt-1 text-sm font-medium text-zinc-50">Your public studio link is live — share it today.</p>
-            <p className="mt-2 text-sm text-zinc-300">
+            <p className="mt-1 text-sm font-medium text-stone-900">Your public studio link is live — share it today.</p>
+            <p className="mt-2 text-sm text-stone-600">
               <span className="font-mono text-xs break-all sm:text-sm">{publicUrl}</span>
             </p>
-            <p className="mt-3 text-sm text-zinc-300">
+            <p className="mt-3 text-sm text-stone-600">
               New: use the step-by-step helper — add a listing, a class, or payouts without digging through menus.
             </p>
             <Link
               href={`/dashboard/${studioId}/guided`}
-              className="mt-2 inline-block text-sm font-semibold text-emerald-200 underline underline-offset-2 hover:text-emerald-100"
+              className="mt-2 inline-block text-sm font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
             >
               Open simple setup →
             </Link>
@@ -86,7 +86,7 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
             <button
               type="button"
               onClick={copy}
-              className="inline-flex min-h-11 items-center justify-center rounded-[length:var(--pm-radius-pill)] bg-emerald-600/90 px-[var(--pm-space-4)] text-sm font-medium text-white shadow-[var(--pm-shadow-rest)] transition hover:bg-emerald-500"
+              className="inline-flex min-h-11 items-center justify-center rounded-(--pm-radius-pill) bg-emerald-700 px-(--pm-space-4) text-sm font-medium text-white shadow-(--pm-shadow-rest) transition hover:bg-emerald-600"
             >
               {copied ? "Copied" : "Copy link"}
             </button>
@@ -94,14 +94,14 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
               href={publicPath}
               target="_blank"
               rel="noreferrer"
-              className="text-center text-sm font-medium text-emerald-200 underline underline-offset-2 hover:text-emerald-100"
+              className="text-center text-sm font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
             >
               Preview public page
             </Link>
             <button
               type="button"
               onClick={clearQuery}
-              className="text-sm text-zinc-500 underline hover:text-zinc-300"
+              className="text-sm text-stone-500 underline hover:text-stone-800"
             >
               Dismiss
             </button>

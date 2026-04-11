@@ -5,8 +5,8 @@ import { requireHyperAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeWearSlug, isValidWearSlug } from "@/lib/wear-slug";
 import { parseWearImageUrlsFromMultiline } from "@/lib/wear-admin-helpers";
-import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
-import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
+import { mergeWearImageUrlsWithExistingMetadata, wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
@@ -23,11 +23,13 @@ export async function GET(_req: Request, ctx: Ctx) {
     include: { variants: { orderBy: [{ sortOrder: "asc" }, { label: "asc" }] } },
   });
   if (!r) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const category = resolveWearCategory({
+  const category = resolveWearCatalogCategory({
     slug: r.slug,
     name: r.name,
     subtitle: r.subtitle,
     description: r.description,
+    spreadconnectProductTypeName: r.spreadconnectProductTypeName,
+    spreadconnectCategoryData: r.spreadconnectCategoryData,
   });
 
   return NextResponse.json({
@@ -35,8 +37,8 @@ export async function GET(_req: Request, ctx: Ctx) {
       id: r.id,
       slug: r.slug,
       name: r.name,
-      category,
-      categoryLabel: wearCategoryLabel(category),
+      category: category.categorySlug,
+      categoryLabel: category.categoryLabel,
       subtitle: r.subtitle,
       description: r.description,
       priceCents: r.priceCents,
@@ -121,7 +123,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (imgs.length === 0) {
       return NextResponse.json({ error: "At least one HTTPS image URL required" }, { status: 400 });
     }
-    data.images = imgs;
+    data.images = mergeWearImageUrlsWithExistingMetadata(imgs, existing.images);
   }
   if (typeof body.sortOrder === "number" && Number.isFinite(body.sortOrder)) {
     data.sortOrder = Math.floor(body.sortOrder);

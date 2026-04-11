@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { Spinner } from "@/components/ui/spinner";
 import { getWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
-import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
+import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
 
 import type { Metadata } from "next";
@@ -45,15 +45,17 @@ export default async function AdminWearProductsPage({
   });
 
   const initial = rows.map((r) => {
-    const category = resolveWearCategory({
+    const category = resolveWearCatalogCategory({
       slug: r.slug,
       name: r.name,
       subtitle: r.subtitle,
       description: r.description,
+      spreadconnectProductTypeName: r.spreadconnectProductTypeName,
+      spreadconnectCategoryData: r.spreadconnectCategoryData,
     });
     return {
-      category,
-      categoryLabel: wearCategoryLabel(category),
+      category: category.categorySlug,
+      categoryLabel: category.categoryLabel,
       id: r.id,
       slug: r.slug,
       name: r.name,

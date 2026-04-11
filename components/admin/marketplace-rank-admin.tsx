@@ -23,7 +23,7 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
   async function save(id: string, marketplaceRankWeight: number) {
     const reason = auditReason.trim();
     if (reason.length < 8) {
-      setMessage("Enter an audit reason (min 8 characters) before saving rank weights.");
+      setMessage("Enter an audit reason (min 8 characters) before saving discovery weights.");
       return;
     }
     setPendingId(id);
@@ -54,7 +54,7 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
           className={cn(ui.input, "mt-1 min-h-[72px] w-full resize-y")}
           value={auditReason}
           onChange={(e) => setAuditReason(e.target.value)}
-          placeholder="Why you are changing marketplace rank weights…"
+          placeholder="Why you are changing discovery sort weights…"
           maxLength={500}
         />
       </label>
@@ -64,7 +64,7 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
             <tr>
               <th className="px-4 py-3">Studio</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Rank weight</th>
+              <th className="px-4 py-3">Sort weight</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
@@ -104,7 +104,7 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
                       }}
                     />
                     <p className="mt-1 max-w-[200px] text-[11px] text-stone-500">
-                      Higher appears first in marketplace &ldquo;Recommended&rdquo; and studio directory (default sort).
+                      Higher appears first in recommended studio discovery and directory ordering.
                       Range ±10&nbsp;000.
                     </p>
                   </td>

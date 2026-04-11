@@ -13,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Classes", "classes", "Workshops and class listings.");
+  return dashboardStudioMeta(studioId, "Experiences", "classes", "Workshops, sessions, and experience settings.");
 }
 
 export default async function StudioClassesPage({ params }: Props) {
@@ -29,9 +29,9 @@ export default async function StudioClassesPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Teaching</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Classes</h1>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Experiences</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Quick edits and overview: next upcoming session, fill level, and schedule rule count. Use the class builder for
+          Quick edits and overview: next upcoming session, fill level, and schedule rule count. Use the experience builder for
           images, deposits, and generating slots.
         </p>
       </div>

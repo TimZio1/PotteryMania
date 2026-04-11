@@ -7,8 +7,8 @@ import { cn } from "@/lib/cn";
 import type { PublicServiceKey, PublicServiceModesState, ServiceMode } from "@/lib/studio-public-service-modes";
 
 const ROWS: { key: PublicServiceKey; title: string; hint: string }[] = [
-  { key: "classes", title: "Classes & booking", hint: "Upcoming sessions, class tiles, and PotteryMania checkout when active." },
-  { key: "shop", title: "Shop / products", hint: "Product grid and add-to-cart on your public page when active." },
+  { key: "classes", title: "Experiences & reservations", hint: "Upcoming sessions, experience tiles, and direct booking when active." },
+  { key: "shop", title: "Catalog / products", hint: "Product grid and direct add-to-cart on your public page when active." },
   { key: "contact", title: "Contact", hint: "Hero contact button: in-app mailto when active, or your own link." },
 ];
 
@@ -64,8 +64,8 @@ export default function StudioPublicServicesClient({
       <div>
         <h2 className="text-lg font-semibold text-stone-900">Public page services</h2>
         <p className="mt-1 text-sm text-stone-600">
-          Control how classes, shop, and contact appear on your public studio page (<code className="text-xs">/studios/…</code>).{" "}
-          <strong>Off</strong> hides the block; <strong>Visible</strong> shows it without PotteryMania booking or cart;{" "}
+          Control how experiences, catalog, and contact appear on your public studio page (<code className="text-xs">/studios/…</code>).{" "}
+          <strong>Off</strong> hides the block; <strong>Visible</strong> shows it without direct booking or cart;{" "}
           <strong>Visible with link</strong> uses your URL for CTAs; <strong>Active</strong> uses built-in flows.
         </p>
       </div>

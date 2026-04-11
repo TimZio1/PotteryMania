@@ -25,14 +25,14 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
   return (
     <>
       <WearAnalytics />
-      <main className="bg-gradient-to-b from-[#231a15] via-[#1a1310] to-[#14100d] text-stone-100">
+      <main className="bg-[#f7f2ec] text-(--brand-ink)">
         {/* Hero */}
-        <section className="border-b border-stone-800/35 px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
+        <section className="border-b border-stone-200/80 px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="font-serif text-3xl leading-snug tracking-tight text-stone-50 sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
+            <p className="font-serif text-3xl leading-snug tracking-tight text-amber-950 sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
               Wear the work you actually ship.
             </p>
-            <p className="mt-8 font-serif text-xl text-stone-300 sm:text-2xl">
+            <p className="mt-8 font-serif text-xl text-stone-600 sm:text-2xl">
               Studio-grade merch without handing your story to generic platforms. Built for makers who outgrew
               templates.
             </p>
@@ -44,7 +44,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               {spreadshopUrl ? (
                 <WearOutboundLink
                   href={spreadshopUrl}
-                  className="text-xs text-stone-500 underline decoration-stone-500/50 underline-offset-4 transition hover:text-amber-100/90"
+                  className="text-xs text-stone-500 underline decoration-stone-500/50 underline-offset-4 transition hover:text-amber-950"
                   eventName="wear_hero_spreadshop_fallback"
                 >
                   Open legacy Spreadshop
@@ -55,9 +55,9 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
         </section>
 
         {/* Visual block */}
-        <section className="border-b border-stone-800/35">
-          <div className="mx-auto grid max-w-6xl gap-px bg-stone-800/30 sm:grid-cols-2">
-            <div className="relative aspect-[4/5] bg-[#2c221c] sm:aspect-auto sm:min-h-[min(70vh,520px)]">
+        <section className="border-b border-stone-200/80">
+          <div className="mx-auto grid max-w-6xl gap-px bg-stone-200/80 sm:grid-cols-2">
+            <div className="relative aspect-4/5 bg-stone-100 sm:aspect-auto sm:min-h-[min(70vh,520px)]">
               <Image
                 src={WEAR_VISUAL_IMAGES.primary}
                 alt={WEAR_VISUAL_IMAGES.primaryAlt}
@@ -67,7 +67,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
                 priority
               />
             </div>
-            <div className="relative aspect-[4/5] bg-[#2c221c] sm:aspect-auto sm:min-h-[min(70vh,520px)]">
+            <div className="relative aspect-4/5 bg-stone-100 sm:aspect-auto sm:min-h-[min(70vh,520px)]">
               <Image
                 src={WEAR_VISUAL_IMAGES.secondary}
                 alt={WEAR_VISUAL_IMAGES.secondaryAlt}
@@ -87,7 +87,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               {tiles.map((item) => {
                 const inner = (
                   <>
-                    <div className="relative aspect-[3/4] overflow-hidden bg-stone-200/90">
+                    <div className="relative aspect-3/4 overflow-hidden bg-stone-200/90">
                       <Image
                         src={item.imageSrc}
                         alt={item.imageAlt}
@@ -96,9 +96,9 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
                     </div>
-                    <h3 className="mt-4 font-medium leading-snug text-neutral-900">{item.name}</h3>
+                    <h3 className="mt-4 font-medium leading-snug text-stone-900">{item.name}</h3>
                     {item.priceLabel ? (
-                      <p className="mt-1 text-sm text-neutral-500">{item.priceLabel}</p>
+                      <p className="mt-1 text-sm text-stone-500">{item.priceLabel}</p>
                     ) : null}
                   </>
                 );
@@ -135,20 +135,20 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
         </section>
 
         {/* Statement */}
-        <section className="px-4 py-20 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-2xl text-center font-serif text-xl leading-relaxed text-stone-300 sm:text-2xl sm:leading-relaxed">
+        <section className="border-b border-stone-200/80 bg-white px-4 py-20 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-2xl text-center font-serif text-xl leading-relaxed text-stone-700 sm:text-2xl sm:leading-relaxed">
             <p>You create on your terms.</p>
             <p className="mt-6">You don’t follow trends.</p>
             <p className="mt-6">You build your own space.</p>
-            <p className="mt-10 text-amber-100">Now you can wear it.</p>
+            <p className="mt-10 text-amber-900">Now you can wear it.</p>
           </div>
         </section>
 
         {/* Bridge */}
-        <section className="border-t border-stone-800/35 bg-[#1f1814]/90 px-4 py-16 sm:px-6 sm:py-20">
+        <section className="bg-[#f3ece4] px-4 py-16 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-xl text-center">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">PotteryMania</p>
-            <p className="mt-4 text-sm leading-relaxed text-stone-400">
+            <p className="mt-4 text-sm leading-relaxed text-stone-600">
               Bookings, ceramics, and a website platform built for studios — not algorithms.
             </p>
             <nav

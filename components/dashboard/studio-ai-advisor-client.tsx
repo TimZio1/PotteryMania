@@ -49,7 +49,7 @@ export default function StudioAiAdvisorClient({
           listings and booking activity.
         </p>
         <Link href={`/dashboard/${studioId}/features`} className={cn(ui.buttonPrimary, "inline-flex w-full justify-center text-center sm:w-auto")}>
-          Open Features / Add-ons
+          Open packs & add-ons
         </Link>
       </div>
     );

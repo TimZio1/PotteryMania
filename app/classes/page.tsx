@@ -64,7 +64,7 @@ function hasActiveClassFilters(sp: Record<string, string | string[] | undefined>
 }
 
 export default async function ClassesPage({ searchParams }: Props) {
-  const session = await auth();
+  await auth();
   const raw = (await searchParams) ?? {};
   const filters = parseClassesSearchParams(raw);
   const filtered = hasActiveClassFilters(raw);

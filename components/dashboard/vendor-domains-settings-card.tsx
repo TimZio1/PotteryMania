@@ -117,7 +117,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
       <h2 className="text-lg font-semibold text-stone-900">Custom domain</h2>
       <p className="text-sm text-stone-600">
         Point your domain’s DNS to this app (your host’s docs). Add the domain here, publish the TXT record we show, then verify. Your studio page will load on{" "}
-        <code className="rounded bg-stone-100 px-1">/</code> on that host; checkout and cart stay on the main PotteryMania site.
+        <code className="rounded bg-stone-100 px-1">/</code> on that host; direct booking and cart flows stay on the main PotteryMania domain.
       </p>
 
       {!studioApproved ? (
@@ -131,7 +131,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
                 type="text"
                 value={domainInput}
                 onChange={(e) => setDomainInput(e.target.value)}
-                placeholder="shop.example.com"
+                placeholder="studio.example.com"
                 className={ui.input}
                 autoComplete="off"
               />

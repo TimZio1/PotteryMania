@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 
-/** Studio-facing ranking hints (internal-only; public browsing is off). */
+/** Studio-facing health hints based on profile completeness and studio activity. */
 export default async function StudioMarketplaceVisibility({ studioId }: { studioId: string }) {
   const [studio, publicClassCount, activeProductCount] = await Promise.all([
     prisma.studio.findUnique({
@@ -38,10 +38,10 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
     pct == null
       ? null
       : pct >= 80
-        ? { label: "Strong", hint: "You’re in a strong band compared to other studios on the platform." }
+        ? { label: "Strong", hint: "Your studio page and activity signals are in a strong band." }
         : pct >= 50
-          ? { label: "Solid", hint: "You’re mid-range — small improvements to your page and response time add up." }
-          : { label: "Building", hint: "Still building — a complete profile and active classes help the most." };
+          ? { label: "Solid", hint: "You are in a healthy middle band. Small improvements to your page and response time add up." }
+          : { label: "Building", hint: "Still building. A complete page and active experiences help the most." };
 
   const tips: string[] = [];
   if (!studio.coverImageUrl?.trim() || !studio.logoUrl?.trim()) {
@@ -54,10 +54,10 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
     tips.push("Publish at least one public class so visitors can book directly from your studio page.");
   }
   if (activeProductCount === 0) {
-    tips.push("List at least one product in your studio shop so visitors can buy directly.");
+    tips.push("Add at least one product to your catalog so visitors can buy directly from your studio page.");
   }
   if (!studio.stripeAccount?.chargesEnabled) {
-    tips.push("Finish Stripe Connect onboarding so checkout works smoothly when customers reach your studio page.");
+    tips.push("Finish Stripe Connect onboarding so direct payments work smoothly when visitors reach your studio page.");
   }
   if (tips.length === 0) {
     tips.push("Keep updating classes and products, confirm bookings promptly, and gather reviews — consistency beats one-off spikes.");
@@ -71,11 +71,10 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
     <section className={cnCard()}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className={ui.overline}>Ranking (internal)</p>
-          <h2 className="mt-1 text-lg font-semibold text-amber-950">How you compare</h2>
+          <p className={ui.overline}>Studio health</p>
+          <h2 className="mt-1 text-lg font-semibold text-amber-950">Public page readiness</h2>
           <p className="mt-2 max-w-2xl text-sm text-stone-600">
-            Public browsing is off for now. These scores are for your dashboard only and may be used again when broader
-            browsing returns.
+            These internal signals help you keep your studio page complete, easy to trust, and ready for direct bookings.
           </p>
         </div>
         {band ? (
@@ -85,13 +84,13 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
 
       {!rs ? (
         <p className="mt-4 text-sm text-stone-600">
-          A score appears when the ranking job runs. It is internal-only today.
+          A score appears after the health job runs. It is internal-only today.
         </p>
       ) : (
         <div className="mt-4 space-y-3 text-sm text-stone-700">
           {pct != null ? (
             <p>
-              <span className="font-medium text-amber-950">Percentile (higher is better):</span> {pct}
+              <span className="font-medium text-amber-950">Health percentile (higher is better):</span> {pct}
               {band ? ` — ${band.hint}` : null}
             </p>
           ) : null}
@@ -102,7 +101,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
       )}
 
       <div className="mt-6">
-        <p className="text-sm font-semibold text-amber-950">Tips to improve</p>
+        <p className="text-sm font-semibold text-amber-950">Ways to improve</p>
         <ul className="mt-2 list-inside list-disc space-y-1.5 text-sm text-stone-700">
           {tips.slice(0, 5).map((t, i) => (
             <li key={i}>{t}</li>
@@ -115,13 +114,13 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
           Studio settings
         </Link>
         <Link href={`/dashboard/${studioId}/classes`} className={ui.buttonGhost}>
-          Classes
+          Experiences
         </Link>
         <Link href={`/dashboard/${studioId}/shop`} className={ui.buttonGhost}>
-          Shop
+          Catalog
         </Link>
         <Link href={`/studios/${studioId}`} className={ui.buttonGhost} target="_blank" rel="noreferrer">
-          View public profile
+          View public page
         </Link>
       </div>
     </section>

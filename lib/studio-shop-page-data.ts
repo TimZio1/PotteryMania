@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import { ceramicCategoryMetaByValue } from "@/lib/ceramic-categories";
 
 export const DEFAULT_LOW_STOCK_THRESHOLD = 5;
@@ -49,9 +49,61 @@ export type StudioShopOrderRow = {
   items: { title: string; quantity: number }[];
 };
 
+type StudioShopProductRecord = Prisma.ProductGetPayload<{
+  select: {
+    id: true;
+    title: true;
+    slug: true;
+    subcategory: true;
+    shortDescription: true;
+    status: true;
+    priceCents: true;
+    salePriceCents: true;
+    pricingType: true;
+    recurringPriceCents: true;
+    billingInterval: true;
+    billingIntervalCount: true;
+    minimumCommitmentCycles: true;
+    autoRenew: true;
+    trialPeriodDays: true;
+    cancellationPolicyText: true;
+    gracePeriodDays: true;
+    paymentRetryMax: true;
+    failedPaymentAction: true;
+    sku: true;
+    shippingDomesticCents: true;
+    shippingEuropeCents: true;
+    shippingUsaCents: true;
+    shippingCanadaCents: true;
+    shippingAsiaCents: true;
+    stockQuantity: true;
+    stockStatus: true;
+    categoryMeta: {
+      select: {
+        slug: true;
+        name: true;
+      };
+    };
+  };
+}>;
+
+type StudioShopOrderRecord = Prisma.OrderGetPayload<{
+  include: {
+    items: {
+      include: {
+        product: {
+          select: {
+            title: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
 export async function loadStudioShopPageData(prisma: PrismaClient, studioId: string) {
-  let products: Awaited<ReturnType<typeof prisma.product.findMany>> = [];
-  let orders: Awaited<ReturnType<typeof prisma.order.findMany>> = [];
+  let products: StudioShopProductRecord[] = [];
+  let orders: StudioShopOrderRecord[] = [];
   try {
     [products, orders] = await Promise.all([
       prisma.product.findMany({

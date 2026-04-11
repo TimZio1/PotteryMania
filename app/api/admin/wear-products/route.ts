@@ -4,8 +4,8 @@ import { requireHyperAdminUser } from "@/lib/auth-session";
 import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeWearSlug, isValidWearSlug } from "@/lib/wear-slug";
 import { parseWearImageUrlsFromMultiline } from "@/lib/wear-admin-helpers";
-import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
-import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
+import { mergeWearImageUrlsWithExistingMetadata, wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import { logApiError } from "@/lib/monitoring";
 
 export const dynamic = "force-dynamic";
@@ -27,15 +27,17 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     products: rows.map((r) => {
-      const category = resolveWearCategory({
+      const category = resolveWearCatalogCategory({
         slug: r.slug,
         name: r.name,
         subtitle: r.subtitle,
         description: r.description,
+        spreadconnectProductTypeName: r.spreadconnectProductTypeName,
+        spreadconnectCategoryData: r.spreadconnectCategoryData,
       });
       return {
-        category,
-        categoryLabel: wearCategoryLabel(category),
+        category: category.categorySlug,
+        categoryLabel: category.categoryLabel,
         id: r.id,
         slug: r.slug,
         name: r.name,
@@ -113,7 +115,7 @@ export async function POST(req: Request) {
         description: typeof body.description === "string" ? body.description.trim() || null : null,
         priceCents,
         currency,
-        images,
+        images: mergeWearImageUrlsWithExistingMetadata(images, []),
         sortOrder:
           typeof body.sortOrder === "number" && Number.isFinite(body.sortOrder)
             ? Math.floor(body.sortOrder)

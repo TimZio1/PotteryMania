@@ -61,7 +61,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
         <p className={ui.overline}>Configuration</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Settings</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Update how you appear to customers. Stripe Connect and legal profile details stay in the studio workspace.
+          Update how your studio appears to guests. Payout setup and legal profile details stay in the studio workspace.
         </p>
       </div>
 

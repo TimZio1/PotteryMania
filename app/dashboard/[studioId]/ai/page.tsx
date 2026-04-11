@@ -77,7 +77,7 @@ export default async function StudioAiPage({ params }: Props) {
         </Link>
         {" · "}
         <Link href={`/dashboard/${studioId}/features`} className="text-amber-900 underline">
-          Features / Add-ons
+          Packs & add-ons
         </Link>
       </p>
     </div>

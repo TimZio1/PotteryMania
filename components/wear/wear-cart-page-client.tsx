@@ -196,38 +196,38 @@ export function WearCartPageClient() {
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
 
   return (
-    <main className="min-h-[60vh] bg-neutral-950 px-4 py-16 text-neutral-100 sm:px-6 sm:py-20">
+    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 text-(--brand-ink) sm:px-6 sm:py-20">
       <div className="mx-auto max-w-lg">
-        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-neutral-500">Cart</p>
-        <h1 className="mt-4 text-center font-serif text-3xl text-white">Your selection</h1>
+        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Cart</p>
+        <h1 className="mt-4 text-center font-serif text-3xl text-amber-950">Your selection</h1>
 
         {cancelled ? (
-          <div className="mt-6 rounded border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-center text-sm text-amber-100">
+          <div className="mt-6 rounded border border-amber-300/70 bg-amber-50 px-4 py-4 text-center text-sm text-amber-950">
             <p>Checkout was cancelled. Nothing was charged.</p>
-            <p className="mt-2 text-amber-100/80">Your cart is still here, so you can review it and try again whenever you’re ready.</p>
+            <p className="mt-2 text-stone-600">Your cart is still here, so you can review it and try again whenever you’re ready.</p>
             <button
               type="button"
               onClick={onCheckout}
               disabled={checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid}
-              className="mt-3 inline-flex min-h-11 items-center justify-center border border-amber-200/40 px-4 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-400/10 disabled:opacity-50"
+              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-900 disabled:opacity-50"
             >
               Try checkout again
             </button>
           </div>
         ) : null}
 
-        {loadError ? <p className="mt-6 text-center text-sm text-red-300">{loadError}</p> : null}
+        {loadError ? <p className="mt-6 text-center text-sm text-red-700">{loadError}</p> : null}
 
         {lines.length === 0 ? (
-          <p className="mt-12 text-center text-sm text-neutral-500">
+          <p className="mt-12 text-center text-sm text-stone-500">
             Nothing here yet.{" "}
-            <Link href="/wear/shop" className="text-neutral-300 underline underline-offset-4 hover:text-white">
+            <Link href="/wear/shop" className="text-amber-950 underline underline-offset-4 hover:text-amber-800">
               Browse the shop
             </Link>
             .
           </p>
         ) : (
-          <ul className="mt-12 space-y-8 border-t border-white/10 pt-10">
+          <ul className="mt-12 space-y-8 border-t border-stone-200/80 pt-10">
             {lines.map((l) => {
               const key = cartLineKey(l);
               const r = resolveLine(l, byId);
@@ -235,13 +235,13 @@ export function WearCartPageClient() {
               return (
                 <li key={key} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="font-medium text-white">{r.title}</p>
+                    <p className="font-medium text-amber-950">{r.title}</p>
                     {r.ok ? (
-                      <p className="mt-1 text-sm text-neutral-500">
+                      <p className="mt-1 text-sm text-stone-500">
                         {formatWearMoney(r.unitCents, r.currency)} each · {formatWearMoney(lineCents, r.currency)} line
                       </p>
                     ) : (
-                      <p className="mt-1 text-sm text-amber-200/90">This item is no longer valid — remove it.</p>
+                      <p className="mt-1 text-sm text-amber-800">This item is no longer valid — remove it.</p>
                     )}
                   </div>
                   <div className="flex items-center gap-3">
@@ -255,12 +255,12 @@ export function WearCartPageClient() {
                       max={99}
                       value={l.quantity}
                       onChange={(e) => setQty(key, parseInt(e.target.value, 10) || 1)}
-                      className="min-h-11 w-16 border border-white/20 bg-neutral-900 px-2 py-2 text-center text-sm text-white"
+                      className="min-h-11 w-16 rounded-xl border border-stone-200 bg-white px-2 py-2 text-center text-sm text-stone-900"
                     />
                     <button
                       type="button"
                       onClick={() => removeLine(key)}
-                      className="min-h-11 px-2 text-xs uppercase tracking-wider text-neutral-500 hover:text-red-300"
+                      className="min-h-11 px-2 text-xs uppercase tracking-wider text-stone-500 hover:text-red-700"
                     >
                       Remove
                     </button>
@@ -273,17 +273,17 @@ export function WearCartPageClient() {
 
         {lines.length > 0 ? (
           <>
-            <div className="mt-10 flex justify-between border-t border-white/10 pt-8 text-sm">
-              <span className="text-neutral-500">Subtotal</span>
-              <span className="text-white">{formatWearMoney(subtotalCents, currency)}</span>
+            <div className="mt-10 flex justify-between border-t border-stone-200/80 pt-8 text-sm">
+              <span className="text-stone-500">Subtotal</span>
+              <span className="text-amber-950">{formatWearMoney(subtotalCents, currency)}</span>
             </div>
-            <p className="mt-2 text-xs text-neutral-600">
+            <p className="mt-2 text-xs text-stone-500">
               Shipping is added at secure checkout (standard rate). Taxes may apply per Stripe.
             </p>
 
             <div className="mt-10 space-y-4">
               <div>
-                <label htmlFor="wear-cart-name" className="block text-xs font-medium uppercase tracking-wider text-neutral-500">
+                <label htmlFor="wear-cart-name" className="block text-xs font-medium uppercase tracking-wider text-stone-500">
                   Full name
                 </label>
                 <input
@@ -293,13 +293,13 @@ export function WearCartPageClient() {
                   onChange={(e) => { setCustomerName(e.target.value); setNameError(null); }}
                   aria-invalid={!!nameError}
                   aria-describedby={nameError ? "wear-cart-name-err" : undefined}
-                  className={`mt-2 w-full border bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-600 ${nameError ? "border-red-500" : "border-white/15"}`}
+                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 ${nameError ? "border-red-500" : "border-stone-200"}`}
                   placeholder="Alex Maker"
                 />
-                {nameError ? <p id="wear-cart-name-err" className="mt-1 text-xs text-red-400">{nameError}</p> : null}
+                {nameError ? <p id="wear-cart-name-err" className="mt-1 text-xs text-red-700">{nameError}</p> : null}
               </div>
               <div>
-                <label htmlFor="wear-cart-email" className="block text-xs font-medium uppercase tracking-wider text-neutral-500">
+                <label htmlFor="wear-cart-email" className="block text-xs font-medium uppercase tracking-wider text-stone-500">
                   Email
                 </label>
                 <input
@@ -310,24 +310,24 @@ export function WearCartPageClient() {
                   onChange={(e) => { setCustomerEmail(e.target.value); setEmailError(null); }}
                   aria-invalid={!!emailError}
                   aria-describedby={emailError ? "wear-cart-email-err" : undefined}
-                  className={`mt-2 w-full border bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-600 ${emailError ? "border-red-500" : "border-white/15"}`}
+                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 ${emailError ? "border-red-500" : "border-stone-200"}`}
                   placeholder="you@example.com"
                 />
-                {emailError ? <p id="wear-cart-email-err" className="mt-1 text-xs text-red-400">{emailError}</p> : null}
+                {emailError ? <p id="wear-cart-email-err" className="mt-1 text-xs text-red-700">{emailError}</p> : null}
               </div>
             </div>
 
-            {checkoutError ? <p className="mt-4 text-sm text-red-300">{checkoutError}</p> : null}
+            {checkoutError ? <p className="mt-4 text-sm text-red-700">{checkoutError}</p> : null}
 
             <button
               type="button"
               disabled={checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid}
               onClick={onCheckout}
-              className="mt-8 w-full min-h-12 border border-white/25 bg-white px-6 text-sm font-medium tracking-wide text-neutral-950 transition hover:bg-neutral-100 disabled:opacity-50"
+              className="mt-8 w-full min-h-12 rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-50"
             >
               {checkoutBusy ? "Redirecting…" : "Pay securely"}
             </button>
-            <p className="mt-3 flex items-center justify-center gap-2 text-xs text-neutral-500">
+            <p className="mt-3 flex items-center justify-center gap-2 text-xs text-stone-500">
               <span aria-hidden="true">🔒</span>
               Secure Stripe checkout
             </p>
@@ -338,7 +338,7 @@ export function WearCartPageClient() {
           <button
             type="button"
             onClick={() => router.push("/wear/shop")}
-            className="text-sm text-neutral-500 underline underline-offset-4 hover:text-neutral-300"
+            className="text-sm text-stone-500 underline underline-offset-4 hover:text-amber-800"
           >
             Continue shopping
           </button>

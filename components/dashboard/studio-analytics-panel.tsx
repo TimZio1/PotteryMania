@@ -115,8 +115,8 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
         {[
           ["Product revenue", formatMoneyEur(metrics.orderRevenueCents)],
           ["Booking revenue", formatMoneyEur(metrics.bookingRevenueCents)],
-          ["Orders", String(metrics.totalOrders)],
-          ["Bookings", String(metrics.totalBookings)],
+          ["Product sales", String(metrics.totalOrders)],
+          ["Reservations", String(metrics.totalBookings)],
         ].map(([label, value]) => (
           <div key={label} className={ui.card}>
             <p className="text-sm text-stone-500">{label}</p>
@@ -140,7 +140,7 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
 
       {metrics.bookingsPerWeek && metrics.bookingsPerWeek.length > 0 ? (
         <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-stone-900">Bookings per week (~7d buckets)</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Reservations per week (~7d buckets)</h2>
           <div className="mt-4 flex h-40 items-end gap-2">
             {metrics.bookingsPerWeek.map((b) => (
               <div key={b.label} className="flex min-h-0 flex-1 flex-col items-center justify-end gap-1">
@@ -158,7 +158,7 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
 
       {metrics.revenueByWeek && metrics.revenueByWeek.length > 0 ? (
         <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-stone-900">Revenue trend (paid order totals + booking deposits)</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Revenue trend (product sales + booking deposits)</h2>
           <div className="mt-4 flex h-40 items-end gap-2">
             {metrics.revenueByWeek.map((b) => (
               <div key={b.label} className="flex min-h-0 flex-1 flex-col items-center justify-end gap-1">
@@ -181,13 +181,13 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
             {metrics.topProducts.map((item) => (
               <li key={item.id} className="flex justify-between gap-3">
                 <span>{item.title}</span>
-                <span>{item.orders} sold</span>
+                <span>{item.orders} purchases</span>
               </li>
             ))}
           </ul>
         </div>
         <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-stone-900">Top classes</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Top experiences</h2>
           <ul className="mt-4 space-y-2 text-sm text-stone-600">
             {metrics.topExperiences.map((item) => (
               <li key={item.id} className="flex justify-between gap-3">

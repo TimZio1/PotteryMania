@@ -13,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Studio analytics", "analytics", "Revenue and booking analytics.");
+  return dashboardStudioMeta(studioId, "Reports", "analytics", "Studio reports for direct revenue, reservations, and page readiness.");
 }
 
 export default async function StudioPanelAnalyticsPage({ params }: Props) {
@@ -27,8 +27,8 @@ export default async function StudioPanelAnalyticsPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className={ui.overline}>Performance</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Analytics</h1>
-        <p className="mt-2 text-sm text-stone-600">Revenue and demand from paid orders and bookings.</p>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Reports</h1>
+        <p className="mt-2 text-sm text-stone-600">Direct revenue, reservation demand, and public-page readiness for your studio.</p>
       </div>
       <StudioMarketplaceVisibility studioId={studioId} />
       <StudioAnalyticsPanel studioId={studioId} />

@@ -96,14 +96,14 @@ export function AccountClient() {
   return (
     <div className="mx-auto max-w-lg">
       <p className={platformUi.overline}>Account</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Your profile</h1>
-      <p className="mt-2 text-sm text-zinc-400">
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Your profile</h1>
+      <p className="mt-2 text-sm text-stone-600">
         Name and phone can pre-fill bookings and checkout where we use them. Language and currency are preferences for
         future features.
       </p>
 
-      {err ? <p className="mt-6 text-sm font-medium text-red-400">{err}</p> : null}
-      {msg ? <p className="mt-6 text-sm font-medium text-emerald-400">{msg}</p> : null}
+      {err ? <p className="mt-6 text-sm font-medium text-red-700">{err}</p> : null}
+      {msg ? <p className="mt-6 text-sm font-medium text-emerald-800">{msg}</p> : null}
 
       <form onSubmit={onSubmit} className={`${platformUi.card} mt-8 space-y-5`}>
         <div>

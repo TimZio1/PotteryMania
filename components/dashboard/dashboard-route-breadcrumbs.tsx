@@ -20,11 +20,11 @@ const RESERVED = new Set([
 const LISTING_LABELS: Record<string, string> = {
   products: "Products",
   experiences: "Experiences",
-  bookings: "Bookings",
-  orders: "Orders",
-  analytics: "Analytics",
+  bookings: "Session queue",
+  orders: "Sales",
+  analytics: "Reports",
   referrals: "Referrals",
-  waitlist: "Waitlist",
+  waitlist: "Session waitlist",
 };
 
 /**
@@ -37,7 +37,7 @@ export function DashboardRouteBreadcrumbs() {
     const segs = pathname.split("/").filter(Boolean);
     if (segs[0] !== "dashboard") return null;
     if (segs.length === 1) {
-      return [{ label: "Home", href: "/" }, { label: "Dashboard" }];
+      return [{ label: "Home", href: "/" }, { label: "Studio control panel" }];
     }
     const a = segs[1];
     if (!RESERVED.has(a)) {
@@ -46,21 +46,21 @@ export function DashboardRouteBreadcrumbs() {
 
     const base = [
       { label: "Home", href: "/" },
-      { label: "Dashboard", href: "/dashboard" },
+      { label: "Studio control panel", href: "/dashboard" },
     ] as const;
 
     if (a === "billing") {
-      return [...base, { label: "Billing" }];
+      return [...base, { label: "Billing & add-ons" }];
     }
     if (a === "studio") {
-      if (segs[2] === "new") return [...base, { label: "New studio" }];
-      if (segs[2]) return [...base, { label: "Studio profile" }];
+      if (segs[2] === "new") return [...base, { label: "Create studio" }];
+      if (segs[2]) return [...base, { label: "Studio workspace" }];
       return [...base, { label: "Studio" }];
     }
     if (LISTING_LABELS[a] && segs[2]) {
       return [...base, { label: LISTING_LABELS[a] }];
     }
-    return [...base, { label: "Dashboard" }];
+    return [...base, { label: "Studio control panel" }];
   }, [pathname]);
 
   if (!items) return null;

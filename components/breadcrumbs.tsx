@@ -18,13 +18,13 @@ export function Breadcrumbs({
 }) {
   if (items.length === 0) return null;
 
-  const muted = visualMode === "platform" ? "text-zinc-500" : "text-stone-500";
+  const muted = visualMode === "platform" ? "text-stone-500" : "text-stone-500";
   const linkClass =
     visualMode === "platform"
-      ? "font-medium text-zinc-300 hover:text-zinc-100 hover:underline"
+      ? "font-medium text-stone-700 hover:text-amber-950 hover:underline"
       : "font-medium text-amber-900 hover:underline";
-  const currentClass = visualMode === "platform" ? "font-medium text-zinc-200" : "font-medium text-stone-700";
-  const sepClass = visualMode === "platform" ? "text-zinc-600" : "text-stone-300";
+  const currentClass = visualMode === "platform" ? "font-medium text-stone-800" : "font-medium text-stone-700";
+  const sepClass = visualMode === "platform" ? "text-stone-300" : "text-stone-300";
 
   return (
     <nav aria-label="Breadcrumb" className={className}>

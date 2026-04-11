@@ -9,7 +9,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Ranking weights",
   "/admin/marketplace-ranking",
-  "Studio ranking weights and boosts (internal).",
+  "Studio discovery ranking weights and boosts (internal).",
 );
 
 export const dynamic = "force-dynamic";
@@ -34,11 +34,10 @@ export default async function AdminMarketplaceRankingPage() {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Ranking (internal)</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Studio ranking weights</h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Studio discovery weights</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
-        Adjust <strong>rank weight</strong> per approved studio for internal ordering. This does not change today’s
-        studio-first public navigation while public browsing stays off. Featured products still sort ahead within the same
-        studio bucket.
+        Adjust <strong>sort weight</strong> per approved studio for internal ordering. This does not change today’s
+        studio-first public navigation while public discovery stays off.
       </p>
 
       <div className="mt-8">

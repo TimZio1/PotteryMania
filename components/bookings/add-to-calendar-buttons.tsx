@@ -51,17 +51,17 @@ export function AddToCalendarButtons({
 
   if (!CALENDAR_OK.has(bookingStatus)) return null;
   if (err) {
-    return <p className={`text-xs ${visualMode === "platform" ? "text-rose-400" : "text-rose-700"}`}>{err}</p>;
+    return <p className={`text-xs ${visualMode === "platform" ? "text-rose-700" : "text-rose-700"}`}>{err}</p>;
   }
   if (!data) {
     return (
-      <p className={`text-xs ${visualMode === "platform" ? "text-zinc-500" : "text-stone-500"}`}>Loading calendar…</p>
+      <p className={`text-xs ${visualMode === "platform" ? "text-stone-500" : "text-stone-500"}`}>Loading calendar…</p>
     );
   }
 
   return (
     <div className="space-y-2">
-      <p className={`text-xs font-medium uppercase tracking-wide ${visualMode === "platform" ? "text-zinc-500" : "text-stone-500"}`}>
+      <p className={`text-xs font-medium uppercase tracking-wide ${visualMode === "platform" ? "text-stone-500" : "text-stone-500"}`}>
         Add to your calendar
       </p>
       <div className="flex flex-wrap gap-2">

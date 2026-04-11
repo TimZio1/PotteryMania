@@ -18,16 +18,17 @@ const adminLinks = [
   { href: "/admin/ai-insights", label: "AI insights" },
   { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/wear-products", label: "Wear products" },
-  { href: "/admin/wear-orders", label: "Wear orders" },
+  { href: "/admin/wear-orders", label: "Wear sales" },
   { href: "/admin/wear-analytics", label: "Wear analytics" },
-  { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/orders", label: "Studio sales" },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/operations", label: "Operations" },
   { href: "/admin/content", label: "Content" },
   { href: "/admin/platform-features", label: "Platform add-ons" },
   { href: "/admin/feature-bundles", label: "Feature bundles" },
   { href: "/admin/business-templates", label: "Business templates" },
-  { href: "/admin/marketplace", label: "Public browse (off)" },
+  { href: "/admin/marketplace", label: "Discovery controls (off)" },
+  { href: "/admin/categories", label: "Ceramic categories" },
   { href: "/admin/experiments", label: "Experiments" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/system", label: "System" },
@@ -64,7 +65,7 @@ export function AdminMobileNav() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 text-zinc-200"
+        className="flex h-10 w-10 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-700 shadow-(--pm-shadow-rest)"
         aria-label="Open admin menu"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -73,16 +74,16 @@ export function AdminMobileNav() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Admin navigation">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Hyperadmin navigation">
           <button
             type="button"
             className="absolute inset-0 bg-black/60"
             aria-label="Close menu"
             onClick={close}
           />
-          <div className="absolute right-0 top-0 flex h-full w-[min(100%,18rem)] flex-col border-l border-white/10 bg-zinc-950 shadow-xl">
-            <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
-              <span className="text-sm font-semibold text-zinc-100">Admin</span>
+          <div className="absolute right-0 top-0 flex h-full w-[min(100%,18rem)] flex-col border-l border-stone-200 bg-[#fdfaf6] shadow-xl">
+            <div className="flex h-14 items-center justify-between border-b border-stone-200 px-4">
+              <span className="text-sm font-semibold text-stone-900">Hyperadmin</span>
               <button type="button" className={cn(platformUi.buttonGhost, "min-h-10")} onClick={close}>
                 Close
               </button>
@@ -95,19 +96,19 @@ export function AdminMobileNav() {
                   className={cn(
                     platformUi.buttonGhost,
                     "w-full justify-start px-3 py-2 text-sm",
-                    linkActive(link.href) ? "bg-white/10 text-zinc-100" : "",
+                    linkActive(link.href) ? "bg-amber-950 text-white hover:bg-amber-950 hover:text-white" : "",
                   )}
                 >
                   {link.label}
                 </Link>
               ))}
             </nav>
-            <div className="border-t border-white/10 p-3">
+            <div className="border-t border-stone-200 p-3">
               <Link
                 href="/dashboard"
-                className={cn(platformUi.buttonGhost, "w-full justify-start px-3 py-2 text-sm text-zinc-400")}
+                className={cn(platformUi.buttonGhost, "w-full justify-start px-3 py-2 text-sm")}
               >
-                Vendor view
+                Studio view
               </Link>
             </div>
           </div>

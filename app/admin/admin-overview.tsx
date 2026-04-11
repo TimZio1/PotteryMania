@@ -53,7 +53,7 @@ export function AdminOverview(props: Props) {
         <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Executive overview</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">
-            Run the company from one screen.
+            Run platform operations from one screen.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600 sm:text-base">{props.founderSummary}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -86,8 +86,8 @@ export function AdminOverview(props: Props) {
           <dl className="mt-6 space-y-5">
             <MetricRow label="Gross revenue this month" value={`€${props.grossRevenueMonthEur}`} />
             <MetricRow label="Platform commission this month" value={`€${props.platformCommissionMonthEur}`} />
-            <MetricRow label="Booking cash collected" value={`€${props.bookingCashMonthEur}`} />
-            <MetricRow label="Paid orders this month" value={String(props.paidOrdersThisMonth)} />
+            <MetricRow label="Reservation cash collected" value={`€${props.bookingCashMonthEur}`} />
+            <MetricRow label="Paid studio sales this month" value={String(props.paidOrdersThisMonth)} />
             <MetricRow label="Active studios" value={String(props.activeStudios)} />
             <MetricRow label="Leads in pipeline" value={String(props.leadCount)} />
           </dl>
@@ -95,9 +95,9 @@ export function AdminOverview(props: Props) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <TrendCard title="Revenue trend (last 30 days)" subtitle="Paid order GMV" data={props.revenueTrend} prefix="€" />
-        <TrendCard title="Order flow" subtitle="Orders created per day" data={props.orderTrend} />
-        <TrendCard title="Booking flow" subtitle="Bookings created per day" data={props.bookingTrend} />
+        <TrendCard title="Revenue trend (last 30 days)" subtitle="Studio-order GMV" data={props.revenueTrend} prefix="€" />
+        <TrendCard title="Sales flow" subtitle="Studio sales created per day" data={props.orderTrend} />
+        <TrendCard title="Reservation flow" subtitle="Reservations created per day" data={props.bookingTrend} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr_1fr]">
@@ -129,7 +129,7 @@ export function AdminOverview(props: Props) {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Operational pressure points</p>
           <div className="mt-5 grid gap-3">
             <SnapshotCard label="Studios awaiting review" value={props.pendingStudios} tone="warn" />
-            <SnapshotCard label="Bookings awaiting vendor approval" value={props.awaitingApprovalBookings} tone="warn" />
+            <SnapshotCard label="Reservations awaiting studio approval" value={props.awaitingApprovalBookings} tone="warn" />
             <SnapshotCard label="Manual refund queue" value={props.manualRefundQueue} tone="danger" />
             <SnapshotCard label="Early-access pipeline" value={props.leadCount} tone="good" />
           </div>

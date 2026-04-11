@@ -79,21 +79,21 @@ export default function GoogleCalendarSettingsCard({
 
   return (
     <div className={`${platformUi.card} space-y-3`}>
-      <h2 className="text-lg font-semibold text-zinc-50">Google Calendar</h2>
-      <p className="text-sm text-zinc-400">
+      <h2 className="text-lg font-semibold text-amber-950">Google Calendar</h2>
+      <p className="text-sm text-stone-600">
         Confirmed class bookings can appear on your Google Calendar. Connect once; confirmations and reschedules update the same
         event automatically.
       </p>
       {!oauthConfigured ? (
-        <p className="text-sm text-amber-300">
+        <p className="text-sm text-amber-800">
           Calendar connect is not enabled on this deployment (missing{" "}
-          <code className="rounded bg-white/10 px-1 text-zinc-200">GOOGLE_CALENDAR_CLIENT_ID</code> / secret).
+          <code className="rounded bg-stone-100 px-1 text-stone-800">GOOGLE_CALENDAR_CLIENT_ID</code> / secret).
         </p>
       ) : connected ? (
-        <div className="space-y-3 text-sm text-zinc-300">
-          <p className="font-medium text-emerald-400">Connected</p>
-          {lastSyncAt ? <p className="text-zinc-400">Last sync: {new Date(lastSyncAt).toLocaleString()}</p> : null}
-          {syncErrorState ? <p className="text-rose-400">Last error: {syncErrorState}</p> : null}
+        <div className="space-y-3 text-sm text-stone-700">
+          <p className="font-medium text-emerald-700">Connected</p>
+          {lastSyncAt ? <p className="text-stone-500">Last sync: {new Date(lastSyncAt).toLocaleString()}</p> : null}
+          {syncErrorState ? <p className="text-rose-700">Last error: {syncErrorState}</p> : null}
           {hasGoogleConnection && connected ? (
             <label className="flex cursor-pointer items-center gap-2">
               <input
@@ -112,9 +112,9 @@ export default function GoogleCalendarSettingsCard({
           </div>
         </div>
       ) : (
-        <div className="space-y-2 text-sm text-zinc-300">
+        <div className="space-y-2 text-sm text-stone-700">
           {connectionStatus === "error" ? (
-            <p className="text-rose-400">Connection error{syncErrorState ? `: ${syncErrorState}` : ""}. Reconnect to restore sync.</p>
+            <p className="text-rose-700">Connection error{syncErrorState ? `: ${syncErrorState}` : ""}. Reconnect to restore sync.</p>
           ) : (
             <p>Not connected.</p>
           )}

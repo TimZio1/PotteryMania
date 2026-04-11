@@ -94,8 +94,8 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
         ← Studio profile
       </Link>
       <p className={`${platformUi.overline} mt-6`}>Public page</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">Appearance</h1>
-      <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Appearance</h1>
+      <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Curated looks for your public studio page only. No custom hex or fonts — presets stay readable and on-brand for
         PotteryMania.
         {tier === "starter" ? " After activation, every preset unlocks." : ""}
@@ -106,7 +106,7 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className={`${platformUi.card} space-y-5`}>
-          <h2 className="text-sm font-semibold text-zinc-100">Settings</h2>
+          <h2 className="text-sm font-semibold text-stone-900">Settings</h2>
 
           <label className={platformUi.label}>
             Theme preset
@@ -243,7 +243,7 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
             </select>
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-zinc-300">
+          <label className="flex items-center gap-2 text-sm text-stone-700">
             <input
               type="checkbox"
               checked={draft.showSerifHeadings}
@@ -252,7 +252,7 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
             Serif headings
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-zinc-300">
+          <label className="flex items-center gap-2 text-sm text-stone-700">
             <input
               type="checkbox"
               checked={draft.useUppercaseLabels}
@@ -267,8 +267,8 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
         </div>
 
         <div>
-          <h2 className="mb-3 text-sm font-semibold text-zinc-100">Live preview</h2>
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/40 p-4">
+          <h2 className="mb-3 text-sm font-semibold text-stone-900">Live preview</h2>
+          <div className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-4 shadow-(--pm-shadow-rest)">
             <StudioThemeRoot theme={previewResolved}>
               <div className="st-card p-5">
                 <p className={`text-xs st-muted ${draft.useUppercaseLabels ? "st-overline" : ""}`}>Your studio</p>

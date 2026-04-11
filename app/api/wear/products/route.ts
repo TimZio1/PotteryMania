@@ -2,21 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import {
-  isWearCategory,
+  resolveWearCatalogCategory,
   isWearTopSubcategory,
-  resolveWearCategory,
-  resolveWearTopSubcategory,
-  wearCategoryLabel,
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const categoryParam = url.searchParams.get("category")?.trim().toLowerCase() ?? "";
-  const categoryFilter = isWearCategory(categoryParam) ? categoryParam : null;
+  const categoryFilter = url.searchParams.get("category")?.trim().toLowerCase() ?? "";
   const subParam = url.searchParams.get("sub")?.trim().toLowerCase() ?? "";
-  const topSubFilter =
-    categoryFilter === "tops" && isWearTopSubcategory(subParam) ? subParam : null;
+  const topSubFilter = isWearTopSubcategory(subParam) ? subParam : null;
 
   const rows = await prisma.wearProduct.findMany({
     where: { isActive: true, archivedAt: null },
@@ -31,26 +26,25 @@ export async function GET(req: Request) {
 
   const products = rows
     .map((r) => {
-      const category = resolveWearCategory({
+      const category = resolveWearCatalogCategory({
         slug: r.slug,
         name: r.name,
         subtitle: r.subtitle,
         description: r.description,
+        spreadconnectProductTypeName: r.spreadconnectProductTypeName,
+        spreadconnectCategoryData: r.spreadconnectCategoryData,
       });
-      const topSub = category === "tops" ? resolveWearTopSubcategory({
-        slug: r.slug,
-        name: r.name,
-        subtitle: r.subtitle,
-        description: r.description,
-      }) : null;
+      const topSub = category.topSub;
       return {
         id: r.id,
         slug: r.slug,
         name: r.name,
         subtitle: r.subtitle,
         description: r.description,
-        category,
-        categoryLabel: wearCategoryLabel(category),
+        category: category.categorySlug,
+        categoryLabel: category.categoryLabel,
+        fallbackCategory: category.fallbackCategory,
+        categorySource: category.source,
         topSub,
         topSubLabel: topSub ? wearTopSubcategoryLabel(topSub) : null,
         priceCents: r.priceCents,

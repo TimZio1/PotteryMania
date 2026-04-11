@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
-import StudioMonetizedInsightsPanel from "@/components/dashboard/studio-monetized-insights-panel";
-import { listStudioInsightsPayload } from "@/lib/ai/ensure-studio-insights";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +10,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Studio overview", "", "Owner home: bookings, revenue snapshot, and quick actions.");
+  return dashboardStudioMeta(studioId, "Today", "", "Studio control panel home for sessions, revenue, and quick actions.");
 }
 
 export default async function StudioPanelHomePage({ params }: Props) {
@@ -92,7 +90,7 @@ export default async function StudioPanelHomePage({ params }: Props) {
   const bookingVendorCents = bookingAgg._sum.vendorAmountCents ?? 0;
   const revenue30dEur = (orderCents + bookingVendorCents) / 100;
   const revenueEstimateNote =
-    "Estimate from paid orders and booking vendor share in the last 30 days (before refunds and fees).";
+    "Estimate from paid product sales and booking revenue in the last 30 days (before refunds and fees).";
 
   let occPct: number | null = null;
   if (slotFill.length > 0) {
@@ -102,58 +100,112 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
   const lowActivity =
     upcomingSlots.length === 0 && emptySlots > 3
-      ? "No bookings in the next week and several empty slots — consider promoting a class."
+      ? "No sessions in the next week and several open slots — consider sharing your page or adding new times."
       : null;
-
-  const insightRows = await listStudioInsightsPayload(prisma, studioId, { take: 16 });
-  const teaserInsights = insightRows.filter((i) => i.status === "generated" || i.status === "viewed");
-  const dashboardInsights = (teaserInsights.length ? teaserInsights : insightRows).slice(0, 3);
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       {!studio?.businessTemplateSlug ? (
-        <div className="rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50/90 to-white px-5 py-6 shadow-sm sm:px-8 sm:py-8">
-          <h2 className="text-lg font-semibold text-amber-950 sm:text-xl">Your studio is not structured yet</h2>
+        <div className="rounded-2xl border border-amber-200/90 bg-linear-to-br from-amber-50/90 to-white px-5 py-6 shadow-sm sm:px-8 sm:py-8">
+          <h2 className="text-lg font-semibold text-amber-950 sm:text-xl">Choose how your studio workspace is organized</h2>
           <p className="mt-2 max-w-xl text-sm text-stone-700">
-            Choose a template to organize your classes, bookings, and growth. Takes under a minute.
+            Pick a template to organize experiences, sessions, payments, and day-to-day studio workflows. Takes under a minute.
           </p>
           <Link
             href={`/dashboard/${studioId}/template`}
             className={`${ui.buttonPrimary} mt-5 inline-flex w-full justify-center sm:w-auto`}
           >
-            Choose template
+            Choose workspace template
           </Link>
         </div>
       ) : null}
 
       <div>
-        <p className={ui.overline}>Today</p>
+        <p className={ui.overline}>Today at your studio</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">{studio?.displayName}</h1>
         <p className="mt-2 max-w-2xl text-sm text-stone-600">
-          What to do next: review upcoming classes, confirm pending bookings, and keep listings fresh.
+          Review upcoming sessions, keep your studio page current, and stay on top of direct bookings and sales.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Revenue (30d est.)</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Direct revenue (30d est.)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{revenue30dEur.toFixed(2)}</p>
           <p className="mt-2 text-xs text-stone-500">{revenueEstimateNote}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Active students (90d)</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Active contacts (90d)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">{distinctStudents.length}</p>
-          <p className="mt-2 text-xs text-stone-500">Unique customer emails with a booking.</p>
+          <p className="mt-2 text-xs text-stone-500">Distinct booking email addresses in the last 90 days.</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Slot fill (7d)</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Session fill (7d)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">{occPct !== null ? `${occPct}%` : "—"}</p>
           <p className="mt-2 text-xs text-stone-500">Average reserved vs capacity on open slots.</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Upcoming (7d)</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Upcoming sessions (7d)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">{upcomingSlots.length}</p>
-          <p className="mt-2 text-xs text-stone-500">Bookings with a session in the next week.</p>
+          <p className="mt-2 text-xs text-stone-500">Confirmed or approved reservations scheduled in the next week.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Quick actions</h2>
+          <p className="mt-2 text-sm text-stone-600">Jump straight into the work that keeps your studio moving.</p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/dashboard/${studioId}/bookings`} className={ui.buttonPrimary}>
+              Open session calendar
+            </Link>
+            <Link href={`/dashboard/${studioId}/guided`} className={ui.buttonSecondary}>
+              Continue guided setup
+            </Link>
+          </div>
+        </div>
+
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Your studio page</h2>
+          <p className="mt-2 text-sm text-stone-600">Preview the public page your guests see and update the presentation when needed.</p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/studios/${studioId}`} className={ui.buttonPrimary}>
+              View public page
+            </Link>
+            <Link href={`/dashboard/${studioId}/template`} className={ui.buttonSecondary}>
+              Edit page design
+            </Link>
+          </div>
+        </div>
+
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Create experience</h2>
+          <p className="mt-2 text-sm text-stone-600">Add a new class or workshop, then schedule times guests can reserve directly.</p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/dashboard/${studioId}/classes`} className={ui.buttonPrimary}>
+              Add experience
+            </Link>
+            <Link href={`/dashboard/${studioId}/calendar`} className={ui.buttonSecondary}>
+              Open schedule
+            </Link>
+          </div>
+        </div>
+
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Payments &amp; links</h2>
+          <p className="mt-2 text-sm text-stone-600">
+            {studio?.activationPaidAt
+              ? "Your studio is live for direct payments. Review recent payout activity and linked setup details."
+              : "Finish payout setup when you are ready to take direct bookings and product payments."}
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/dashboard/${studioId}/payments`} className={ui.buttonPrimary}>
+              Open payments
+            </Link>
+            <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
+              Studio details &amp; payouts
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -173,9 +225,9 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
       <div>
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold text-amber-950">Upcoming bookings</h2>
+          <h2 className="text-lg font-semibold text-amber-950">Upcoming sessions</h2>
           <Link href={`/dashboard/${studioId}/bookings`} className={`${ui.buttonGhost} text-sm text-amber-900`}>
-            View all
+            Open session calendar
           </Link>
         </div>
         <div className="mt-3 space-y-2">
@@ -190,27 +242,12 @@ export default async function StudioPanelHomePage({ params }: Props) {
                     {b.slot.slotDate.toISOString().slice(0, 10)} {b.slot.startTime} · {b.customerName}
                   </p>
                 </div>
-                <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-700">{b.bookingStatus}</span>
+                <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-700">
+                  {b.bookingStatus.replace(/_/g, " ").replace("vendor", "studio")}
+                </span>
               </div>
             ))
           )}
-        </div>
-      </div>
-
-      <div>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-amber-950">AI insights preview</h2>
-            <p className="mt-1 text-sm text-stone-600">
-              Generated from your bookings and listings. Unlock full analysis on the AI Advisor page.
-            </p>
-          </div>
-          <Link href={`/dashboard/${studioId}/ai`} className={`${ui.buttonGhost} text-sm text-amber-900`}>
-            Open AI Advisor
-          </Link>
-        </div>
-        <div className="mt-4">
-          <StudioMonetizedInsightsPanel studioId={studioId} initialInsights={dashboardInsights} variant="compact" />
         </div>
       </div>
     </div>

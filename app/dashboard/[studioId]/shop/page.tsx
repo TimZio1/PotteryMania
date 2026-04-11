@@ -14,7 +14,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Shop", "shop", "Products and storefront management.");
+  return dashboardStudioMeta(studioId, "Catalog", "shop", "Products, fulfillment, and direct studio sales.");
 }
 
 export default async function StudioShopPage({ params }: Props) {
@@ -29,16 +29,16 @@ export default async function StudioShopPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <p className={ui.overline}>Commerce</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Products / Shop</h1>
+        <p className={ui.overline}>Catalog</p>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Catalog &amp; fulfillment</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Inventory quick edits, low-stock cues, and order fulfillment in one place. Deep editing stays in the product workspace.
+          Inventory quick edits, low-stock cues, and fulfillment in one place. Deep editing stays in the product workspace.
         </p>
       </div>
 
       {unavailable ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Shop data is temporarily unavailable while product schema updates finish deploying. Existing configuration is safe;
+          Catalog data is temporarily unavailable while product schema updates finish deploying. Existing configuration is safe;
           try again after the deployment completes.
           {" "}
           <Link href={`/dashboard/products/${studioId}`} className="font-medium underline underline-offset-2">
