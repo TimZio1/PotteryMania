@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
@@ -9,12 +8,9 @@ import {
 } from "@/lib/business-templates";
 import { resolveStudioRecommendedTemplateSlug } from "@/lib/business-template-recommendation";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
+import { StudioTemplateGalleryWrapper } from "./studio-template-gallery-wrapper";
 
-const StudioTemplateGalleryClient = dynamic(() => import("@/components/dashboard/studio-template-gallery-client"), {
-  ssr: false,
-});
-
-export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 type Props = { params: Promise<{ studioId: string }> };
 
@@ -42,7 +38,7 @@ export default async function StudioTemplatePage({ params }: Props) {
   ]);
 
   return (
-    <StudioTemplateGalleryClient
+    <StudioTemplateGalleryWrapper
       studioId={studioId}
       templates={templates}
       initialSlug={studio.businessTemplateSlug}
