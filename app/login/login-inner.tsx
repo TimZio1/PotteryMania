@@ -109,7 +109,7 @@ export default function LoginInner() {
         <p className={ui.errorText}>This account has been suspended. Contact support if you think this is a mistake.</p>
       ) : null}
       {verifiedOk ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <div className={`${ui.cardMuted} border-emerald-200/80 bg-emerald-50/90`}>
           <p className={ui.successText}>Your email is verified. You can sign in.</p>
         </div>
       ) : null}
@@ -125,7 +125,7 @@ export default function LoginInner() {
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignIn()} className={`${ui.buttonSecondary} w-full`}>
             {googlePending ? "Connecting Google…" : "Continue with Google"}
           </button>
-          <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-stone-400">
+          <div className={`flex items-center gap-[var(--pm-space-3)] ${ui.overline} text-stone-400`}>
             <span className="h-px flex-1 bg-stone-200" />
             <span>or sign in with email</span>
             <span className="h-px flex-1 bg-stone-200" />
@@ -138,7 +138,7 @@ export default function LoginInner() {
         </label>
         <input
           id="login-email"
-          className={`${ui.input} mt-1`}
+          className={`${ui.input} mt-2`}
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
@@ -154,7 +154,7 @@ export default function LoginInner() {
         </label>
         <input
           id="login-password"
-          className={`${ui.input} mt-1`}
+          className={`${ui.input} mt-2`}
           type="password"
           autoComplete="current-password"
           placeholder="••••••••"

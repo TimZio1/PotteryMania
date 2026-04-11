@@ -48,7 +48,7 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
   return (
     <div className="mb-6 space-y-3">
       {profileIncomplete ? (
-        <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-zinc-100 sm:px-5">
+        <div className="rounded-[length:var(--pm-radius-card)] border border-amber-500/25 bg-amber-500/10 p-[var(--pm-space-4)] text-sm text-zinc-100 sm:p-[var(--pm-space-5)]">
           <p className="font-semibold text-zinc-50">Finish business details before payouts</p>
           <p className="mt-1 text-zinc-300">
             You started with quick setup. Add your full address, tax ID, and legal name in Studio profile when you&apos;re
@@ -62,27 +62,31 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
           </Link>
         </div>
       ) : null}
-      <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-4 sm:px-5">
+      <div className="rounded-[length:var(--pm-radius-card)] border border-emerald-500/25 bg-emerald-500/10 p-[var(--pm-space-4)] sm:p-[var(--pm-space-5)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200/90">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-200/90">
               Next: get your first sale or booking
             </p>
             <p className="mt-1 text-sm font-medium text-zinc-50">Your public studio link is live — share it today.</p>
             <p className="mt-2 text-sm text-zinc-300">
               <span className="font-mono text-xs break-all sm:text-sm">{publicUrl}</span>
             </p>
-            <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-zinc-300">
-              <li>Add one product or one class with a time slot.</li>
-              <li>Send this link to your mailing list or Instagram bio.</li>
-              <li>Collect payment through checkout — money hits your Stripe.</li>
-            </ol>
+            <p className="mt-3 text-sm text-zinc-300">
+              New: use the step-by-step helper — add a listing, a class, or payouts without digging through menus.
+            </p>
+            <Link
+              href={`/dashboard/${studioId}/guided`}
+              className="mt-2 inline-block text-sm font-semibold text-emerald-200 underline underline-offset-2 hover:text-emerald-100"
+            >
+              Open simple setup →
+            </Link>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:items-end">
             <button
               type="button"
               onClick={copy}
-              className="inline-flex min-h-10 items-center justify-center rounded-full bg-emerald-600/90 px-4 text-sm font-medium text-white transition hover:bg-emerald-500"
+              className="inline-flex min-h-11 items-center justify-center rounded-[length:var(--pm-radius-pill)] bg-emerald-600/90 px-[var(--pm-space-4)] text-sm font-medium text-white shadow-[var(--pm-shadow-rest)] transition hover:bg-emerald-500"
             >
               {copied ? "Copied" : "Copy link"}
             </button>

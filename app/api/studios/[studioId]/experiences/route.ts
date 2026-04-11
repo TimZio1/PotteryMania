@@ -46,7 +46,9 @@ export async function GET(_req: Request, ctx: Ctx) {
 export async function POST(req: Request, ctx: Ctx) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "vendor") {
+  if (user.role === "customer") {
+    await prisma.user.update({ where: { id: user.id }, data: { role: "vendor" } });
+  } else if (user.role !== "vendor") {
     return NextResponse.json({ error: "Vendor role required" }, { status: 403 });
   }
   const { studioId } = await ctx.params;
@@ -57,11 +59,6 @@ export async function POST(req: Request, ctx: Ctx) {
   if (studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
   }
-  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
-  if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
-    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
-  }
-
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -118,6 +115,11 @@ export async function POST(req: Request, ctx: Ctx) {
   const status = (body.status as ExperienceStatus) || "draft";
   const allowedStatus: ExperienceStatus[] = ["draft", "active", "inactive", "archived"];
   const safeStatus = allowedStatus.includes(status) ? status : "draft";
+
+  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
+  if (safeStatus === "active" && (!stripeRow?.chargesEnabled || !stripeRow?.payoutsEnabled)) {
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
+  }
 
   const visibility = (body.visibility as ExperienceVisibility) || "public";
   const safeVisibility: ExperienceVisibility[] = ["public", "private"];

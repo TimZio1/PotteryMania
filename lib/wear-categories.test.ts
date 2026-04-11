@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { isWearCategory, resolveWearCategory, wearCategoryLabel } from "./wear-categories";
+import {
+  isWearCategory,
+  isWearTopSubcategory,
+  resolveWearCategory,
+  resolveWearTopSubcategory,
+  wearCategoryLabel,
+  wearTopSubcategoryLabel,
+} from "./wear-categories";
 
 describe("wear category resolver", () => {
   it("classifies tops from tee/t-shirt keywords", () => {
@@ -28,5 +35,22 @@ describe("wear category resolver", () => {
     expect(isWearCategory("tops")).toBe(true);
     expect(isWearCategory("foo")).toBe(false);
     expect(wearCategoryLabel("headwear")).toBe("Headwear");
+  });
+});
+
+describe("wear tops / tee subcategories", () => {
+  it("resolves short sleeve vs long sleeve vs other", () => {
+    expect(resolveWearTopSubcategory({ name: "Studio Mark Tee" })).toBe("short_sleeve");
+    expect(resolveWearTopSubcategory({ name: "Hands in the clay · longsleeve" })).toBe("long_sleeve");
+    expect(resolveWearTopSubcategory({ subtitle: "Classic long sleeve tee" })).toBe("long_sleeve");
+    expect(resolveWearTopSubcategory({ name: "Summer tank" })).toBe("tank");
+    expect(resolveWearTopSubcategory({ name: "Studio polo" })).toBe("polo");
+    expect(resolveWearTopSubcategory({ name: "Minimal top" })).toBe("other");
+  });
+
+  it("validates subcategory query literals and labels", () => {
+    expect(isWearTopSubcategory("short_sleeve")).toBe(true);
+    expect(isWearTopSubcategory("tees")).toBe(false);
+    expect(wearTopSubcategoryLabel("tank")).toBe("Tanks & sleeveless");
   });
 });

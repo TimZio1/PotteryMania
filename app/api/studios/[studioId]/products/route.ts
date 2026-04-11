@@ -39,11 +39,6 @@ export async function POST(req: Request, ctx: Ctx) {
   if (studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
   }
-  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
-  if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
-    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
-  }
-
   let body: {
     title?: string;
     slug?: string;
@@ -114,6 +109,11 @@ export async function POST(req: Request, ctx: Ctx) {
     body.status === "active" || body.status === "draft" || body.status === "inactive" || body.status === "archived"
       ? body.status
       : "draft";
+
+  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
+  if (status === "active" && (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled)) {
+    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
+  }
 
   const pricing = normalizeOfferingPricing(body);
   if (!pricing.ok) {

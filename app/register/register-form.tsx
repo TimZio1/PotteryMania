@@ -72,9 +72,13 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      {err ? <p className={ui.errorText}>{err}</p> : null}
+      {err ? (
+        <p className={ui.errorText} role="alert">
+          {err}
+        </p>
+      ) : null}
       {ok ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <div className={`${ui.cardMuted} border-emerald-200/80 bg-emerald-50/90`}>
           <p className={ui.successText}>{ok}</p>
           <Link href="/login" className="mt-2 inline-block text-sm font-medium text-amber-900 hover:underline">
             Go to sign in →
@@ -86,7 +90,7 @@ export function RegisterForm() {
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignUp()} className={`${ui.buttonSecondary} w-full`}>
             {googlePending ? "Connecting Google…" : "Continue with Google"}
           </button>
-          <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-stone-400">
+          <div className={`flex items-center gap-[var(--pm-space-3)] ${ui.overline} text-stone-400`}>
             <span className="h-px flex-1 bg-stone-200" />
             <span>or register with email</span>
             <span className="h-px flex-1 bg-stone-200" />
@@ -95,9 +99,9 @@ export function RegisterForm() {
       ) : null}
       <div>
         <span className={ui.label}>Account type</span>
-        <p className="mt-1 text-xs text-stone-500">Vendors manage a studio; customers shop and book classes.</p>
+        <p className={`mt-1 ${ui.helper}`}>Vendors manage a studio; customers shop and book classes.</p>
         <select
-          className={`${ui.input} mt-2`}
+          className={`${ui.select} mt-2`}
           value={role}
           onChange={(e) => setRole(e.target.value as "customer" | "vendor")}
           aria-label="Account type"
@@ -122,7 +126,7 @@ export function RegisterForm() {
         </label>
         <input
           id="reg-email"
-          className={`${ui.input} mt-1`}
+          className={`${ui.input} mt-2`}
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
@@ -150,7 +154,7 @@ export function RegisterForm() {
         </label>
         <input
           id="reg-password"
-          className={`${ui.input} mt-1`}
+          className={`${ui.input} mt-2`}
           type="password"
           autoComplete="new-password"
           placeholder="At least 8 characters"

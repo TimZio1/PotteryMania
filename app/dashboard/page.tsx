@@ -19,7 +19,7 @@ export default async function DashboardPage() {
   const adminSession = await requireAdminUser();
   if (adminSession) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-lg px-[var(--pm-space-4)] py-[var(--pm-space-8)] sm:px-[var(--pm-space-6)] sm:py-[var(--pm-space-10)]">
         <p className={platformUi.overline}>Admin</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">Operations</h1>
         <p className="mt-3 text-zinc-400">
@@ -42,7 +42,7 @@ export default async function DashboardPage() {
 
   if (user.role === "customer") {
     return (
-      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-lg px-[var(--pm-space-4)] py-[var(--pm-space-8)] sm:px-[var(--pm-space-6)] sm:py-[var(--pm-space-10)]">
         <p className={platformUi.overline}>Customer</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">Your account</h1>
         <p className="mt-3 text-zinc-400">
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
 
   if (user.role !== "vendor") {
     return (
-      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-lg px-[var(--pm-space-4)] py-[var(--pm-space-8)] sm:px-[var(--pm-space-6)] sm:py-[var(--pm-space-10)]">
         <h1 className="text-xl font-semibold text-zinc-50">Dashboard</h1>
         <p className="mt-3 text-zinc-400">This area is for studio vendors. Use the main site to browse as a customer.</p>
         <Link href="/" className={`${platformUi.buttonSecondary} mt-6 inline-flex`}>
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
   const showUpgradeNudge = momentumIds.size > 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-3xl px-[var(--pm-space-4)] py-[var(--pm-space-8)] sm:px-[var(--pm-space-6)] sm:py-[var(--pm-space-10)]">
       <div className="flex flex-wrap items-center gap-3">
         <p className={platformUi.overline}>Vendor</p>
       </div>
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
       </p>
 
       {showUpgradeNudge ? (
-        <div className="mt-8 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-4 text-sm text-zinc-100 sm:px-5">
+        <div className="mt-8 rounded-[length:var(--pm-radius-card)] border border-amber-500/25 bg-amber-500/10 p-[var(--pm-space-4)] text-sm text-zinc-100 sm:p-[var(--pm-space-5)]">
           <p className="font-semibold text-zinc-50">{UPGRADE_MOMENTUM_MESSAGE}</p>
           <p className="mt-2 text-zinc-300">
             You&apos;ve crossed real usage signals (bookings, catalog, or paid orders). Lock in the plan that matches how
@@ -156,7 +156,13 @@ export default async function DashboardPage() {
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                    <Link href={`/dashboard/${s.id}`} className={`${platformUi.buttonPrimary} text-center sm:w-auto`}>
+                    <Link href={`/dashboard/${s.id}/guided`} className={`${platformUi.buttonPrimary} text-center sm:w-auto`}>
+                      Simple setup
+                    </Link>
+                    <Link
+                      href={`/dashboard/${s.id}`}
+                      className={`${platformUi.buttonSecondary} text-center sm:w-auto`}
+                    >
                       Open studio panel
                     </Link>
                     <Link

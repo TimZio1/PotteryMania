@@ -11,7 +11,7 @@ type Props = {
 
 export function AuthShell({ title, description, children }: Props) {
   return (
-    <div className="min-h-screen bg-stone-50 px-4 py-10 sm:px-6 sm:py-16">
+    <div className="min-h-screen bg-stone-50 px-[var(--pm-space-4)] py-[var(--pm-space-10)] sm:px-[var(--pm-space-6)] sm:py-[var(--pm-space-16)]">
       <div className={ui.narrowContainer}>
         <BrandLogo className="mb-6" size="sm" />
         <Link

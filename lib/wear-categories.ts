@@ -2,12 +2,25 @@ export const WEAR_CATEGORIES = ["tops", "hoodies", "headwear", "accessories", "o
 
 export type WearCategory = (typeof WEAR_CATEGORIES)[number];
 
+/** Inferred from copy when `resolveWearCategory` is `tops` (tees, polos, tanks, etc.). */
+export const WEAR_TOP_SUBCATEGORIES = ["short_sleeve", "long_sleeve", "tank", "polo", "other"] as const;
+
+export type WearTopSubcategory = (typeof WEAR_TOP_SUBCATEGORIES)[number];
+
 export const WEAR_CATEGORY_LABELS: Record<WearCategory, string> = {
   tops: "Tops",
   hoodies: "Hoodies & Sweatshirts",
   headwear: "Headwear",
   accessories: "Accessories",
   other: "Other",
+};
+
+export const WEAR_TOP_SUBCATEGORY_LABELS: Record<WearTopSubcategory, string> = {
+  short_sleeve: "Short sleeve tees",
+  long_sleeve: "Long sleeve",
+  tank: "Tanks & sleeveless",
+  polo: "Polos",
+  other: "Other tops",
 };
 
 // Optional hard overrides when a specific slug should map to a custom category.
@@ -39,9 +52,33 @@ type WearCategoryInput = {
   description?: string | null;
 };
 
+const TOP_SUB_RULES: Array<{ sub: WearTopSubcategory; keywords: RegExp[] }> = [
+  {
+    sub: "long_sleeve",
+    keywords: [/\blongsleeve\b/i, /\blong[-\s]?sleeve\b/i, /\bls\s+tee\b/i],
+  },
+  {
+    sub: "tank",
+    keywords: [/\btank\b/i, /\bracerback\b/i, /\bsleeveless\b/i, /\bvest\b/i],
+  },
+  {
+    sub: "polo",
+    keywords: [/\bpolo\b/i, /\bgolf\s+shirt\b/i],
+  },
+  {
+    sub: "short_sleeve",
+    keywords: [/\btee\b/i, /\bt-?shirt\b/i, /\bshort[-\s]?sleeve\b/i, /\bss\s+tee\b/i, /\bshirt\b/i],
+  },
+];
+
 export function isWearCategory(value: string | null | undefined): value is WearCategory {
   if (!value) return false;
   return (WEAR_CATEGORIES as readonly string[]).includes(value);
+}
+
+export function isWearTopSubcategory(value: string | null | undefined): value is WearTopSubcategory {
+  if (!value) return false;
+  return (WEAR_TOP_SUBCATEGORIES as readonly string[]).includes(value);
 }
 
 export function resolveWearCategory(input: WearCategoryInput): WearCategory {
@@ -61,4 +98,20 @@ export function resolveWearCategory(input: WearCategoryInput): WearCategory {
 
 export function wearCategoryLabel(category: WearCategory): string {
   return WEAR_CATEGORY_LABELS[category];
+}
+
+export function wearTopSubcategoryLabel(sub: WearTopSubcategory): string {
+  return WEAR_TOP_SUBCATEGORY_LABELS[sub];
+}
+
+/** Call when the resolved wear category is `tops`; still safe on any product text. */
+export function resolveWearTopSubcategory(input: WearCategoryInput): WearTopSubcategory {
+  const corpus = [input.slug, input.name, input.subtitle, input.description]
+    .filter((x): x is string => typeof x === "string" && x.trim() !== "")
+    .join(" ");
+
+  for (const rule of TOP_SUB_RULES) {
+    if (rule.keywords.some((rx) => rx.test(corpus))) return rule.sub;
+  }
+  return "other";
 }

@@ -17,6 +17,26 @@
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
+
+  /**
+   * App-wide structure tokens (PotteryMania shell + `lib/ui-styles`).
+   * Spacing scale — only these steps: 4, 8, 12, 16, 24, 32, 48, 64 px.
+   */
+  --pm-space-1: 0.25rem;
+  --pm-space-2: 0.5rem;
+  --pm-space-3: 0.75rem;
+  --pm-space-4: 1rem;
+  --pm-space-6: 1.5rem;
+  --pm-space-8: 2rem;
+  --pm-space-12: 3rem;
+  --pm-space-16: 4rem;
+  /** One card radius + one control radius + pill for CTAs */
+  --pm-radius-card: 1rem;
+  --pm-radius-control: 0.75rem;
+  --pm-radius-pill: 9999px;
+  /** Exactly two elevation levels (rest + lift). Warm surfaces. */
+  --pm-shadow-rest: 0 1px 2px rgba(28, 25, 23, 0.06);
+  --pm-shadow-lift: 0 10px 28px rgba(44, 24, 16, 0.1);
 }
 
 /* Marketing layout: soft vertical wash + paper edge (no extra assets) */
@@ -46,6 +66,8 @@ body {
   --pm-platform-elevated: #18181b;
   background-color: var(--pm-platform-canvas);
   color: #fafafa;
+  --pm-shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --pm-shadow-lift: 0 16px 40px rgba(0, 0, 0, 0.45);
 }
 
 .pm-visual-platform ::selection {

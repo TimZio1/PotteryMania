@@ -25,6 +25,7 @@ export default function StudioPanelShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const guidedMode = pathname.includes("/guided");
   const nav = navItems ?? studioPanelNav(studioId);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -55,6 +56,27 @@ export default function StudioPanelShell({
     }
     return items;
   }, [pathname, studioId, studioName, nav]);
+
+  if (guidedMode) {
+    return (
+      <div className="min-h-[calc(100vh-3.5rem)] w-full bg-[#fcfaf7] text-stone-900 sm:min-h-[calc(100vh-4rem)]">
+        <header className="sticky top-0 z-20 border-b border-stone-200/90 bg-white/95 backdrop-blur-md">
+          <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-4 py-3">
+            <Link
+              href={`/dashboard/${studioId}`}
+              className="min-h-11 min-w-11 shrink-0 rounded-xl border border-stone-200 bg-white px-3 py-2 text-center text-sm font-medium text-amber-950 shadow-sm"
+              aria-label="Back to studio home"
+            >
+              ←
+            </Link>
+            <p className="truncate text-center text-sm font-medium text-stone-800">{studioName}</p>
+            <span className="w-11 shrink-0" aria-hidden />
+          </div>
+        </header>
+        <div className="mx-auto w-full max-w-lg px-4 pb-16 pt-8">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] w-full max-w-none flex-col sm:min-h-[calc(100vh-4rem)] lg:flex-row">

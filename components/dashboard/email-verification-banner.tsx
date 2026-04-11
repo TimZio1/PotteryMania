@@ -12,7 +12,7 @@ export function EmailVerificationBanner({ email }: { email: string }) {
     setMsg(null);
     try {
       const r = await fetch("/api/auth/resend-verification", { method: "POST" });
-      const j = (await r.json().catch(() => ({}))) as { alreadyVerified?: boolean };
+      const j = (await r.json().catch(() => ({}))) as { alreadyVerified?: boolean; error?: string };
       if (r.status === 429) {
         setMsg("Please wait a few minutes before trying again.");
       } else if (j.alreadyVerified) {
@@ -20,7 +20,7 @@ export function EmailVerificationBanner({ email }: { email: string }) {
       } else if (r.ok) {
         setMsg("Check your inbox (and spam) for a new verification link.");
       } else {
-        setMsg("Could not send. Try again later.");
+        setMsg(typeof j.error === "string" ? j.error : "We couldn’t send your verification email. Please try again.");
       }
     } catch {
       setMsg("Could not send. Try again later.");

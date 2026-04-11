@@ -42,7 +42,8 @@ describe("checkout line rows", () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("Expected multi-vendor error");
     expect(result.status).toBe(409);
-    expect(result.multiVendorStudios).toHaveLength(2);
+    expect("multiVendorStudios" in result && Array.isArray(result.multiVendorStudios)).toBe(true);
+    if ("multiVendorStudios" in result) expect(result.multiVendorStudios).toHaveLength(2);
   });
 
   it("computes product line commission and vendor amount", async () => {

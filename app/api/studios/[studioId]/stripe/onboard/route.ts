@@ -42,8 +42,8 @@ export async function POST(_req: Request, ctx: Ctx) {
 
   const link = await stripe.accountLinks.create({
     account: row.stripeAccountId,
-    refresh_url: `${baseUrl()}/dashboard?stripe=refresh`,
-    return_url: `${baseUrl()}/dashboard?stripe=done`,
+    refresh_url: `${baseUrl()}/dashboard/${studioId}/guided?flow=paid&stripe=refresh`,
+    return_url: `${baseUrl()}/dashboard/${studioId}/guided?flow=paid&stripe=done`,
     type: "account_onboarding",
   });
 

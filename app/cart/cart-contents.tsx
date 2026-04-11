@@ -208,7 +208,7 @@ export function CartContents() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl py-10" role="status" aria-busy="true" aria-label="Loading cart">
+      <div className="mx-auto max-w-2xl py-[var(--pm-space-10)]" role="status" aria-busy="true" aria-label="Loading cart">
         <div className={`${ui.card} space-y-4`}>
           <div className="flex items-center gap-3">
             <Spinner />
@@ -233,7 +233,7 @@ export function CartContents() {
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-amber-950">Cart</h1>
       <p className="mt-2 text-sm text-stone-600">Review items, then pay securely with Stripe.</p>
       {multiVendor ? (
-        <p className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+        <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-amber-200/80 bg-amber-50/90 p-[var(--pm-space-4)] text-sm text-amber-950">
           Your cart includes <strong>more than one studio</strong>. Each studio is paid out separately via Stripe Connect, so you will complete{" "}
           <strong>one secure checkout per studio</strong>. After paying for the first, return here to pay the rest.
         </p>
@@ -274,14 +274,11 @@ export function CartContents() {
                 lineDueCents(i) < lineDisplayFullCents(i);
 
               return (
-                <li
-                  key={i.id}
-                  className="rounded-2xl border border-stone-200/90 bg-white p-4 shadow-sm sm:p-5"
-                >
+                <li key={i.id} className={`${ui.card} !p-[var(--pm-space-4)] sm:!p-[var(--pm-space-5)]`}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <div className="flex min-w-0 gap-4">
                       {i.itemType === "product" ? (
-                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-stone-100">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[length:var(--pm-radius-control)] bg-stone-100">
                           {i.product?.images[0]?.imageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -315,7 +312,7 @@ export function CartContents() {
                         <input
                           type="number"
                           min={1}
-                          className="min-h-11 w-20 rounded-xl border border-stone-200 px-2 text-center text-sm"
+                          className="min-h-11 w-20 rounded-[length:var(--pm-radius-control)] border border-stone-200 px-2 text-center text-sm shadow-[var(--pm-shadow-rest)]"
                           value={i.quantity}
                           onChange={(e) => updateQty(i.id, parseInt(e.target.value, 10) || 1)}
                           aria-label="Quantity"
@@ -324,7 +321,7 @@ export function CartContents() {
                         <input
                           type="number"
                           min={1}
-                          className="min-h-11 w-20 rounded-xl border border-stone-200 px-2 text-center text-sm"
+                          className="min-h-11 w-20 rounded-[length:var(--pm-radius-control)] border border-stone-200 px-2 text-center text-sm shadow-[var(--pm-shadow-rest)]"
                           value={i.participantCount ?? 1}
                           onChange={(e) => updateParticipants(i.id, parseInt(e.target.value, 10) || 1)}
                           aria-label="Participants"
@@ -492,7 +489,7 @@ export function CartContents() {
                   </div>
                 </>
               ) : null}
-              <div className="rounded-2xl border border-stone-200/90 bg-stone-50/50 p-4">
+              <div className={`${ui.cardMuted} !p-[var(--pm-space-4)]`}>
                 <label className={ui.label} htmlFor="cart-promo">
                   Promo code
                 </label>

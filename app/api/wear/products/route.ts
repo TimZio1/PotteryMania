@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
-import { isWearCategory, resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
+import {
+  isWearCategory,
+  isWearTopSubcategory,
+  resolveWearCategory,
+  resolveWearTopSubcategory,
+  wearCategoryLabel,
+  wearTopSubcategoryLabel,
+} from "@/lib/wear-categories";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const categoryParam = url.searchParams.get("category")?.trim().toLowerCase() ?? "";
   const categoryFilter = isWearCategory(categoryParam) ? categoryParam : null;
+  const subParam = url.searchParams.get("sub")?.trim().toLowerCase() ?? "";
+  const topSubFilter =
+    categoryFilter === "tops" && isWearTopSubcategory(subParam) ? subParam : null;
 
   const rows = await prisma.wearProduct.findMany({
     where: { isActive: true, archivedAt: null },
@@ -27,6 +37,12 @@ export async function GET(req: Request) {
         subtitle: r.subtitle,
         description: r.description,
       });
+      const topSub = category === "tops" ? resolveWearTopSubcategory({
+        slug: r.slug,
+        name: r.name,
+        subtitle: r.subtitle,
+        description: r.description,
+      }) : null;
       return {
         id: r.id,
         slug: r.slug,
@@ -35,6 +51,8 @@ export async function GET(req: Request) {
         description: r.description,
         category,
         categoryLabel: wearCategoryLabel(category),
+        topSub,
+        topSubLabel: topSub ? wearTopSubcategoryLabel(topSub) : null,
         priceCents: r.priceCents,
         currency: r.currency,
         images: wearImageUrlsFromJson(r.images),
@@ -51,7 +69,8 @@ export async function GET(req: Request) {
         })),
       };
     })
-    .filter((r) => !categoryFilter || r.category === categoryFilter);
+    .filter((r) => !categoryFilter || r.category === categoryFilter)
+    .filter((r) => !topSubFilter || r.topSub === topSubFilter);
 
   return NextResponse.json({ products });
 }

@@ -40,7 +40,7 @@ export default function ForgotPasswordInner() {
   if (done) {
     return (
       <div className="space-y-5">
-        <p className="text-sm text-stone-700">
+        <p className="text-sm leading-relaxed text-stone-700">
           If an account exists with that email and it uses a password, we&apos;ve sent reset instructions. Check your
           inbox (and spam) in the next few minutes.
         </p>
@@ -60,7 +60,7 @@ export default function ForgotPasswordInner() {
         </label>
         <input
           id="forgot-email"
-          className={`${ui.input} mt-1`}
+          className={`${ui.input} mt-2`}
           type="email"
           autoComplete="email"
           placeholder="you@example.com"

@@ -6,21 +6,18 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col bg-stone-50">
       <header className="border-b border-(--brand-line) bg-[rgba(250,248,245,0.88)] backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center px-4 sm:h-18 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-6xl items-center px-[var(--pm-space-4)] sm:h-18 sm:px-[var(--pm-space-8)]">
           <BrandLogo className="text-(--brand-ink)" />
         </div>
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+      <main className="flex flex-1 flex-col items-center justify-center px-[var(--pm-space-4)] py-[var(--pm-space-16)] text-center">
         <p className="text-6xl font-bold text-stone-300">404</p>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-amber-950">Page not found</h1>
         <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
           The page you are looking for does not exist or has been moved. Let us help you find what you need.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-amber-900 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900"
-          >
+          <Link href="/" className={ui.buttonPrimary}>
             Back to home
           </Link>
           <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>

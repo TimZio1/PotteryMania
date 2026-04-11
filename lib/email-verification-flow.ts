@@ -20,9 +20,5 @@ export async function issueEmailVerificationToken(userId: string, email: string)
       data: { userId, tokenHash, expiresAt },
     }),
   ]);
-  try {
-    await sendEmailVerificationEmail({ to: email, token: raw });
-  } catch (e) {
-    console.error("[email-verification] send failed", e);
-  }
+  await sendEmailVerificationEmail({ to: email, token: raw });
 }

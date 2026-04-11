@@ -111,7 +111,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
   );
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200/60 bg-white/75 backdrop-blur-xl supports-backdrop-filter:bg-white/65">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5 sm:h-18 sm:px-8 lg:px-10">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-8 lg:px-12">
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
@@ -190,16 +190,10 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                   <CartBadge count={wearCount} />
                 </Link>
               </div>
-              <Link
-                href="/dashboard/studio/new?setup=both"
-                className="inline-flex min-h-11 max-w-44 items-center justify-center truncate rounded-full bg-(--brand-ink) px-3.5 text-xs font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.18)] transition hover:bg-[#3a241a] sm:max-w-none sm:px-5 sm:text-sm md:hidden"
-              >
+              <Link href="/dashboard/studio/new?setup=both" className={`${ui.buttonMarketing} md:hidden`}>
                 Create studio website
               </Link>
-              <Link
-                href="/dashboard/studio/new?setup=both"
-                className="hidden min-h-11 items-center justify-center truncate rounded-full bg-(--brand-ink) px-5 text-sm font-medium text-white shadow-sm shadow-[rgba(44,24,16,0.18)] transition hover:bg-[#3a241a] md:inline-flex"
-              >
+              <Link href="/dashboard/studio/new?setup=both" className={`${ui.buttonMarketing} hidden md:inline-flex`}>
                 Create studio website
               </Link>
               {showPublicSignIn ? (

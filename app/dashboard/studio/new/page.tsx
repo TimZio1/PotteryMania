@@ -93,16 +93,9 @@ export default function NewStudioPage() {
   const selectedPlan = studioPlanByKey(setupPathToPlanKey(setup));
 
   function pushAfterCreate(studioId: string, profileIncomplete: boolean) {
-    const q = profileIncomplete ? "onboarding=1&profile=incomplete" : "onboarding=1";
-    if (setup === "bookings") {
-      router.push(`/dashboard/${studioId}/bookings?${q}`);
-      return;
-    }
-    if (setup === "shop") {
-      router.push(`/dashboard/${studioId}/shop?${q}`);
-      return;
-    }
-    router.push(`/dashboard/${studioId}?${q}`);
+    const q = profileIncomplete ? "welcome=1&profile=incomplete" : "welcome=1";
+    /** Simple guided flows (one action per screen) — replaces dense dashboard as first stop. */
+    router.push(`/dashboard/${studioId}/guided?${q}`);
   }
 
   function applyMissingFromResponse(missing: unknown) {

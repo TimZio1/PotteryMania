@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { BRAND_LOGO_PUBLIC_PATH } from "@/lib/brand";
+import { EmailTransportError } from "@/lib/email/email-transport-error";
 
 type EmailMessage = {
   to: string;
@@ -26,27 +27,35 @@ function client() {
 }
 
 export async function sendEmailMessages(messages: EmailMessage[]) {
+  if (messages.length === 0) return;
   const resend = client();
   if (!resend) {
-    console.info("[email] RESEND_API_KEY not set; skip send");
-    return;
+    throw new EmailTransportError(
+      "EMAIL_TRANSPORT_NOT_CONFIGURED",
+      "RESEND_API_KEY is not set; cannot send email.",
+    );
   }
   const from = process.env.RESEND_FROM || "PotteryMania <onboarding@resend.dev>";
   for (const message of messages) {
-    await resend.emails.send({
-      from,
-      to: message.to,
-      subject: message.subject,
-      html: message.html,
-      ...(message.attachments?.length
-        ? {
-            attachments: message.attachments.map((a) => ({
-              filename: a.filename,
-              content: a.content,
-            })),
-          }
-        : {}),
-    });
+    try {
+      await resend.emails.send({
+        from,
+        to: message.to,
+        subject: message.subject,
+        html: message.html,
+        ...(message.attachments?.length
+          ? {
+              attachments: message.attachments.map((a) => ({
+                filename: a.filename,
+                content: a.content,
+              })),
+            }
+          : {}),
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new EmailTransportError("EMAIL_SEND_FAILED", msg);
+    }
   }
 }
 

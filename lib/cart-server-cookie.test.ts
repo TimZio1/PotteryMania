@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const cartMocks = vi.hoisted(() => ({
   cookieGet: vi.fn(),
@@ -26,35 +26,30 @@ import { getCartForRequest } from "@/lib/cart-server";
 describe("cart cookie security attributes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
     cartMocks.cookieGet.mockReturnValue(undefined);
     cartMocks.cartFindFirst.mockResolvedValue(null);
     cartMocks.cartCreate.mockResolvedValue({ id: "cart_1" });
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("includes HttpOnly and SameSite for anonymous carts", async () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
-    try {
-      const out = await getCartForRequest(null);
-      expect(out.setCookie).toContain("HttpOnly");
-      expect(out.setCookie).toContain("SameSite=Lax");
-      expect(out.setCookie).not.toContain("Secure");
-    } finally {
-      process.env.NODE_ENV = originalNodeEnv;
-    }
+    vi.stubEnv("NODE_ENV", "development");
+    const out = await getCartForRequest(null);
+    expect(out.setCookie).toContain("HttpOnly");
+    expect(out.setCookie).toContain("SameSite=Lax");
+    expect(out.setCookie).not.toContain("Secure");
   });
 
   it("adds Secure attribute in production", async () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
-    try {
-      const out = await getCartForRequest(null);
-      expect(out.setCookie).toContain("HttpOnly");
-      expect(out.setCookie).toContain("SameSite=Lax");
-      expect(out.setCookie).toContain("Secure");
-    } finally {
-      process.env.NODE_ENV = originalNodeEnv;
-    }
+    vi.stubEnv("NODE_ENV", "production");
+    const out = await getCartForRequest(null);
+    expect(out.setCookie).toContain("HttpOnly");
+    expect(out.setCookie).toContain("SameSite=Lax");
+    expect(out.setCookie).toContain("Secure");
   });
 });
 

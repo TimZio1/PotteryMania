@@ -10,7 +10,9 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   }, [error]);
 
   return (
-    <main className={`${ui.pageContainer} flex min-h-[60vh] flex-col items-center justify-center py-16 text-center`}>
+    <main
+      className={`${ui.pageContainer} flex min-h-[60vh] flex-col items-center justify-center py-[var(--pm-space-16)] text-center`}
+    >
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-800">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10" />

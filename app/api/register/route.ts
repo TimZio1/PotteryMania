@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import type { UserRole } from "@prisma/client";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { issueEmailVerificationToken } from "@/lib/email-verification-flow";
+import { isEmailTransportError } from "@/lib/email/email-transport-error";
 import { logApiError } from "@/lib/monitoring";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,6 +44,24 @@ export async function POST(req: Request) {
     await issueEmailVerificationToken(user.id, user.email);
   } catch (e) {
     logApiError("register_verification_token", e, { userId: user.id }, req);
+    try {
+      await prisma.user.delete({ where: { id: user.id } });
+    } catch {
+      /* ignore rollback failure */
+    }
+    if (isEmailTransportError(e) && e.code === "EMAIL_TRANSPORT_NOT_CONFIGURED") {
+      return NextResponse.json(
+        {
+          error:
+            "We couldn’t send your verification email because email isn’t configured on this server. Please try again later.",
+        },
+        { status: 503 },
+      );
+    }
+    return NextResponse.json(
+      { error: "We couldn’t send your verification email. Please try again." },
+      { status: 503 },
+    );
   }
   return NextResponse.json({ ok: true, user }, { status: 201 });
 }

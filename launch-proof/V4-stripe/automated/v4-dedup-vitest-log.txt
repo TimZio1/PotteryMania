@@ -1,0 +1,22 @@
+﻿V4 â€” Automated partial proof (idempotency helpers)
+Regenerated: 2026-04-11T14:56:19.0423705+03:00
+Working directory: C:\Users\theor\Desktop\POTTERYMANIA -NEW\potterymania
+
+
+ RUN  v4.1.2 C:/Users/theor/Desktop/POTTERYMANIA -NEW/potterymania
+
+ Ô£ô lib/stripe-webhook-dedup.test.ts > stripe webhook idempotency helpers > skips when event already marked processed 4ms
+ Ô£ô lib/stripe-webhook-dedup.test.ts > stripe webhook idempotency helpers > claims fresh event when no prior row exists 1ms
+ Ô£ô lib/stripe-webhook-dedup.test.ts > stripe webhook idempotency helpers > returns duplicate_done for already processed event 1ms
+ Ô£ô lib/stripe-webhook-dedup.test.ts > stripe webhook idempotency helpers > handles create conflict by incrementing retry and continuing when still unprocessed 4ms
+ Ô£ô lib/stripe-webhook-dedup.test.ts > stripe webhook idempotency helpers > handles create conflict by returning duplicate_done when event became processed 1ms
+ Ô£ô lib/stripe-webhook-dedup.test.ts > stripe webhook idempotency helpers > marks unprocessed events as processed 1ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  14:56:18
+   Duration  559ms (transform 74ms, setup 0ms, import 198ms, tests 15ms, environment 0ms)
+
+
+---
+NOTE: Full V4 requires manual RUNBOOK steps + screenshots in launch-proof/V4-stripe/

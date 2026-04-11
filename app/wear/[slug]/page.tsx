@@ -4,7 +4,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildMetadata } from "@/lib/seo";
-import { resolveWearCategory, wearCategoryLabel } from "@/lib/wear-categories";
+import {
+  resolveWearCategory,
+  resolveWearTopSubcategory,
+  wearCategoryLabel,
+  wearTopSubcategoryLabel,
+} from "@/lib/wear-categories";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { WearPdpBuySection } from "@/components/wear/wear-pdp-buy-section";
@@ -52,6 +57,15 @@ export default async function WearProductPage({ params }: Props) {
     subtitle: p.subtitle,
     description: p.description,
   });
+  const topSub =
+    category === "tops"
+      ? resolveWearTopSubcategory({
+          slug: p.slug,
+          name: p.name,
+          subtitle: p.subtitle,
+          description: p.description,
+        })
+      : null;
 
   const imgs = wearImageUrlsFromJson(p.images);
   const primary = imgs[0];
@@ -111,7 +125,13 @@ export default async function WearProductPage({ params }: Props) {
         </div>
         <div className="flex flex-col justify-center lg:pr-2">
           <Link
-            href="/wear/shop"
+            href={
+              category === "tops" && topSub
+                ? `/wear/shop?category=tops&sub=${topSub}`
+                : category === "tops"
+                  ? "/wear/shop?category=tops"
+                  : "/wear/shop"
+            }
             className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400 transition hover:text-amber-100/90"
           >
             ← Shop
@@ -119,6 +139,7 @@ export default async function WearProductPage({ params }: Props) {
           <h1 className="mt-6 font-serif text-3xl leading-tight tracking-tight text-stone-50 sm:text-4xl">{p.name}</h1>
           <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/80">
             {wearCategoryLabel(category)}
+            {topSub ? <> · {wearTopSubcategoryLabel(topSub)}</> : null}
           </p>
           {p.subtitle ? <p className="mt-3 text-lg text-stone-300">{p.subtitle}</p> : null}
           <WearPdpBuySection

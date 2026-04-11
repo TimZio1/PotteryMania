@@ -182,7 +182,11 @@ export function EarlyAccessForm({
   /* ── Form ── */
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {err && <p className={ui.errorText}>{err}</p>}
+      {err ? (
+        <p className={ui.errorText} role="alert">
+          {err}
+        </p>
+      ) : null}
 
       {/* Email + Studio name side by side on desktop */}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -196,7 +200,7 @@ export function EarlyAccessForm({
             autoComplete="email"
             required
             disabled={pending}
-            className={`${ui.input} mt-1`}
+            className={`${ui.input} mt-2`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@studio.com"
@@ -211,7 +215,7 @@ export function EarlyAccessForm({
             type="text"
             required
             disabled={pending}
-            className={`${ui.input} mt-1`}
+            className={`${ui.input} mt-2`}
             value={studioName}
             onChange={(e) => setStudioName(e.target.value)}
             placeholder="Clay & Co"
@@ -229,7 +233,7 @@ export function EarlyAccessForm({
           type="text"
           required
           disabled={pending}
-          className={`${ui.input} mt-1`}
+          className={`${ui.input} mt-2`}
           value={country}
           onChange={(e) => setCountry(e.target.value)}
           placeholder="e.g. France"
@@ -242,7 +246,7 @@ export function EarlyAccessForm({
         <button
           type="button"
           onClick={() => setShowOptional(true)}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-stone-200 bg-stone-50/80 py-2.5 text-xs font-medium text-stone-500 transition hover:border-amber-300 hover:text-stone-700"
+          className={`flex w-full items-center justify-center gap-[var(--pm-space-2)] rounded-[length:var(--pm-radius-control)] border border-dashed border-stone-200 bg-stone-50/80 py-[var(--pm-space-2)] text-xs font-medium text-stone-500 transition hover:border-amber-300 hover:text-stone-700`}
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -252,7 +256,7 @@ export function EarlyAccessForm({
       )}
 
       {showOptional && (
-        <div className="space-y-4 rounded-xl border border-stone-100 bg-stone-50/60 p-4">
+        <div className={`${ui.cardMuted} space-y-[var(--pm-space-4)] !p-[var(--pm-space-4)]`}>
           {/* Website / Instagram */}
           <div>
             <label className={ui.label} htmlFor="ea-web">
@@ -262,7 +266,7 @@ export function EarlyAccessForm({
               id="ea-web"
               type="text"
               disabled={pending}
-              className={`${ui.input} mt-1`}
+              className={`${ui.input} mt-2`}
               value={websiteOrIg}
               onChange={(e) => setWebsiteOrIg(e.target.value)}
               placeholder="instagram.com/yourstudio"
@@ -272,7 +276,7 @@ export function EarlyAccessForm({
           {/* Photos */}
           <div>
             <span className={ui.label}>Upload up to 3 photos</span>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className={`mt-1 ${ui.helper}`}>
               Show us your work. Max {MAX_FILE_MB}MB each. Optional.
             </p>
 
@@ -299,7 +303,7 @@ export function EarlyAccessForm({
             )}
 
             {photos.length < MAX_PHOTOS && (
-              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-stone-300 bg-white px-3 py-2 text-xs font-medium text-stone-600 transition hover:border-amber-400 hover:bg-amber-50/40">
+              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-[length:var(--pm-radius-control)] border border-dashed border-stone-300 bg-white px-[var(--pm-space-3)] py-[var(--pm-space-2)] text-xs font-medium text-stone-600 transition hover:border-amber-400 hover:bg-amber-50/40">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -329,16 +333,12 @@ export function EarlyAccessForm({
       )}
 
       {/* CTA */}
-      <button
-        type="submit"
-        disabled={pending}
-        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-amber-950 px-6 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-950 disabled:pointer-events-none disabled:opacity-45"
-      >
+      <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
         {pending ? "Sending\u2026" : "Send details"}
       </button>
 
       {/* Trust + counter */}
-      <div className="flex flex-col items-center gap-3 border-t border-stone-200/80 pt-5">
+      <div className="flex flex-col items-center gap-[var(--pm-space-3)] border-t border-stone-200/80 pt-[var(--pm-space-5)]">
         <p className="text-center text-base font-semibold leading-snug text-stone-800 sm:text-lg">
           No credit card. No commitment. Cancel anytime.
         </p>
@@ -366,10 +366,8 @@ function InterestChip({
 }) {
   return (
     <label
-      className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
-        checked
-          ? "border-amber-400 bg-amber-50 text-amber-900"
-          : "border-stone-200 bg-white text-stone-600 hover:border-amber-300"
+      className={`inline-flex cursor-pointer items-center gap-2 ${ui.chip} border ${
+        checked ? `${ui.chipOn} border-transparent` : `${ui.chipOff} border-stone-200 hover:border-amber-300`
       }`}
     >
       <input

@@ -28,16 +28,19 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (pair.studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
   }
-  const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
-  if (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled) {
-    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
-  }
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (body.status === "active") {
+    const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
+    if (!stripeRow?.chargesEnabled || !stripeRow?.payoutsEnabled) {
+      return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
+    }
   }
 
   const data: Record<string, unknown> = {};

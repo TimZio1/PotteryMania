@@ -10,6 +10,7 @@ export type StudioPanelNavItem = {
 export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
   const b = (path: string) => `/dashboard/${studioId}${path}`;
   return [
+    { href: b("/guided"), label: "Simple setup" },
     { href: b(""), label: "Website" },
     { href: b("/template"), label: "Branding" },
     { href: b("/bookings"), label: "Bookings" },
