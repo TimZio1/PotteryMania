@@ -8,6 +8,40 @@
 
 ---
 
+### Live production site (how to use this plan on the real deployment)
+
+**Production URL:** Run checks against the **exact HTTPS origin** configured in production (`AUTH_URL` / `NEXTAUTH_URL` — see `.env.example`: origin only, no path; a mismatched auth URL breaks sign-in and callbacks). If you use a custom domain or `www`, use that consistently in bookmarks and tests so cookies and CSRF same-origin checks match `lib/csrf-protection` expectations.
+
+**What “live” changes in this document**
+
+| Category | On live production | Prefer staging / preview instead |
+|----------|--------------------|-----------------------------------|
+| **Sections 23 (load/chaos), L-*, K-4 webhook blocking** | **Do not run** | Full load, chaos, and webhook tampering |
+| **Stripe test cards (`4242…`), K-1–K-3 as written** | Only if prod is still in **Stripe test mode** (rare for real “live”) | Always for normal live + live keys |
+| **A-5 brute-force, S-2 IDOR guessing, XSS payloads (W-4)** | **Do not run** without security sign-off; can harm users, trigger WAF, or create fraud signals | Controlled security test environment |
+| **DB role flips, `suspendedAt` (matrix §2), email enumeration probes** | **Do not** mutate production data ad hoc | Staging clones or seed DB |
+| **Sections G, PDP, cart browse, SEO-1/2 read-only, AN-1 read-only, §14 smoke without completing pay** | **Allowed** read-only / light interaction | — |
+| **Real purchase (K-1)** | Allowed only with **real money** policy: use smallest SKU, refund process documented, finance aware | — |
+
+**Live-safe smoke (≈5–10 minutes, no money)** — maps to routes shipped in the app build:
+
+1. `GET /` — **G-1** (hero, footer, console clean).  
+2. `GET /wear/shop` — **W-1** listing (filters if present).  
+3. Open one **wear PDP** from shop — **P-1–P-4** (gallery, variants, 404 on bad slug).  
+4. `GET /cart` — add line then remove — **C-1** (no checkout).  
+5. `GET /register`, `GET /login`, `GET /forgot-password` — **A-*** form load, validation hints, no 500.  
+6. `GET /robots.txt`, `GET /sitemap.xml` — **SEO-1** (robots); sitemap loads.  
+7. `GET /api/ready` — expect JSON `ok` for ops ping (not a substitute for full health).  
+8. Optional: `/studios`, `/classes`, `/marketplace`, `/pricing`, `/privacy`, `/terms` — discovery and legal links from chrome.
+
+**Live checkout (real money)** — If you must validate **K-*** end-to-end on production: use one designated **QA card / real micro-purchase** per policy, then **refund** through Stripe Dashboard or admin flow; confirm webhook-driven order state and email **N-1**. Never use load scripts or parallel “double submit” abuse tests against production payment endpoints.
+
+**Observability on live (§27)** — For production defects, prefer **RUM**, **Sentry**, Stripe Dashboard, and server logs with **correlation IDs**; avoid downloading full HARs with PII onto unsecured machines.
+
+**After updates to this doc** — Commit and deploy docs with the app, or keep in repo only; QA runners should always note **which hostname** and **build SHA** they executed against.
+
+---
+
 ### 1. Purpose and test philosophy
 
 This document treats the public-facing product as a **contract between brand promise and behavior**. Every scenario assumes you can observe network calls (browser devtools), server logs where available, and database or Stripe dashboard state when validating money movement. Prefer **deterministic seeds** in non-production environments: known SKUs, known coupon codes, and test cards from Stripe’s documentation.

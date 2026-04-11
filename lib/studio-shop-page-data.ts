@@ -58,7 +58,6 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
         id: true,
         title: true,
         slug: true,
-        category: true,
         subcategory: true,
         shortDescription: true,
         status: true,
@@ -83,6 +82,12 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
         shippingAsiaCents: true,
         stockQuantity: true,
         stockStatus: true,
+        categoryMeta: {
+          select: {
+            slug: true,
+            name: true,
+          },
+        },
       },
     }),
     prisma.order.findMany({
@@ -104,8 +109,8 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
     id: p.id,
     title: p.title,
     slug: p.slug,
-    category: p.category,
-    categoryLabel: ceramicCategoryMetaByValue(p.category).title,
+    category: p.categoryMeta?.slug ?? "tableware",
+    categoryLabel: p.categoryMeta?.name ?? ceramicCategoryMetaByValue("tableware").title,
     subcategory: p.subcategory,
     shortDescription: p.shortDescription,
     status: p.status,

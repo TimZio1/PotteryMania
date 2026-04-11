@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
@@ -70,7 +71,6 @@ export async function PATCH(req: Request, ctx: Ctx) {
       where: { slug: ceramicCategoryMetaByValue(category).slug },
       select: { id: true },
     });
-    data.category = category;
     data.categoryId = categoryMeta?.id ?? null;
   }
   if (body.subcategory === null || typeof body.subcategory === "string") {
@@ -172,7 +172,13 @@ export async function PATCH(req: Request, ctx: Ctx) {
       include: { images: true },
     });
     return NextResponse.json({ product });
-  } catch {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+      return NextResponse.json(
+        { error: "Products are temporarily unavailable while schema updates finish deploying." },
+        { status: 503 },
+      );
+    }
     return NextResponse.json({ error: "Update failed (slug conflict?)" }, { status: 400 });
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 
@@ -40,29 +41,49 @@ export async function GET(req: Request, ctx: Ctx) {
   const days = parseDays(req);
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  const [orders, bookings, products, experiences, bookingsInWindow, ordersInWindow] = await Promise.all([
-    prisma.order.findMany({
-      where: { items: { some: { vendorId: studioId } }, paymentStatus: "paid" },
-      include: { items: true },
-    }),
-    prisma.booking.findMany({
-      where: { studioId, paymentStatus: { in: ["paid", "partial"] } },
-    }),
-    prisma.product.findMany({ where: { studioId } }),
-    prisma.experience.findMany({ where: { studioId } }),
-    prisma.booking.findMany({
-      where: { studioId, createdAt: { gte: since } },
-      select: { createdAt: true, bookingStatus: true, depositAmountCents: true },
-    }),
-    prisma.order.findMany({
-      where: {
-        createdAt: { gte: since },
-        items: { some: { vendorId: studioId } },
-        paymentStatus: "paid",
-      },
-      select: { createdAt: true, totalCents: true },
-    }),
-  ]);
+  let orders: Awaited<ReturnType<typeof prisma.order.findMany>> = [];
+  let bookings: Awaited<ReturnType<typeof prisma.booking.findMany>> = [];
+  let products: Array<{ id: string; title: string }> = [];
+  let experiences: Awaited<ReturnType<typeof prisma.experience.findMany>> = [];
+  let bookingsInWindow: Array<{ createdAt: Date; bookingStatus: string; depositAmountCents: number }> = [];
+  let ordersInWindow: Array<{ createdAt: Date; totalCents: number }> = [];
+
+  try {
+    [orders, bookings, products, experiences, bookingsInWindow, ordersInWindow] = await Promise.all([
+      prisma.order.findMany({
+        where: { items: { some: { vendorId: studioId } }, paymentStatus: "paid" },
+        include: { items: true },
+      }),
+      prisma.booking.findMany({
+        where: { studioId, paymentStatus: { in: ["paid", "partial"] } },
+      }),
+      prisma.product.findMany({
+        where: { studioId },
+        select: { id: true, title: true },
+      }),
+      prisma.experience.findMany({ where: { studioId } }),
+      prisma.booking.findMany({
+        where: { studioId, createdAt: { gte: since } },
+        select: { createdAt: true, bookingStatus: true, depositAmountCents: true },
+      }),
+      prisma.order.findMany({
+        where: {
+          createdAt: { gte: since },
+          items: { some: { vendorId: studioId } },
+          paymentStatus: "paid",
+        },
+        select: { createdAt: true, totalCents: true },
+      }),
+    ]);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+      return NextResponse.json(
+        { error: "Analytics is temporarily unavailable while product schema updates finish deploying." },
+        { status: 503 },
+      );
+    }
+    throw error;
+  }
 
   const orderRevenueCents = orders.reduce((sum, order) => sum + order.totalCents, 0);
   const bookingRevenueCents = bookings.reduce((sum, booking) => sum + booking.depositAmountCents, 0);

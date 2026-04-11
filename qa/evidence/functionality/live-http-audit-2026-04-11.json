@@ -1,0 +1,145 @@
+﻿[
+    {
+        "path":  "/",
+        "finalUrl":  "https://potterymania.com/",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/wear/shop",
+        "finalUrl":  "https://potterymania.com/wear/shop",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/wear/abstract-design-relaxed-fit-unisex-organic-t-shirt",
+        "finalUrl":  "https://potterymania.com/wear/abstract-design-relaxed-fit-unisex-organic-t-shirt",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/wear/nonexistent-slug-404",
+        "finalUrl":  "https://potterymania.com/wear/nonexistent-slug-404",
+        "status":  404,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/register",
+        "finalUrl":  "https://potterymania.com/register",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/login",
+        "finalUrl":  "https://potterymania.com/login",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/forgot-password",
+        "finalUrl":  "https://potterymania.com/forgot-password",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/pricing",
+        "finalUrl":  "https://potterymania.com/pricing",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/privacy",
+        "finalUrl":  "https://potterymania.com/privacy",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/terms",
+        "finalUrl":  "https://potterymania.com/terms",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/robots.txt",
+        "finalUrl":  "https://potterymania.com/robots.txt",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/sitemap.xml",
+        "finalUrl":  "https://potterymania.com/sitemap.xml",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    },
+    {
+        "path":  "/api/ready",
+        "finalUrl":  "https://potterymania.com/api/ready",
+        "status":  200,
+        "pass":  true,
+        "note":  "",
+        "xFrameOptions":  "",
+        "xContentTypeOptions":  "",
+        "referrerPolicy":  "",
+        "strictTransportSecurity":  ""
+    }
+]

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { platformUi } from "@/lib/ui-styles";
 
 type Variant = "dashboard" | "account";
@@ -37,6 +40,13 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
               </Link>
             </>
           )}
+          <button
+            type="button"
+            className={nav}
+            onClick={() => signOut({ callbackUrl: "/" })}
+          >
+            Sign out
+          </button>
         </nav>
       </div>
     </header>

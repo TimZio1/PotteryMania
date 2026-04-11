@@ -21,8 +21,32 @@ export async function registerAccount(page: Page, email: string, password: strin
 }
 
 export async function signOutViaHeader(page: Page) {
-  const out = page.getByRole("button", { name: /Sign out/i });
-  await expect(out).toBeVisible({ timeout: 10_000 });
-  await out.click();
-  await page.waitForURL(/\//, { timeout: 15_000 });
+  const desktopOut = page.getByRole("button", { name: /^Sign out$/i });
+  if (await desktopOut.isVisible().catch(() => false)) {
+    await desktopOut.click();
+    await page.waitForURL(/\//, { timeout: 15_000 });
+    return;
+  }
+
+  const accountLink = page.getByRole("link", { name: /^Account$/i });
+  if (await accountLink.isVisible().catch(() => false)) {
+    await accountLink.click();
+    const accountOut = page.getByRole("button", { name: /^Sign out$/i });
+    await expect(accountOut).toBeVisible({ timeout: 10_000 });
+    await accountOut.click();
+    await page.waitForURL(/\//, { timeout: 15_000 });
+    return;
+  }
+
+  const menuButton = page.getByRole("button", { name: /Open menu/i });
+  if (await menuButton.isVisible().catch(() => false)) {
+    await menuButton.click();
+    const mobileOut = page.locator("#mobile-nav").getByRole("button", { name: /^Sign out$/i });
+    await expect(mobileOut).toBeVisible({ timeout: 10_000 });
+    await mobileOut.click();
+    await page.waitForURL(/\//, { timeout: 15_000 });
+    return;
+  }
+
+  throw new Error("Could not find a sign-out control in the current header or menu");
 }

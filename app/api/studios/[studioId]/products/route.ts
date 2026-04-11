@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
@@ -22,11 +23,66 @@ export async function GET(_req: Request, ctx: Ctx) {
   const studio = await assertOwner(studioId, user.id);
   if (!studio) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const products = await prisma.product.findMany({
-    where: { studioId },
-    orderBy: { updatedAt: "desc" },
-    include: { images: true, categoryMeta: true },
-  });
+  let products: unknown;
+  try {
+    products = await prisma.product.findMany({
+      where: { studioId },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        shortDescription: true,
+        fullDescription: true,
+        priceCents: true,
+        salePriceCents: true,
+        sku: true,
+        stockQuantity: true,
+        stockStatus: true,
+        subcategory: true,
+        materials: true,
+        careInstructions: true,
+        weightGrams: true,
+        dimensionsText: true,
+        shippingNotes: true,
+        returnNotes: true,
+        status: true,
+        isFeatured: true,
+        pricingType: true,
+        recurringPriceCents: true,
+        billingInterval: true,
+        billingIntervalCount: true,
+        minimumCommitmentCycles: true,
+        autoRenew: true,
+        trialPeriodDays: true,
+        cancellationPolicyText: true,
+        gracePeriodDays: true,
+        paymentRetryMax: true,
+        failedPaymentAction: true,
+        shippingDomesticCents: true,
+        shippingEuropeCents: true,
+        shippingUsaCents: true,
+        shippingCanadaCents: true,
+        shippingAsiaCents: true,
+        images: true,
+        categoryMeta: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
+      return NextResponse.json(
+        { error: "Products are temporarily unavailable while schema updates finish deploying." },
+        { status: 503 },
+      );
+    }
+    throw error;
+  }
   return NextResponse.json({ products });
 }
 
@@ -134,7 +190,6 @@ export async function POST(req: Request, ctx: Ctx) {
   const product = await prisma.product.create({
     data: {
       studioId,
-      category,
       subcategory,
       title,
       slug,
