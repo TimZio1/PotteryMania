@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { StudioPanelNavItem } from "@/lib/studio-panel-nav";
 import { studioPanelNav } from "@/lib/studio-panel-nav";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -28,6 +28,8 @@ export default function StudioPanelShell({
   const guidedMode = pathname.includes("/guided");
   const nav = navItems ?? studioPanelNav(studioId);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const breadcrumbItems = useMemo(() => {
     const base = `/dashboard/${studioId}`;
@@ -57,6 +59,40 @@ export default function StudioPanelShell({
     return items;
   }, [pathname, studioId, studioName, nav]);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 0);
+
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      window.removeEventListener("keydown", onKey);
+
+      const restoreTarget = previousFocusRef.current;
+      if (restoreTarget && document.body.contains(restoreTarget)) {
+        restoreTarget.focus();
+      }
+    };
+  }, [mobileOpen]);
+
   if (guidedMode) {
     return (
       <div className="min-h-[calc(100vh-3.5rem)] w-full bg-[#fcfaf7] text-stone-900 sm:min-h-[calc(100vh-4rem)]">
@@ -85,17 +121,91 @@ export default function StudioPanelShell({
         className="flex items-center justify-between border-b border-stone-200/80 bg-white/90 px-4 py-3 text-left text-sm font-medium text-stone-900 backdrop-blur-md lg:hidden"
         onClick={() => setMobileOpen((o) => !o)}
         aria-expanded={mobileOpen}
+        aria-controls="studio-panel-mobile-nav"
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
       >
         <span>Menu · {studioName}</span>
         <span className="text-stone-500" aria-hidden="true">{mobileOpen ? "Close" : "Open"}</span>
       </button>
 
-      <aside
-        className={`${
-          mobileOpen ? "flex" : "hidden"
-        } w-full shrink-0 flex-col border-stone-200/80 bg-stone-50/80 lg:flex lg:w-56 lg:border-r lg:pt-0`}
+      <div
+        className={`fixed inset-0 z-50 lg:hidden transition-opacity ${mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        id="studio-panel-mobile-nav"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${studioName} studio menu`}
+        aria-hidden={!mobileOpen}
       >
+        <button
+          type="button"
+          className={`absolute inset-0 bg-stone-950/35 transition-opacity ${mobileOpen ? "opacity-100" : "opacity-0"}`}
+          aria-label="Close menu"
+          onClick={() => setMobileOpen(false)}
+        />
+        <aside className={`absolute left-0 top-0 flex h-full w-[min(100%,20rem)] flex-col border-r border-stone-200/80 bg-[#fcfaf7] shadow-xl transition-transform duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          <div className="border-b border-stone-200/80 px-4 py-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Studio</p>
+                <p className="mt-1 truncate text-sm font-semibold text-stone-900">{studioName}</p>
+              </div>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                className={`${platformUi.buttonGhost} min-h-10 shrink-0`}
+                onClick={() => setMobileOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+          <nav className="flex flex-col gap-0.5 p-2" aria-label="Studio panel mobile">
+            {nav.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + "/");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`rounded-lg px-3 py-3 text-sm font-medium transition ${
+                    active ? "bg-amber-950 text-white" : "text-stone-600 hover:bg-white hover:text-amber-950"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="mt-auto border-t border-stone-200/80 p-3">
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
+            >
+              All studios
+            </Link>
+            <Link
+              href={`/studios/${studioId}`}
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
+            >
+              View public studio page
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                signOut({ callbackUrl: "/" });
+              }}
+              className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-stone-500 hover:bg-white hover:text-amber-950"
+            >
+              Sign out
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      <aside className="hidden w-full shrink-0 flex-col border-stone-200/80 bg-stone-50/80 lg:flex lg:w-56 lg:border-r lg:pt-0">
         <div className="hidden border-b border-stone-200/80 px-4 py-4 lg:block">
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Studio</p>
           <p className="mt-1 truncate text-sm font-semibold text-stone-900">{studioName}</p>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
@@ -20,6 +20,8 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -27,18 +29,40 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     close();
   }, [pathname, close]);
 
+  const authed = status === "authenticated" && session?.user;
+  const role = session?.user?.role;
+  const createStudioHref = authed ? "/dashboard/studio/new?setup=both" : "/demo";
+  const createStudioActiveHref = authed ? "/dashboard/studio/new" : "/demo";
+
   useEffect(() => {
     if (!open) return;
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 0);
+
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      window.removeEventListener("keydown", onKey);
+
+      const restoreTarget = previousFocusRef.current;
+      if (restoreTarget && document.body.contains(restoreTarget)) {
+        restoreTarget.focus();
+      }
+    };
   }, [open, close]);
-
-
-  const authed = status === "authenticated" && session?.user;
-  const role = session?.user?.role;
 
   const linkClass = (href: string) =>
     cn(
@@ -145,13 +169,14 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
       {/* Mobile sheet — available for all users */}
       <div
         className={cn(
-          "fixed inset-0 z-120 md:hidden transition-opacity",
+          "fixed inset-0 z-50 md:hidden transition-opacity",
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         id="mobile-nav"
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
+        aria-hidden={!open}
       >
         <button
           type="button"
@@ -167,40 +192,43 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
         >
           <div className="flex h-14 items-center justify-between border-b border-stone-100 px-4">
             <span className="text-sm font-semibold text-(--brand-ink)">Menu</span>
-            <button type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
+            <button ref={closeButtonRef} type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
               Close
             </button>
           </div>
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
-            <Link href="/pricing" className={mobileLinkClass("/pricing")}>
+            <Link href="/pricing" className={mobileLinkClass("/pricing")} onClick={close}>
               Pricing
             </Link>
-            <Link href="/demo" className={mobileLinkClass("/demo")}>
+            <Link href={createStudioHref} className={mobileLinkClass(createStudioActiveHref)} onClick={close}>
               Create your studio
             </Link>
             {authed ? (
               <>
-                <Link href="/cart" className={mobileLinkClass("/cart")}>
+                <Link href="/cart" className={mobileLinkClass("/cart")} onClick={close}>
                   Cart
                 </Link>
-                <Link href="/dashboard" className={mobileLinkClass("/dashboard")}>
+                <Link href="/dashboard" className={mobileLinkClass("/dashboard")} onClick={close}>
                   Dashboard
                 </Link>
-                <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")}>
+                <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")} onClick={close}>
                   My bookings
                 </Link>
-                <Link href="/account" className={mobileLinkClass("/account")}>
+                <Link href="/account" className={mobileLinkClass("/account")} onClick={close}>
                   Account
                 </Link>
                 {adminVisible(role) ? (
-                  <Link href="/admin" className={mobileLinkClass("/admin")}>
+                  <Link href="/admin" className={mobileLinkClass("/admin")} onClick={close}>
                     Admin
                   </Link>
                 ) : null}
                 <button
                   type="button"
                   className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-stone-600")}
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={() => {
+                    close();
+                    signOut({ callbackUrl: "/" });
+                  }}
                 >
                   Sign out
                 </button>
@@ -208,11 +236,8 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
             ) : (
               <>
                 <hr className="my-2 border-stone-100" />
-                <Link href="/demo" className={mobileLinkClass("/demo")}>
-                  Create your studio
-                </Link>
                 {showPublicSignIn ? (
-                  <Link href="/login" className={mobileLinkClass("/login")}>
+                  <Link href="/login" className={mobileLinkClass("/login")} onClick={close}>
                     Sign in
                   </Link>
                 ) : null}
