@@ -54,7 +54,19 @@ jobs:
         run: npm ci
 
       - name: Prisma migrate
-        run: npx prisma migrate deploy
+        run: |
+          npx prisma db execute --stdin <<'SQL'
+          CREATE EXTENSION IF NOT EXISTS pgcrypto;
+          SQL
+
+          for i in 1 2 3 4 5; do
+            npx prisma migrate deploy && exit 0
+            echo "Prisma migrate attempt $i failed; retrying in 3s..."
+            sleep 3
+          done
+
+          echo "Prisma migrate failed after retries."
+          exit 1
 
       - name: Lint
         run: npm run lint
