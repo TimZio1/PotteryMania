@@ -1,0 +1,57 @@
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
+import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth-session";
+import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
+import { ui } from "@/lib/ui-styles";
+
+export const dynamic = "force-dynamic";
+type Props = { params: Promise<{ studioId: string }> };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { studioId } = await params;
+  return dashboardStudioMeta(studioId, "Locations", "locations", "Manage multiple studio locations.");
+}
+
+export default async function StudioLocationsPage({ params }: Props) {
+  const user = await getSessionUser();
+  if (!user) redirect("/login?callbackUrl=/dashboard");
+  const { studioId } = await params;
+  const studio = await prisma.studio.findUnique({ where: { id: studioId }, select: { ownerUserId: true } });
+  if (!studio || studio.ownerUserId !== user.id) notFound();
+
+  const items = await prisma.studioLocation.findMany({
+    where: { studioId },
+    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+  });
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-6">
+      <div>
+        <p className={ui.overline}>Business setup</p>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Locations</h1>
+        <p className="mt-2 text-sm text-stone-600">Multiple branches for one studio account.</p>
+      </div>
+      <section className={ui.card}>
+        {items.length === 0 ? (
+          <p className="text-sm text-stone-600">No locations yet. Create via `/api/studios/{studioId}/locations`.</p>
+        ) : (
+          <ul className="space-y-3">
+            {items.map((loc) => (
+              <li key={loc.id} className="rounded-xl border border-stone-200 bg-white p-3">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-stone-900">{loc.name}</p>
+                  <p className="text-xs text-stone-500">{loc.isDefault ? "Default" : loc.isActive ? "Active" : "Inactive"}</p>
+                </div>
+                <p className="mt-1 text-sm text-stone-700">
+                  {loc.addressLine1}
+                  {loc.addressLine2 ? `, ${loc.addressLine2}` : ""}, {loc.city}, {loc.country}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}

@@ -54,6 +54,8 @@ export async function POST(req: Request) {
     seatType?: string | null;
     addOnSelections?: unknown;
     intakeResponses?: unknown;
+    tipAmountCents?: number;
+    acceptTerms?: boolean;
   };
   try {
     body = await req.json();
@@ -68,6 +70,10 @@ export async function POST(req: Request) {
   const customerName = typeof body.customerName === "string" ? body.customerName.trim() : "";
   const customerEmail = typeof body.customerEmail === "string" ? body.customerEmail.trim().toLowerCase() : "";
   const seatType = typeof body.seatType === "string" && body.seatType.trim() ? body.seatType.trim() : null;
+  const tipAmountCents =
+    typeof body.tipAmountCents === "number" && Number.isFinite(body.tipAmountCents)
+      ? Math.max(0, Math.floor(body.tipAmountCents))
+      : 0;
 
   if (!slotId || participantCount < 1 || !customerName || !customerEmail) {
     return NextResponse.json(
@@ -99,6 +105,20 @@ export async function POST(req: Request) {
   if (slot.status !== "open") {
     return NextResponse.json({ error: "Slot not bookable" }, { status: 400 });
   }
+  if (body.acceptTerms !== true) {
+    return NextResponse.json({ error: "You must accept terms and cancellation policy before checkout" }, { status: 400 });
+  }
+  const maxAdvanceBookingDays = experience.maxAdvanceBookingDays ?? 0;
+  if (maxAdvanceBookingDays > 0) {
+    const advanceLimitDate = new Date();
+    advanceLimitDate.setDate(advanceLimitDate.getDate() + maxAdvanceBookingDays);
+    if (slot.slotDate > advanceLimitDate) {
+      return NextResponse.json(
+        { error: `Bookings open up to ${maxAdvanceBookingDays} days ahead` },
+        { status: 400 },
+      );
+    }
+  }
   const cutoffMs = (experience.bookingCutoffHours ?? 0) * 3600_000;
   if (cutoffMs > 0) {
     const dateStr = slot.slotDate.toISOString().slice(0, 10);
@@ -123,6 +143,22 @@ export async function POST(req: Request) {
   const remaining = slot.capacityTotal - slot.capacityReserved;
   if (participantCount > remaining) {
     return NextResponse.json({ error: "Not enough capacity" }, { status: 400 });
+  }
+  const maxActiveBookingsPerCustomer = experience.maxActiveBookingsPerCustomer ?? 0;
+  if (user?.id && maxActiveBookingsPerCustomer > 0) {
+    const activeBookings = await prisma.booking.count({
+      where: {
+        experienceId: experience.id,
+        customerUserId: user.id,
+        bookingStatus: { in: ["pending", "confirmed"] },
+      },
+    });
+    if (activeBookings >= maxActiveBookingsPerCustomer) {
+      return NextResponse.json(
+        { error: `You can hold up to ${maxActiveBookingsPerCustomer} active bookings for this class` },
+        { status: 400 },
+      );
+    }
   }
 
   const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId: studio.id } });
@@ -158,7 +194,9 @@ export async function POST(req: Request) {
   );
   const bps = await resolveCommissionBps(studio.id, "booking");
   const commissionTotal = commissionCentsFromLine(charged, bps);
-  const vendorCents = charged - commissionTotal;
+  const effectiveTipCents = studio.tipsEnabled ? tipAmountCents : 0;
+  const chargedNow = charged + effectiveTipCents;
+  const vendorCents = charged - commissionTotal + effectiveTipCents;
 
   const snap = policySnapshot(experience.cancellationPolicy);
 
@@ -185,6 +223,8 @@ export async function POST(req: Request) {
         vendorAmountCents: vendorCents,
         cancellationPolicySnapshot: snap === null ? undefined : snap,
         notes: body.notes?.trim() || null,
+        tipAmountCents: effectiveTipCents,
+        termsAcceptedAt: new Date(),
       },
     });
 
@@ -223,8 +263,8 @@ export async function POST(req: Request) {
         notes: body.notes?.trim() || null,
         orderStatus: "pending",
         paymentStatus: "pending",
-        subtotalCents: charged,
-        totalCents: charged,
+        subtotalCents: chargedNow,
+        totalCents: chargedNow,
         currency: "EUR",
         items: {
           create: {
@@ -233,7 +273,7 @@ export async function POST(req: Request) {
             vendorId: studio.id,
             quantity: 1,
             participantCount,
-            priceSnapshotCents: charged,
+            priceSnapshotCents: chargedNow,
             commissionSnapshotCents: commissionTotal,
             vendorAmountSnapshotCents: vendorCents,
           },
@@ -266,6 +306,18 @@ export async function POST(req: Request) {
             product_data: { name: stripeName },
           },
         },
+        ...(effectiveTipCents > 0
+          ? [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: "eur",
+                  unit_amount: effectiveTipCents,
+                  product_data: { name: "Tip" },
+                },
+              },
+            ]
+          : []),
       ],
       success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl()}/classes/${experience.id}?cancelled=1`,

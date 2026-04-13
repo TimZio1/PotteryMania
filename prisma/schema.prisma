@@ -60,6 +60,7 @@ model User {
   loyaltyBalances      LoyaltyBalance[]
   clientFieldResponses StudioClientFieldResponse[]
   loyaltyAdjustments   LoyaltyTransaction[] @relation("LoyaltyAdminUser")
+  instructorProfiles   Instructor[]
   priceChangeHistory   PriceChangeHistory[]
   adminAuditLogs       AdminAuditLog[]
   pricingScenarios     PricingScenario[]
@@ -257,6 +258,8 @@ model Studio {
   twilioPhoneNumber     String?                @map("twilio_phone_number")
   /// Enable WhatsApp outbound notifications when templates/providers are configured.
   whatsappNotificationsEnabled Boolean         @default(false) @map("whatsapp_notifications_enabled")
+  /// Enable optional tipping in checkout for class bookings.
+  tipsEnabled            Boolean                @default(false) @map("tips_enabled")
   /// JSON opening hours, e.g. [{"day":"Monday","from":"10:00","to":"21:00","closed":false}, …]
   openingHours          Json?                  @map("opening_hours")
   /// IANA zone for class slot wall times (e.g. Europe/Paris). Drives Google Calendar + add-to-calendar links.
@@ -281,6 +284,11 @@ model Studio {
   memberships         Membership[]
   invoices            Invoice[]
   notificationTemplates NotificationTemplate[]
+  galleryImages       StudioGalleryImage[]
+  posts               StudioPost[]
+  instructors         Instructor[]
+  calendarNotes       CalendarNote[]
+  locations           StudioLocation[]
   bookSoonRules        BookSoonRule[]
   loyaltyConfig        LoyaltyConfig?
   loyaltyBalances      LoyaltyBalance[]
@@ -804,6 +812,9 @@ model Experience {
   waitlistEnabled      Boolean              @default(false) @map("waitlist_enabled")
   loyaltyPointsEarned  Int                  @default(0) @map("loyalty_points_earned")
   taxRateBps           Int                  @default(0) @map("tax_rate_bps")
+  lookBusyMaxSlotsPerDay Int?               @map("look_busy_max_slots_per_day")
+  maxAdvanceBookingDays Int?                @map("max_advance_booking_days")
+  maxActiveBookingsPerCustomer Int?         @map("max_active_bookings_per_customer")
   status               ExperienceStatus
   visibility           ExperienceVisibility @default(public)
   createdAt            DateTime             @default(now()) @map("created_at")
@@ -821,6 +832,7 @@ model Experience {
   classPackageUsages   ClassPackageUsage[]
   membershipLinks      MembershipExperience[]
   notificationTemplates NotificationTemplate[]
+  instructorLinks      InstructorExperienceLink[]
   cartItems            CartItem[]
   waitlistEntries      BookingWaitlistEntry[]
   reviews              Review[]
@@ -1253,6 +1265,7 @@ model Booking {
   remainingBalanceCents      Int                  @default(0) @map("remaining_balance_cents")
   classPackagePurchaseId     String?              @map("class_package_purchase_id") @db.Uuid
   membershipPurchaseId       String?              @map("membership_purchase_id") @db.Uuid
+  instructorId               String?              @map("instructor_id") @db.Uuid
   depositPaidAt              DateTime?            @map("deposit_paid_at")
   remainderPaidAt            DateTime?            @map("remainder_paid_at")
   remainderPaymentLink       String?              @map("remainder_payment_link")
@@ -1260,6 +1273,8 @@ model Booking {
   vendorAmountCents          Int                  @default(0) @map("vendor_amount_cents")
   cancellationPolicySnapshot Json?                @map("cancellation_policy_snapshot")
   notes                      String?
+  tipAmountCents             Int                  @default(0) @map("tip_amount_cents")
+  termsAcceptedAt            DateTime?            @map("terms_accepted_at")
   reminderScheduledAt        DateTime?             @map("reminder_scheduled_at")
   reminderSentAt             DateTime?             @map("reminder_sent_at")
   reviewRequestSentAt        DateTime?             @map("review_request_sent_at")
@@ -1276,6 +1291,7 @@ model Booking {
   customerUser     User?                  @relation("BookingCustomer", fields: [customerUserId], references: [id], onDelete: SetNull)
   classPackagePurchase ClassPackagePurchase? @relation(fields: [classPackagePurchaseId], references: [id], onDelete: SetNull)
   membershipPurchase MembershipPurchase?   @relation(fields: [membershipPurchaseId], references: [id], onDelete: SetNull)
+  instructor      Instructor?             @relation(fields: [instructorId], references: [id], onDelete: SetNull)
   cancellations    BookingCancellation[]
   reschedules      BookingReschedule[]
   bookingAddOns    BookingAddOn[]
@@ -1292,6 +1308,7 @@ model Booking {
   invoices         Invoice[]
 
   @@index([studioId])
+  @@index([instructorId])
   @@map("bookings")
 }
 
@@ -1452,6 +1469,116 @@ model NotificationTemplate {
   @@index([studioId, templateType, isActive])
   @@index([experienceId])
   @@map("notification_templates")
+}
+
+model StudioGalleryImage {
+  id          String   @id @default(uuid()) @db.Uuid
+  studioId    String   @map("studio_id") @db.Uuid
+  imageUrl    String   @map("image_url")
+  caption     String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([studioId, isActive, sortOrder])
+  @@map("studio_gallery_images")
+}
+
+model StudioPost {
+  id          String   @id @default(uuid()) @db.Uuid
+  studioId    String   @map("studio_id") @db.Uuid
+  title       String
+  slug        String
+  content     String
+  imageUrl    String?  @map("image_url")
+  isPublished Boolean  @default(false) @map("is_published")
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([studioId, slug])
+  @@index([studioId, isPublished, publishedAt])
+  @@map("studio_posts")
+}
+
+model Instructor {
+  id           String   @id @default(uuid()) @db.Uuid
+  studioId     String   @map("studio_id") @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
+  name         String
+  bio          String?
+  avatarUrl    String?  @map("avatar_url")
+  color        String?
+  workingHours Json?    @map("working_hours")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  studio      Studio                    @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  user        User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  experiences InstructorExperienceLink[]
+  bookings    Booking[]
+
+  @@index([studioId, isActive])
+  @@index([userId])
+  @@map("instructors")
+}
+
+model InstructorExperienceLink {
+  id           String @id @default(uuid()) @db.Uuid
+  instructorId String @map("instructor_id") @db.Uuid
+  experienceId String @map("experience_id") @db.Uuid
+
+  instructor Instructor @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([instructorId, experienceId])
+  @@index([experienceId])
+  @@map("instructor_experience_links")
+}
+
+model CalendarNote {
+  id        String   @id @default(uuid()) @db.Uuid
+  studioId  String   @map("studio_id") @db.Uuid
+  date      DateTime @db.Date
+  startTime String?  @map("start_time")
+  endTime   String?  @map("end_time")
+  note      String
+  color     String   @default("#FEF3C7")
+  isAllDay  Boolean  @default(false) @map("is_all_day")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([studioId, date])
+  @@map("calendar_notes")
+}
+
+model StudioLocation {
+  id            String   @id @default(uuid()) @db.Uuid
+  studioId      String   @map("studio_id") @db.Uuid
+  name          String
+  addressLine1  String   @map("address_line_1")
+  addressLine2  String?  @map("address_line_2")
+  city          String
+  country       String
+  postalCode    String?  @map("postal_code")
+  latitude      Float?
+  longitude     Float?
+  isDefault     Boolean  @default(false) @map("is_default")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([studioId, isActive, isDefault])
+  @@map("studio_locations")
 }
 
 model StudioClientField {
