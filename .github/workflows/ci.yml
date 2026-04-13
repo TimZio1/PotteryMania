@@ -55,7 +55,7 @@ jobs:
 
       - name: Prisma migrate
         run: |
-          npx prisma db execute --stdin <<'SQL'
+          npx prisma db execute --schema prisma/schema.prisma --stdin <<'SQL'
           CREATE EXTENSION IF NOT EXISTS pgcrypto;
           SQL
 
