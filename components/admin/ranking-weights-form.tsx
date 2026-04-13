@@ -54,7 +54,7 @@ export function RankingWeightsForm({ initial }: Props) {
     <div className={`${ui.card} space-y-4`}>
       <h2 className="text-lg font-semibold text-amber-950">Ranking score weights</h2>
       <p className="text-sm text-stone-600">
-        Performance / activity / manual components for the marketplace composite score (normalized to sum to 1). Defaults
+        Performance / activity / manual components for the platform discovery score (normalized to sum to 1). Defaults
         0.7 / 0.2 / 0.1.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">

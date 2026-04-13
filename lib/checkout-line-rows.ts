@@ -1,8 +1,12 @@
 import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import { commissionCentsFromLine, resolveCommissionBps } from "@/lib/commission";
-import { depositChargedCents } from "@/lib/bookings/deposit";
+import { bookingChargeNowCents, normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
+import { validateAndSnapshotAddOnSelections, type AddOnSelectionSnapshot } from "@/lib/bookings/add-ons";
+import { validateIntakeResponses, type IntakeResponseSnapshot } from "@/lib/intake-forms/validate-responses";
 import { cartItemInclude } from "@/lib/cart-server";
+import { getEligiblePackagePurchase } from "@/lib/packages/credits";
 
 export type CartWithCheckoutItems = Prisma.CartGetPayload<{
   include: { items: { include: typeof cartItemInclude } };
@@ -11,6 +15,7 @@ export type CartWithCheckoutItems = Prisma.CartGetPayload<{
 export type CheckoutLineRow = {
   cartItemId: string;
   itemType: "product" | "booking";
+  bookingPaymentPreference?: "deposit" | "full";
   title: string;
   stripeName: string;
   quantity: number;
@@ -21,8 +26,14 @@ export type CheckoutLineRow = {
   slotId?: string;
   participantCount?: number;
   seatType?: string | null;
+  notes?: string | null;
+  addOnSelections?: AddOnSelectionSnapshot[];
+  intakeResponses?: IntakeResponseSnapshot[];
   policySnapshot?: Prisma.InputJsonValue;
+  classPackagePurchaseId?: string | null;
+  classPackageCreditsToUse?: number;
   fullLineCents: number;
+  originalChargedLineCents: number;
   chargedLineCents: number;
   commissionCents: number;
   vendorCents: number;
@@ -143,6 +154,7 @@ export async function buildCheckoutLineRowsFromCart(
         stripeUnitCents: unit,
         productId: p.id,
         fullLineCents: lineCents,
+        originalChargedLineCents: lineCents,
         chargedLineCents: lineCents,
         commissionCents: com,
         vendorCents: lineCents - com,
@@ -164,6 +176,14 @@ export async function buildCheckoutLineRowsFromCart(
     }
     if (slot.status !== "open") {
       return { ok: false, error: `Slot no longer bookable: ${experience.title}`, status: 400 };
+    }
+    const cutoffMs = (experience.bookingCutoffHours ?? 0) * 3600_000;
+    if (cutoffMs > 0) {
+      const dateStr = slot.slotDate.toISOString().slice(0, 10);
+      const slotStartMs = new Date(`${dateStr}T${slot.startTime}:00`).getTime();
+      if (slotStartMs - Date.now() < cutoffMs) {
+        return { ok: false, error: `Bookings closed for "${experience.title}"`, status: 400 };
+      }
     }
     if (
       item.participantCount < experience.minimumParticipants ||
@@ -189,6 +209,28 @@ export async function buildCheckoutLineRowsFromCart(
     );
     if (seatErr) return { ok: false, error: seatErr, status: 400 };
 
+    const addOnValidation = await validateAndSnapshotAddOnSelections(
+      prisma,
+      experience.id,
+      item.addOnSelections,
+    );
+    if (!addOnValidation.ok) {
+      return {
+        ok: false,
+        error: addOnValidation.error,
+        status: addOnValidation.priceChanged ? 409 : 400,
+        ...(addOnValidation.priceChanged ? { priceChanged: true } : {}),
+      };
+    }
+    const intakeValidation = await validateIntakeResponses(
+      prisma,
+      experience.id,
+      item.intakeResponsePayload,
+    );
+    if (!intakeValidation.ok) {
+      return { ok: false, error: intakeValidation.error, status: 400 };
+    }
+
     if (experience.priceCents !== item.priceSnapshotCents) {
       return {
         ok: false,
@@ -198,32 +240,81 @@ export async function buildCheckoutLineRowsFromCart(
       };
     }
 
-    const unit = item.priceSnapshotCents;
-    const fullLine = unit * item.participantCount;
-    const charged = depositChargedCents(fullLine, experience.bookingDepositBps);
+    const baseParticipantsCents = item.priceSnapshotCents * item.participantCount;
+    const fullLine = baseParticipantsCents + addOnValidation.totalCents;
+    let classPackagePurchaseId: string | null = null;
+    let classPackageCreditsToUse: number | undefined;
+    if (item.classPackagePurchaseId) {
+      if (!cart.userId) {
+        return { ok: false, error: "Sign in to use package credits", status: 401 };
+      }
+      const eligible = await prisma.$transaction((tx) =>
+        getEligiblePackagePurchase(tx, {
+          purchaseId: item.classPackagePurchaseId!,
+          userId: cart.userId!,
+          studioId,
+          experienceId: experience.id,
+        }),
+      );
+      if (!eligible) {
+        return { ok: false, error: "Selected package no longer applies to this class", status: 409 };
+      }
+      classPackagePurchaseId = eligible.purchase.id;
+      classPackageCreditsToUse = eligible.creditsToUse;
+    }
+
+    const payableLine = classPackagePurchaseId ? addOnValidation.totalCents : fullLine;
+    const bookingPaymentPreference = classPackagePurchaseId
+      ? "full"
+      : normalizeBookingPaymentPreference(item.bookingPaymentPreference ?? undefined, {
+          bookingDepositBps: experience.bookingDepositBps,
+          allowFullPaymentOption: experience.allowFullPaymentOption,
+        });
+    const charged = classPackagePurchaseId
+      ? payableLine
+      : bookingChargeNowCents(
+          payableLine,
+          {
+            bookingDepositBps: experience.bookingDepositBps,
+            allowFullPaymentOption: experience.allowFullPaymentOption,
+          },
+          bookingPaymentPreference,
+        );
     const com = commissionCentsFromLine(charged, bookingBps);
     subtotal += charged;
     commissionTotal += com;
 
-    const isDeposit = charged < fullLine;
-    const stripeName = isDeposit
-      ? `${experience.title} — deposit (${item.participantCount} pax)`
-      : `${experience.title} (per person)`;
+    const isDeposit = !classPackagePurchaseId && charged < payableLine;
+    const addOnSuffix = addOnValidation.selections.length
+      ? ` + ${addOnValidation.selections.map((selection) => (selection.quantity > 1 ? `${selection.name} x${selection.quantity}` : selection.name)).join(", ")}`
+      : "";
+    const stripeName = classPackagePurchaseId
+      ? `${experience.title}${addOnSuffix} — package credit`
+      : isDeposit
+        ? `${experience.title}${addOnSuffix} — deposit (${item.participantCount} pax)`
+        : `${experience.title}${addOnSuffix}`;
 
     lineRows.push({
       cartItemId: item.id,
       itemType: "booking",
+      bookingPaymentPreference,
       title: experience.title,
       stripeName,
       quantity: item.participantCount,
-      stripeQuantity: isDeposit ? 1 : item.participantCount,
-      stripeUnitCents: isDeposit ? charged : unit,
+      stripeQuantity: 1,
+      stripeUnitCents: charged,
       experienceId: experience.id,
       slotId: slot.id,
       participantCount: item.participantCount,
       seatType: item.seatType ?? null,
+      notes: item.notes ?? null,
+      addOnSelections: addOnValidation.selections,
+      intakeResponses: intakeValidation.responses,
       policySnapshot: (item.policySnapshot as Prisma.InputJsonValue | null) ?? undefined,
-      fullLineCents: fullLine,
+      classPackagePurchaseId,
+      classPackageCreditsToUse,
+      fullLineCents: payableLine,
+      originalChargedLineCents: charged,
       chargedLineCents: charged,
       commissionCents: com,
       vendorCents: charged - com,

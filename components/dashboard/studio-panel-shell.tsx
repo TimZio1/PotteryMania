@@ -189,7 +189,7 @@ export default function StudioPanelShell({
               onClick={() => setMobileOpen(false)}
               className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
             >
-              View public studio page
+              View public page
             </Link>
             <button
               type="button"
@@ -238,7 +238,7 @@ export default function StudioPanelShell({
             href={`/studios/${studioId}`}
             className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
           >
-            View public studio page
+            View public page
           </Link>
           <button
             type="button"

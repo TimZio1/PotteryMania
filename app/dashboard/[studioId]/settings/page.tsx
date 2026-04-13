@@ -112,6 +112,8 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
           websiteUrl: studio.websiteUrl,
           instagramUrl: studio.instagramUrl,
           facebookUrl: studio.facebookUrl,
+          whatsappNumber: studio.whatsappNumber,
+          openingHours: studio.openingHours as { day: string; from: string; to: string; closed: boolean }[] | null,
           supportedLanguages: studio.supportedLanguages,
         }}
       />
@@ -140,12 +142,11 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
       <div className={ui.card}>
         <h2 className="text-lg font-semibold text-stone-900">Blocked dates</h2>
         <p className="text-sm text-stone-600">
-          Manage closed days from the{" "}
-          <Link href={`/dashboard/experiences/${studioId}`} className="font-medium text-amber-900 underline">
-            class builder
-          </Link>{" "}
-          (studio closed days section).
+          Block specific days when your studio is closed (holidays, maintenance, etc.).
         </p>
+        <Link href={`/dashboard/experiences/${studioId}`} className={`${ui.buttonSecondary} mt-3 inline-flex`}>
+          Open class planner &amp; closed days
+        </Link>
       </div>
     </div>
   );

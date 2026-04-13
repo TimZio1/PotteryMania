@@ -27,6 +27,36 @@ function maxDate(a: Date, b: Date): Date {
   return a > b ? a : b;
 }
 
+function parseClockMinutes(raw: string): number | null {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(raw.trim());
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  return hours * 60 + minutes;
+}
+
+function slotRangeForDate(slotDate: Date, startTime: string, endTime: string) {
+  const startMinutes = parseClockMinutes(startTime);
+  const endMinutes = parseClockMinutes(endTime);
+  if (startMinutes == null || endMinutes == null) return null;
+
+  const start = new Date(slotDate);
+  start.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
+
+  const end = new Date(slotDate);
+  end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+  if (end <= start) {
+    end.setDate(end.getDate() + 1);
+  }
+
+  return { start, end };
+}
+
+function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
+  return aStart < bEnd && bStart < aEnd;
+}
+
 async function getBlockedDates(studioId: string, from: Date, to: Date): Promise<Set<string>> {
   const blocks = await prisma.studioDateBlock.findMany({
     where: { studioId, blockDate: { gte: from, lte: to } },
@@ -41,7 +71,8 @@ async function upsertSlot(
   slotDate: Date,
   startTime: string,
   endTime: string,
-  capacityTotal: number
+  capacityTotal: number,
+  bufferMinutesAfter: number,
 ): Promise<number> {
   const dateOnly = stripTime(slotDate);
   const existing = await prisma.bookingSlot.findFirst({
@@ -54,6 +85,41 @@ async function upsertSlot(
     },
   });
   if (existing) return 0;
+
+  const proposed = slotRangeForDate(dateOnly, startTime, endTime);
+  if (!proposed) return 0;
+
+  const scanFrom = new Date(proposed.start);
+  scanFrom.setDate(scanFrom.getDate() - 1);
+  scanFrom.setHours(0, 0, 0, 0);
+  const scanTo = new Date(proposed.end);
+  scanTo.setDate(scanTo.getDate() + 1);
+  scanTo.setHours(23, 59, 59, 999);
+
+  const nearbySlots = await prisma.bookingSlot.findMany({
+    where: {
+      experienceId,
+      slotDate: { gte: scanFrom, lte: scanTo },
+      status: { in: ["open", "full"] },
+    },
+    select: {
+      id: true,
+      slotDate: true,
+      startTime: true,
+      endTime: true,
+      experience: { select: { bufferMinutesAfter: true } },
+    },
+  });
+
+  for (const slot of nearbySlots) {
+    const current = slotRangeForDate(slot.slotDate, slot.startTime, slot.endTime);
+    if (!current) continue;
+    const existingEndWithBuffer = new Date(current.end.getTime() + (slot.experience.bufferMinutesAfter ?? 0) * 60_000);
+    const proposedEndWithBuffer = new Date(proposed.end.getTime() + bufferMinutesAfter * 60_000);
+    if (overlaps(proposed.start, proposedEndWithBuffer, current.start, existingEndWithBuffer)) {
+      return 0;
+    }
+  }
 
   await prisma.bookingSlot.create({
     data: {
@@ -91,7 +157,15 @@ export async function generateSlotsForRule(
     const d = rule.recurrenceStartDate ? stripTime(new Date(rule.recurrenceStartDate)) : null;
     if (!d || d < from || d > to) return 0;
     if (blockedDates.has(d.toISOString().slice(0, 10))) return 0;
-    return await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
+    return await upsertSlot(
+      experience.id,
+      rule.id,
+      d,
+      startT,
+      endT,
+      cap,
+      experience.bufferMinutesAfter ?? 0,
+    );
   }
 
   if (rule.scheduleType === "recurring_weekly" || rule.scheduleType === "recurring_custom_days") {
@@ -106,7 +180,15 @@ export async function generateSlotsForRule(
     for (let d = new Date(cursorStart); d <= cursorEnd; d = addDays(d, 1)) {
       if (wanted.size && !wanted.has(dayKey(d))) continue;
       if (blockedDates.has(d.toISOString().slice(0, 10))) continue;
-      created += await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
+      created += await upsertSlot(
+        experience.id,
+        rule.id,
+        d,
+        startT,
+        endT,
+        cap,
+        experience.bufferMinutesAfter ?? 0,
+      );
     }
     return created;
   }
@@ -120,7 +202,15 @@ export async function generateSlotsForRule(
       const d = stripTime(new Date(`${s}T12:00:00.000Z`));
       if (d < from || d > to) continue;
       if (blockedDates.has(d.toISOString().slice(0, 10))) continue;
-      created += await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
+      created += await upsertSlot(
+        experience.id,
+        rule.id,
+        d,
+        startT,
+        endT,
+        cap,
+        experience.bufferMinutesAfter ?? 0,
+      );
     }
     return created;
   }
@@ -135,7 +225,15 @@ export async function generateSlotsForRule(
     if (cursorEnd < cursorStart) return 0;
     for (let d = new Date(cursorStart); d <= cursorEnd; d = addDays(d, 1)) {
       if (blockedDates.has(d.toISOString().slice(0, 10))) continue;
-      created += await upsertSlot(experience.id, rule.id, d, startT, endT, cap);
+      created += await upsertSlot(
+        experience.id,
+        rule.id,
+        d,
+        startT,
+        endT,
+        cap,
+        experience.bufferMinutesAfter ?? 0,
+      );
     }
     return created;
   }

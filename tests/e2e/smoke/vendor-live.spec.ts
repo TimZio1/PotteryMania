@@ -88,7 +88,7 @@ test.describe.serial("Vendor live production smoke via admin impersonation", () 
     await test.step("legacy shortcuts redirect into canonical vendor surface", async () => {
       const redirects: Array<[string, RegExp]> = [
         [`/dashboard/products/${studioId}`, new RegExp(`/dashboard/${studioId}/shop`)],
-        [`/dashboard/experiences/${studioId}`, new RegExp(`/dashboard/${studioId}/classes`)],
+        [`/dashboard/experiences/${studioId}`, new RegExp(`/dashboard/experiences/${studioId}`)],
         [`/dashboard/bookings/${studioId}`, new RegExp(`/dashboard/${studioId}/bookings`)],
         [`/dashboard/analytics/${studioId}`, new RegExp(`/dashboard/${studioId}/analytics`)],
       ];

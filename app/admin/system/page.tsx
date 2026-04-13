@@ -41,7 +41,7 @@ export default async function AdminSystemPage() {
         <StatCard
           label="Sentry"
           value={process.env.SENTRY_DSN ? "Configured" : "Off"}
-          hint={process.env.SENTRY_DSN ? "Error capture" : "Set SENTRY_DSN for ops visibility"}
+          hint={process.env.SENTRY_DSN ? "Error capture active" : "Configure error monitoring in deployment"}
         />
       </div>
 
@@ -76,7 +76,7 @@ export default async function AdminSystemPage() {
         <h2 className="font-semibold text-amber-950">Environment snapshot</h2>
         <ul className="mt-3 list-inside list-disc space-y-1">
           <li>
-            Guest restricted mode (<code className="text-xs">PREREGISTRATION_ONLY</code>):{" "}
+            Guest restricted mode:{" "}
             <code className="text-xs">{process.env.PREREGISTRATION_ONLY === "1" ? "on" : "off"}</code>
           </li>
           <li>
@@ -85,7 +85,7 @@ export default async function AdminSystemPage() {
           </li>
           <li>
             Database:{" "}
-            <code className="text-xs">{process.env.DATABASE_URL ? "connected (URL set)" : "missing"}</code>
+            <code className="text-xs">{process.env.DATABASE_URL ? "connected" : "not configured"}</code>
           </li>
         </ul>
       </section>

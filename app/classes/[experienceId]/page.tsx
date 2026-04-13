@@ -9,7 +9,9 @@ import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
 import { buildMetadata } from "@/lib/seo";
 import { billingIntervalLabel } from "@/lib/offering-pricing";
+import { describeCancellationPolicySnapshot } from "@/lib/bookings/cancellation-policy";
 import SubscribeButton from "@/components/offerings/subscribe-button";
+import { ReviewSummary } from "@/components/review-summary";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +81,14 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
 
   if (!experience) notFound();
 
+  const reviews = await prisma.review.findMany({
+    where: { experienceId, isVisible: true },
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    include: { author: { select: { email: true } } },
+    take: 8,
+  });
+  const avgRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
+
   const from = new Date();
   const to = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
 
@@ -91,10 +101,19 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
     orderBy: [{ slotDate: "asc" }, { startTime: "asc" }],
   });
 
+  const cutoffMs = (experience.bookingCutoffHours ?? 0) * 3600_000;
+  const nowMs = Date.now();
+
   const slots: SlotOption[] = slotsRaw
     .filter((s) => {
       const rem = s.capacityTotal - s.capacityReserved;
-      return s.status === "open" && rem >= experience.minimumParticipants;
+      if (s.status !== "open" || rem < experience.minimumParticipants) return false;
+      if (cutoffMs > 0) {
+        const dateStr = s.slotDate.toISOString().slice(0, 10);
+        const slotStart = new Date(`${dateStr}T${s.startTime}:00`).getTime();
+        if (slotStart - nowMs < cutoffMs) return false;
+      }
+      return true;
     })
     .map((s) => ({
       id: s.id,
@@ -130,6 +149,17 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
     experience.recurringPriceCents != null &&
     experience.billingInterval != null;
   const primary = experience.images.find((i) => i.isPrimary) ?? experience.images[0];
+  const cancellationPolicyLabel = describeCancellationPolicySnapshot(
+    experience.cancellationPolicy
+      ? {
+          name: experience.cancellationPolicy.name,
+          policyType: experience.cancellationPolicy.policyType,
+          hoursBeforeStart: experience.cancellationPolicy.hoursBeforeStart,
+          refundPercentage: experience.cancellationPolicy.refundPercentage,
+          customPolicyText: experience.cancellationPolicy.customPolicyText,
+        }
+      : null,
+  );
 
   const toolbar = (
     <Breadcrumbs
@@ -148,7 +178,17 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
             {experience.studio.displayName}
           </Link>
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">{experience.title}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">{experience.title}</h1>
+          {experience.category && (
+            <Link
+              href={`/classes?category=${encodeURIComponent(experience.category)}`}
+              className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600 hover:bg-stone-200"
+            >
+              {experience.category}
+            </Link>
+          )}
+        </div>
         <p className="mt-3 text-xl font-medium text-amber-950">
           {recurring
             ? `€${((experience.recurringPriceCents as number) / 100).toFixed(2)}/${billingIntervalLabel(
@@ -168,6 +208,11 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
             This studio confirms bookings after payment — you may see &quot;pending approval&quot; until they accept.
           </p>
         )}
+        {(experience.bookingCutoffHours ?? 0) > 0 && (
+          <p className="mt-2 max-w-2xl text-sm text-stone-500">
+            Bookings close {experience.bookingCutoffHours}h before the session starts.
+          </p>
+        )}
         {primary?.imageUrl ? (
           <div className="mt-8 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -178,11 +223,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         {experience.fullDescription && (
           <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-stone-600">{experience.fullDescription}</div>
         )}
-        {experience.cancellationPolicy && (
-          <p className="mt-6 text-xs text-stone-500">
-            Cancellation: {experience.cancellationPolicy.name} ({experience.cancellationPolicy.policyType})
-          </p>
-        )}
+        {cancellationPolicyLabel ? <p className="mt-6 text-xs text-stone-500">Cancellation: {cancellationPolicyLabel}</p> : null}
         <div className="mt-10 border-t border-stone-200 pt-10">
           {recurring ? (
             <>
@@ -208,10 +249,15 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
               <h2 className="text-lg font-semibold text-amber-950">Book a session</h2>
               <p className="mt-1 text-sm text-stone-600">Choose a time, party size, and seat type when offered.</p>
               <ClassBookingForm
+                studioId={experience.studio.id}
+                experienceId={experience.id}
                 minP={experience.minimumParticipants}
                 maxP={experience.maximumParticipants}
                 priceCents={experience.priceCents}
                 bookingDepositBps={experience.bookingDepositBps}
+                allowPayAtStudio={experience.allowPayAtStudio}
+                allowFullPaymentOption={experience.allowFullPaymentOption}
+                cancellationPolicyLabel={cancellationPolicyLabel}
                 slots={slots}
                 waitlistSlots={waitlistSlots}
                 initialSlotId={initialSlotId}
@@ -219,6 +265,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
             </>
           )}
         </div>
+        <ReviewSummary title="Class reviews" avgRating={avgRating} count={reviews.length} reviews={reviews} />
       </main>
     </MarketingLayout>
   );

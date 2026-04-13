@@ -1,0 +1,5 @@
+ALTER TABLE "experiences"
+ADD COLUMN IF NOT EXISTS "buffer_minutes_after" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "cart_items"
+ADD COLUMN IF NOT EXISTS "notes" TEXT;

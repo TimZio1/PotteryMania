@@ -46,7 +46,7 @@ export async function GET(req: Request, ctx: Ctx) {
   let bookings: Awaited<ReturnType<typeof prisma.booking.findMany>> = [];
   let products: Array<{ id: string; title: string }> = [];
   let experiences: Awaited<ReturnType<typeof prisma.experience.findMany>> = [];
-  let bookingsInWindow: Array<{ createdAt: Date; bookingStatus: string; depositAmountCents: number }> = [];
+  let bookingsInWindow: Array<{ createdAt: Date; bookingStatus: string; totalAmountCents: number; remainingBalanceCents: number }> = [];
   let ordersInWindow: Array<{ createdAt: Date; totalCents: number }> = [];
 
   try {
@@ -65,7 +65,7 @@ export async function GET(req: Request, ctx: Ctx) {
       prisma.experience.findMany({ where: { studioId } }),
       prisma.booking.findMany({
         where: { studioId, createdAt: { gte: since } },
-        select: { createdAt: true, bookingStatus: true, depositAmountCents: true },
+        select: { createdAt: true, bookingStatus: true, totalAmountCents: true, remainingBalanceCents: true },
       }),
       prisma.order.findMany({
         where: {
@@ -93,7 +93,10 @@ export async function GET(req: Request, ctx: Ctx) {
   }
 
   const orderRevenueCents = orders.reduce((sum, order) => sum + order.totalCents, 0);
-  const bookingRevenueCents = bookings.reduce((sum, booking) => sum + booking.depositAmountCents, 0);
+  const bookingRevenueCents = bookings.reduce(
+    (sum, booking) => sum + (booking.totalAmountCents - booking.remainingBalanceCents),
+    0,
+  );
 
   const topProducts = products
     .map((product) => ({
@@ -140,7 +143,7 @@ export async function GET(req: Request, ctx: Ctx) {
     }
     for (const b of bookingsInWindow) {
       const t = b.createdAt.getTime();
-      if (t >= bar.startMs && t < bar.endMs) cents += b.depositAmountCents;
+      if (t >= bar.startMs && t < bar.endMs) cents += b.totalAmountCents - b.remainingBalanceCents;
     }
     return { label: bar.label, revenueCents: cents };
   });

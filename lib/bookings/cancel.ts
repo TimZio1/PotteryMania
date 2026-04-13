@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { isCancellable, cancelStatusForRole, isCancelled } from "./status";
 import { safeReleaseCapacity } from "./slot-lock";
 import { refundEligibilityFromPolicySnapshot } from "./cancellation-policy";
+import { notifyWaitlistOnCapacityRelease } from "./waitlist-notify";
 import type { Booking, Prisma } from "@prisma/client";
 
 function amountCollectedCents(booking: Pick<Booking, "paymentStatus" | "totalAmountCents" | "depositAmountCents">): number {
@@ -11,7 +12,7 @@ function amountCollectedCents(booking: Pick<Booking, "paymentStatus" | "totalAmo
 }
 
 export type CancelResult =
-  | { ok: true; bookingId: string; newStatus: string; refundOutcome: string; refundAmountCents: number }
+  | { ok: true; bookingId: string; newStatus: string; refundOutcome: string; refundAmountCents: number; slotId: string }
   | { ok: false; error: string };
 
 export async function cancelBooking(opts: {
@@ -20,7 +21,7 @@ export async function cancelBooking(opts: {
   userId?: string | null;
   reason?: string;
 }): Promise<CancelResult> {
-  return prisma.$transaction(async (tx) => {
+  const result: CancelResult = await prisma.$transaction(async (tx): Promise<CancelResult> => {
     const booking = await tx.booking.findUnique({
       where: { id: opts.bookingId },
       include: { slot: true },
@@ -80,10 +81,41 @@ export async function cancelBooking(opts: {
       },
     });
 
+    const packageUsage = await tx.classPackageUsage.findFirst({
+      where: { bookingId: booking.id, refunded: false },
+      include: {
+        purchase: {
+          include: {
+            package: { select: { autoRefundOnCancel: true } },
+          },
+        },
+      },
+    });
+    if (packageUsage?.purchase.package.autoRefundOnCancel) {
+      const decrementedUsed = Math.max(0, packageUsage.purchase.creditsUsed - packageUsage.creditsUsed);
+      await tx.classPackageUsage.update({
+        where: { id: packageUsage.id },
+        data: { refunded: true },
+      });
+      await tx.classPackagePurchase.update({
+        where: { id: packageUsage.purchaseId },
+        data: {
+          creditsUsed: { decrement: packageUsage.creditsUsed },
+          status: decrementedUsed < packageUsage.purchase.creditsTotal ? "active" : packageUsage.purchase.status,
+        },
+      });
+    }
+
     if (booking.bookingStatus === "confirmed" || booking.bookingStatus === "awaiting_vendor_approval") {
       await safeReleaseCapacity(tx, booking.slotId, booking.participantCount, booking.seatType);
     }
 
-    return { ok: true, bookingId: booking.id, newStatus, refundOutcome, refundAmountCents };
+    return { ok: true, bookingId: booking.id, newStatus, refundOutcome, refundAmountCents, slotId: booking.slotId };
   });
+
+  if (result.ok) {
+    notifyWaitlistOnCapacityRelease(result.slotId).catch(() => {});
+  }
+
+  return result;
 }

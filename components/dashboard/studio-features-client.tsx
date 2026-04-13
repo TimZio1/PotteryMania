@@ -102,13 +102,13 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
   async function toggle(slug: string, next: boolean) {
     const row = rows.find((r) => r.slug === slug);
     const label = row?.name ?? slug;
-    let cancelAtPeriodEndChoice = false;
+    let cancelAtPeriodEndChoice = true;
     if (!next) {
       if (row?.requiresPaidSubscription) {
-        cancelAtPeriodEndChoice = window.confirm(
-          "Cancel this add-on?\n\nOK — at the end of your billing period (you keep access until then)\nCancel — end the Stripe subscription immediately",
-        );
-      } else if (!window.confirm("Turn off this add-on in your preferences?")) {
+        if (!window.confirm(`Cancel "${label}"?\n\nYour access continues until the end of the current billing period.`)) {
+          return;
+        }
+      } else if (!window.confirm("Turn off this add-on?")) {
         return;
       }
     }
@@ -161,10 +161,10 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
     const price = money(bundle.priceCents, bundle.currency);
     const list = money(bundle.listSumCents, bundle.currency);
     const stripePart = bundle.requiresBundleStripe
-      ? `You will pay ${price}/mo via Stripe Checkout for the whole bundle (list if bought separately: ${list}/mo).`
+      ? `You will pay ${price}/mo for the whole bundle (saves vs. ${list}/mo if bought separately).`
       : bundle.needsIndividualStripeSlugs.length > 0
-        ? `Free add-ons in the pack will turn on now. You will still need to subscribe individually for: ${bundle.needsIndividualStripeSlugs.join(", ")}.`
-        : `Every add-on in this pack will be turned on now (no separate Stripe prices required).`;
+        ? `Free add-ons in the pack will activate now. Some features require separate subscriptions: ${bundle.needsIndividualStripeSlugs.join(", ")}.`
+        : `All add-ons in this pack will activate now.`;
     if (!confirm(`Enable “${bundle.name}”?\n\n${stripePart}`)) return;
 
     setActionError(null);
@@ -204,9 +204,13 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
     await load();
     router.refresh();
     const bits: string[] = [];
-    if (data.activatedSlugs?.length) bits.push(`Activated: ${data.activatedSlugs.join(", ")}`);
+    if (data.activatedSlugs?.length) {
+      const names = data.activatedSlugs.map((s: string) => rows.find((r) => r.slug === s)?.name ?? s);
+      bits.push(`Activated: ${names.join(", ")}`);
+    }
     if (data.needsIndividualStripeSlugs?.length) {
-      bits.push(`Still need Stripe: ${data.needsIndividualStripeSlugs.join(", ")}`);
+      const names = data.needsIndividualStripeSlugs.map((s: string) => rows.find((r) => r.slug === s)?.name ?? s);
+      bits.push(`Separate subscriptions needed for: ${names.join(", ")}`);
     }
     if (bits.length) window.alert(bits.join("\n"));
   }
@@ -216,7 +220,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
   if (!rows.length) {
     return (
       <p className="text-sm text-stone-600">
-        No add-ons are configured yet. After the platform migration runs, catalog entries will appear here.
+        No add-ons are available for your studio yet. New packs and features are being added regularly — check back soon.
       </p>
     );
   }

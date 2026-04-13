@@ -7,6 +7,42 @@ export type RefundEligibility = {
   refundAmountCents: number;
 };
 
+export function describeCancellationPolicySnapshot(snap: unknown): string | null {
+  if (!snap || typeof snap !== "object") return null;
+
+  const normalized = snap as Record<string, unknown>;
+
+  const parts: string[] = [];
+  const name = typeof normalized.name === "string" ? normalized.name.trim() : "";
+  const policyType = typeof normalized.policyType === "string" ? normalized.policyType : "";
+  const hoursBeforeStart = typeof normalized.hoursBeforeStart === "number" ? normalized.hoursBeforeStart : null;
+  const refundPercentage = typeof normalized.refundPercentage === "number" ? normalized.refundPercentage : null;
+  const customPolicyText = typeof normalized.customPolicyText === "string" ? normalized.customPolicyText.trim() : "";
+
+  if (name) parts.push(name);
+
+  switch (policyType) {
+    case "non_refundable":
+      parts.push("non-refundable");
+      break;
+    case "refundable_until_hours":
+      if (hoursBeforeStart != null) parts.push(`full refund up to ${hoursBeforeStart}h before start`);
+      break;
+    case "partial_refund_until_hours":
+      if (hoursBeforeStart != null) {
+        parts.push(`${refundPercentage ?? 0}% refund up to ${hoursBeforeStart}h before start`);
+      }
+      break;
+    case "custom":
+      if (customPolicyText) parts.push(customPolicyText);
+      break;
+    default:
+      break;
+  }
+
+  return parts.filter(Boolean).join(" · ") || null;
+}
+
 export function refundEligibilityFromPolicySnapshot(
   snap: Record<string, unknown> | null | undefined,
   input: {

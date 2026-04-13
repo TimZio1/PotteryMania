@@ -33,10 +33,22 @@ const ALLOWED_UPLOAD_FOLDERS = new Set([
   "potterymania/studio-brand",
 ]);
 
+const PUBLIC_ALLOWED_UPLOAD_FOLDERS = new Set([
+  "potterymania/booking-intake",
+]);
+
 export function resolveAllowedUploadFolder(folder: string | undefined, userId: string): string {
   const requested = (folder || "").trim();
   if (ALLOWED_UPLOAD_FOLDERS.has(requested)) {
     return requested;
   }
   return `potterymania/users/${userId}/uploads`;
+}
+
+export function resolvePublicUploadFolder(folder: string | undefined): string | null {
+  const requested = (folder || "").trim();
+  if (!PUBLIC_ALLOWED_UPLOAD_FOLDERS.has(requested)) {
+    return null;
+  }
+  return requested;
 }

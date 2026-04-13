@@ -28,6 +28,10 @@ export type StudioClassListRow = {
   durationMinutes: number;
   bookingApprovalRequired: boolean;
   waitlistEnabled: boolean;
+  bookingCutoffHours: number;
+  bufferMinutesAfter: number;
+  allowPayAtStudio: boolean;
+  allowFullPaymentOption: boolean;
   recurringRulesCount: number;
   nextSlot: {
     slotDate: string;
@@ -71,6 +75,10 @@ export async function buildStudioClassListRows(prisma: PrismaClient, studioId: s
       durationMinutes: true,
       bookingApprovalRequired: true,
       waitlistEnabled: true,
+      bookingCutoffHours: true,
+      bufferMinutesAfter: true,
+      allowPayAtStudio: true,
+      allowFullPaymentOption: true,
       _count: { select: { recurringRules: true } },
     },
   });
@@ -131,6 +139,10 @@ export async function buildStudioClassListRows(prisma: PrismaClient, studioId: s
       durationMinutes: e.durationMinutes,
       bookingApprovalRequired: e.bookingApprovalRequired,
       waitlistEnabled: e.waitlistEnabled,
+      bookingCutoffHours: e.bookingCutoffHours,
+      bufferMinutesAfter: e.bufferMinutesAfter,
+      allowPayAtStudio: e.allowPayAtStudio,
+      allowFullPaymentOption: e.allowFullPaymentOption,
       recurringRulesCount: e._count.recurringRules,
       nextSlot: slot
         ? {

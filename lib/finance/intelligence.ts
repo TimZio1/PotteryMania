@@ -227,7 +227,7 @@ export async function runFinancialIntelligence(): Promise<{ alerts: number; reco
       recommendationType: "pricing_stream",
       impactLevel: "high",
       difficulty: "easy",
-      title: "Classes carry margin drag vs marketplace",
+      title: "Classes carry margin drag vs product sales",
       problem: "Booking commission profit is weak relative to share of commission revenue.",
       suggestedAction: "Raise booking commission bps by 50–100 bps or reduce deposit-only checkout share.",
       estimatedGainCents: Math.round(bookingStream.revenueCents * 0.08),

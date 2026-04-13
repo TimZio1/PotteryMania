@@ -146,9 +146,8 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
                           )}
                           onClick={() => {
                             if (r.activation?.hasStripeSubscription) {
-                              const atPeriodEnd = window.confirm(
-                                "This studio has a Stripe subscription for this add-on (or bundle).\n\nOK — cancel at end of billing period\nCancel — cancel subscription immediately",
-                              );
+                              if (!window.confirm("Cancel this add-on subscription? Access continues until the end of the current billing period.")) return;
+                              const atPeriodEnd = true;
                               void patch(r.featureId, {
                                 status: "inactive",
                                 cancelStripeAtPeriodEnd: atPeriodEnd,

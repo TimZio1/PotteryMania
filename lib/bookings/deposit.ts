@@ -9,3 +9,38 @@ export function depositChargedCents(fullLineCents: number, depositBps: number): 
   const raw = Math.ceil((fullLineCents * bps) / 10_000);
   return Math.min(fullLineCents, Math.max(1, raw));
 }
+
+export type BookingCheckoutPaymentPreference = "deposit" | "full";
+
+export function bookingAllowsFullPaymentOption(input: {
+  bookingDepositBps: number;
+  allowFullPaymentOption?: boolean | null;
+}): boolean {
+  return input.bookingDepositBps > 0 && input.allowFullPaymentOption === true;
+}
+
+export function normalizeBookingPaymentPreference(
+  requested: BookingCheckoutPaymentPreference | null | undefined,
+  input: {
+    bookingDepositBps: number;
+    allowFullPaymentOption?: boolean | null;
+  },
+): BookingCheckoutPaymentPreference {
+  if (input.bookingDepositBps <= 0) return "full";
+  if (requested === "full" && bookingAllowsFullPaymentOption(input)) return "full";
+  return "deposit";
+}
+
+export function bookingChargeNowCents(
+  fullLineCents: number,
+  input: {
+    bookingDepositBps: number;
+    allowFullPaymentOption?: boolean | null;
+  },
+  requested: BookingCheckoutPaymentPreference | null | undefined,
+): number {
+  const paymentPreference = normalizeBookingPaymentPreference(requested, input);
+  return paymentPreference === "full"
+    ? fullLineCents
+    : depositChargedCents(fullLineCents, input.bookingDepositBps);
+}

@@ -112,8 +112,8 @@ export default async function StudiosPage({ searchParams }: Props) {
           <p className={ui.overline}>Studios</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Independent makers</h1>
           <p className="mt-3 text-stone-600">
-            Every studio here is verified. Open a profile to see classes and products in one place. Order defaults to
-            platform ranking; switch to A–Z if you prefer.
+            Every studio here is verified. Open a profile to see classes and products in one place. Studios are shown by
+            relevance; switch to A–Z if you prefer.
           </p>
         </div>
 

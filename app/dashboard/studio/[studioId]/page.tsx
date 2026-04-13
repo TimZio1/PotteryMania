@@ -125,7 +125,17 @@ export default function EditStudioPage() {
         ← Studio control panel
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">Studio workspace</h1>
-      <p className="text-sm text-stone-500">Status: {studio.status}</p>
+      <p className="text-sm text-stone-500">
+        {studio.status === "active"
+          ? "Your studio is live and accepting bookings."
+          : studio.status === "draft"
+            ? "Your studio is in draft mode — finish setup to go live."
+            : studio.status === "suspended"
+              ? "Your studio is currently suspended. Contact support for details."
+              : studio.status === "pending_review"
+                ? "Your studio is under review. We'll notify you once it's approved."
+                : "Setup in progress"}
+      </p>
       {studio.rejectionReason && (
         <p className="mt-2 text-sm text-red-600">Reason: {studio.rejectionReason}</p>
       )}
@@ -201,7 +211,7 @@ export default function EditStudioPage() {
               href={`/dashboard/experiences/${studioId}`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
-              Experiences
+              Class planner
             </Link>
             <Link
               href={`/dashboard/bookings/${studioId}`}

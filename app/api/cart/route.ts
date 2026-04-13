@@ -3,6 +3,10 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { getCartForRequest, withCartCookie, cartItemInclude } from "@/lib/cart-server";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
+import { validateAndSnapshotAddOnSelections } from "@/lib/bookings/add-ons";
+import { validateIntakeResponses } from "@/lib/intake-forms/validate-responses";
+import { normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
+import { getEligiblePackagePurchase } from "@/lib/packages/credits";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logApiError } from "@/lib/monitoring";
 
@@ -41,7 +45,12 @@ export async function POST(req: Request) {
     quantity?: number;
     slotId?: string;
     participantCount?: number;
+    bookingPaymentPreference?: "deposit" | "full";
+    classPackagePurchaseId?: string | null;
     seatType?: string | null;
+    notes?: string | null;
+    addOnSelections?: unknown;
+    intakeResponses?: unknown;
   };
   try {
     body = await req.json();
@@ -54,6 +63,24 @@ export async function POST(req: Request) {
   const quantity = typeof body.quantity === "number" && body.quantity > 0 ? Math.floor(body.quantity) : 1;
   const participantCount =
     typeof body.participantCount === "number" && body.participantCount > 0 ? Math.floor(body.participantCount) : 1;
+  const notes =
+    typeof body.notes === "string"
+      ? body.notes.trim().slice(0, 1000) || null
+      : body.notes === null
+        ? null
+        : undefined;
+  const bookingPaymentPreference =
+    body.bookingPaymentPreference === "full"
+      ? "full"
+      : body.bookingPaymentPreference === "deposit"
+        ? "deposit"
+        : undefined;
+  const classPackagePurchaseId =
+    body.classPackagePurchaseId === null
+      ? null
+      : typeof body.classPackagePurchaseId === "string"
+        ? body.classPackagePurchaseId.trim() || null
+        : undefined;
   if (!productId && !slotId) {
     return NextResponse.json({ error: "productId or slotId required" }, { status: 400 });
   }
@@ -114,6 +141,14 @@ export async function POST(req: Request) {
     if (slot.status !== "open") {
       return NextResponse.json({ error: "Slot not bookable" }, { status: 400 });
     }
+    const cutoffMs = (experience.bookingCutoffHours ?? 0) * 3600_000;
+    if (cutoffMs > 0) {
+      const dateStr = slot.slotDate.toISOString().slice(0, 10);
+      const slotStartMs = new Date(`${dateStr}T${slot.startTime}:00`).getTime();
+      if (slotStartMs - Date.now() < cutoffMs) {
+        return NextResponse.json({ error: `Bookings close ${experience.bookingCutoffHours}h before the session` }, { status: 400 });
+      }
+    }
     if (participantCount < experience.minimumParticipants || participantCount > experience.maximumParticipants) {
       return NextResponse.json({ error: "Invalid participant count for this experience" }, { status: 400 });
     }
@@ -131,6 +166,26 @@ export async function POST(req: Request) {
     const seatErr = seatTypeCapacityError(slot.seatCapacities, seatType, participantCount, reservedBySame);
     if (seatErr) return NextResponse.json({ error: seatErr }, { status: 400 });
 
+    const effectiveBookingPaymentPreference = normalizeBookingPaymentPreference(bookingPaymentPreference, {
+      bookingDepositBps: experience.bookingDepositBps,
+      allowFullPaymentOption: experience.allowFullPaymentOption,
+    });
+    const eligiblePackage = classPackagePurchaseId
+      ? await prisma.$transaction((tx) =>
+          getEligiblePackagePurchase(tx, {
+            purchaseId: classPackagePurchaseId,
+            userId: user?.id ?? "",
+            studioId: experience.studioId,
+            experienceId: experience.id,
+          }),
+        )
+      : null;
+    if (classPackagePurchaseId && !user?.id) {
+      return NextResponse.json({ error: "Sign in to use class package credits" }, { status: 401 });
+    }
+    if (classPackagePurchaseId && !eligiblePackage) {
+      return NextResponse.json({ error: "Selected package credit is not valid for this class" }, { status: 400 });
+    }
     const policySnapshot = experience.cancellationPolicy
       ? {
           id: experience.cancellationPolicy.id,
@@ -141,14 +196,28 @@ export async function POST(req: Request) {
           customPolicyText: experience.cancellationPolicy.customPolicyText,
         }
       : undefined;
-
+    const addOnResult = await validateAndSnapshotAddOnSelections(prisma, experience.id, body.addOnSelections);
+    if (!addOnResult.ok) {
+      return NextResponse.json({ error: addOnResult.error, ...(addOnResult.priceChanged ? { priceChanged: true } : {}) }, { status: addOnResult.priceChanged ? 409 : 400 });
+    }
+    const intakeResult = await validateIntakeResponses(prisma, experience.id, body.intakeResponses);
+    if (!intakeResult.ok) {
+      return NextResponse.json({ error: intakeResult.error }, { status: 400 });
+    }
     if (same) {
       await prisma.cartItem.update({
         where: { id: same.id },
         data: {
           quantity: 1,
           participantCount,
+          bookingPaymentPreference: effectiveBookingPaymentPreference,
+          ...(classPackagePurchaseId !== undefined
+            ? { classPackagePurchaseId: eligiblePackage?.purchase.id ?? null }
+            : {}),
           seatType,
+          ...(notes !== undefined ? { notes } : {}),
+          addOnSelections: addOnResult.selections as unknown as object,
+          intakeResponsePayload: intakeResult.responses as unknown as object,
           priceSnapshotCents: experience.priceCents,
           policySnapshot,
         },
@@ -163,7 +232,12 @@ export async function POST(req: Request) {
           vendorId: experience.studioId,
           quantity: 1,
           participantCount,
+          bookingPaymentPreference: effectiveBookingPaymentPreference,
+          classPackagePurchaseId: eligiblePackage?.purchase.id ?? null,
           seatType,
+          notes: notes ?? null,
+          addOnSelections: addOnResult.selections as unknown as object,
+          intakeResponsePayload: intakeResult.responses as unknown as object,
           priceSnapshotCents: experience.priceCents,
           policySnapshot,
         },
@@ -184,7 +258,17 @@ export async function PATCH(req: Request) {
   const user = await getSessionUser();
   const { cartId, setCookie } = await getCartForRequest(user?.id ?? null);
 
-  let body: { itemId?: string; quantity?: number; participantCount?: number; seatType?: string | null };
+  let body: {
+    itemId?: string;
+    quantity?: number;
+    participantCount?: number;
+    bookingPaymentPreference?: "deposit" | "full";
+    classPackagePurchaseId?: string | null;
+    seatType?: string | null;
+    notes?: string | null;
+    addOnSelections?: unknown;
+    intakeResponses?: unknown;
+  };
   try {
     body = await req.json();
   } catch (e) {
@@ -210,6 +294,24 @@ export async function PATCH(req: Request) {
       ? null
       : typeof body.seatType === "string" && body.seatType.trim()
         ? body.seatType.trim()
+        : undefined;
+  const notesPatch =
+    body.notes === null
+      ? null
+      : typeof body.notes === "string"
+        ? body.notes.trim().slice(0, 1000) || null
+        : undefined;
+  const bookingPaymentPreferencePatch =
+    body.bookingPaymentPreference === "full"
+      ? "full"
+      : body.bookingPaymentPreference === "deposit"
+        ? "deposit"
+        : undefined;
+  const classPackagePurchaseIdPatch =
+    body.classPackagePurchaseId === null
+      ? null
+      : typeof body.classPackagePurchaseId === "string"
+        ? body.classPackagePurchaseId.trim() || null
         : undefined;
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -245,9 +347,52 @@ export async function PATCH(req: Request) {
       if (stErr) return NextResponse.json({ error: stErr }, { status: 400 });
       const seatErr = seatTypeCapacityError(slot.seatCapacities, nextSeat, participantCount, currentReserved);
       if (seatErr) return NextResponse.json({ error: seatErr }, { status: 400 });
+      const addOnResult = await validateAndSnapshotAddOnSelections(prisma, slot.experience.id, body.addOnSelections ?? item.addOnSelections);
+      if (!addOnResult.ok) {
+        return NextResponse.json({ error: addOnResult.error, ...(addOnResult.priceChanged ? { priceChanged: true } : {}) }, { status: addOnResult.priceChanged ? 409 : 400 });
+      }
+      const intakeResult = await validateIntakeResponses(prisma, slot.experience.id, body.intakeResponses ?? item.intakeResponsePayload);
+      if (!intakeResult.ok) {
+        return NextResponse.json({ error: intakeResult.error }, { status: 400 });
+      }
+      const effectiveBookingPaymentPreference = normalizeBookingPaymentPreference(
+        bookingPaymentPreferencePatch ?? item.bookingPaymentPreference ?? undefined,
+        {
+          bookingDepositBps: slot.experience.bookingDepositBps,
+          allowFullPaymentOption: slot.experience.allowFullPaymentOption,
+        },
+      );
+      if (classPackagePurchaseIdPatch && !user?.id) {
+        return NextResponse.json({ error: "Sign in to use class package credits" }, { status: 401 });
+      }
+      const eligiblePackage = classPackagePurchaseIdPatch
+        ? await prisma.$transaction((tx) =>
+            getEligiblePackagePurchase(tx, {
+              purchaseId: classPackagePurchaseIdPatch,
+              userId: user?.id ?? "",
+              studioId: slot.experience.studioId,
+              experienceId: slot.experience.id,
+            }),
+          )
+        : null;
+      if (classPackagePurchaseIdPatch && !eligiblePackage) {
+        return NextResponse.json({ error: "Selected package credit is not valid for this class" }, { status: 400 });
+      }
       await prisma.cartItem.update({
         where: { id: itemId },
-        data: { quantity: 1, participantCount, ...(seatTypePatch !== undefined ? { seatType: nextSeat } : {}) },
+        data: {
+          quantity: 1,
+          participantCount,
+          bookingPaymentPreference: effectiveBookingPaymentPreference,
+          ...(classPackagePurchaseIdPatch !== undefined
+            ? { classPackagePurchaseId: eligiblePackage?.purchase.id ?? null }
+            : {}),
+          ...(seatTypePatch !== undefined ? { seatType: nextSeat } : {}),
+          ...(notesPatch !== undefined ? { notes: notesPatch } : {}),
+          ...("addOnSelections" in body ? { addOnSelections: addOnResult.selections as unknown as object } : {}),
+          ...("intakeResponses" in body ? { intakeResponsePayload: intakeResult.responses as unknown as object } : {}),
+          priceSnapshotCents: slot.experience.priceCents,
+        },
       });
     }
   } else if (quantity <= 0) {

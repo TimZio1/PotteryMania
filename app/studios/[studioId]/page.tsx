@@ -132,7 +132,7 @@ export default async function StudioPage({ params }: Props) {
               status: { in: ["open", "full"] },
             },
             include: {
-              experience: { select: { id: true, title: true, minimumParticipants: true } },
+              experience: { select: { id: true, title: true, minimumParticipants: true, bookingCutoffHours: true } },
             },
             orderBy: [{ slotDate: "asc" }, { startTime: "asc" }],
             take: 48,
@@ -142,6 +142,13 @@ export default async function StudioPage({ params }: Props) {
             if (s.status !== "open") return false;
             const rem = s.capacityTotal - s.capacityReserved;
             return rem >= s.experience.minimumParticipants;
+          })
+          .filter((s) => {
+            const cutoffMs = (s.experience.bookingCutoffHours ?? 0) * 3600_000;
+            if (cutoffMs <= 0) return true;
+            const dateStr = s.slotDate.toISOString().slice(0, 10);
+            const slotStart = new Date(`${dateStr}T${s.startTime}:00`).getTime();
+            return slotStart - Date.now() >= cutoffMs;
           })
           .slice(0, 16)
       : [];
@@ -209,7 +216,7 @@ export default async function StudioPage({ params }: Props) {
                 <p className="st-body mt-4 text-base leading-relaxed">{studio.shortDescription}</p>
               ) : null}
               {!studio.activationPaidAt ? (
-                <p className="st-pill mt-4">Free listing profile. Classes and product checkout become available after Stripe connection.</p>
+                <p className="st-pill mt-4">This studio is setting up. Online booking and purchases will be available soon.</p>
               ) : null}
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -279,7 +286,7 @@ export default async function StudioPage({ params }: Props) {
                 <div className="st-body mt-6 whitespace-pre-wrap text-sm leading-relaxed">{studio.longDescription}</div>
               ) : null}
 
-              {(studio.instagramUrl || studio.facebookUrl || studio.websiteUrl) && (
+              {(studio.instagramUrl || studio.facebookUrl || studio.websiteUrl || studio.whatsappNumber) && (
                 <div className="mt-6 flex flex-wrap gap-3 text-sm">
                   {studio.websiteUrl ? (
                     <a href={studio.websiteUrl} target="_blank" rel="noreferrer" className="st-link">
@@ -296,9 +303,38 @@ export default async function StudioPage({ params }: Props) {
                       Facebook
                     </a>
                   ) : null}
+                  {studio.whatsappNumber ? (
+                    <a
+                      href={`https://wa.me/${studio.whatsappNumber.replace(/[^0-9+]/g, "").replace("+", "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="st-btn-secondary inline-flex items-center gap-1.5"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                      </svg>
+                      WhatsApp
+                    </a>
+                  ) : null}
                 </div>
               )}
             </div>
+
+            {Array.isArray(studio.openingHours) && (studio.openingHours as { day: string; from: string; to: string; closed: boolean }[]).length > 0 && (
+              <div className="st-card mt-6 p-5">
+                <h3 className="st-h3 text-sm font-semibold uppercase tracking-wide">Opening hours</h3>
+                <dl className="mt-3 space-y-1 text-sm">
+                  {(studio.openingHours as { day: string; from: string; to: string; closed: boolean }[]).map((h) => (
+                    <div key={h.day} className="flex justify-between">
+                      <dt className="st-body font-medium">{h.day}</dt>
+                      <dd className={h.closed ? "st-muted" : "st-body"}>
+                        {h.closed ? "Closed" : `${h.from} – ${h.to}`}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
           </div>
 
           {!classesHidden && upcomingSlots.length > 0 ? (
@@ -313,7 +349,7 @@ export default async function StudioPage({ params }: Props) {
               </div>
               <p className="st-muted mt-1 text-sm">
                 {classesVisible
-                  ? "Schedule preview — PotteryMania booking is not enabled for this studio yet."
+                  ? "Schedule preview — online booking is not available for this studio yet."
                   : "Open times with availability — reserve on the class page."}
               </p>
               <ul className="st-list-shell st-divide-y mt-6">
@@ -346,7 +382,10 @@ export default async function StudioPage({ params }: Props) {
                         <p className="st-h3 text-base">{slot.experience.title}</p>
                         <p className="st-muted mt-0.5 text-sm">
                           {dateLabel} · {slot.startTime}–{slot.endTime}
-                          <span> · {rem} spot{rem === 1 ? "" : "s"} left</span>
+                          <span>
+                            {" "}
+                            · {rem <= 2 ? `Only ${rem} spot${rem === 1 ? "" : "s"} left` : `${rem} spots left`}
+                          </span>
                         </p>
                       </div>
                       {book}
@@ -386,6 +425,11 @@ export default async function StudioPage({ params }: Props) {
                         <p className="st-accent-text mt-1 text-sm font-medium">
                           €{(experience.priceCents / 100).toFixed(2)} / person
                         </p>
+                        {experience.allowPayAtStudio && (
+                          <span className="mt-1 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                            Pay at studio available
+                          </span>
+                        )}
                       </div>
                     </>
                   );

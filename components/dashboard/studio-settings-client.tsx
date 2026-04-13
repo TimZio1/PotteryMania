@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
 
+const DEFAULT_HOURS: { day: string; from: string; to: string; closed: boolean }[] = [
+  { day: "Monday", from: "10:00", to: "21:00", closed: false },
+  { day: "Tuesday", from: "10:00", to: "21:00", closed: false },
+  { day: "Wednesday", from: "10:00", to: "21:00", closed: false },
+  { day: "Thursday", from: "10:00", to: "21:00", closed: false },
+  { day: "Friday", from: "10:00", to: "21:00", closed: false },
+  { day: "Saturday", from: "10:00", to: "17:00", closed: false },
+  { day: "Sunday", from: "10:00", to: "17:00", closed: true },
+];
+
 export default function StudioSettingsClient({
   studioId,
   initial,
@@ -25,6 +35,8 @@ export default function StudioSettingsClient({
     websiteUrl: string | null;
     instagramUrl: string | null;
     facebookUrl: string | null;
+    whatsappNumber: string | null;
+    openingHours: { day: string; from: string; to: string; closed: boolean }[] | null;
     supportedLanguages: string[];
   };
 }) {
@@ -56,6 +68,8 @@ export default function StudioSettingsClient({
           websiteUrl: form.websiteUrl?.trim() || "",
           instagramUrl: form.instagramUrl?.trim() || "",
           facebookUrl: form.facebookUrl?.trim() || "",
+          whatsappNumber: form.whatsappNumber?.trim() || "",
+          openingHours: form.openingHours,
           supportedLanguages: form.supportedLanguages,
         }),
       });
@@ -107,7 +121,7 @@ export default function StudioSettingsClient({
         </label>
       </div>
       <label>
-        <span className={ui.label}>Booking timezone (IANA)</span>
+        <span className={ui.label}>Booking timezone</span>
         <input
           className={cn(ui.input, "mt-1 font-mono text-sm")}
           value={form.ianaTimezone ?? ""}
@@ -116,8 +130,7 @@ export default function StudioSettingsClient({
           spellCheck={false}
         />
         <p className="mt-1 text-xs text-stone-500">
-          Used for Google Calendar sync and add-to-calendar links so class times match your local wall clock. Leave blank to use the platform default (
-          <code className="rounded bg-stone-100 px-1">DEFAULT_BOOKING_IANA_TIMEZONE</code> or Europe/Paris).
+          Used for Google Calendar sync and add-to-calendar links so class times match your local wall clock. Leave blank to default to Europe/Paris.
         </p>
       </label>
       <label>
@@ -146,6 +159,87 @@ export default function StudioSettingsClient({
           <input className={cn(ui.input, "mt-1")} value={form.facebookUrl ?? ""} onChange={(e) => setForm((f) => ({ ...f, facebookUrl: e.target.value }))} />
         </label>
       </div>
+      <label>
+        <span className={ui.label}>WhatsApp number</span>
+        <input
+          className={cn(ui.input, "mt-1")}
+          value={form.whatsappNumber ?? ""}
+          onChange={(e) => setForm((f) => ({ ...f, whatsappNumber: e.target.value }))}
+          placeholder="+306940821618"
+        />
+        <p className="mt-1 text-xs text-stone-500">E.164 format. Shows a WhatsApp button on your public studio page.</p>
+      </label>
+
+      <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+        <div className="flex items-center justify-between">
+          <span className={ui.label}>Opening hours</span>
+          {!form.openingHours && (
+            <button
+              type="button"
+              className={ui.buttonGhost}
+              onClick={() => setForm((f) => ({ ...f, openingHours: DEFAULT_HOURS }))}
+            >
+              Set hours
+            </button>
+          )}
+          {form.openingHours && (
+            <button
+              type="button"
+              className={ui.buttonGhost}
+              onClick={() => setForm((f) => ({ ...f, openingHours: null }))}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {form.openingHours && (
+          <div className="mt-3 space-y-2">
+            {form.openingHours.map((h, idx) => (
+              <div key={h.day} className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="w-20 font-medium text-stone-700">{h.day}</span>
+                <label className="inline-flex items-center gap-1 text-stone-600">
+                  <input
+                    type="checkbox"
+                    checked={h.closed}
+                    onChange={(e) => {
+                      const next = [...form.openingHours!];
+                      next[idx] = { ...next[idx], closed: e.target.checked };
+                      setForm((f) => ({ ...f, openingHours: next }));
+                    }}
+                  />
+                  Closed
+                </label>
+                {!h.closed && (
+                  <>
+                    <input
+                      type="time"
+                      className={cn(ui.input, "w-28")}
+                      value={h.from}
+                      onChange={(e) => {
+                        const next = [...form.openingHours!];
+                        next[idx] = { ...next[idx], from: e.target.value };
+                        setForm((f) => ({ ...f, openingHours: next }));
+                      }}
+                    />
+                    <span className="text-stone-400">–</span>
+                    <input
+                      type="time"
+                      className={cn(ui.input, "w-28")}
+                      value={h.to}
+                      onChange={(e) => {
+                        const next = [...form.openingHours!];
+                        next[idx] = { ...next[idx], to: e.target.value };
+                        setForm((f) => ({ ...f, openingHours: next }));
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <label>
         <span className={ui.label}>Supported languages</span>
         <input

@@ -64,7 +64,7 @@ export function FeatureHubSortOrderCell({
         }}
         className={cn(ui.input, "min-h-8 w-[3.5rem] py-1 font-mono text-xs tabular-nums")}
         aria-label="Catalog sort order"
-        title="Lower sorts first in vendor marketplace lists"
+        title="Lower sorts first in studio catalog lists"
       />
       {hint ? <span className="text-[10px] text-stone-500">{hint}</span> : null}
     </div>

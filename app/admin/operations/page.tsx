@@ -167,7 +167,7 @@ export default async function AdminOperationsPage() {
         <StatCard label="Calendar sync errors (30d)" value={String(calendarErrorsLast30)} hint="Reliability signal" />
         <StatCard
           label="Cron auth"
-          value={process.env.CRON_SECRET ? "CRON_SECRET set" : "Missing secret"}
+          value={process.env.CRON_SECRET ? "Scheduled jobs authenticated" : "Missing authentication"}
           hint="Railway cron must send Authorization: Bearer …"
         />
         <StatCard

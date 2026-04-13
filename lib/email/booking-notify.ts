@@ -38,6 +38,8 @@ export type BookingEmailFields = {
   paidEur?: string;
   balanceEur?: string;
   seatType?: string | null;
+  addOnLines?: string[];
+  intakeLines?: { label: string; value: string }[];
 };
 
 function moneyLines(p: BookingEmailFields): string {
@@ -55,6 +57,35 @@ function moneyLines(p: BookingEmailFields): string {
   return `<p>Total: €${escapeHtml(p.totalEur)}</p>`;
 }
 
+function extrasBlock(p: BookingEmailFields): string {
+  const addOns = p.addOnLines?.filter(Boolean) ?? [];
+  const intake = p.intakeLines?.filter((line) => line.label && line.value) ?? [];
+  if (addOns.length === 0 && intake.length === 0) return "";
+
+  const addOnHtml = addOns.length
+    ? `<div style="margin:12px 0 0;">
+        <p style="margin:0 0 6px;"><strong>Add-ons</strong></p>
+        <ul style="margin:0; padding-left:18px;">
+          ${addOns.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+        </ul>
+      </div>`
+    : "";
+
+  const intakeHtml = intake.length
+    ? `<div style="margin:12px 0 0;">
+        <p style="margin:0 0 6px;"><strong>Booking answers</strong></p>
+        ${intake
+          .map(
+            (line) =>
+              `<p style="margin:0 0 6px;"><strong>${escapeHtml(line.label)}:</strong> ${escapeHtml(line.value).replace(/\n/g, "<br />")}</p>`,
+          )
+          .join("")}
+      </div>`
+    : "";
+
+  return `${addOnHtml}${intakeHtml}`;
+}
+
 export function bookingConfirmationCopy(p: BookingEmailFields): { customer: string; studio: string } {
   const ticket = p.ticketRef
     ? `<p style="margin:0 0 8px;">Ticket / reference: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
@@ -66,6 +97,7 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
     <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
     <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
     ${seat}
+    ${extrasBlock(p)}
     ${moneyLines(p)}
     ${ticket}
   `;
@@ -100,6 +132,7 @@ export function bookingPendingStudioConfirmationCopy(p: BookingEmailFields): { c
     <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
     <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
     ${seat}
+    ${extrasBlock(p)}
     ${moneyLines(p)}
     ${ticket}
     <p style="margin:16px 0 0;">Your payment was received. The studio will confirm or decline this booking shortly.</p>
@@ -136,5 +169,37 @@ export function bookingRejectedCopy(p: BookingEmailFields & { reason?: string | 
     bodyHtml: `${ticket}${reason}<p style="margin:16px 0 0;">If you were charged, contact the studio for a refund.</p>`,
     ctaLabel: "View PotteryMania",
     ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+  });
+}
+
+export function reviewRequestCopy(input: {
+  customerName: string;
+  experienceTitle: string;
+  studioName: string;
+  reviewUrl: string;
+}): string {
+  return renderEmailShell({
+    eyebrow: "How was your session?",
+    title: `Leave a review for ${input.experienceTitle}`,
+    intro: `Thanks for attending ${input.experienceTitle} at ${input.studioName}.`,
+    bodyHtml: `<p style="margin:0 0 12px;">Hi ${escapeHtml(input.customerName)},</p><p style="margin:0;">Your feedback helps other customers choose the right class and helps the studio improve. It only takes a minute.</p>`,
+    ctaLabel: "Leave a review",
+    ctaUrl: input.reviewUrl,
+  });
+}
+
+export function bookSoonCopy(input: {
+  customerName: string;
+  subject: string;
+  bodyHtml: string;
+  ctaUrl: string;
+}): string {
+  return renderEmailShell({
+    eyebrow: "Book your next class",
+    title: input.subject,
+    intro: `Hi ${input.customerName}, ready for your next pottery session?`,
+    bodyHtml: input.bodyHtml,
+    ctaLabel: "Browse classes",
+    ctaUrl: input.ctaUrl,
   });
 }

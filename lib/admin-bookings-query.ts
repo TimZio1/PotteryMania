@@ -105,11 +105,53 @@ export async function findAdminBookingsForList(opts: {
   });
 }
 
-const detailInclude = {
+const detailSelect = {
+  id: true,
+  studioId: true,
+  experienceId: true,
+  slotId: true,
+  customerUserId: true,
+  customerName: true,
+  customerEmail: true,
+  customerPhone: true,
+  participantCount: true,
+  seatType: true,
+  ticketRef: true,
+  bookingStatus: true,
+  paymentStatus: true,
+  totalAmountCents: true,
+  depositAmountCents: true,
+  remainingBalanceCents: true,
+  depositPaidAt: true,
+  remainderPaidAt: true,
+  remainderPaymentLink: true,
+  commissionAmountCents: true,
+  vendorAmountCents: true,
+  cancellationPolicySnapshot: true,
+  notes: true,
+  reminderScheduledAt: true,
+  reminderSentAt: true,
+  createdAt: true,
   studio: { select: { id: true, displayName: true } },
   experience: { select: { id: true, title: true } },
   slot: true,
   customerUser: { select: { id: true, email: true } },
+  bookingAddOns: {
+    select: {
+      addOnName: true,
+      quantity: true,
+      unitPriceCents: true,
+      durationMinutesExtra: true,
+    },
+  },
+  intakeResponses: {
+    select: {
+      labelSnapshot: true,
+      value: true,
+      includeInInvoiceSnapshot: true,
+      fieldTypeSnapshot: true,
+    },
+  },
   orderItems: {
     include: {
       order: { select: { id: true, orderStatus: true, paymentStatus: true, createdAt: true } },
@@ -131,14 +173,14 @@ const detailInclude = {
       actorUser: { select: { id: true, email: true } },
     },
   },
-} satisfies Prisma.BookingInclude;
+} satisfies Prisma.BookingSelect;
 
-export type AdminBookingDetail = Prisma.BookingGetPayload<{ include: typeof detailInclude }>;
+export type AdminBookingDetail = Prisma.BookingGetPayload<{ select: typeof detailSelect }>;
 
 export async function findAdminBookingById(id: string): Promise<AdminBookingDetail | null> {
   if (!UUID_RE.test(id)) return null;
   return prisma.booking.findUnique({
     where: { id },
-    include: detailInclude,
+    select: detailSelect,
   });
 }

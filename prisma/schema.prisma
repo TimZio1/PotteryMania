@@ -52,6 +52,13 @@ model User {
   acquisitionAttributions AcquisitionAttribution[]
   featureUsageFacts    FeatureUsageFact[]
   discountRedemptions  DiscountRedemption[]
+  giftCardsPurchased   GiftCard[]            @relation("GiftCardPurchaser")
+  giftCardRedemptions  GiftCardRedemption[]  @relation("GiftCardRedeemer")
+  bookSoonSent         BookSoonSent[]
+  classPackagePurchases ClassPackagePurchase[]
+  loyaltyBalances      LoyaltyBalance[]
+  clientFieldResponses StudioClientFieldResponse[]
+  loyaltyAdjustments   LoyaltyTransaction[] @relation("LoyaltyAdminUser")
   priceChangeHistory   PriceChangeHistory[]
   adminAuditLogs       AdminAuditLog[]
   pricingScenarios     PricingScenario[]
@@ -240,6 +247,10 @@ model Studio {
   /// Vendor-selected growth / layout template (catalog slug). Drives dashboard emphasis and onboarding copy.
   businessTemplateSlug      String?   @map("business_template_slug")
   businessTemplateActivatedAt DateTime? @map("business_template_activated_at")
+  /// WhatsApp number for public contact button (E.164 format, e.g. +306940821618).
+  whatsappNumber        String?                @map("whatsapp_number")
+  /// JSON opening hours, e.g. [{"day":"Monday","from":"10:00","to":"21:00","closed":false}, …]
+  openingHours          Json?                  @map("opening_hours")
   /// IANA zone for class slot wall times (e.g. Europe/Paris). Drives Google Calendar + add-to-calendar links.
   ianaTimezone          String?                @map("iana_timezone")
   /// Curated public storefront theme (`/studios/:id` only). Validated in app; no raw hex / font uploads.
@@ -252,6 +263,15 @@ model Studio {
   owner                User                  @relation("StudioOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
   products             Product[]
   experiences          Experience[]
+  experienceAddOns     ExperienceAddOn[]
+  intakeForms          IntakeForm[]
+  giftCards            GiftCard[]
+  giftCardTemplates    GiftCardTemplate[]
+  classPackages        ClassPackage[]
+  bookSoonRules        BookSoonRule[]
+  loyaltyConfig        LoyaltyConfig?
+  loyaltyBalances      LoyaltyBalance[]
+  clientFields         StudioClientField[]
   cancellationPolicies CancellationPolicy[]
   bookings             Booking[]
   cartItems            CartItem[]
@@ -759,8 +779,17 @@ model Experience {
   bookingDepositBps    Int                  @default(0) @map("booking_deposit_bps")
   /// If true, payment succeeds but booking stays awaiting vendor approval until approved (slot is still reserved).
   bookingApprovalRequired Boolean           @default(false) @map("booking_approval_required")
+  /// Minimum hours before slot start that a customer can book (0 = no cutoff). SimplyBook uses 3h.
+  bookingCutoffHours   Int                  @default(0) @map("booking_cutoff_hours")
+  /// Minutes to keep free after each session for cleanup, reset, or prep.
+  bufferMinutesAfter   Int                  @default(0) @map("buffer_minutes_after")
+  /// If true, allow "pay at studio" instead of requiring Stripe checkout.
+  allowPayAtStudio     Boolean              @default(false) @map("allow_pay_at_studio")
+  /// If true, customers can choose to pay the full class price online instead of only the deposit.
+  allowFullPaymentOption Boolean            @default(false) @map("allow_full_payment_option")
   /// If true, customers can join a waitlist when the slot is full (no capacity held).
   waitlistEnabled      Boolean              @default(false) @map("waitlist_enabled")
+  loyaltyPointsEarned  Int                  @default(0) @map("loyalty_points_earned")
   status               ExperienceStatus
   visibility           ExperienceVisibility @default(public)
   createdAt            DateTime             @default(now()) @map("created_at")
@@ -772,6 +801,10 @@ model Experience {
   recurringRules       RecurringRule[]
   bookingSlots         BookingSlot[]
   bookings             Booking[]
+  addOnLinks           ExperienceAddOnLink[]
+  intakeFormLinks      IntakeFormExperienceLink[]
+  classPackageItems    ClassPackageItem[]
+  classPackageUsages   ClassPackageUsage[]
   cartItems            CartItem[]
   waitlistEntries      BookingWaitlistEntry[]
   reviews              Review[]
@@ -781,6 +814,177 @@ model Experience {
   @@index([studioId])
   @@index([status])
   @@map("experiences")
+}
+
+model ExperienceAddOn {
+  id                   String                @id @default(uuid()) @db.Uuid
+  studioId             String                @map("studio_id") @db.Uuid
+  name                 String
+  description          String?
+  imageUrl             String?               @map("image_url")
+  priceCents           Int                   @map("price_cents")
+  currency             String                @default("EUR")
+  durationMinutesExtra Int                   @default(0) @map("duration_minutes_extra")
+  isActive             Boolean               @default(true) @map("is_active")
+  isSelectedByDefault  Boolean               @default(false) @map("is_selected_by_default")
+  sortOrder            Int                   @default(0) @map("sort_order")
+  maxPerBooking        Int                   @default(1) @map("max_per_booking")
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
+
+  studio       Studio               @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  experiences  ExperienceAddOnLink[]
+  bookingAddOns BookingAddOn[]
+
+  @@index([studioId, isActive, sortOrder])
+  @@map("experience_add_ons")
+}
+
+model ExperienceAddOnLink {
+  id           String           @id @default(uuid()) @db.Uuid
+  addOnId      String           @map("add_on_id") @db.Uuid
+  experienceId String           @map("experience_id") @db.Uuid
+
+  addOn      ExperienceAddOn @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+  experience Experience      @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([addOnId, experienceId])
+  @@index([experienceId])
+  @@map("experience_add_on_links")
+}
+
+enum IntakeFieldType {
+  text_single
+  text_multi
+  number
+  checkbox
+  dropdown
+  date
+  file_upload
+}
+
+model IntakeForm {
+  id               String                     @id @default(uuid()) @db.Uuid
+  studioId         String                     @map("studio_id") @db.Uuid
+  title            String
+  fieldType        IntakeFieldType            @map("field_type")
+  isRequired       Boolean                    @default(false) @map("is_required")
+  includeInInvoice Boolean                    @default(false) @map("include_in_invoice")
+  sortOrder        Int                        @default(0) @map("sort_order")
+  options          Json?
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+
+  studio      Studio                      @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  experiences IntakeFormExperienceLink[]
+  responses   IntakeFormResponse[]
+
+  @@index([studioId, sortOrder])
+  @@map("intake_forms")
+}
+
+model IntakeFormExperienceLink {
+  id           String     @id @default(uuid()) @db.Uuid
+  formId       String     @map("form_id") @db.Uuid
+  experienceId String     @map("experience_id") @db.Uuid
+
+  form       IntakeForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  experience Experience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, experienceId])
+  @@index([experienceId])
+  @@map("intake_form_experience_links")
+}
+
+enum PackagePurchaseStatus {
+  active
+  expired
+  cancelled
+  fully_used
+}
+
+model ClassPackage {
+  id                 String   @id @default(uuid()) @db.Uuid
+  studioId           String   @map("studio_id") @db.Uuid
+  name               String
+  description        String?
+  imageUrl           String?  @map("image_url")
+  priceCents         Int      @map("price_cents")
+  currency           String   @default("EUR")
+  validityDays       Int      @map("validity_days")
+  generalItemLimit   Int?     @map("general_item_limit")
+  maxSetsForSale     Int?     @map("max_sets_for_sale")
+  soldCount          Int      @default(0) @map("sold_count")
+  isActive           Boolean  @default(true) @map("is_active")
+  isVisible          Boolean  @default(true) @map("is_visible")
+  autoRefundOnCancel Boolean  @default(false) @map("auto_refund_on_cancel")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  studio    Studio                 @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  items     ClassPackageItem[]
+  purchases ClassPackagePurchase[]
+
+  @@index([studioId, isVisible, isActive, createdAt])
+  @@map("class_packages")
+}
+
+model ClassPackageItem {
+  id           String @id @default(uuid()) @db.Uuid
+  packageId    String @map("package_id") @db.Uuid
+  experienceId String @map("experience_id") @db.Uuid
+  quantity     Int    @default(1)
+
+  package    ClassPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  experience Experience   @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, experienceId])
+  @@index([experienceId])
+  @@map("class_package_items")
+}
+
+model ClassPackagePurchase {
+  id                    String                @id @default(uuid()) @db.Uuid
+  packageId             String                @map("package_id") @db.Uuid
+  userId                String                @map("user_id") @db.Uuid
+  startsAt              DateTime              @map("starts_at")
+  expiresAt             DateTime              @map("expires_at")
+  creditsTotal          Int                   @map("credits_total")
+  creditsUsed           Int                   @default(0) @map("credits_used")
+  paidCents             Int                   @map("paid_cents")
+  stripePaymentIntentId String?               @map("stripe_payment_intent_id")
+  status                PackagePurchaseStatus @default(active)
+  cancelledAt           DateTime?             @map("cancelled_at")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  package  ClassPackage       @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usages   ClassPackageUsage[]
+  bookings Booking[]
+  cartItems CartItem[]
+
+  @@index([userId, status, expiresAt])
+  @@map("class_package_purchases")
+}
+
+model ClassPackageUsage {
+  id           String   @id @default(uuid()) @db.Uuid
+  purchaseId   String   @map("purchase_id") @db.Uuid
+  bookingId    String   @map("booking_id") @db.Uuid
+  experienceId String   @map("experience_id") @db.Uuid
+  creditsUsed  Int      @default(1) @map("credits_used")
+  refunded     Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  purchase   ClassPackagePurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  booking    Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  experience Experience           @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([purchaseId, bookingId])
+  @@index([bookingId])
+  @@index([experienceId])
+  @@map("class_package_usages")
 }
 
 model ExperienceImage {
@@ -933,6 +1137,7 @@ enum BookingPaymentStatus {
   pending
   partial
   paid
+  pay_at_studio
   failed
   refunded
   partially_refunded
@@ -959,12 +1164,17 @@ model Booking {
   depositAmountCents         Int                  @default(0) @map("deposit_amount_cents")
   /// totalAmountCents − depositAmountCents (balance still due in person / future flow).
   remainingBalanceCents      Int                  @default(0) @map("remaining_balance_cents")
+  classPackagePurchaseId     String?              @map("class_package_purchase_id") @db.Uuid
+  depositPaidAt              DateTime?            @map("deposit_paid_at")
+  remainderPaidAt            DateTime?            @map("remainder_paid_at")
+  remainderPaymentLink       String?              @map("remainder_payment_link")
   commissionAmountCents      Int                  @default(0) @map("commission_amount_cents")
   vendorAmountCents          Int                  @default(0) @map("vendor_amount_cents")
   cancellationPolicySnapshot Json?                @map("cancellation_policy_snapshot")
   notes                      String?
   reminderScheduledAt        DateTime?             @map("reminder_scheduled_at")
   reminderSentAt             DateTime?             @map("reminder_sent_at")
+  reviewRequestSentAt        DateTime?             @map("review_request_sent_at")
   /// Google Calendar event id when synced via studio CalendarConnection (Tier 3A).
   googleCalendarEventId      String?              @map("google_calendar_event_id")
   googleCalendarSyncedAt     DateTime?            @map("google_calendar_synced_at")
@@ -976,16 +1186,188 @@ model Booking {
   experience       Experience             @relation(fields: [experienceId], references: [id], onDelete: Restrict)
   slot             BookingSlot            @relation(fields: [slotId], references: [id], onDelete: Restrict)
   customerUser     User?                  @relation("BookingCustomer", fields: [customerUserId], references: [id], onDelete: SetNull)
+  classPackagePurchase ClassPackagePurchase? @relation(fields: [classPackagePurchaseId], references: [id], onDelete: SetNull)
   cancellations    BookingCancellation[]
   reschedules      BookingReschedule[]
+  bookingAddOns    BookingAddOn[]
+  intakeResponses  IntakeFormResponse[]
+  giftCardRedemptions GiftCardRedemption[]
   orderItems       OrderItem[]
   calendarSyncLogs CalendarSyncLog[]
   auditLogs        BookingAuditLog[]
   reviews          Review[]
   financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerBooking")
+  classPackageUsages ClassPackageUsage[]
+  bookSoonSent      BookSoonSent[]
+  loyaltyTransactions LoyaltyTransaction[]
 
   @@index([studioId])
   @@map("bookings")
+}
+
+model BookingAddOn {
+  id                   String           @id @default(uuid()) @db.Uuid
+  bookingId            String           @map("booking_id") @db.Uuid
+  addOnId              String?          @map("add_on_id") @db.Uuid
+  addOnName            String           @map("add_on_name")
+  quantity             Int              @default(1)
+  unitPriceCents       Int              @map("unit_price_cents")
+  durationMinutesExtra Int              @default(0) @map("duration_minutes_extra")
+  createdAt            DateTime         @default(now()) @map("created_at")
+
+  booking Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  addOn   ExperienceAddOn?  @relation(fields: [addOnId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId])
+  @@map("booking_add_ons")
+}
+
+model IntakeFormResponse {
+  id                       String           @id @default(uuid()) @db.Uuid
+  formId                   String?          @map("form_id") @db.Uuid
+  bookingId                String           @map("booking_id") @db.Uuid
+  labelSnapshot            String           @map("label_snapshot")
+  fieldTypeSnapshot        IntakeFieldType  @map("field_type_snapshot")
+  includeInInvoiceSnapshot Boolean          @default(false) @map("include_in_invoice_snapshot")
+  value                    String
+  createdAt                DateTime         @default(now()) @map("created_at")
+
+  form    IntakeForm?  @relation(fields: [formId], references: [id], onDelete: SetNull)
+  booking Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([formId])
+  @@map("intake_form_responses")
+}
+
+model BookSoonRule {
+  id             String   @id @default(uuid()) @db.Uuid
+  studioId       String   @map("studio_id") @db.Uuid
+  name           String
+  daysAfterVisit Int      @map("days_after_visit")
+  emailSubject   String   @map("email_subject")
+  emailBody      String   @map("email_body")
+  experienceIds  String[] @default([]) @map("experience_ids")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  sent   BookSoonSent[]
+
+  @@index([studioId, isActive])
+  @@map("book_soon_rules")
+}
+
+model BookSoonSent {
+  id        String   @id @default(uuid()) @db.Uuid
+  ruleId    String   @map("rule_id") @db.Uuid
+  bookingId String   @map("booking_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  sentAt    DateTime @map("sent_at")
+
+  rule    BookSoonRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  booking Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, bookingId])
+  @@index([userId, sentAt])
+  @@map("book_soon_sent")
+}
+
+model LoyaltyConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  studioId  String   @unique @map("studio_id") @db.Uuid
+  isEnabled Boolean  @default(true) @map("is_enabled")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_configs")
+}
+
+model LoyaltyBalance {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  studioId      String   @map("studio_id") @db.Uuid
+  pointsBalance Int      @default(0) @map("points_balance")
+  totalEarned   Int      @default(0) @map("total_earned")
+  totalSpent    Int      @default(0) @map("total_spent")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studio       Studio               @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  transactions LoyaltyTransaction[]
+
+  @@unique([userId, studioId])
+  @@index([studioId])
+  @@map("loyalty_balances")
+}
+
+enum LoyaltyTransactionType {
+  earned_from_booking
+  redeemed_for_gift_card
+  admin_adjustment
+  expired
+}
+
+model LoyaltyTransaction {
+  id          String                 @id @default(uuid()) @db.Uuid
+  balanceId   String                 @map("balance_id") @db.Uuid
+  type        LoyaltyTransactionType
+  points      Int
+  description String?
+  bookingId   String?                @map("booking_id") @db.Uuid
+  giftCardId  String?                @map("gift_card_id") @db.Uuid
+  adminUserId String?                @map("admin_user_id") @db.Uuid
+  createdAt   DateTime               @default(now()) @map("created_at")
+
+  balance   LoyaltyBalance @relation(fields: [balanceId], references: [id], onDelete: Cascade)
+  booking   Booking?       @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  giftCard  GiftCard?      @relation(fields: [giftCardId], references: [id], onDelete: SetNull)
+  adminUser User?          @relation("LoyaltyAdminUser", fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId])
+  @@index([giftCardId])
+  @@index([adminUserId])
+  @@index([type, createdAt])
+  @@map("loyalty_transactions")
+}
+
+model StudioClientField {
+  id         String          @id @default(uuid()) @db.Uuid
+  studioId   String          @map("studio_id") @db.Uuid
+  title      String
+  fieldType  IntakeFieldType @map("field_type")
+  isRequired Boolean         @default(false) @map("is_required")
+  options    Json?
+  sortOrder  Int             @default(0) @map("sort_order")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+
+  studio    Studio                     @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  responses StudioClientFieldResponse[]
+
+  @@index([studioId, sortOrder])
+  @@map("studio_client_fields")
+}
+
+model StudioClientFieldResponse {
+  id        String   @id @default(uuid()) @db.Uuid
+  fieldId   String   @map("field_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  field StudioClientField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldId, userId])
+  @@index([userId])
+  @@map("studio_client_field_responses")
 }
 
 model BookingCancellation {
@@ -1043,6 +1425,11 @@ enum CartItemType {
   booking
 }
 
+enum BookingPaymentPreference {
+  deposit
+  full
+}
+
 model CartItem {
   id                 String       @id @default(uuid()) @db.Uuid
   cartId             String       @map("cart_id") @db.Uuid
@@ -1053,7 +1440,15 @@ model CartItem {
   vendorId           String       @map("vendor_id") @db.Uuid
   quantity           Int          @default(1)
   participantCount   Int?         @map("participant_count")
+  bookingPaymentPreference BookingPaymentPreference? @map("booking_payment_preference")
+  classPackagePurchaseId String?  @map("class_package_purchase_id") @db.Uuid
   seatType           String?      @map("seat_type")
+  /// Optional message from the customer for this specific booking line before checkout.
+  notes              String?
+  /// Snapshot of selected add-ons for this cart booking line.
+  addOnSelections    Json?        @map("add_on_selections")
+  /// Snapshot of intake-form responses collected before checkout.
+  intakeResponsePayload Json?     @map("intake_response_payload")
   priceSnapshotCents Int          @map("price_snapshot_cents")
   policySnapshot     Json?        @map("policy_snapshot")
   createdAt          DateTime     @default(now()) @map("created_at")
@@ -1062,6 +1457,7 @@ model CartItem {
   product    Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
   experience Experience?  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
   slot       BookingSlot? @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  classPackagePurchase ClassPackagePurchase? @relation(fields: [classPackagePurchaseId], references: [id], onDelete: SetNull)
   vendor     Studio       @relation(fields: [vendorId], references: [id], onDelete: Restrict)
 
   @@map("cart_items")
@@ -1127,6 +1523,7 @@ model Order {
   shippingRateQuotes ShippingRateQuote[]
   financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerOrder")
   discountRedemptions  DiscountRedemption[]
+  giftCardRedemptions  GiftCardRedemption[]
 
   @@index([customerUserId])
   @@map("orders")
@@ -1931,6 +2328,99 @@ model DiscountRedemption {
 
   @@index([couponId])
   @@map("discount_redemptions")
+}
+
+model GiftCard {
+  id                     String            @id @default(uuid()) @db.Uuid
+  studioId               String            @map("studio_id") @db.Uuid
+  code                   String            @unique
+  name                   String
+  description            String?
+  templateId             String?           @map("template_id") @db.Uuid
+  originalValueCents     Int               @map("original_value_cents")
+  remainingValueCents    Int               @map("remaining_value_cents")
+  currency               String            @default("EUR")
+  validFrom              DateTime          @map("valid_from")
+  validUntil             DateTime?         @map("valid_until")
+  activatedAt            DateTime?         @map("activated_at")
+  sentAt                 DateTime?         @map("sent_at")
+  isActive               Boolean           @default(true) @map("is_active")
+  purchaserUserId        String?           @map("purchaser_user_id") @db.Uuid
+  purchaserName          String?           @map("purchaser_name")
+  purchaserEmail         String?           @map("purchaser_email")
+  recipientName          String?           @map("recipient_name")
+  recipientEmail         String?           @map("recipient_email")
+  personalMessage        String?           @map("personal_message")
+  stripePaymentIntentId  String?           @map("stripe_payment_intent_id")
+  stripeCheckoutSessionId String?          @unique @map("stripe_checkout_session_id")
+  issuedByAdmin          Boolean           @default(false) @map("issued_by_admin")
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+
+  studio              Studio                @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  template            GiftCardTemplate?     @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  purchaserUser       User?                 @relation("GiftCardPurchaser", fields: [purchaserUserId], references: [id], onDelete: SetNull)
+  redemptions         GiftCardRedemption[]
+  loyaltyTransactions LoyaltyTransaction[]
+
+  @@index([studioId, isActive])
+  @@index([templateId])
+  @@index([purchaserUserId])
+  @@index([recipientEmail])
+  @@map("gift_cards")
+}
+
+model GiftCardRedemption {
+  id               String    @id @default(uuid()) @db.Uuid
+  giftCardId       String    @map("gift_card_id") @db.Uuid
+  orderId          String?   @map("order_id") @db.Uuid
+  bookingId        String?   @map("booking_id") @db.Uuid
+  amountCents      Int       @map("amount_cents")
+  redeemedByUserId String?   @map("redeemed_by_user_id") @db.Uuid
+  redemptionState  GiftCardRedemptionState @default(reserved) @map("redemption_state")
+  stripeCheckoutSessionId String? @map("stripe_checkout_session_id")
+  reservedUntil    DateTime? @map("reserved_until")
+  finalizedAt      DateTime? @map("finalized_at")
+  releasedAt       DateTime? @map("released_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  giftCard       GiftCard  @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
+  order          Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  booking        Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  redeemedByUser User?     @relation("GiftCardRedeemer", fields: [redeemedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([giftCardId])
+  @@index([orderId])
+  @@index([bookingId])
+  @@index([redeemedByUserId])
+  @@index([stripeCheckoutSessionId])
+  @@index([redemptionState, reservedUntil])
+  @@map("gift_card_redemptions")
+}
+
+enum GiftCardRedemptionState {
+  reserved
+  finalized
+  released
+}
+
+model GiftCardTemplate {
+  id          String     @id @default(uuid()) @db.Uuid
+  studioId    String     @map("studio_id") @db.Uuid
+  name        String
+  imageUrl    String?    @map("image_url")
+  bgColor     String?    @map("bg_color")
+  textColor   String?    @map("text_color")
+  isDefault   Boolean    @default(false) @map("is_default")
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  studio     Studio      @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  giftCards  GiftCard[]
+
+  @@index([studioId, isActive])
+  @@map("gift_card_templates")
 }
 
 enum PriceChangeEntityType {

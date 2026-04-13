@@ -44,6 +44,7 @@ export default async function StudioPaymentsPage({ params }: Props) {
     }),
     prisma.payment.findMany({
       where: {
+        provider: "stripe",
         order: { items: { some: { vendorId: studioId } } },
       },
       orderBy: { createdAt: "desc" },
@@ -64,7 +65,7 @@ export default async function StudioPaymentsPage({ params }: Props) {
     }),
   ]);
 
-  const bookingPaid = bookings.reduce((s, b) => s + b.depositAmountCents, 0);
+  const bookingPaid = bookings.reduce((s, b) => s + (b.totalAmountCents - b.remainingBalanceCents), 0);
   const orderVendor = orders.reduce(
     (s, o) => s + o.items.reduce((t, i) => t + i.vendorAmountSnapshotCents * i.quantity, 0),
     0,
@@ -85,8 +86,9 @@ export default async function StudioPaymentsPage({ params }: Props) {
         <p className={ui.overline}>Money in</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Payments &amp; payouts</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Tracking only — payouts use Stripe Connect. Product totals are your share from direct sales; class totals are deposits
-          on reservations. Stripe rows are gross payment charges, not your final net share.
+          Tracking only — payouts use Stripe Connect. Product totals are your share from direct sales; class totals are
+          cash collected so far on reservations, including later balance payments. Stripe rows are gross payment charges,
+          not your final net share.
         </p>
       </div>
 
@@ -96,7 +98,7 @@ export default async function StudioPaymentsPage({ params }: Props) {
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{(orderVendor / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Experiences (deposits)</p>
+          <p className="text-sm text-stone-500">Experiences (collected)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">€{(bookingPaid / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
@@ -207,7 +209,7 @@ export default async function StudioPaymentsPage({ params }: Props) {
                   <td className="px-3 py-2 text-stone-600">{b.createdAt.toISOString().slice(0, 10)}</td>
                   <td className="px-3 py-2">{b.experience.title}</td>
                   <td className="px-3 py-2">{b.customerEmail}</td>
-                  <td className="px-3 py-2">€{(b.depositAmountCents / 100).toFixed(2)}</td>
+                  <td className="px-3 py-2">€{((b.totalAmountCents - b.remainingBalanceCents) / 100).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>

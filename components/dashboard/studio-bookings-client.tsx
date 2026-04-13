@@ -7,6 +7,12 @@ import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
 import type { StudioBookingListRow } from "@/lib/studio-bookings-list-types";
 import VendorBookingActions from "@/components/dashboard/vendor-booking-actions";
+import {
+  bookingStatusBadgeClass,
+  formatBookingStatusLabel,
+  formatPaymentStatusLabel,
+  paymentStatusBadgeClass,
+} from "@/lib/bookings/status";
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "All statuses" },
@@ -298,7 +304,26 @@ export default function StudioBookingsClient({
                         <br />
                         <span className="text-xs">{booking.customerEmail}</span>
                       </td>
-                      <td className="px-4 py-3 text-stone-600">{booking.bookingStatus.replace(/_/g, " ").replace("vendor", "studio")}</td>
+                      <td className="px-4 py-3 text-stone-600">
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={cn(
+                              "inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                              bookingStatusBadgeClass(booking.bookingStatus),
+                            )}
+                          >
+                            {formatBookingStatusLabel(booking.bookingStatus)}
+                          </span>
+                          <span
+                            className={cn(
+                              "inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                              paymentStatusBadgeClass(booking.paymentStatus),
+                            )}
+                          >
+                            {formatPaymentStatusLabel(booking.paymentStatus)} payment
+                          </span>
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-stone-600">€{(booking.totalAmountCents / 100).toFixed(2)}</td>
                     </tr>
                   );
@@ -365,18 +390,91 @@ export default function StudioBookingsClient({
             ) : null}
             <div>
               <dt className={ui.label}>Status</dt>
-              <dd>
-                {selected.bookingStatus.replace(/_/g, " ").replace("vendor", "studio")} / {selected.paymentStatus.replace(/_/g, " ")}
+              <dd className="flex flex-wrap gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
+                    bookingStatusBadgeClass(selected.bookingStatus),
+                  )}
+                >
+                  {formatBookingStatusLabel(selected.bookingStatus)}
+                </span>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
+                    paymentStatusBadgeClass(selected.paymentStatus),
+                  )}
+                >
+                  {formatPaymentStatusLabel(selected.paymentStatus)} payment
+                </span>
               </dd>
             </div>
             <div>
               <dt className={ui.label}>Amount</dt>
               <dd>€{(selected.totalAmountCents / 100).toFixed(2)}</dd>
             </div>
+            {selected.notes ? (
+              <div>
+                <dt className={ui.label}>Participant notes</dt>
+                <dd className="whitespace-pre-wrap">{selected.notes}</dd>
+              </div>
+            ) : null}
+            {selected.addOns.length > 0 ? (
+              <div>
+                <dt className={ui.label}>Add-ons</dt>
+                <dd>
+                  <ul className="space-y-1">
+                    {selected.addOns.map((entry, index) => (
+                      <li key={`${selected.id}-addon-${index}`}>
+                        {entry.name}
+                        {entry.quantity > 1 ? ` x${entry.quantity}` : ""} · +€
+                        {((entry.unitPriceCents * entry.quantity) / 100).toFixed(2)}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            ) : null}
+            {selected.intakeResponses.length > 0 ? (
+              <div>
+                <dt className={ui.label}>Booking answers</dt>
+                <dd>
+                  <dl className="space-y-2">
+                    {selected.intakeResponses.map((entry, index) => (
+                      <div key={`${selected.id}-intake-${index}`}>
+                        <dt className="font-medium text-stone-700">{entry.label}</dt>
+                        <dd className="whitespace-pre-wrap">{entry.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </dd>
+              </div>
+            ) : null}
+            {selected.cancellationPolicySummary ? (
+              <div>
+                <dt className={ui.label}>Cancellation policy</dt>
+                <dd>{selected.cancellationPolicySummary}</dd>
+              </div>
+            ) : null}
             {selected.remainingBalanceCents > 0 ? (
               <div className="text-xs">
                 Paid €{(selected.depositAmountCents / 100).toFixed(2)} · Due €
                 {(selected.remainingBalanceCents / 100).toFixed(2)}
+              </div>
+            ) : null}
+            {selected.depositPaidAt ? (
+              <div className="text-xs text-stone-500">
+                Deposit paid {new Date(selected.depositPaidAt).toLocaleDateString()}
+              </div>
+            ) : null}
+            {selected.remainderPaidAt ? (
+              <div className="text-xs text-emerald-700">
+                Remaining balance paid {new Date(selected.remainderPaidAt).toLocaleDateString()}
+              </div>
+            ) : null}
+            {selected.remainderPaymentLink ? (
+              <div className="text-xs text-sky-700">
+                Remaining-balance link ready
               </div>
             ) : null}
             {selected.lastCancellation ? (
@@ -392,6 +490,8 @@ export default function StudioBookingsClient({
               studioId={studioId}
               bookingId={selected.id}
               bookingStatus={selected.bookingStatus}
+              paymentStatus={selected.paymentStatus}
+              remainingBalanceCents={selected.remainingBalanceCents}
               participantCount={selected.participantCount}
               seatType={selected.seatType}
               calendarSync={calendarSyncByBooking[selected.id] ?? null}

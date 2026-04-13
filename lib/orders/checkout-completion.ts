@@ -1,0 +1,479 @@
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
+import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
+import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
+import {
+  bookingConfirmationCopy,
+  bookingPendingStudioConfirmationCopy,
+  sendBookingEmails,
+} from "@/lib/email/booking-notify";
+import { orderConfirmationCopy, sendOrderEmails } from "@/lib/email/order-notify";
+import { finalizeGiftCardRedemptionsForOrder } from "@/lib/gift-cards/checkout";
+import { logApiError } from "@/lib/monitoring";
+import { enrichCustomerEmailWithCalendar } from "@/lib/calendar/booking-email-calendar";
+import { removeGoogleCalendarEventForBooking, syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
+import { consumePackageCreditForBooking } from "@/lib/packages/credits";
+
+export type SettledCheckoutOrder = {
+  skip: boolean;
+  confirmedBookingIds: string[];
+  pendingApprovalIds: string[];
+  autoCancelledIds: string[];
+};
+
+type SideEffectRunner = (concern: string, fn: () => Promise<void>) => Promise<void>;
+
+async function defaultSideEffectRunner(concern: string, fn: () => Promise<void>) {
+  try {
+    await fn();
+  } catch (error) {
+    logApiError("checkout_completion_side_effect", error, { concern });
+  }
+}
+
+export async function settleCheckoutOrderPayment(
+  tx: Prisma.TransactionClient,
+  input: {
+    orderId: string;
+    currency: string;
+    stripeAmountCents?: number;
+    stripePaymentId?: string | null;
+    giftCardAmountCents?: number;
+    stripeCheckoutSessionId?: string | null;
+    couponRedemption?: { couponId: string; amountCents: number } | null;
+    cartId?: string | null;
+    checkoutCartItemIds?: string[] | null;
+  },
+): Promise<SettledCheckoutOrder> {
+  const rows = await tx.$queryRawUnsafe<
+    { id: string; order_status: string; payment_status: string; customer_user_id: string | null }[]
+  >(
+    `SELECT id, order_status::text, payment_status::text, customer_user_id
+     FROM orders
+     WHERE id = $1::uuid
+     FOR UPDATE`,
+    input.orderId,
+  );
+  if (
+    !rows.length ||
+    rows[0].order_status !== "pending" ||
+    rows[0].payment_status !== "pending"
+  ) {
+    return { skip: true, confirmedBookingIds: [], pendingApprovalIds: [], autoCancelledIds: [] };
+  }
+
+  await tx.order.update({
+    where: { id: input.orderId },
+    data: {
+      orderStatus: "paid",
+      paymentStatus: "paid",
+      ...(input.stripeCheckoutSessionId ? { stripeCheckoutSessionId: input.stripeCheckoutSessionId } : {}),
+    },
+  });
+
+  if ((input.stripeAmountCents ?? 0) > 0) {
+    const existingStripePay = await tx.payment.findFirst({
+      where: {
+        orderId: input.orderId,
+        provider: "stripe",
+        ...(input.stripePaymentId ? { providerPaymentId: input.stripePaymentId } : {}),
+      },
+    });
+    if (!existingStripePay) {
+      await tx.payment.create({
+        data: {
+          orderId: input.orderId,
+          provider: "stripe",
+          providerPaymentId: input.stripePaymentId ?? null,
+          paymentStatus: "succeeded",
+          amountCents: input.stripeAmountCents!,
+          currency: input.currency,
+        },
+      });
+    }
+  }
+
+  if ((input.giftCardAmountCents ?? 0) > 0) {
+    const existingGiftPay = await tx.payment.findFirst({
+      where: {
+        orderId: input.orderId,
+        provider: "gift_card",
+      },
+    });
+    if (!existingGiftPay) {
+      await tx.payment.create({
+        data: {
+          orderId: input.orderId,
+          provider: "gift_card",
+          paymentStatus: "succeeded",
+          amountCents: input.giftCardAmountCents!,
+          currency: input.currency,
+        },
+      });
+    }
+  }
+
+  if ((input.stripeAmountCents ?? 0) <= 0 && (input.giftCardAmountCents ?? 0) <= 0) {
+    await tx.payment.create({
+      data: {
+        orderId: input.orderId,
+        provider: "manual",
+        paymentStatus: "succeeded",
+        amountCents: 0,
+        currency: input.currency,
+      },
+    });
+  }
+
+  if (input.couponRedemption && input.couponRedemption.amountCents > 0) {
+    const dup = await tx.discountRedemption.findFirst({ where: { orderId: input.orderId } });
+    if (!dup) {
+      await lockCouponRow(tx, input.couponRedemption.couponId);
+      const cap = await couponHasRedemptionCapacity(tx, input.couponRedemption.couponId);
+      if (cap) {
+        await tx.discountRedemption.create({
+          data: {
+            couponId: input.couponRedemption.couponId,
+            orderId: input.orderId,
+            userId: rows[0].customer_user_id,
+            amountCents: input.couponRedemption.amountCents,
+          },
+        });
+        await tx.coupon.update({
+          where: { id: input.couponRedemption.couponId },
+          data: { redeemedCount: { increment: 1 } },
+        });
+      }
+    }
+  }
+
+  await finalizeGiftCardRedemptionsForOrder(tx, {
+    orderId: input.orderId,
+    stripeCheckoutSessionId: input.stripeCheckoutSessionId ?? null,
+  });
+
+  const items = await tx.orderItem.findMany({ where: { orderId: input.orderId } });
+  const confirmedBookingIds: string[] = [];
+  const pendingApprovalIds: string[] = [];
+  const autoCancelledIds: string[] = [];
+  const paidAt = new Date();
+
+  for (const it of items) {
+    if (it.itemType === "product" && it.productId) {
+      await tx.product.update({
+        where: { id: it.productId },
+        data: { stockQuantity: { decrement: it.quantity } },
+      });
+    }
+    if (it.itemType === "booking" && it.bookingId) {
+      const b = await tx.booking.findUnique({
+        where: { id: it.bookingId },
+        include: { experience: true },
+      });
+      if (!b || b.paymentStatus !== "pending") continue;
+
+      let ticketRef = b.ticketRef;
+      if (!ticketRef) {
+        ticketRef = await allocateTicketRef(tx);
+      }
+
+      try {
+        await safeReserveCapacity(tx, b.slotId, b.participantCount, b.seatType);
+        if (b.classPackagePurchaseId) {
+          if (!b.customerUserId) {
+            throw new Error("Package credit requires authenticated customer");
+          }
+          const consumed = await consumePackageCreditForBooking(tx, {
+            bookingId: b.id,
+            purchaseId: b.classPackagePurchaseId,
+            userId: b.customerUserId,
+            studioId: b.studioId,
+            experienceId: b.experienceId,
+          });
+          if (!consumed.ok) {
+            throw new Error(consumed.error);
+          }
+        }
+
+        const hasBalance = b.remainingBalanceCents > 0;
+        const paymentStatus = hasBalance ? "partial" : "paid";
+        const needsApproval = b.experience.bookingApprovalRequired;
+        const nextStatus = needsApproval ? "awaiting_vendor_approval" : "confirmed";
+
+        await tx.booking.update({
+          where: { id: b.id },
+          data: {
+            ticketRef,
+            bookingStatus: nextStatus,
+            paymentStatus,
+            depositPaidAt: b.depositPaidAt ?? paidAt,
+          },
+        });
+
+        await tx.bookingAuditLog.create({
+          data: {
+            bookingId: b.id,
+            actionType: needsApproval ? "payment_captured_pending_approval" : "confirmed",
+            actorRole: "system",
+            payload: {
+              trigger: input.stripeCheckoutSessionId ? "stripe_webhook" : "checkout_completion",
+              paymentStatus,
+              needsApproval,
+              provider: input.stripeAmountCents ? "stripe" : input.giftCardAmountCents ? "gift_card" : "manual",
+              stripeCheckoutSessionId: input.stripeCheckoutSessionId ?? null,
+            } as Prisma.InputJsonValue,
+          },
+        });
+
+        if (needsApproval) pendingApprovalIds.push(b.id);
+        else confirmedBookingIds.push(b.id);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "Capacity exceeded at confirmation time";
+        const paidNow = b.remainingBalanceCents > 0 ? "partial" : "paid";
+        await tx.booking.update({
+          where: { id: b.id },
+          data: {
+            ticketRef,
+            bookingStatus: "cancelled_by_admin",
+            paymentStatus: paidNow,
+            notes: [b.notes, `AUTO-CANCELLED AFTER PAYMENT: ${reason}`].filter(Boolean).join("\n"),
+          },
+        });
+        await tx.bookingCancellation.create({
+          data: {
+            bookingId: b.id,
+            cancelledByRole: "admin",
+            cancellationReason: "capacity_exceeded_after_payment",
+            refundOutcome: "manual_refund_review_required",
+            refundAmountCents: b.depositAmountCents || b.totalAmountCents,
+          },
+        });
+        await tx.bookingAuditLog.create({
+          data: {
+            bookingId: b.id,
+            actionType: "confirmation_failed",
+            actorRole: "system",
+            payload: {
+              trigger: input.stripeCheckoutSessionId ? "stripe_webhook" : "checkout_completion",
+              reason,
+              provider: input.stripeAmountCents ? "stripe" : input.giftCardAmountCents ? "gift_card" : "manual",
+              stripeCheckoutSessionId: input.stripeCheckoutSessionId ?? null,
+            } as Prisma.InputJsonValue,
+          },
+        });
+        autoCancelledIds.push(b.id);
+      }
+    }
+  }
+
+  if (input.cartId) {
+    if (input.checkoutCartItemIds?.length) {
+      await tx.cartItem.deleteMany({
+        where: { cartId: input.cartId, id: { in: input.checkoutCartItemIds } },
+      });
+    } else {
+      await tx.cartItem.deleteMany({ where: { cartId: input.cartId } });
+    }
+  }
+
+  return { skip: false, confirmedBookingIds, pendingApprovalIds, autoCancelledIds };
+}
+
+export async function runCheckoutCompletionSideEffects(input: {
+  orderId: string;
+  confirmedBookingIds: string[];
+  pendingApprovalIds: string[];
+  autoCancelledIds: string[];
+  runSideEffect?: SideEffectRunner;
+}) {
+  const runSideEffect = input.runSideEffect ?? defaultSideEffectRunner;
+
+  const loadBookingEmailContext = async (bookingIds: string[]) => {
+    if (!bookingIds.length) return [];
+    return prisma.orderItem.findMany({
+      where: {
+        orderId: input.orderId,
+        itemType: "booking",
+        bookingId: { in: bookingIds },
+      },
+      include: {
+        booking: {
+          include: {
+            experience: true,
+            slot: true,
+            bookingAddOns: true,
+            intakeResponses: true,
+          },
+        },
+        vendor: true,
+      },
+    });
+  };
+
+  const confirmedRows = await loadBookingEmailContext(input.confirmedBookingIds);
+  const pendingRows = await loadBookingEmailContext(input.pendingApprovalIds);
+
+  const emailBlock = (b: (typeof confirmedRows)[0]["booking"]) => {
+    if (!b) return null;
+    const slotDate = b.slot.slotDate.toISOString().slice(0, 10);
+    return {
+      experienceTitle: b.experience.title,
+      studioName: "",
+      slotDate,
+      startTime: b.slot.startTime,
+      participants: b.participantCount,
+      totalEur: (b.totalAmountCents / 100).toFixed(2),
+      ticketRef: b.ticketRef ?? "",
+      paidEur: (b.depositAmountCents / 100).toFixed(2),
+      balanceEur: (b.remainingBalanceCents / 100).toFixed(2),
+      seatType: b.seatType,
+      addOnLines: b.bookingAddOns.map((entry) =>
+        entry.quantity > 1
+          ? `${entry.addOnName} x${entry.quantity} (+€${((entry.unitPriceCents * entry.quantity) / 100).toFixed(2)})`
+          : `${entry.addOnName} (+€${(entry.unitPriceCents / 100).toFixed(2)})`,
+      ),
+      intakeLines: b.intakeResponses.map((entry) => ({
+        label: entry.labelSnapshot,
+        value: entry.value,
+      })),
+    };
+  };
+
+  for (const it of confirmedRows) {
+    const b = it.booking;
+    if (!b || !it.vendor.email) continue;
+    const base = emailBlock(b);
+    if (!base) continue;
+    base.studioName = it.vendor.displayName;
+    const { customer, studio } = bookingConfirmationCopy(base);
+    await runSideEffect(`booking_email_confirmed:${b.id}`, async () => {
+      const enriched = await enrichCustomerEmailWithCalendar(b.id, customer);
+      await sendBookingEmails({
+        customerEmail: b.customerEmail,
+        studioEmail: it.vendor.email,
+        subject: `Booking confirmed: ${b.experience.title}`,
+        customerHtml: enriched.customerHtmlWithCalendar,
+        customerAttachments: enriched.customerAttachments,
+        studioHtml: studio,
+      });
+    });
+  }
+
+  for (const bid of input.confirmedBookingIds) {
+    await runSideEffect(`calendar_sync:${bid}`, async () => {
+      await syncBookingToGoogleCalendar(bid);
+    });
+  }
+
+  for (const it of pendingRows) {
+    const b = it.booking;
+    if (!b || !it.vendor.email) continue;
+    const base = emailBlock(b);
+    if (!base) continue;
+    base.studioName = it.vendor.displayName;
+    const { customer, studio } = bookingPendingStudioConfirmationCopy(base);
+    await runSideEffect(`booking_email_pending:${b.id}`, async () => {
+      await sendBookingEmails({
+        customerEmail: b.customerEmail,
+        studioEmail: it.vendor.email,
+        subject: `Booking received — approval pending: ${b.experience.title}`,
+        customerHtml: customer,
+        studioHtml: studio,
+      });
+    });
+  }
+
+  const cancelledRows = await loadBookingEmailContext(input.autoCancelledIds);
+  for (const it of cancelledRows) {
+    const b = it.booking;
+    if (!b) continue;
+    await runSideEffect(`booking_email_cancelled:${b.id}`, async () => {
+      await sendBookingEmails({
+        customerEmail: b.customerEmail,
+        studioEmail: it.vendor?.email ?? "",
+        subject: `Booking cancelled — ${b.experience.title}`,
+        customerHtml: `<p>Hi ${b.customerName},</p><p>Unfortunately your booking for <strong>${b.experience.title}</strong> was automatically cancelled because the session reached capacity before your payment could be confirmed.</p><p>A refund of €${((b.depositAmountCents || b.totalAmountCents) / 100).toFixed(2)} will be processed. If you have questions, contact the studio directly.</p>`,
+        studioHtml: `<p>Booking for <strong>${b.customerName}</strong> (${b.customerEmail}) was auto-cancelled for <strong>${b.experience.title}</strong> due to capacity. A refund review is required.</p>`,
+      });
+    });
+  }
+
+  for (const bid of input.autoCancelledIds) {
+    await runSideEffect(`calendar_remove_auto_cancel:${bid}`, async () => {
+      await removeGoogleCalendarEventForBooking(bid);
+    });
+  }
+
+  const productEmailItems = await prisma.orderItem.findMany({
+    where: { orderId: input.orderId, itemType: "product" },
+    include: {
+      product: { select: { title: true } },
+      vendor: { select: { id: true, displayName: true, email: true } },
+    },
+  });
+
+  if (productEmailItems.length > 0) {
+    const order = await prisma.order.findUnique({ where: { id: input.orderId } });
+    if (order && !order.orderConfirmationSentAt) {
+      const studioNames = [...new Set(productEmailItems.map((i) => i.vendor.displayName))];
+      const studioLabel = studioNames.length === 1 ? studioNames[0]! : `${studioNames.length} partner studios`;
+
+      const customerLines = productEmailItems.map(
+        (it) => `${it.vendor.displayName}: ${it.product?.title ?? "Product"} × ${it.quantity}`,
+      );
+      const totalEur = (order.totalCents / 100).toFixed(2);
+      const { customer } = orderConfirmationCopy({
+        customerName: order.customerName,
+        studioName: studioLabel,
+        items: customerLines,
+        totalEur,
+        shippingMethod: order.shippingMethod,
+        trackingNumber: null,
+      });
+
+      await runSideEffect(`order_email_customer:${input.orderId}`, async () => {
+        await sendOrderEmails({
+          customerEmail: order.customerEmail,
+          subject: `Order confirmed — PotteryMania`,
+          customerHtml: customer,
+        });
+      });
+
+      const byVendor = new Map<string, typeof productEmailItems>();
+      for (const it of productEmailItems) {
+        const list = byVendor.get(it.vendorId) ?? [];
+        list.push(it);
+        byVendor.set(it.vendorId, list);
+      }
+
+      for (const lines of byVendor.values()) {
+        const v = lines[0]!.vendor;
+        if (!v.email) continue;
+        const vendorLineItems = lines.map((it) => `${it.product?.title ?? "Product"} × ${it.quantity}`);
+        const vendorSubtotalCents = lines.reduce((sum, it) => sum + it.priceSnapshotCents * it.quantity, 0);
+        const vendorTotalEur = (vendorSubtotalCents / 100).toFixed(2);
+        const { vendor: vendorHtml } = orderConfirmationCopy({
+          customerName: order.customerName,
+          studioName: v.displayName,
+          items: vendorLineItems,
+          totalEur: vendorTotalEur,
+          shippingMethod: null,
+          trackingNumber: null,
+        });
+        await runSideEffect(`order_email_vendor:${v.id}:${input.orderId}`, async () => {
+          await sendOrderEmails({
+            vendorEmail: v.email,
+            subject: `New order — ${order.customerName}`,
+            vendorHtml,
+          });
+        });
+      }
+
+      await prisma.order.update({
+        where: { id: input.orderId },
+        data: { orderConfirmationSentAt: new Date(), vendorNotificationSentAt: new Date() },
+      });
+    }
+  }
+}

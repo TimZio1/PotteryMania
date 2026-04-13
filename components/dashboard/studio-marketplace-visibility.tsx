@@ -4,31 +4,46 @@ import { ui } from "@/lib/ui-styles";
 
 /** Studio-facing health hints based on profile completeness and studio activity. */
 export default async function StudioMarketplaceVisibility({ studioId }: { studioId: string }) {
-  const [studio, publicClassCount, activeProductCount] = await Promise.all([
-    prisma.studio.findUnique({
-      where: { id: studioId },
-      select: {
-        coverImageUrl: true,
-        logoUrl: true,
-        shortDescription: true,
-        latitude: true,
-        longitude: true,
-        rankingScore: {
-          select: {
-            percentileRank: true,
-            calculatedAt: true,
+  let studio: Awaited<ReturnType<typeof prisma.studio.findUnique>> & {
+    rankingScore?: { percentileRank: number | null; calculatedAt: Date | null } | null;
+    stripeAccount?: { chargesEnabled: boolean } | null;
+  } | null = null;
+  let publicClassCount = 0;
+  let activeProductCount = 0;
+
+  try {
+    [studio, publicClassCount, activeProductCount] = await Promise.all([
+      prisma.studio.findUnique({
+        where: { id: studioId },
+        select: {
+          coverImageUrl: true,
+          logoUrl: true,
+          shortDescription: true,
+          latitude: true,
+          longitude: true,
+          rankingScore: {
+            select: {
+              percentileRank: true,
+              calculatedAt: true,
+            },
           },
+          stripeAccount: { select: { chargesEnabled: true } },
         },
-        stripeAccount: { select: { chargesEnabled: true } },
-      },
-    }),
-    prisma.experience.count({
-      where: { studioId, status: "active", visibility: "public" },
-    }),
-    prisma.product.count({
-      where: { studioId, status: "active" },
-    }),
-  ]);
+      }) as Promise<typeof studio>,
+      prisma.experience.count({
+        where: { studioId, status: "active", visibility: "public" },
+      }),
+      prisma.product.count({
+        where: { studioId, status: "active" },
+      }),
+    ]);
+  } catch {
+    return (
+      <section className={cnCard()}>
+        <p className="text-sm text-stone-600">Studio health data is temporarily unavailable. Please try refreshing the page.</p>
+      </section>
+    );
+  }
 
   if (!studio) return null;
 
@@ -114,7 +129,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
           Studio settings
         </Link>
         <Link href={`/dashboard/${studioId}/classes`} className={ui.buttonGhost}>
-          Experiences
+          Classes
         </Link>
         <Link href={`/dashboard/${studioId}/shop`} className={ui.buttonGhost}>
           Catalog

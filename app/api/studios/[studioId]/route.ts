@@ -61,10 +61,19 @@ export async function PATCH(req: Request, ctx: Ctx) {
     "websiteUrl",
     "preferredLanguage",
     "preferredCurrency",
+    "whatsappNumber",
   ] as const;
   for (const k of keys) {
     const v = str(k);
     if (v !== undefined) data[k] = v || null;
+  }
+
+  if (body.openingHours !== undefined) {
+    if (body.openingHours === null || body.openingHours === "") {
+      data.openingHours = null;
+    } else if (Array.isArray(body.openingHours)) {
+      data.openingHours = body.openingHours;
+    }
   }
   if (body.latitude !== undefined) data.latitude = num("latitude");
   if (body.longitude !== undefined) data.longitude = num("longitude");

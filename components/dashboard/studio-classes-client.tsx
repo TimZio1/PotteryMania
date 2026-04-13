@@ -72,6 +72,10 @@ export default function StudioClassesClient({
     visibility: "public",
     bookingApprovalRequired: false,
     waitlistEnabled: false,
+    bookingCutoffHours: 0,
+    bufferMinutesAfter: 0,
+    allowPayAtStudio: false,
+    allowFullPaymentOption: false,
   });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -124,6 +128,10 @@ export default function StudioClassesClient({
       visibility: c.visibility,
       bookingApprovalRequired: c.bookingApprovalRequired,
       waitlistEnabled: c.waitlistEnabled,
+      bookingCutoffHours: c.bookingCutoffHours,
+      bufferMinutesAfter: c.bufferMinutesAfter,
+      allowPayAtStudio: c.allowPayAtStudio,
+      allowFullPaymentOption: c.allowFullPaymentOption,
     });
     setErr(null);
   }, []);
@@ -179,6 +187,10 @@ export default function StudioClassesClient({
           visibility: form.visibility,
           bookingApprovalRequired: form.bookingApprovalRequired,
           waitlistEnabled: form.waitlistEnabled,
+          bookingCutoffHours: form.bookingCutoffHours,
+          bufferMinutesAfter: form.bufferMinutesAfter,
+          allowPayAtStudio: form.allowPayAtStudio,
+          allowFullPaymentOption: form.allowFullPaymentOption,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -196,7 +208,7 @@ export default function StudioClassesClient({
       <div className="space-y-4">
         <div className="flex flex-wrap gap-3">
           <Link href={`/dashboard/experiences/${studioId}`} className={ui.buttonPrimary}>
-            Class builder &amp; schedules
+            Class planner &amp; schedules
           </Link>
         </div>
 
@@ -605,6 +617,52 @@ export default function StudioClassesClient({
               onChange={(e) => setForm((f) => ({ ...f, waitlistEnabled: e.target.checked }))}
             />
             Waitlist when full
+          </label>
+          <label className="flex items-center gap-2 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              checked={form.allowPayAtStudio}
+              onChange={(e) => setForm((f) => ({ ...f, allowPayAtStudio: e.target.checked }))}
+            />
+            Allow pay at studio (no online payment)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              checked={form.allowFullPaymentOption}
+              onChange={(e) => setForm((f) => ({ ...f, allowFullPaymentOption: e.target.checked }))}
+            />
+            Let customers pay full price online instead of only the deposit
+          </label>
+          <label>
+            <span className={ui.label}>Booking cutoff (hours before start)</span>
+            <input
+              type="number"
+              min={0}
+              max={168}
+              className={cn(ui.input, "mt-1")}
+              value={form.bookingCutoffHours}
+              onChange={(e) => setForm((f) => ({ ...f, bookingCutoffHours: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
+            />
+            <span className="mt-1 block text-xs text-stone-500">
+              0 = no cutoff. Recommended: 3h.
+            </span>
+          </label>
+          <label>
+            <span className={ui.label}>Buffer after class (minutes)</span>
+            <input
+              type="number"
+              min={0}
+              max={240}
+              className={cn(ui.input, "mt-1")}
+              value={form.bufferMinutesAfter}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, bufferMinutesAfter: Math.max(0, parseInt(e.target.value, 10) || 0) }))
+              }
+            />
+            <span className="mt-1 block text-xs text-stone-500">
+              Extra cleanup/reset time kept free after each generated session.
+            </span>
           </label>
 
           <button type="button" disabled={saving} onClick={() => void save()} className={cn(ui.buttonPrimary, "w-full")}>

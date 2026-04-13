@@ -83,6 +83,17 @@ export default async function ClassesPage({ searchParams }: Props) {
     experiences = [];
   }
 
+  const categoryRows = await prisma.experience.findMany({
+    where: { status: "active", visibility: "public", category: { not: null } },
+    select: { category: true },
+    distinct: ["category"],
+    orderBy: { category: "asc" },
+    take: 30,
+  });
+  const categories = categoryRows
+    .map((r) => r.category)
+    .filter((c): c is string => Boolean(c && c.trim()));
+
   if (near) {
     experiences = filterRowsByNearKm(experiences, near, (ex) => experienceMeetingPoint(ex)).slice(0, 80);
   } else {
@@ -180,13 +191,17 @@ export default async function ClassesPage({ searchParams }: Props) {
               <label className={ui.label} htmlFor="classes-category">
                 Category
               </label>
-              <input
+              <select
                 id="classes-category"
                 name="category"
-                type="text"
                 defaultValue={filters.category}
                 className={`${ui.input} mt-1.5`}
-              />
+              >
+                <option value="">All categories</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className={ui.label} htmlFor="classes-skill">
@@ -315,6 +330,36 @@ export default async function ClassesPage({ searchParams }: Props) {
         </FilterCollapse>
         </div>
 
+        {categories.length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Link
+              href="/classes"
+              className={cn(
+                "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
+                !filters.category
+                  ? "border-amber-800 bg-amber-900 text-white"
+                  : "border-stone-200 bg-white text-stone-700 hover:border-amber-300 hover:bg-amber-50",
+              )}
+            >
+              All
+            </Link>
+            {categories.map((c) => (
+              <Link
+                key={c}
+                href={`/classes?category=${encodeURIComponent(c)}`}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
+                  filters.category === c
+                    ? "border-amber-800 bg-amber-900 text-white"
+                    : "border-stone-200 bg-white text-stone-700 hover:border-amber-300 hover:bg-amber-50",
+                )}
+              >
+                {c}
+              </Link>
+            ))}
+          </div>
+        )}
+
         {near ? (
           <section className="mt-10" aria-labelledby="classes-map-heading">
             <h2 id="classes-map-heading" className="text-lg font-semibold text-amber-950">
@@ -386,7 +431,14 @@ export default async function ClassesPage({ searchParams }: Props) {
                     )}
                   </div>
                   <div className="p-4 sm:p-5">
-                    <p className="text-xs font-medium text-stone-600">{ex.studio.displayName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-medium text-stone-600">{ex.studio.displayName}</p>
+                      {ex.category ? (
+                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
+                          {ex.category}
+                        </span>
+                      ) : null}
+                    </div>
                     <h2 className="mt-1 text-base font-semibold text-stone-900">{ex.title}</h2>
                     {km != null ? (
                       <p className="mt-1 text-xs text-stone-600">~{km.toFixed(1)} km away</p>

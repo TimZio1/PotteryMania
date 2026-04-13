@@ -98,7 +98,9 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       select: {
         createdAt: true,
         paymentStatus: true,
+        totalAmountCents: true,
         depositAmountCents: true,
+        remainingBalanceCents: true,
         bookingStatus: true,
       },
     }),
@@ -147,7 +149,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
 
   const bookingCashWindow = bookings
     .filter((b) => b.createdAt >= windowStart && ["paid", "partial"].includes(b.paymentStatus))
-    .reduce((s, b) => s + b.depositAmountCents, 0);
+    .reduce((s, b) => s + (b.totalAmountCents - b.remainingBalanceCents), 0);
 
   const trend = (() => {
     const buckets = new Map<string, number>();
@@ -216,7 +218,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Financial throughput</h1>
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Paid order GMV, platform commission snapshots, billing-plan and add-on MRR estimates, coupons, refunds, booking
-        deposit cash, and per-studio throughput. Rolling window defaults to <strong>30 days</strong>; switch to{" "}
+        cash collected, and per-studio throughput. Rolling window defaults to <strong>30 days</strong>; switch to{" "}
         <strong>90 days</strong> for longer charts and per-studio totals. Use <strong>Breakdown</strong> for stream-level
         tables and commission trend.
       </p>
@@ -283,7 +285,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           hint={`${refundsWindow.length} order rows`}
         />
         <StatCard
-          label={`Booking deposits (${windowLabel})`}
+          label={`Booking cash collected (${windowLabel})`}
           value={eur(bookingCashWindow)}
           hint="Cash collected on bookings"
         />
@@ -314,9 +316,9 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
                 hint="Snapshot on paid / settled order lines"
               />
               <StatCard
-                label={`Class booking deposits (${windowLabel})`}
+                label={`Class booking cash (${windowLabel})`}
                 value={eur(bookingCashWindow)}
-                hint="Paid + partial deposit amounts"
+                hint="Cash collected so far on bookings"
               />
               <StatCard
                 label="Billing plan MRR"
@@ -456,7 +458,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-amber-950">Per-studio throughput ({windowLabel})</h2>
         <p className="mt-1 text-xs text-stone-500">
-          Live studios only, sorted by studio shop order GMV plus class booking deposits. Commission is the platform
+          Live studios only, sorted by studio shop order GMV plus booking cash collected. Commission is the platform
           snapshot on order lines (same window as monetized orders above). Use search to narrow by studio name, city, or
           country.
         </p>
@@ -524,17 +526,17 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
               },
               {
                 key: "dep",
-                header: "Class deposits",
+                header: "Booking cash",
                 cell: (r) => (
-                  <span className="text-sm tabular-nums text-stone-700">{eur(r.bookingDepositsCents)}</span>
+                  <span className="text-sm tabular-nums text-stone-700">{eur(r.bookingCollectedCents)}</span>
                 ),
               },
               {
                 key: "tot",
-                header: "GMV + deposits",
+                header: "GMV + booking cash",
                 cell: (r) => (
                   <span className="text-sm font-medium tabular-nums text-amber-950">
-                    {eur(r.orderGmvCents + r.bookingDepositsCents)}
+                    {eur(r.orderGmvCents + r.bookingCollectedCents)}
                   </span>
                 ),
               },

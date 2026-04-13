@@ -11,6 +11,8 @@ export default function VendorBookingActions({
   studioId,
   bookingId,
   bookingStatus,
+  paymentStatus,
+  remainingBalanceCents,
   participantCount,
   seatType,
   calendarSync,
@@ -18,6 +20,8 @@ export default function VendorBookingActions({
   studioId: string;
   bookingId: string;
   bookingStatus: string;
+  paymentStatus?: string;
+  remainingBalanceCents?: number;
   participantCount: number;
   seatType?: string | null;
   calendarSync?: { status: string; message: string | null; at: string } | null;
@@ -29,6 +33,8 @@ export default function VendorBookingActions({
     bookingStatus === "pending" || bookingStatus === "confirmed" || bookingStatus === "awaiting_vendor_approval";
   const needsApproval = bookingStatus === "awaiting_vendor_approval";
   const canMarkCompleted = bookingStatus === "confirmed";
+  const canMarkRemainderPaid = (remainingBalanceCents ?? 0) > 0 && paymentStatus === "partial";
+  const canSendRemainderLink = (remainingBalanceCents ?? 0) > 0;
 
   async function handleCancel() {
     if (!confirm("Cancel this reservation? The participant will be notified.")) return;
@@ -115,6 +121,46 @@ export default function VendorBookingActions({
     const data = await res.json();
     if (res.ok) {
       setMsg("Marked completed.");
+      router.refresh();
+    } else {
+      setMsg(`Error: ${data.error}`);
+    }
+    setBusyAction(null);
+  }
+
+  async function handleMarkRemainderPaid() {
+    if (!confirm("Mark the remaining balance as paid in person?")) return;
+    setMsg("");
+    setBusyAction("mark_remainder_paid");
+    const res = await fetch(`/api/bookings/${bookingId}/vendor`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "mark_remainder_paid" }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setMsg("Remaining balance marked paid.");
+      router.refresh();
+    } else {
+      setMsg(`Error: ${data.error}`);
+    }
+    setBusyAction(null);
+  }
+
+  async function handleSendRemainderLink() {
+    setMsg("");
+    setBusyAction("send_remainder_link");
+    const res = await fetch(`/api/bookings/${bookingId}/pay-remainder`, {
+      method: "POST",
+    });
+    const data = await res.json();
+    if (res.ok && data.url) {
+      try {
+        await navigator.clipboard.writeText(data.url);
+        setMsg("Payment link copied to clipboard.");
+      } catch {
+        setMsg(`Payment link ready: ${data.url}`);
+      }
       router.refresh();
     } else {
       setMsg(`Error: ${data.error}`);
@@ -233,6 +279,40 @@ export default function VendorBookingActions({
                 </span>
               ) : (
                 "Mark as attended / completed"
+              )}
+            </button>
+          )}
+          {showBlock && canMarkRemainderPaid && (
+            <button
+              type="button"
+              disabled={busyAction !== null}
+              onClick={handleMarkRemainderPaid}
+              className="min-h-11 rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-800"
+            >
+              {busyAction === "mark_remainder_paid" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner size="sm" className="text-white" />
+                  Saving…
+                </span>
+              ) : (
+                "Mark remaining balance paid"
+              )}
+            </button>
+          )}
+          {showBlock && canSendRemainderLink && (
+            <button
+              type="button"
+              disabled={busyAction !== null}
+              onClick={handleSendRemainderLink}
+              className="min-h-11 rounded-lg border border-sky-200 bg-white px-4 py-2.5 text-sm font-medium text-sky-700 transition hover:bg-sky-50"
+            >
+              {busyAction === "send_remainder_link" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner size="sm" />
+                  Preparing…
+                </span>
+              ) : (
+                "Copy remaining-balance link"
               )}
             </button>
           )}

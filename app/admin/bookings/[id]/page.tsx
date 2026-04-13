@@ -21,6 +21,10 @@ function eur(cents: number) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(cents / 100);
 }
 
+function formatUtcDate(value: Date | null | undefined) {
+  return value ? value.toISOString().replace("T", " ").slice(0, 19) : "—";
+}
+
 function JsonBlock({ value, label }: { value: unknown; label: string }) {
   if (value == null) {
     return (
@@ -116,6 +120,16 @@ export default async function AdminBookingDetailPage({ params }: Props) {
           <div>
             <p className={ui.label}>Remaining balance</p>
             <p className="mt-1 text-sm tabular-nums text-stone-700">{eur(booking.remainingBalanceCents)}</p>
+            {booking.depositPaidAt ? (
+              <p className="mt-1 text-xs text-stone-500">
+                Deposit paid {formatUtcDate(booking.depositPaidAt)} UTC
+              </p>
+            ) : null}
+            {booking.remainderPaidAt ? (
+              <p className="mt-1 text-xs text-emerald-700">
+                Remaining balance paid {formatUtcDate(booking.remainderPaidAt)} UTC
+              </p>
+            ) : null}
           </div>
           <div>
             <p className={ui.label}>Commission / vendor</p>
@@ -164,6 +178,38 @@ export default async function AdminBookingDetailPage({ params }: Props) {
           </div>
         ) : null}
 
+        {booking.bookingAddOns.length > 0 ? (
+          <div className="border-t border-stone-100 pt-4">
+            <p className={ui.label}>Add-ons</p>
+            <ul className="mt-2 space-y-2 text-sm text-stone-700">
+              {booking.bookingAddOns.map((entry, index) => (
+                <li key={`${booking.id}-addon-${index}`}>
+                  {entry.addOnName}
+                  {entry.quantity > 1 ? ` x${entry.quantity}` : ""} · {eur(entry.unitPriceCents * entry.quantity)}
+                  {entry.durationMinutesExtra > 0 ? ` · +${entry.durationMinutesExtra} min` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {booking.intakeResponses.length > 0 ? (
+          <div className="border-t border-stone-100 pt-4">
+            <p className={ui.label}>Booking answers</p>
+            <dl className="mt-2 space-y-3 text-sm text-stone-700">
+              {booking.intakeResponses.map((entry, index) => (
+                <div key={`${booking.id}-intake-${index}`}>
+                  <dt className="font-medium text-stone-800">{entry.labelSnapshot}</dt>
+                  <dd className="mt-1 whitespace-pre-wrap text-stone-600">{entry.value}</dd>
+                  {entry.includeInInvoiceSnapshot ? (
+                    <dd className="mt-1 text-xs text-stone-500">Included in invoice snapshot</dd>
+                  ) : null}
+                </div>
+              ))}
+            </dl>
+          </div>
+        ) : null}
+
         <div className="border-t border-stone-100 pt-4">
           <p className={ui.label}>Linked orders</p>
           {orderLinks.length === 0 ? (
@@ -188,10 +234,8 @@ export default async function AdminBookingDetailPage({ params }: Props) {
           <JsonBlock value={booking.cancellationPolicySnapshot} label="Cancellation policy snapshot" />
           <div>
             <p className={ui.label}>Reminders</p>
-            <p className="mt-1 text-xs text-stone-600">
-              Scheduled: {booking.reminderScheduledAt?.toISOString?.() ?? "—"}
-            </p>
-            <p className="text-xs text-stone-600">Sent: {booking.reminderSentAt?.toISOString?.() ?? "—"}</p>
+            <p className="mt-1 text-xs text-stone-600">Scheduled: {formatUtcDate(booking.reminderScheduledAt)}</p>
+            <p className="text-xs text-stone-600">Sent: {formatUtcDate(booking.reminderSentAt)}</p>
           </div>
         </div>
       </div>

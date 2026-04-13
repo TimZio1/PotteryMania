@@ -27,11 +27,10 @@ export default async function StudioFeaturesPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <p className={ui.overline}>Billing & add-ons</p>
+        <p className={ui.overline}>Packs & add-ons</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">Packs, subscriptions & add-ons</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Buy studio packs, start feature subscriptions, or enable individual add-ons from one place. Bundles cover grouped
-          capabilities, while paid add-ons open Stripe Checkout per feature or per pack when configured.
+          Upgrade your studio with packs, subscriptions, or individual add-ons. Bundles unlock grouped capabilities at a discount.
         </p>
       </div>
       <Suspense

@@ -180,6 +180,8 @@ export async function POST(req: Request, ctx: Ctx) {
           ? Math.min(10_000, Math.max(0, Math.floor(body.bookingDepositBps)))
           : 0,
       bookingApprovalRequired: body.bookingApprovalRequired === true,
+      allowPayAtStudio: body.allowPayAtStudio === true,
+      allowFullPaymentOption: body.allowFullPaymentOption === true,
       waitlistEnabled: body.waitlistEnabled === true,
       status: safeStatus,
       visibility: v,

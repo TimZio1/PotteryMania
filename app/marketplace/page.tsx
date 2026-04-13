@@ -46,20 +46,25 @@ export default async function MarketplacePage({ searchParams }: Props) {
   await redirectEndUserIfNoMarketplaceListings(session?.user?.role);
   const resolvedRegion = await resolveRequestShippingRegion();
   const sp = (await searchParams) ?? {};
-  const catalog = await listMarketplaceProducts({
-    q: sp.q,
-    category: sp.category,
-    country: sp.country,
-    city: sp.city,
-    sort: parseProductSort(sp.sort),
-    inStock: sp.inStock === "1",
-    minPrice: sp.minPrice ? parseInt(sp.minPrice, 10) : undefined,
-    maxPrice: sp.maxPrice ? parseInt(sp.maxPrice, 10) : undefined,
-    shippingRegion: resolvedRegion.region,
-    viewerCountry: resolvedRegion.country,
-    page: sp.page ? parseInt(sp.page, 10) : 1,
-    pageSize: 12,
-  });
+  let catalog: Awaited<ReturnType<typeof listMarketplaceProducts>>;
+  try {
+    catalog = await listMarketplaceProducts({
+      q: sp.q,
+      category: sp.category,
+      country: sp.country,
+      city: sp.city,
+      sort: parseProductSort(sp.sort),
+      inStock: sp.inStock === "1",
+      minPrice: sp.minPrice ? parseInt(sp.minPrice, 10) : undefined,
+      maxPrice: sp.maxPrice ? parseInt(sp.maxPrice, 10) : undefined,
+      shippingRegion: resolvedRegion.region,
+      viewerCountry: resolvedRegion.country,
+      page: sp.page ? parseInt(sp.page, 10) : 1,
+      pageSize: 12,
+    });
+  } catch {
+    catalog = { products: [], total: 0, page: 1, pageSize: 12, pages: 0 };
+  }
   let categories: { id: string; name: string; slug: string }[] = allCeramicCategories().map((category) => ({
     id: category.slug,
     name: category.title,

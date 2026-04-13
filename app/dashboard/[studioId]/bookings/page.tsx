@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { serializeStudioBookingsList } from "@/lib/serialize-studio-bookings-list";
 import StudioBookingsClient from "@/components/dashboard/studio-bookings-client";
+import TicketCheckInPanel from "@/components/dashboard/ticket-check-in-panel";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +27,43 @@ export default async function StudioPanelBookingsPage({ params }: Props) {
   const bookings = await prisma.booking.findMany({
     where: { studioId },
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      studioId: true,
+      experienceId: true,
+      slotId: true,
+      customerUserId: true,
+      customerName: true,
+      customerEmail: true,
+      customerPhone: true,
+      participantCount: true,
+      seatType: true,
+      ticketRef: true,
+      bookingStatus: true,
+      paymentStatus: true,
+      totalAmountCents: true,
+      depositAmountCents: true,
+      remainingBalanceCents: true,
+      depositPaidAt: true,
+      remainderPaidAt: true,
+      remainderPaymentLink: true,
+      notes: true,
+      cancellationPolicySnapshot: true,
+      reminderScheduledAt: true,
+      reminderSentAt: true,
+      googleCalendarEventId: true,
+      googleCalendarSyncedAt: true,
+      googleCalendarLastError: true,
+      createdAt: true,
+      updatedAt: true,
       experience: { select: { id: true, title: true } },
       slot: true,
+      bookingAddOns: {
+        select: { addOnName: true, quantity: true, unitPriceCents: true },
+      },
+      intakeResponses: {
+        select: { labelSnapshot: true, value: true, includeInInvoiceSnapshot: true },
+      },
       cancellations: {
         select: { cancelledByRole: true, refundOutcome: true, createdAt: true },
         take: 1,
@@ -66,6 +101,8 @@ export default async function StudioPanelBookingsPage({ params }: Props) {
           Filter by status, experience, and session date. Open a row for approvals, reschedules, participant details, and calendar exports.
         </p>
       </div>
+
+      <TicketCheckInPanel studioId={studioId} />
 
       <StudioBookingsClient
         studioId={studioId}

@@ -12,6 +12,7 @@ import {
   recomputeTotalsFromLineRows,
   validateCouponState,
 } from "@/lib/coupon-checkout";
+import { previewGiftCardRedemption } from "@/lib/gift-cards/checkout";
 import { calculateEstimatedTaxCents } from "@/lib/tax";
 import { resolveShippingZoneForDestination, zonePriceCents } from "@/lib/shipping-zones";
 
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
   let body: {
     code?: string;
     studioId?: string;
+    paymentMethod?: "coupon" | "gift_card";
     shippingAddress?: { line1?: string; city?: string; country?: string };
   };
   try {
@@ -58,40 +60,63 @@ export async function POST(req: Request) {
   }
 
   const subtotalBefore = built.subtotal;
-  const code = normalizeCouponCode(raw);
-  const coupon = await prisma.coupon.findUnique({ where: { code } });
-  if (!coupon) {
-    return NextResponse.json({ error: "Unknown coupon code" }, { status: 400 });
-  }
-  const couponErr = validateCouponState(coupon);
-  if (couponErr) {
-    return NextResponse.json({ error: couponErr }, { status: 400 });
-  }
-  const cur = coupon.currency?.toUpperCase() ?? "EUR";
-  if (cur !== "EUR") {
-    return NextResponse.json({ error: "Coupon currency is not supported" }, { status: 400 });
-  }
+  const paymentMethod = body.paymentMethod === "gift_card" ? "gift_card" : "coupon";
+  let adjusted = built.lineRows;
+  let subtotalAfter = subtotalBefore;
+  let discountCode = "";
+  let discountName: string | null = null;
+  let disc = 0;
 
-  let disc = computeCouponDiscountCents(coupon, subtotalBefore);
-  const lineTotals = built.lineRows.map((r) => r.chargedLineCents);
-  const capped = capDiscountForMinimumLineRemainder(lineTotals, disc, 1);
-  if (capped.error) {
-    return NextResponse.json({ error: capped.error }, { status: 400 });
-  }
-  disc = capped.discountCents;
-  if (disc <= 0) {
-    return NextResponse.json({ error: "This coupon does not reduce this order" }, { status: 400 });
-  }
+  if (paymentMethod === "gift_card") {
+    const giftCardPreview = await previewGiftCardRedemption(prisma, raw, subtotalBefore, {
+      studioId: built.studioId,
+    });
+    if (!giftCardPreview.ok) {
+      return NextResponse.json({ error: giftCardPreview.error }, { status: giftCardPreview.status });
+    }
+    disc = giftCardPreview.preview.appliedCents;
+    subtotalAfter = giftCardPreview.preview.subtotalAfterGiftCard;
+    discountCode = giftCardPreview.preview.giftCard.code;
+    discountName = giftCardPreview.preview.giftCard.name;
+  } else {
+    const code = normalizeCouponCode(raw);
+    const coupon = await prisma.coupon.findUnique({ where: { code } });
+    if (!coupon) {
+      return NextResponse.json({ error: "Unknown coupon code" }, { status: 400 });
+    }
+    const couponErr = validateCouponState(coupon);
+    if (couponErr) {
+      return NextResponse.json({ error: couponErr }, { status: 400 });
+    }
+    const cur = coupon.currency?.toUpperCase() ?? "EUR";
+    if (cur !== "EUR") {
+      return NextResponse.json({ error: "Coupon currency is not supported" }, { status: 400 });
+    }
 
-  const adjusted = applyCouponToLineRows(built.lineRows, built.productBps, built.bookingBps, disc);
-  const { subtotal: subtotalAfter } = recomputeTotalsFromLineRows(adjusted);
-  if (subtotalAfter < MIN_DISCOUNTED_SUBTOTAL_CENTS) {
-    return NextResponse.json(
-      {
-        error: `After the coupon, the order subtotal must be at least €${(MIN_DISCOUNTED_SUBTOTAL_CENTS / 100).toFixed(2)}`,
-      },
-      { status: 400 },
-    );
+    let couponDiscount = computeCouponDiscountCents(coupon, subtotalBefore);
+    const lineTotals = built.lineRows.map((r) => r.chargedLineCents);
+    const capped = capDiscountForMinimumLineRemainder(lineTotals, couponDiscount, 1);
+    if (capped.error) {
+      return NextResponse.json({ error: capped.error }, { status: 400 });
+    }
+    couponDiscount = capped.discountCents;
+    if (couponDiscount <= 0) {
+      return NextResponse.json({ error: "This coupon does not reduce this order" }, { status: 400 });
+    }
+
+    adjusted = applyCouponToLineRows(built.lineRows, built.productBps, built.bookingBps, couponDiscount);
+    ({ subtotal: subtotalAfter } = recomputeTotalsFromLineRows(adjusted));
+    if (subtotalAfter < MIN_DISCOUNTED_SUBTOTAL_CENTS) {
+      return NextResponse.json(
+        {
+          error: `After the coupon, the order subtotal must be at least €${(MIN_DISCOUNTED_SUBTOTAL_CENTS / 100).toFixed(2)}`,
+        },
+        { status: 400 },
+      );
+    }
+    disc = couponDiscount;
+    discountCode = coupon.code;
+    discountName = coupon.name;
   }
 
   const shipping = body.shippingAddress || {};
@@ -159,8 +184,9 @@ export async function POST(req: Request) {
   const estimatedTotal = subtotalAfter + shippingQuote.shippingCents + estimatedTaxCents;
 
   return NextResponse.json({
-    code: coupon.code,
-    name: coupon.name,
+    code: discountCode,
+    name: discountName,
+    paymentMethod,
     subtotalBefore,
     discountCents: disc,
     subtotalAfter,

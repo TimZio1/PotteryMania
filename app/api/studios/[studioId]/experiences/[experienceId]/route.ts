@@ -114,6 +114,18 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (body.waitlistEnabled === true || body.waitlistEnabled === false) {
     data.waitlistEnabled = body.waitlistEnabled;
   }
+  if (typeof body.bookingCutoffHours === "number" && Number.isFinite(body.bookingCutoffHours)) {
+    data.bookingCutoffHours = Math.max(0, Math.min(168, Math.floor(body.bookingCutoffHours)));
+  }
+  if (typeof body.bufferMinutesAfter === "number" && Number.isFinite(body.bufferMinutesAfter)) {
+    data.bufferMinutesAfter = Math.max(0, Math.min(240, Math.floor(body.bufferMinutesAfter)));
+  }
+  if (body.allowPayAtStudio === true || body.allowPayAtStudio === false) {
+    data.allowPayAtStudio = body.allowPayAtStudio;
+  }
+  if (body.allowFullPaymentOption === true || body.allowFullPaymentOption === false) {
+    data.allowFullPaymentOption = body.allowFullPaymentOption;
+  }
 
   const pricingKeys = [
     "pricingType",

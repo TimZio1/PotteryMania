@@ -15,8 +15,15 @@ type Booking = {
   totalAmountCents: number;
   depositAmountCents: number;
   remainingBalanceCents: number;
+  depositPaidAt: string | null;
+  remainderPaidAt: string | null;
+  remainderPaymentLink: string | null;
   ticketRef: string | null;
   seatType: string | null;
+  notes: string | null;
+  bookingAddOns: { addOnName: string; quantity: number; unitPriceCents: number }[];
+  intakeResponses: { labelSnapshot: string; value: string; includeInInvoiceSnapshot: boolean }[];
+  reviews: { id: string }[];
   experience: { id: string; title: string };
   slot: { id: string; slotDate: string; startTime: string; endTime: string; status: string };
   studio: { displayName: string };
@@ -25,10 +32,18 @@ type Booking = {
 
 type CalendarLinkPayload = { httpsUrl: string; webcalUrl: string; note: string };
 
-export function MyBookingsClient() {
+const ACTIVE_QR_STATUSES = new Set([
+  "pending",
+  "awaiting_vendor_approval",
+  "confirmed",
+  "completed",
+  "cancellation_requested",
+]);
+
+export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: string }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionMsg, setActionMsg] = useState("");
+  const [actionMsg, setActionMsg] = useState(initialMessage);
   const [calendarLink, setCalendarLink] = useState<CalendarLinkPayload | null>(null);
   const [calendarLinkErr, setCalendarLinkErr] = useState("");
   const [copied, setCopied] = useState(false);
@@ -78,6 +93,17 @@ export function MyBookingsClient() {
     }
   }
 
+  async function handlePayRemainder(bookingId: string) {
+    setActionMsg("");
+    const res = await fetch(`/api/bookings/${bookingId}/pay-remainder`, { method: "POST" });
+    const data = await res.json();
+    if (res.ok && data.url) {
+      window.location.href = data.url;
+      return;
+    }
+    setActionMsg(`Could not open balance payment: ${data.error ?? "Unknown error"}`);
+  }
+
   const isCancellable = (status: string) =>
     status === "pending" || status === "confirmed" || status === "awaiting_vendor_approval";
 
@@ -102,6 +128,9 @@ export function MyBookingsClient() {
         </div>
         <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center sm:w-auto!`}>
           View waitlist
+        </Link>
+        <Link href="/my-loyalty" className={`${platformUi.buttonSecondary} text-center sm:w-auto!`}>
+          Loyalty points
         </Link>
       </div>
 
@@ -183,7 +212,50 @@ export function MyBookingsClient() {
                 </p>
                 <p className="mt-1 text-sm text-stone-600">{b.participantCount} participants</p>
                 {b.seatType ? <p className="mt-1 text-sm text-stone-600">Seat: {b.seatType}</p> : null}
+                {b.bookingAddOns.length > 0 ? (
+                  <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
+                    <p className="font-medium text-stone-800">Extras</p>
+                    <ul className="mt-2 space-y-1">
+                      {b.bookingAddOns.map((entry, index) => (
+                        <li key={`${b.id}-addon-${index}`}>
+                          {entry.addOnName}
+                          {entry.quantity > 1 ? ` x${entry.quantity}` : ""} · +€
+                          {((entry.unitPriceCents * entry.quantity) / 100).toFixed(2)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {b.intakeResponses.length > 0 ? (
+                  <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
+                    <p className="font-medium text-stone-800">Your booking answers</p>
+                    <dl className="mt-2 space-y-2">
+                      {b.intakeResponses.map((entry, index) => (
+                        <div key={`${b.id}-intake-${index}`}>
+                          <dt className="font-medium text-stone-800">{entry.labelSnapshot}</dt>
+                          <dd className="whitespace-pre-wrap">{entry.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                ) : null}
+                {b.notes ? (
+                  <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
+                    <p className="font-medium text-stone-800">Notes for the studio</p>
+                    <p className="mt-2 whitespace-pre-wrap">{b.notes}</p>
+                  </div>
+                ) : null}
                 {b.ticketRef ? <p className="mt-2 text-sm font-medium text-stone-800">Ref: {b.ticketRef}</p> : null}
+                {b.ticketRef && ACTIVE_QR_STATUSES.has(b.bookingStatus) ? (
+                  <div className="mt-4 inline-flex rounded-2xl border border-stone-200 bg-white p-3 shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/bookings/${b.id}/ticket-qr`}
+                      alt={`QR ticket for ${b.ticketRef}`}
+                      className="h-32 w-32 rounded-lg"
+                    />
+                  </div>
+                ) : null}
               </div>
               <div className="text-left sm:text-right">
                 <p className="text-lg font-semibold text-amber-950">€{(b.totalAmountCents / 100).toFixed(2)}</p>
@@ -191,6 +263,11 @@ export function MyBookingsClient() {
                   <p className="mt-1 text-xs text-stone-500">
                     Paid online €{(b.depositAmountCents / 100).toFixed(2)} · Balance €
                     {(b.remainingBalanceCents / 100).toFixed(2)}
+                  </p>
+                ) : null}
+                {b.remainderPaidAt ? (
+                  <p className="mt-1 text-xs text-emerald-700">
+                    Remaining balance paid {new Date(b.remainderPaidAt).toLocaleDateString()}
                   </p>
                 ) : null}
                 <p className="mt-2 text-xs font-medium uppercase tracking-wide text-stone-500">
@@ -218,6 +295,15 @@ export function MyBookingsClient() {
                 seatType={b.seatType}
                 onSuccess={load}
               />
+              {b.remainingBalanceCents > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => handlePayRemainder(b.id)}
+                  className={platformUi.buttonSecondary}
+                >
+                  Pay remaining balance
+                </button>
+              ) : null}
               {isCancellable(b.bookingStatus) ? (
                 <button
                   type="button"
@@ -226,6 +312,14 @@ export function MyBookingsClient() {
                 >
                   Cancel reservation
                 </button>
+              ) : null}
+              {b.bookingStatus === "completed" && b.reviews.length === 0 ? (
+                <Link
+                  href={`/reviews/new?booking=${encodeURIComponent(b.id)}`}
+                  className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
+                >
+                  Leave a review
+                </Link>
               ) : null}
             </div>
           </div>

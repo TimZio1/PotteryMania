@@ -139,7 +139,7 @@ export default function StudioCalendarClient({
         Week starting <span className="font-mono">{weekStartIso}</span>. Red outline = overlapping times that day. Edit
         slots from{" "}
         <Link href={`/dashboard/experiences/${studioId}`} className="font-medium text-amber-900 underline">
-          Classes &amp; schedule
+          Class planner
         </Link>
         .
       </p>

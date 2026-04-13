@@ -35,7 +35,7 @@ export async function writePlatformAnalyticsSnapshotForDay(day: Date): Promise<{
         createdAt: { gte: start, lt: end },
         paymentStatus: "paid",
       },
-      _sum: { depositAmountCents: true },
+      _sum: { totalAmountCents: true },
     }),
     prisma.user.count({ where: { createdAt: { gte: start, lt: end } } }),
     prisma.studio.count({
@@ -51,7 +51,7 @@ export async function writePlatformAnalyticsSnapshotForDay(day: Date): Promise<{
     ordersCount,
     ordersPaidTotalCents: ordersPaidCents._sum.totalCents ?? 0,
     bookingsCount,
-    bookingsDepositTotalCents: bookingsDepositCents._sum.depositAmountCents ?? 0,
+    bookingsDepositTotalCents: bookingsDepositCents._sum.totalAmountCents ?? 0,
     newUsers,
     newStudiosApproved,
     insightPurchaseTotalCents: insightRevenueCents._sum.amountCents ?? 0,

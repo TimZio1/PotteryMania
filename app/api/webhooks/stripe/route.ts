@@ -4,21 +4,10 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import {
-  sendBookingEmails,
-  bookingConfirmationCopy,
-  bookingPendingStudioConfirmationCopy,
-} from "@/lib/email/booking-notify";
-import { orderConfirmationCopy, sendOrderEmails } from "@/lib/email/order-notify";
-import { safeReserveCapacity } from "@/lib/bookings/slot-lock";
-import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
-import type { Prisma } from "@prisma/client";
-import {
   markActivationsEndedForStripeSubscription,
   syncStudioBillingSubscriptionFromStripe,
 } from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
-import { removeGoogleCalendarEventForBooking, syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
-import { enrichCustomerEmailWithCalendar } from "@/lib/calendar/booking-email-calendar";
 import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
 import { submitPaidWearOrderToSpreadconnect } from "@/lib/wear-order-spreadconnect";
 import {
@@ -28,12 +17,15 @@ import {
 import { runStripeWebhookSideEffect } from "@/lib/webhook-event-store";
 import { scheduleWearOrderNotification } from "@/lib/wear-order-notifications";
 import { logApiError } from "@/lib/monitoring";
-import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
 import {
   mapStripeSubscriptionStatus,
   recordOfferingSubscriptionEvent,
   syncOfferingSubscriptionFromStripeSubscription,
 } from "@/lib/offering-subscriptions";
+import { giftCardEmailCopy, sendGiftCardEmail } from "@/lib/gift-cards/email";
+import { releaseGiftCardRedemptionsForSession } from "@/lib/gift-cards/checkout";
+import { runCheckoutCompletionSideEffects, settleCheckoutOrderPayment } from "@/lib/orders/checkout-completion";
+import { settleBookingRemainderPayment } from "@/lib/bookings/remainder";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -190,6 +182,146 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     if (session.payment_status !== "paid") {
+      return ack();
+    }
+
+    if (session.metadata?.type === "gift_card_purchase") {
+      const giftCardId = session.metadata.giftCardId;
+      const paymentIntentRaw = session.payment_intent;
+      const stripePaymentIntentId =
+        typeof paymentIntentRaw === "string" ? paymentIntentRaw : paymentIntentRaw?.id ?? null;
+
+      if (giftCardId) {
+        try {
+          const activated = await prisma.$transaction(async (tx) => {
+            const giftCard = await tx.giftCard.findUnique({
+              where: { id: giftCardId },
+              include: {
+                studio: { select: { displayName: true } },
+              },
+            });
+            if (!giftCard) return null;
+            if (giftCard.activatedAt) return giftCard;
+
+            return tx.giftCard.update({
+              where: { id: giftCardId },
+              data: {
+                activatedAt: new Date(),
+                stripePaymentIntentId,
+                stripeCheckoutSessionId: session.id,
+              },
+              include: {
+                studio: { select: { displayName: true } },
+              },
+            });
+          });
+
+          if (activated?.recipientEmail) {
+            const origin = (process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+            const emailHtml = giftCardEmailCopy({
+              recipientName: activated.recipientName,
+              purchaserName: activated.purchaserName,
+              studioName: activated.studio.displayName,
+              code: activated.code,
+              valueCents: activated.originalValueCents,
+              validUntil: activated.validUntil,
+              personalMessage: activated.personalMessage,
+              balanceUrl: `${origin}/gift-cards/${encodeURIComponent(activated.code)}`,
+            });
+
+            await runStripeWebhookSideEffect(event.id, `gift_card_email:${activated.id}`, async () => {
+              await sendGiftCardEmail({
+                to: activated.recipientEmail!,
+                subject: `Your gift card from ${activated.studio.displayName}`,
+                html: emailHtml,
+              });
+              await prisma.giftCard.update({
+                where: { id: activated.id },
+                data: { sentAt: new Date() },
+              });
+            });
+          }
+        } catch (e) {
+          logApiError("stripe_webhook_gift_card_purchase", e, { giftCardId }, req);
+        }
+      }
+      return ack();
+    }
+
+    if (session.metadata?.type === "booking_remainder") {
+      const bookingId = session.metadata.bookingId;
+      const pi = session.payment_intent;
+      const piId = typeof pi === "string" ? pi : pi?.id ?? null;
+      if (bookingId) {
+        const result = await prisma.$transaction((tx) =>
+          settleBookingRemainderPayment(tx, {
+            bookingId,
+            provider: "stripe",
+            providerPaymentId: piId,
+            stripeCheckoutSessionId: session.id,
+          }),
+        );
+        if (!result.ok) {
+          logApiError("stripe_webhook_booking_remainder", new Error(result.error), { bookingId }, req);
+        }
+      }
+      return ack();
+    }
+
+    if (session.metadata?.type === "class_package_purchase") {
+      const packageId = session.metadata.packageId;
+      const userId = session.metadata.userId;
+      const startsAtRaw = session.metadata.startsAt;
+      const paymentIntentRaw = session.payment_intent;
+      const stripePaymentIntentId =
+        typeof paymentIntentRaw === "string" ? paymentIntentRaw : paymentIntentRaw?.id ?? null;
+
+      if (packageId && userId) {
+        try {
+          await prisma.$transaction(async (tx) => {
+            if (stripePaymentIntentId) {
+              const existing = await tx.classPackagePurchase.findFirst({
+                where: { stripePaymentIntentId },
+                select: { id: true },
+              });
+              if (existing) return;
+            }
+            const pkg = await tx.classPackage.findUnique({
+              where: { id: packageId },
+              include: { items: { select: { quantity: true } } },
+            });
+            if (!pkg || !pkg.isActive) return;
+            if (pkg.maxSetsForSale != null && pkg.soldCount >= pkg.maxSetsForSale) return;
+
+            const startsAt = startsAtRaw ? new Date(startsAtRaw) : new Date();
+            const start = Number.isNaN(startsAt.getTime()) ? new Date() : startsAt;
+            const expiresAt = new Date(start.getTime() + pkg.validityDays * 24 * 60 * 60 * 1000);
+            const creditsTotal =
+              pkg.generalItemLimit ?? pkg.items.reduce((sum, item) => sum + Math.max(1, item.quantity), 0);
+
+            await tx.classPackagePurchase.create({
+              data: {
+                packageId: pkg.id,
+                userId,
+                startsAt: start,
+                expiresAt,
+                creditsTotal,
+                creditsUsed: 0,
+                paidCents: pkg.priceCents,
+                stripePaymentIntentId,
+                status: "active",
+              },
+            });
+
+            await tx.classPackage.update({
+              where: { id: pkg.id },
+              data: { soldCount: { increment: 1 } },
+            });
+          });
+        } catch (e) {
+          logApiError("stripe_webhook_class_package_purchase", e, { packageId, userId }, req);
+        }
+      }
       return ack();
     }
 
@@ -570,362 +702,65 @@ export async function POST(req: Request) {
     const pi = session.payment_intent;
     const piId = typeof pi === "string" ? pi : pi?.id ?? null;
     const processed = await prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRawUnsafe<
-        { id: string; order_status: string; total_cents: number; customer_user_id: string | null }[]
-      >(
-        `SELECT id, order_status::text, total_cents, customer_user_id
-         FROM orders
-         WHERE id = $1::uuid
-         FOR UPDATE`,
-        orderId
-      );
-      if (!rows.length || rows[0].order_status === "paid") {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        select: { totalCents: true },
+      });
+      if (!order) {
         return { skip: true, confirmedBookingIds: [] as string[], pendingApprovalIds: [] as string[], autoCancelledIds: [] as string[] };
       }
-      const amount = session.amount_total ?? rows[0].total_cents;
-
-      await tx.order.update({
-        where: { id: orderId },
-        data: { orderStatus: "paid", paymentStatus: "paid" },
-      });
-
-      const existingPay = await tx.payment.findFirst({ where: { orderId } });
-      if (!existingPay) {
-        await tx.payment.create({
-          data: {
-            orderId,
-            provider: "stripe",
-            providerPaymentId: piId,
-            paymentStatus: "succeeded",
-            amountCents: amount,
-            currency: (session.currency || "eur").toUpperCase(),
-          },
-        });
-      }
-
-      const metaCouponId = session.metadata?.couponId;
-      const metaDiscount = session.metadata?.discountCents;
-      if (metaCouponId && metaDiscount) {
-        const dc = parseInt(String(metaDiscount), 10);
-        if (!Number.isNaN(dc) && dc > 0) {
-          const dup = await tx.discountRedemption.findFirst({ where: { orderId } });
-          if (!dup) {
-            await lockCouponRow(tx, metaCouponId);
-            const cap = await couponHasRedemptionCapacity(tx, metaCouponId);
-            if (cap) {
-              await tx.discountRedemption.create({
-                data: {
-                  couponId: metaCouponId,
-                  orderId,
-                  userId: rows[0].customer_user_id,
-                  amountCents: dc,
-                },
-              });
-              await tx.coupon.update({
-                where: { id: metaCouponId },
-                data: { redeemedCount: { increment: 1 } },
-              });
-            } else {
-              logApiError(
-                "stripe_webhook_coupon_cap",
-                new Error("Coupon max redemptions exceeded after payment"),
-                { orderId, couponId: metaCouponId },
-                req,
-              );
-            }
-          }
-        }
-      }
-
-      const items = await tx.orderItem.findMany({ where: { orderId } });
-      const confirmedBookingIds: string[] = [];
-      const pendingApprovalIds: string[] = [];
-      const autoCancelledIds: string[] = [];
-
-      for (const it of items) {
-        if (it.itemType === "product" && it.productId) {
-          await tx.product.update({
-            where: { id: it.productId },
-            data: { stockQuantity: { decrement: it.quantity } },
-          });
-        }
-        if (it.itemType === "booking" && it.bookingId) {
-          const b = await tx.booking.findUnique({
-            where: { id: it.bookingId },
-            include: { experience: true },
-          });
-          if (!b || b.paymentStatus !== "pending") continue;
-
-          let ticketRef = b.ticketRef;
-          if (!ticketRef) {
-            ticketRef = await allocateTicketRef(tx);
-          }
-
-          try {
-            await safeReserveCapacity(tx, b.slotId, b.participantCount, b.seatType);
-
-            const hasBalance = b.remainingBalanceCents > 0;
-            const paymentStatus = hasBalance ? "partial" : "paid";
-            const needsApproval = b.experience.bookingApprovalRequired;
-            const nextStatus = needsApproval ? "awaiting_vendor_approval" : "confirmed";
-
-            await tx.booking.update({
-              where: { id: b.id },
-              data: {
-                ticketRef,
-                bookingStatus: nextStatus,
-                paymentStatus,
-              },
-            });
-
-            await tx.bookingAuditLog.create({
-              data: {
-                bookingId: b.id,
-                actionType: needsApproval ? "payment_captured_pending_approval" : "confirmed",
-                actorRole: "system",
-                payload: {
-                  trigger: "stripe_webhook",
-                  sessionId: session.id,
-                  paymentStatus,
-                  needsApproval,
-                } as Prisma.InputJsonValue,
-              },
-            });
-
-            if (needsApproval) pendingApprovalIds.push(b.id);
-            else confirmedBookingIds.push(b.id);
-          } catch (error) {
-            const reason =
-              error instanceof Error ? error.message : "Capacity exceeded at confirmation time";
-            const paidNow = b.remainingBalanceCents > 0 ? "partial" : "paid";
-            await tx.booking.update({
-              where: { id: b.id },
-              data: {
-                ticketRef,
-                bookingStatus: "cancelled_by_admin",
-                paymentStatus: paidNow,
-                notes: [b.notes, `AUTO-CANCELLED AFTER PAYMENT: ${reason}`].filter(Boolean).join("\n"),
-              },
-            });
-            await tx.bookingCancellation.create({
-              data: {
-                bookingId: b.id,
-                cancelledByRole: "admin",
-                cancellationReason: "capacity_exceeded_after_payment",
-                refundOutcome: "manual_refund_review_required",
-                refundAmountCents: b.depositAmountCents || b.totalAmountCents,
-              },
-            });
-            await tx.bookingAuditLog.create({
-              data: {
-                bookingId: b.id,
-                actionType: "confirmation_failed",
-                actorRole: "system",
-                payload: {
-                  trigger: "stripe_webhook",
-                  sessionId: session.id,
-                  reason,
-                } as Prisma.InputJsonValue,
-              },
-            });
-            autoCancelledIds.push(b.id);
-          }
-        }
-      }
-
-      const cartId = session.metadata?.cartId;
+      const metaCouponId = session.metadata?.couponId ?? null;
+      const metaDiscount = parseInt(session.metadata?.discountCents ?? "0", 10);
       const checkoutCartItemIds = session.metadata?.checkoutCartItemIds
         ?.split(",")
         .map((x) => x.trim())
         .filter(Boolean);
-      if (cartId) {
-        if (checkoutCartItemIds?.length) {
-          await tx.cartItem.deleteMany({
-            where: { cartId, id: { in: checkoutCartItemIds } },
-          });
-        } else {
-          await tx.cartItem.deleteMany({ where: { cartId } });
-        }
-      }
-      return { skip: false, confirmedBookingIds, pendingApprovalIds, autoCancelledIds };
+      return settleCheckoutOrderPayment(tx, {
+        orderId,
+        currency: (session.currency || "eur").toUpperCase(),
+        stripeAmountCents: session.amount_total ?? order.totalCents,
+        stripePaymentId: piId,
+        stripeCheckoutSessionId: session.id,
+        couponRedemption:
+          metaCouponId && !Number.isNaN(metaDiscount) && metaDiscount > 0
+            ? { couponId: metaCouponId, amountCents: metaDiscount }
+            : null,
+        cartId: session.metadata?.cartId ?? null,
+        checkoutCartItemIds,
+      });
     });
     if (processed.skip) {
       return ack();
     }
-
-    const loadBookingEmailContext = async (bookingIds: string[]) => {
-      if (!bookingIds.length) return [];
-      return prisma.orderItem.findMany({
-        where: {
-          orderId,
-          itemType: "booking",
-          bookingId: { in: bookingIds },
-        },
-        include: {
-          booking: { include: { experience: true, slot: true } },
-          vendor: true,
-        },
-      });
-    };
-
-    const confirmedRows = await loadBookingEmailContext(processed.confirmedBookingIds);
-    const pendingRows = await loadBookingEmailContext(processed.pendingApprovalIds);
-
-    const emailBlock = (b: (typeof confirmedRows)[0]["booking"]) => {
-      if (!b) return null;
-      const slotDate = b.slot.slotDate.toISOString().slice(0, 10);
-      return {
-        experienceTitle: b.experience.title,
-        studioName: "",
-        slotDate,
-        startTime: b.slot.startTime,
-        participants: b.participantCount,
-        totalEur: (b.totalAmountCents / 100).toFixed(2),
-        ticketRef: b.ticketRef ?? "",
-        paidEur: (b.depositAmountCents / 100).toFixed(2),
-        balanceEur: (b.remainingBalanceCents / 100).toFixed(2),
-        seatType: b.seatType,
-      };
-    };
-
-    for (const it of confirmedRows) {
-      const b = it.booking;
-      if (!b || !it.vendor.email) continue;
-      const base = emailBlock(b);
-      if (!base) continue;
-      base.studioName = it.vendor.displayName;
-      const { customer, studio } = bookingConfirmationCopy(base);
-      await runStripeWebhookSideEffect(event.id, `booking_email_confirmed:${b.id}`, async () => {
-        const enriched = await enrichCustomerEmailWithCalendar(b.id, customer);
-        await sendBookingEmails({
-          customerEmail: b.customerEmail,
-          studioEmail: it.vendor.email,
-          subject: `Booking confirmed: ${b.experience.title}`,
-          customerHtml: enriched.customerHtmlWithCalendar,
-          customerAttachments: enriched.customerAttachments,
-          studioHtml: studio,
-        });
-      });
-    }
-
-    for (const bid of processed.confirmedBookingIds) {
-      await runStripeWebhookSideEffect(event.id, `calendar_sync:${bid}`, async () => {
-        await syncBookingToGoogleCalendar(bid);
-      });
-    }
-
-    for (const it of pendingRows) {
-      const b = it.booking;
-      if (!b || !it.vendor.email) continue;
-      const base = emailBlock(b);
-      if (!base) continue;
-      base.studioName = it.vendor.displayName;
-      const { customer, studio } = bookingPendingStudioConfirmationCopy(base);
-      await runStripeWebhookSideEffect(event.id, `booking_email_pending:${b.id}`, async () => {
-        await sendBookingEmails({
-          customerEmail: b.customerEmail,
-          studioEmail: it.vendor.email,
-          subject: `Booking received — approval pending: ${b.experience.title}`,
-          customerHtml: customer,
-          studioHtml: studio,
-        });
-      });
-    }
-
-    // Notify customers whose bookings were auto-cancelled due to capacity
-    const cancelledRows = await loadBookingEmailContext(processed.autoCancelledIds);
-    for (const it of cancelledRows) {
-      const b = it.booking;
-      if (!b) continue;
-      await runStripeWebhookSideEffect(event.id, `booking_email_cancelled:${b.id}`, async () => {
-        await sendBookingEmails({
-          customerEmail: b.customerEmail,
-          studioEmail: it.vendor?.email ?? "",
-          subject: `Booking cancelled — ${b.experience.title}`,
-          customerHtml: `<p>Hi ${b.customerName},</p><p>Unfortunately your booking for <strong>${b.experience.title}</strong> was automatically cancelled because the session reached capacity before your payment could be confirmed.</p><p>A refund of €${((b.depositAmountCents || b.totalAmountCents) / 100).toFixed(2)} will be processed. If you have questions, contact the studio directly.</p>`,
-          studioHtml: `<p>Booking for <strong>${b.customerName}</strong> (${b.customerEmail}) was auto-cancelled for <strong>${b.experience.title}</strong> due to capacity. A refund review is required.</p>`,
-        });
-      });
-    }
-
-    for (const bid of processed.autoCancelledIds) {
-      await runStripeWebhookSideEffect(event.id, `calendar_remove_auto_cancel:${bid}`, async () => {
-        await removeGoogleCalendarEventForBooking(bid);
-      });
-    }
-
-    const productEmailItems = await prisma.orderItem.findMany({
-      where: { orderId, itemType: "product" },
-      include: {
-        product: { select: { title: true } },
-        vendor: { select: { id: true, displayName: true, email: true } },
-      },
+    await runCheckoutCompletionSideEffects({
+      orderId,
+      confirmedBookingIds: processed.confirmedBookingIds,
+      pendingApprovalIds: processed.pendingApprovalIds,
+      autoCancelledIds: processed.autoCancelledIds,
+      runSideEffect: (concern, fn) => runStripeWebhookSideEffect(event.id, concern, fn),
     });
 
-    if (productEmailItems.length > 0) {
-      const order = await prisma.order.findUnique({ where: { id: orderId } });
-      if (order && !order.orderConfirmationSentAt) {
-        const studioNames = [...new Set(productEmailItems.map((i) => i.vendor.displayName))];
-        const studioLabel = studioNames.length === 1 ? studioNames[0]! : `${studioNames.length} partner studios`;
+    return ack();
+  }
 
-        const customerLines = productEmailItems.map(
-          (it) => `${it.vendor.displayName}: ${it.product?.title ?? "Product"} × ${it.quantity}`,
-        );
-        const totalEur = (order.totalCents / 100).toFixed(2);
-        const { customer } = orderConfirmationCopy({
-          customerName: order.customerName,
-          studioName: studioLabel,
-          items: customerLines,
-          totalEur,
-          shippingMethod: order.shippingMethod,
-          trackingNumber: null,
-        });
+  if (event.type === "checkout.session.expired") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    await releaseGiftCardRedemptionsForSession(prisma, {
+      stripeCheckoutSessionId: session.id,
+    });
 
-        await runStripeWebhookSideEffect(event.id, `order_email_customer:${orderId}`, async () => {
-          await sendOrderEmails({
-            customerEmail: order.customerEmail,
-            subject: `Order confirmed — PotteryMania`,
-            customerHtml: customer,
-          });
-        });
-
-        const byVendor = new Map<string, typeof productEmailItems>();
-        for (const it of productEmailItems) {
-          const list = byVendor.get(it.vendorId) ?? [];
-          list.push(it);
-          byVendor.set(it.vendorId, list);
-        }
-
-        for (const lines of byVendor.values()) {
-          const v = lines[0]!.vendor;
-          if (!v.email) continue;
-          const vendorLineItems = lines.map((it) => `${it.product?.title ?? "Product"} × ${it.quantity}`);
-          const vendorSubtotalCents = lines.reduce((sum, it) => sum + it.priceSnapshotCents * it.quantity, 0);
-          const vendorTotalEur = (vendorSubtotalCents / 100).toFixed(2);
-          const { vendor: vendorHtml } = orderConfirmationCopy({
-            customerName: order.customerName,
-            studioName: v.displayName,
-            items: vendorLineItems,
-            totalEur: vendorTotalEur,
-            shippingMethod: null,
-            trackingNumber: null,
-          });
-          await runStripeWebhookSideEffect(event.id, `order_email_vendor:${v.id}:${orderId}`, async () => {
-            await sendOrderEmails({
-              vendorEmail: v.email,
-              subject: `New order — ${order.customerName}`,
-              vendorHtml,
-            });
-          });
-        }
-
-        await prisma.order.update({
-          where: { id: orderId },
-          data: { orderConfirmationSentAt: new Date(), vendorNotificationSentAt: new Date() },
-        });
-      }
+    if (session.metadata?.type === "booking_remainder" && session.metadata.bookingId) {
+      await prisma.booking.updateMany({
+        where: {
+          id: session.metadata.bookingId,
+          paymentStatus: { not: "paid" },
+          remainingBalanceCents: { gt: 0 },
+        },
+        data: {
+          remainderPaymentLink: null,
+        },
+      });
     }
-
     return ack();
   }
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { depositChargedCents } from "@/lib/bookings/deposit";
+import { bookingAllowsFullPaymentOption, bookingChargeNowCents, normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
@@ -16,9 +16,14 @@ type Item = {
   quantity: number;
   participantCount?: number | null;
   seatType?: string | null;
+  classPackagePurchaseId?: string | null;
+  notes?: string | null;
+  addOnSelections?: { addOnId: string; name: string; quantity: number; unitPriceCents: number }[] | null;
+  intakeResponsePayload?: { formId: string; label: string; value: string; includeInInvoice: boolean }[] | null;
   priceSnapshotCents: number;
+  bookingPaymentPreference?: "deposit" | "full" | null;
   product?: { title: string; images: { imageUrl: string }[] } | null;
-  experience?: { title: string; bookingDepositBps: number } | null;
+  experience?: { title: string; bookingDepositBps: number; allowFullPaymentOption?: boolean } | null;
   slot?: {
     slotDate: string;
     startTime: string;
@@ -30,6 +35,7 @@ type Item = {
 type CouponPreview = {
   code: string;
   name: string | null;
+  paymentMethod?: "coupon" | "gift_card";
   subtotalBefore: number;
   discountCents: number;
   subtotalAfter: number;
@@ -46,9 +52,12 @@ export function CartContents() {
   const [line1, setLine1] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+  const [generalNotes, setGeneralNotes] = useState("");
   const [err, setErr] = useState("");
   const [promoInput, setPromoInput] = useState("");
+  const [giftCardInput, setGiftCardInput] = useState("");
   const [appliedCode, setAppliedCode] = useState("");
+  const [appliedMethod, setAppliedMethod] = useState<"coupon" | "gift_card" | null>(null);
   const [couponPreview, setCouponPreview] = useState<CouponPreview | null>(null);
   const [couponErr, setCouponErr] = useState("");
   const [couponBusy, setCouponBusy] = useState(false);
@@ -59,11 +68,12 @@ export function CartContents() {
     const j = await r.json();
     const next: Item[] = j.cart?.items || [];
     const sig = next
-      .map((i) => `${i.id}:${i.quantity}:${i.participantCount ?? ""}:${i.seatType ?? ""}`)
+      .map((i) => `${i.id}:${i.quantity}:${i.participantCount ?? ""}:${i.seatType ?? ""}:${i.priceSnapshotCents}:${(i.addOnSelections ?? []).map((selection) => `${selection.addOnId}:${selection.quantity}`).join(",")}`)
       .join("|");
     if (cartSigRef.current !== "" && cartSigRef.current !== sig) {
       setCouponPreview(null);
       setAppliedCode("");
+      setAppliedMethod(null);
       setCouponErr("");
     }
     cartSigRef.current = sig;
@@ -103,14 +113,17 @@ export function CartContents() {
     if (!multiVendor) return;
     setCouponPreview(null);
     setAppliedCode("");
+    setAppliedMethod(null);
     setCouponErr("");
   }, [multiVendor]);
 
-  async function applyPromo() {
+  async function applyAdjustment(method: "coupon" | "gift_card") {
     if (multiVendor) {
       setCouponErr("Promo codes apply to one studio at a time. Check out each studio separately, or empty the cart to a single studio first.");
       return;
     }
+    const code = method === "gift_card" ? giftCardInput.trim() : promoInput.trim();
+    if (!code) return;
     setCouponErr("");
     setCouponBusy(true);
     const singleStudioId = vendorGroups[0]?.studioId;
@@ -118,7 +131,8 @@ export function CartContents() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        code: promoInput.trim(),
+        code,
+        paymentMethod: method,
         shippingAddress: { line1, city, country },
         ...(singleStudioId ? { studioId: singleStudioId } : {}),
       }),
@@ -128,16 +142,19 @@ export function CartContents() {
     if (!r.ok) {
       setCouponPreview(null);
       setAppliedCode("");
+      setAppliedMethod(null);
       setCouponErr(typeof j.error === "string" ? j.error : "Could not apply code");
       return;
     }
     setCouponPreview(j as CouponPreview);
     setAppliedCode(j.code);
+    setAppliedMethod(method);
   }
 
   function clearPromo() {
     setCouponPreview(null);
     setAppliedCode("");
+    setAppliedMethod(null);
     setCouponErr("");
   }
 
@@ -154,8 +171,10 @@ export function CartContents() {
         customerName: name,
         customerEmail: email,
         shippingAddress: { line1, city, country },
+        notes: generalNotes.trim() || undefined,
         ...(studioScopeId ? { studioId: studioScopeId } : {}),
-        ...(!multiVendor && appliedCode ? { couponCode: appliedCode } : {}),
+        ...(!multiVendor && appliedCode && appliedMethod === "coupon" ? { couponCode: appliedCode } : {}),
+        ...(!multiVendor && appliedCode && appliedMethod === "gift_card" ? { giftCardCode: appliedCode } : {}),
       }),
     });
     const j = await r.json();
@@ -190,17 +209,64 @@ export function CartContents() {
     load();
   }
 
+  async function updateBookingNotes(itemId: string, notes: string) {
+    await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId, notes }),
+    });
+    load();
+  }
+
+  async function updateBookingPaymentPreference(itemId: string, bookingPaymentPreference: "deposit" | "full") {
+    await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId, bookingPaymentPreference }),
+    });
+    load();
+  }
+
+  async function updatePackageCredit(itemId: string, classPackagePurchaseId: string | null) {
+    await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId, classPackagePurchaseId }),
+    });
+    load();
+  }
+
+  function effectiveBookingPaymentPreference(i: Item): "deposit" | "full" {
+    return normalizeBookingPaymentPreference(i.bookingPaymentPreference ?? undefined, {
+      bookingDepositBps: i.experience?.bookingDepositBps ?? 0,
+      allowFullPaymentOption: i.experience?.allowFullPaymentOption ?? false,
+    });
+  }
+
   function lineDueCents(i: Item): number {
     if (i.itemType === "product") return i.priceSnapshotCents * i.quantity;
     const p = i.participantCount ?? 0;
-    const full = i.priceSnapshotCents * p;
-    const bps = i.experience?.bookingDepositBps ?? 0;
-    return depositChargedCents(full, bps);
+    const addOnsTotal =
+      i.addOnSelections?.reduce((sum, selection) => sum + selection.unitPriceCents * selection.quantity, 0) ?? 0;
+    if (i.classPackagePurchaseId) {
+      return addOnsTotal;
+    }
+    const full = i.priceSnapshotCents * p + addOnsTotal;
+    return bookingChargeNowCents(
+      full,
+      {
+        bookingDepositBps: i.experience?.bookingDepositBps ?? 0,
+        allowFullPaymentOption: i.experience?.allowFullPaymentOption ?? false,
+      },
+      effectiveBookingPaymentPreference(i),
+    );
   }
 
   function lineDisplayFullCents(i: Item): number {
     if (i.itemType === "product") return i.priceSnapshotCents * i.quantity;
-    return i.priceSnapshotCents * (i.participantCount ?? 0);
+    const addOnsTotal =
+      i.addOnSelections?.reduce((sum, selection) => sum + selection.unitPriceCents * selection.quantity, 0) ?? 0;
+    return i.priceSnapshotCents * (i.participantCount ?? 0) + addOnsTotal;
   }
 
   const sub = items.reduce((s, i) => s + lineDueCents(i), 0) / 100;
@@ -270,6 +336,7 @@ export function CartContents() {
               const dueEur = (lineDueCents(i) / 100).toFixed(2);
               const hasDeposit =
                 i.itemType === "booking" &&
+                !i.classPackagePurchaseId &&
                 (i.experience?.bookingDepositBps ?? 0) > 0 &&
                 lineDueCents(i) < lineDisplayFullCents(i);
 
@@ -300,6 +367,9 @@ export function CartContents() {
                       <p className="font-medium text-stone-900">
                         {i.itemType === "product" ? i.product?.title : i.experience?.title}
                       </p>
+                      {i.itemType === "booking" && i.classPackagePurchaseId ? (
+                        <p className="mt-1 text-xs font-medium text-emerald-700">Package credit applied</p>
+                      ) : null}
                       {i.itemType === "booking" && i.slot ? (
                         <p className="mt-1 text-xs text-stone-500">
                           {i.slot.slotDate.slice(0, 10)} · {i.slot.startTime}–{i.slot.endTime}
@@ -357,6 +427,112 @@ export function CartContents() {
                       </select>
                     </div>
                   )}
+                  {i.itemType === "booking" ? (
+                    <div className="mt-4">
+                      {i.classPackagePurchaseId ? (
+                        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Package credit</p>
+                          <p className="mt-1 text-sm text-emerald-800">
+                            Class price is covered by your package. Only add-ons are charged at checkout.
+                          </p>
+                          <button
+                            type="button"
+                            className="mt-2 text-xs font-medium text-emerald-800 underline"
+                            onClick={() => updatePackageCredit(i.id, null)}
+                          >
+                            Remove package credit
+                          </button>
+                        </div>
+                      ) : null}
+                      {(i.experience?.bookingDepositBps ?? 0) > 0 && !i.classPackagePurchaseId ? (
+                        <div className="mb-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Payment</p>
+                          <div className="mt-2 space-y-2">
+                            <label className="flex items-start gap-3 text-sm text-stone-700">
+                              <input
+                                type="radio"
+                                name={`booking-payment-${i.id}`}
+                                checked={effectiveBookingPaymentPreference(i) === "deposit"}
+                                onChange={() => updateBookingPaymentPreference(i.id, "deposit")}
+                              />
+                              <span>
+                                <span className="block font-medium text-stone-900">Pay deposit now</span>
+                                <span className="block text-xs text-stone-500">
+                                  Due now €{(
+                                    bookingChargeNowCents(
+                                      lineDisplayFullCents(i),
+                                      {
+                                        bookingDepositBps: i.experience?.bookingDepositBps ?? 0,
+                                        allowFullPaymentOption: i.experience?.allowFullPaymentOption ?? false,
+                                      },
+                                      "deposit",
+                                    ) / 100
+                                  ).toFixed(2)}
+                                </span>
+                              </span>
+                            </label>
+                            {bookingAllowsFullPaymentOption({
+                              bookingDepositBps: i.experience?.bookingDepositBps ?? 0,
+                              allowFullPaymentOption: i.experience?.allowFullPaymentOption ?? false,
+                            }) ? (
+                              <label className="flex items-start gap-3 text-sm text-stone-700">
+                                <input
+                                  type="radio"
+                                  name={`booking-payment-${i.id}`}
+                                  checked={effectiveBookingPaymentPreference(i) === "full"}
+                                  onChange={() => updateBookingPaymentPreference(i.id, "full")}
+                                />
+                                <span>
+                                  <span className="block font-medium text-stone-900">Pay full price now</span>
+                                  <span className="block text-xs text-stone-500">
+                                    Charge €{(lineDisplayFullCents(i) / 100).toFixed(2)} today
+                                  </span>
+                                </span>
+                              </label>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+                      <label className={ui.label} htmlFor={`booking-notes-${i.id}`}>
+                        Notes for the studio
+                      </label>
+                      <textarea
+                        id={`booking-notes-${i.id}`}
+                        className={`${ui.input} mt-1 min-h-24`}
+                        defaultValue={i.notes ?? ""}
+                        maxLength={1000}
+                        placeholder="Anything the studio should know for this booking?"
+                        onBlur={(e) => updateBookingNotes(i.id, e.target.value)}
+                      />
+                      {i.addOnSelections && i.addOnSelections.length > 0 ? (
+                        <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Extras</p>
+                          <ul className="mt-2 space-y-1 text-sm text-stone-700">
+                            {i.addOnSelections.map((selection) => (
+                              <li key={`${i.id}-${selection.addOnId}`}>
+                                {selection.name}
+                                {selection.quantity > 1 ? ` x${selection.quantity}` : ""} · +€
+                                {((selection.unitPriceCents * selection.quantity) / 100).toFixed(2)}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                      {i.intakeResponsePayload && i.intakeResponsePayload.length > 0 ? (
+                        <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Booking answers</p>
+                          <dl className="mt-2 space-y-2 text-sm text-stone-700">
+                            {i.intakeResponsePayload.map((response) => (
+                              <div key={`${i.id}-${response.formId}`}>
+                                <dt className="font-medium text-stone-800">{response.label}</dt>
+                                <dd className="whitespace-pre-wrap text-stone-600">{response.value || "—"}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </li>
               );
                   })}
@@ -372,7 +548,7 @@ export function CartContents() {
             {couponPreview ? (
               <>
                 <p>
-                  Discount ({couponPreview.code}
+                  {couponPreview.paymentMethod === "gift_card" ? "Gift card" : "Discount"} ({couponPreview.code}
                   {couponPreview.name ? ` — ${couponPreview.name}` : ""}){" "}
                   <span className="font-semibold text-emerald-800">
                     −€{(couponPreview.discountCents / 100).toFixed(2)}
@@ -445,6 +621,19 @@ export function CartContents() {
                   autoComplete="email"
                 />
               </div>
+              <div>
+                <label className={ui.label} htmlFor="cart-notes">
+                  Order notes
+                </label>
+                <textarea
+                  id="cart-notes"
+                  className={`${ui.input} mt-1 min-h-24`}
+                  placeholder="General notes for this checkout"
+                  value={generalNotes}
+                  onChange={(e) => setGeneralNotes(e.target.value)}
+                  maxLength={1000}
+                />
+              </div>
               {hasProducts ? (
                 <>
                   <div>
@@ -512,7 +701,7 @@ export function CartContents() {
                         <button
                           type="button"
                           disabled={couponBusy || !promoInput.trim()}
-                          onClick={applyPromo}
+                          onClick={() => applyAdjustment("coupon")}
                           className={ui.buttonSecondary}
                         >
                           Use code
@@ -529,6 +718,32 @@ export function CartContents() {
                         ? "Shipping and tax estimates use your address above."
                         : "Discount applies to class deposits in this cart."}
                     </p>
+                    <div className="mt-4 border-t border-stone-200 pt-4">
+                      <label className={ui.label} htmlFor="cart-gift-card">
+                        Gift card
+                      </label>
+                      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <input
+                          id="cart-gift-card"
+                          className={`${ui.input} sm:min-w-0 sm:flex-1`}
+                          placeholder="PM-GIFT-XXXX-XXXX"
+                          value={giftCardInput}
+                          onChange={(e) => setGiftCardInput(e.target.value)}
+                          autoComplete="off"
+                        />
+                        <button
+                          type="button"
+                          disabled={couponBusy || !giftCardInput.trim()}
+                          onClick={() => applyAdjustment("gift_card")}
+                          className={ui.buttonSecondary}
+                        >
+                          Apply gift card
+                        </button>
+                      </div>
+                      <p className="mt-2 text-xs text-stone-500">
+                        Gift cards are studio-specific and reduce the amount charged at checkout.
+                      </p>
+                    </div>
                   </>
                 )}
               </div>

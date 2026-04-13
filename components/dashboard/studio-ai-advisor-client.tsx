@@ -59,9 +59,7 @@ export default function StudioAiAdvisorClient({
     <div className="space-y-6">
       {!openAiConfigured ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          The platform has not configured an OpenAI API key yet. Chat will work once{" "}
-          <code className="rounded bg-white/80 px-1 font-mono text-xs">OPENAI_API_KEY</code> is set in the deployment
-          environment.
+          AI chat is not available yet. The platform team is finishing the setup — this feature will activate automatically once ready.
         </p>
       ) : null}
 

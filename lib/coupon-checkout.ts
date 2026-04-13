@@ -98,8 +98,9 @@ export function lineRowsToStripeLineItems(
   rows: CheckoutLineRow[],
   flattenForCoupon: boolean,
 ): Stripe.Checkout.SessionCreateParams.LineItem[] {
+  const payableRows = rows.filter((row) => row.chargedLineCents > 0);
   if (!flattenForCoupon) {
-    return rows.map((r) => ({
+    return payableRows.map((r) => ({
       quantity: r.stripeQuantity,
       price_data: {
         currency: "eur",
@@ -109,7 +110,7 @@ export function lineRowsToStripeLineItems(
     }));
   }
 
-  return rows.map((r) => {
+  return payableRows.map((r) => {
     let name = r.stripeName;
     if (r.itemType === "product" && r.quantity > 1) {
       name = `${r.title} × ${r.quantity}`;

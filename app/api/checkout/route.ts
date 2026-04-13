@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { getCartForRequest, cartItemInclude } from "@/lib/cart-server";
@@ -19,7 +20,15 @@ import {
   validateCouponState,
 } from "@/lib/coupon-checkout";
 import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
+import {
+  attachGiftCardReservationsToSession,
+  applyGiftCardToLineRows,
+  previewGiftCardRedemption,
+  reserveGiftCardRedemption,
+  releaseGiftCardRedemptionsForOrder,
+} from "@/lib/gift-cards/checkout";
 import { logApiError } from "@/lib/monitoring";
+import { runCheckoutCompletionSideEffects, settleCheckoutOrderPayment } from "@/lib/orders/checkout-completion";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 import { resolveShippingZoneForDestination, zonePriceCents } from "@/lib/shipping-zones";
 function baseUrl() {
@@ -42,6 +51,7 @@ export async function POST(req: Request) {
     billingAddress?: Record<string, unknown>;
     notes?: string;
     couponCode?: string;
+    giftCardCode?: string;
     /** Required when the cart contains items from multiple studios (separate Stripe Connect checkouts). */
     studioId?: string;
   };
@@ -81,7 +91,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: built.error }, { status: built.status });
   }
 
-  let { lineRows, subtotal, commissionTotal } = built;
+  let { lineRows, subtotal } = built;
   const { studioId, productBps, bookingBps } = built;
 
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
@@ -97,6 +107,8 @@ export async function POST(req: Request) {
   let couponIdForMeta: string | null = null;
   let couponCodeForMeta: string | null = null;
   let discountAppliedCents = 0;
+  let giftCardForMeta: { id: string; code: string; name: string } | null = null;
+  let giftCardAppliedCents = 0;
 
   const rawCoupon = typeof body.couponCode === "string" ? body.couponCode.trim() : "";
   if (rawCoupon.length > 0) {
@@ -124,7 +136,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This coupon does not reduce this order" }, { status: 400 });
     }
     lineRows = applyCouponToLineRows(lineRows, productBps, bookingBps, disc);
-    ({ subtotal, commissionTotal } = recomputeTotalsFromLineRows(lineRows));
+    ({ subtotal } = recomputeTotalsFromLineRows(lineRows));
     couponIdForMeta = coupon.id;
     couponCodeForMeta = coupon.code;
     discountAppliedCents = disc;
@@ -136,6 +148,22 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+  }
+
+  const rawGiftCard = typeof body.giftCardCode === "string" ? body.giftCardCode.trim() : "";
+  if (rawGiftCard.length > 0) {
+    const giftCardPreview = await previewGiftCardRedemption(prisma, rawGiftCard, subtotal, {
+      studioId,
+    });
+    if (!giftCardPreview.ok) {
+      return NextResponse.json({ error: giftCardPreview.error }, { status: giftCardPreview.status });
+    }
+    giftCardAppliedCents = giftCardPreview.preview.appliedCents;
+    giftCardForMeta = {
+      id: giftCardPreview.preview.giftCard.id,
+      code: giftCardPreview.preview.giftCard.code,
+      name: giftCardPreview.preview.giftCard.name,
+    };
   }
 
   const hasBookingsInCart = lineRows.some((row) => row.itemType === "booking");
@@ -208,6 +236,7 @@ export async function POST(req: Request) {
         destinationCountry: shippingAddressJson.country,
       })
     : 0;
+  const stripeChargeTotal = Math.max(0, subtotal - giftCardAppliedCents) + shippingQuote.shippingCents + estimatedTaxCents;
   const grandTotal = subtotal + shippingQuote.shippingCents + estimatedTaxCents;
 
   let order;
@@ -261,6 +290,8 @@ export async function POST(req: Request) {
 
       if (row.itemType === "booking" && row.experienceId && row.slotId && row.participantCount) {
         const ticketRef = await allocateTicketRef(tx);
+        const bookingDiscountCents = Math.max(0, row.originalChargedLineCents - row.chargedLineCents);
+        const bookingNetTotalCents = Math.max(0, row.fullLineCents - bookingDiscountCents);
         const booking = await tx.booking.create({
           data: {
             studioId,
@@ -275,15 +306,43 @@ export async function POST(req: Request) {
             ticketRef,
             bookingStatus: "pending",
             paymentStatus: "pending",
-            totalAmountCents: row.fullLineCents,
+            totalAmountCents: bookingNetTotalCents,
             depositAmountCents: row.chargedLineCents,
-            remainingBalanceCents: row.fullLineCents - row.chargedLineCents,
+            remainingBalanceCents: Math.max(0, bookingNetTotalCents - row.chargedLineCents),
+            classPackagePurchaseId: row.classPackagePurchaseId ?? null,
+            remainderPaymentLink: null,
             commissionAmountCents: row.commissionCents,
             vendorAmountCents: row.vendorCents,
             cancellationPolicySnapshot: row.policySnapshot,
-            notes: body.notes?.trim() || null,
+            notes: row.notes ?? (body.notes?.trim() || null),
           },
         });
+
+        if (row.addOnSelections?.length) {
+          await tx.bookingAddOn.createMany({
+            data: row.addOnSelections.map((selection) => ({
+              bookingId: booking.id,
+              addOnId: selection.addOnId,
+              addOnName: selection.name,
+              quantity: selection.quantity,
+              unitPriceCents: selection.unitPriceCents,
+              durationMinutesExtra: selection.durationMinutesExtra,
+            })),
+          });
+        }
+
+        if (row.intakeResponses?.length) {
+          await tx.intakeFormResponse.createMany({
+            data: row.intakeResponses.map((response) => ({
+              bookingId: booking.id,
+              formId: response.formId,
+              labelSnapshot: response.label,
+              fieldTypeSnapshot: response.fieldType,
+              includeInInvoiceSnapshot: response.includeInInvoice,
+              value: response.value,
+            })),
+          });
+        }
 
         await tx.orderItem.create({
           data: {
@@ -315,6 +374,15 @@ export async function POST(req: Request) {
       });
     }
 
+    if (giftCardForMeta && giftCardAppliedCents > 0) {
+      await reserveGiftCardRedemption(tx, {
+        giftCardId: giftCardForMeta.id,
+        orderId: createdOrder.id,
+        redeemedByUserId: user?.id ?? null,
+        amountCents: giftCardAppliedCents,
+      });
+    }
+
     return createdOrder;
   });
   } catch (e) {
@@ -324,14 +392,81 @@ export async function POST(req: Request) {
         { status: 409 },
       );
     }
+    if (e instanceof Error && e.message === "GIFT_CARD_BALANCE_CONFLICT") {
+      return NextResponse.json(
+        { error: "This gift card balance changed. Please review and try again." },
+        { status: 409 },
+      );
+    }
     throw e;
   }
 
-  const stripe = getStripe();
-  const useFlattenedStripe = discountAppliedCents > 0;
-  const line_items = lineRowsToStripeLineItems(lineRows, useFlattenedStripe);
-
   const checkoutCartItemIds = lineRows.map((r) => r.cartItemId).join(",");
+  const checkoutCartItemIdsList = checkoutCartItemIds
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (stripeChargeTotal <= 0) {
+    try {
+      const processed = await prisma.$transaction((tx) =>
+        settleCheckoutOrderPayment(tx, {
+          orderId: order.id,
+          currency: "EUR",
+          giftCardAmountCents: giftCardAppliedCents,
+          couponRedemption:
+            couponIdForMeta && discountAppliedCents > 0
+              ? { couponId: couponIdForMeta, amountCents: discountAppliedCents }
+              : null,
+          cartId,
+          checkoutCartItemIds: checkoutCartItemIdsList,
+        }),
+      );
+      if (!processed.skip) {
+        await runCheckoutCompletionSideEffects({
+          orderId: order.id,
+          confirmedBookingIds: processed.confirmedBookingIds,
+          pendingApprovalIds: processed.pendingApprovalIds,
+          autoCancelledIds: processed.autoCancelledIds,
+        });
+      }
+      return NextResponse.json({
+        url: `${baseUrl()}/checkout/success?orderId=${encodeURIComponent(order.id)}`,
+        orderId: order.id,
+        totals: {
+          subtotal,
+          discount: discountAppliedCents + giftCardAppliedCents,
+          shipping: shippingQuote.shippingCents,
+          tax: estimatedTaxCents,
+          total: stripeChargeTotal,
+        },
+      });
+    } catch (error) {
+      await releaseGiftCardRedemptionsForOrder(prisma, { orderId: order.id });
+      throw error;
+    }
+  }
+
+  const stripe = getStripe();
+  const useFlattenedStripe = discountAppliedCents > 0 || giftCardAppliedCents > 0;
+  const stripeLineRows =
+    giftCardAppliedCents > 0
+      ? applyGiftCardToLineRows(lineRows, productBps, bookingBps, Math.min(giftCardAppliedCents, subtotal))
+      : lineRows;
+  const stripeTotals = recomputeTotalsFromLineRows(stripeLineRows);
+  const line_items = lineRowsToStripeLineItems(stripeLineRows, useFlattenedStripe);
+  if (shippingQuote.shippingCents > 0) {
+    line_items.push({
+      quantity: 1,
+      price_data: {
+        currency: "eur",
+        unit_amount: shippingQuote.shippingCents,
+        product_data: {
+          name: shippingQuote.methodLabel,
+        },
+      },
+    });
+  }
 
   const sessionMetadata: Record<string, string> = {
     orderId: order.id,
@@ -343,41 +478,61 @@ export async function POST(req: Request) {
     sessionMetadata.discountCents = String(discountAppliedCents);
     if (couponCodeForMeta) sessionMetadata.couponCode = couponCodeForMeta;
   }
+  if (giftCardForMeta && giftCardAppliedCents > 0) {
+    sessionMetadata.giftCardId = giftCardForMeta.id;
+    sessionMetadata.giftCardCode = giftCardForMeta.code;
+    sessionMetadata.giftCardAppliedCents = String(giftCardAppliedCents);
+  }
 
-  const session = await stripe.checkout.sessions.create(
-    {
-      mode: "payment",
-      customer_email: customerEmail,
-      line_items,
-      success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl()}/cart?cancelled=1`,
-      automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
-      payment_intent_data: {
-        ...(commissionTotal > 0 ? { application_fee_amount: commissionTotal } : {}),
-        metadata: {
-          orderId: order.id,
-          ...(couponIdForMeta ? { couponId: couponIdForMeta, discountCents: String(discountAppliedCents) } : {}),
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        customer_email: customerEmail,
+        line_items,
+        success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl()}/cart?cancelled=1`,
+        automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
+        payment_intent_data: {
+          ...(stripeTotals.commissionTotal > 0 ? { application_fee_amount: stripeTotals.commissionTotal } : {}),
+          metadata: {
+            orderId: order.id,
+            ...(couponIdForMeta ? { couponId: couponIdForMeta, discountCents: String(discountAppliedCents) } : {}),
+            ...(giftCardForMeta ? { giftCardId: giftCardForMeta.id, giftCardAppliedCents: String(giftCardAppliedCents) } : {}),
+          },
         },
+        metadata: sessionMetadata,
       },
-      metadata: sessionMetadata,
-    },
-    { stripeAccount: stripeRow.stripeAccountId },
-  );
+      { stripeAccount: stripeRow.stripeAccountId },
+    );
 
-  await prisma.order.update({
-    where: { id: order.id },
-    data: { stripeCheckoutSessionId: session.id },
-  });
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: order.id },
+        data: { stripeCheckoutSessionId: session.id },
+      });
+      if (giftCardForMeta && giftCardAppliedCents > 0) {
+        await attachGiftCardReservationsToSession(tx, {
+          orderId: order.id,
+          stripeCheckoutSessionId: session.id,
+        });
+      }
+    });
+  } catch (error) {
+    await releaseGiftCardRedemptionsForOrder(prisma, { orderId: order.id });
+    throw error;
+  }
 
   return NextResponse.json({
     url: session.url,
     orderId: order.id,
     totals: {
       subtotal,
-      discount: discountAppliedCents,
+      discount: discountAppliedCents + giftCardAppliedCents,
       shipping: shippingQuote.shippingCents,
       tax: estimatedTaxCents,
-      total: grandTotal,
+      total: stripeChargeTotal,
     },
   });
 }

@@ -7,6 +7,7 @@ import type { Prisma } from "@prisma/client";
 import { removeGoogleCalendarEventForBooking, syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 import { enrichCustomerEmailWithCalendar } from "@/lib/calendar/booking-email-calendar";
 import { logApiError } from "@/lib/monitoring";
+import { settleBookingRemainderPayment } from "@/lib/bookings/remainder";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
 
@@ -27,7 +28,7 @@ export async function POST(req: Request, ctx: Ctx) {
   }
 
   const action = typeof body.action === "string" ? body.action : "";
-  if (action !== "approve" && action !== "reject" && action !== "mark_completed") {
+  if (action !== "approve" && action !== "reject" && action !== "mark_completed" && action !== "mark_remainder_paid") {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 
@@ -37,6 +38,8 @@ export async function POST(req: Request, ctx: Ctx) {
       studio: { select: { ownerUserId: true, email: true, displayName: true } },
       experience: true,
       slot: true,
+      bookingAddOns: true,
+      intakeResponses: true,
     },
   });
 
@@ -65,6 +68,19 @@ export async function POST(req: Request, ctx: Ctx) {
       });
     });
     return NextResponse.json({ ok: true, bookingStatus: "completed" });
+  }
+
+  if (action === "mark_remainder_paid") {
+    const result = await prisma.$transaction((tx) =>
+      settleBookingRemainderPayment(tx, {
+        bookingId,
+        provider: "manual",
+      }),
+    );
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true, paymentStatus: "paid", skip: result.skip ?? false });
   }
 
   if (booking.bookingStatus !== "awaiting_vendor_approval") {
@@ -100,6 +116,15 @@ export async function POST(req: Request, ctx: Ctx) {
       paidEur: (booking.depositAmountCents / 100).toFixed(2),
       balanceEur: (booking.remainingBalanceCents / 100).toFixed(2),
       seatType: booking.seatType,
+      addOnLines: booking.bookingAddOns.map((entry) =>
+        entry.quantity > 1
+          ? `${entry.addOnName} x${entry.quantity} (+€${((entry.unitPriceCents * entry.quantity) / 100).toFixed(2)})`
+          : `${entry.addOnName} (+€${(entry.unitPriceCents / 100).toFixed(2)})`,
+      ),
+      intakeLines: booking.intakeResponses.map((entry) => ({
+        label: entry.labelSnapshot,
+        value: entry.value,
+      })),
     });
 
     try {

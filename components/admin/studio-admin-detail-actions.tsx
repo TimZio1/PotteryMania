@@ -74,7 +74,7 @@ export function StudioAdminDetailActions({ studioId, displayName, status, market
       </label>
 
       <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-amber-950">Marketplace rank weight</h3>
+        <h3 className="text-sm font-semibold text-amber-950">Discovery rank weight</h3>
         <p className="mt-1 text-xs text-stone-500">
           Higher values sort earlier on /studios (recommended ordering). Range roughly −10 000 … 10 000.
         </p>

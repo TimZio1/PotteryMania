@@ -146,7 +146,10 @@ export default async function AdminPage() {
   const grossRevenueMonthCents = sumBy(paidOrdersMonth, (order) => order.totalCents);
   const grossRevenuePrevious30Cents = sumBy(previousOrders30.filter(isMonetizedOrder), (order) => order.totalCents);
   const platformCommissionMonthCents = sumBy(paidOrdersMonth, orderCommissionCents);
-  const bookingCashMonthCents = sumBy(monetizedBookingsMonth, (booking) => booking.depositAmountCents);
+  const bookingCashMonthCents = sumBy(
+    monetizedBookingsMonth,
+    (booking) => booking.totalAmountCents - booking.remainingBalanceCents,
+  );
   const refundsProxyCents = sumBy(refundedOrders30, (order) => order.totalCents) + (refundAmountBookings._sum.refundAmountCents ?? 0);
   const contributionProfitProxyCents = Math.max(0, platformCommissionMonthCents - refundsProxyCents);
 

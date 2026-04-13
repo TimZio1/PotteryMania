@@ -34,11 +34,9 @@ export default async function DashboardBillingPage() {
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-10">
       <div>
         <p className={ui.overline}>Billing</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Workspace billing</h1>
+        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Billing</h1>
         <p className="mt-2 text-sm text-stone-600">
-          PotteryMania advanced features and bundles are purchased per studio from{" "}
-          <strong>Advanced features</strong>. Legacy <code className="text-xs">billing_plans</code> rows below are shown for
-          transparency when workspace-level plans are enabled.
+          View your studio plans, purchase packs and add-ons, and manage your subscription — all from one place.
         </p>
       </div>
 
@@ -124,7 +122,7 @@ export default async function DashboardBillingPage() {
           </table>
         </div>
         <p className="text-xs text-stone-500">
-          Advanced features are still purchased per studio from Advanced features.
+          Advanced features are purchased per studio from the Packs &amp; add-ons page.
         </p>
       </div>
       <div className={`${ui.card} space-y-3`}>

@@ -9,8 +9,8 @@ export type StudioThroughput30d = {
   orderGmvCents: number;
   /** Platform commission snapshots on those lines. */
   orderCommissionCents: number;
-  /** Booking deposit cash collected (class checkout), last 30d. */
-  bookingDepositsCents: number;
+  /** Booking cash collected (deposits + later remainder payments), last 30d. */
+  bookingCollectedCents: number;
 };
 
 const MONETIZED_ORDER_STATUSES = ["paid", "processing", "fulfilled", "refunded", "partially_refunded"] as const;
@@ -44,7 +44,7 @@ export async function studioThroughputLast30d(
         createdAt: { gte: windowStart },
         paymentStatus: { in: ["paid", "partial"] },
       },
-      _sum: { depositAmountCents: true },
+      _sum: { totalAmountCents: true, remainingBalanceCents: true },
     }),
     prisma.studio.findMany({
       where: { status: "approved" },
@@ -62,9 +62,12 @@ export async function studioThroughputLast30d(
     orderByVendor.set(it.vendorId, cur);
   }
 
-  const depositByStudio = new Map<string, number>();
+  const bookingCashByStudio = new Map<string, number>();
   for (const g of bookingGroups) {
-    depositByStudio.set(g.studioId, g._sum.depositAmountCents ?? 0);
+    bookingCashByStudio.set(
+      g.studioId,
+      (g._sum.totalAmountCents ?? 0) - (g._sum.remainingBalanceCents ?? 0),
+    );
   }
 
   const rows: StudioThroughput30d[] = studios.map((s) => {
@@ -76,15 +79,15 @@ export async function studioThroughputLast30d(
       country: s.country,
       orderGmvCents: o.gmv,
       orderCommissionCents: o.commission,
-      bookingDepositsCents: depositByStudio.get(s.id) ?? 0,
+      bookingCollectedCents: bookingCashByStudio.get(s.id) ?? 0,
     };
   });
 
   rows.sort(
     (a, b) =>
       b.orderGmvCents +
-      b.bookingDepositsCents -
-      (a.orderGmvCents + a.bookingDepositsCents),
+      b.bookingCollectedCents -
+      (a.orderGmvCents + a.bookingCollectedCents),
   );
 
   return rows;

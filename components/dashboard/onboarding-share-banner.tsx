@@ -66,9 +66,9 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">
-              Next: get your first sale or booking
+              Your studio is ready
             </p>
-            <p className="mt-1 text-sm font-medium text-stone-900">Your public studio link is live — share it today.</p>
+            <p className="mt-1 text-sm font-medium text-stone-900">Your public studio page is live. Share your link to start getting bookings.</p>
             <p className="mt-2 text-sm text-stone-600">
               <span className="font-mono text-xs break-all sm:text-sm">{publicUrl}</span>
             </p>

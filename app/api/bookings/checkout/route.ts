@@ -3,9 +3,11 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { resolveCommissionBps, commissionCentsFromLine } from "@/lib/commission";
 import { getStripe } from "@/lib/stripe";
-import { depositChargedCents } from "@/lib/bookings/deposit";
+import { bookingChargeNowCents, normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
 import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import { seatTypeCapacityError, validateSeatTypeRequired } from "@/lib/bookings/seat-type";
+import { addOnSelectionSummary, validateAndSnapshotAddOnSelections } from "@/lib/bookings/add-ons";
+import { validateIntakeResponses } from "@/lib/intake-forms/validate-responses";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import type { CancellationPolicy } from "@prisma/client";
@@ -48,7 +50,10 @@ export async function POST(req: Request) {
     customerEmail?: string;
     customerPhone?: string;
     notes?: string;
+    bookingPaymentPreference?: "deposit" | "full";
     seatType?: string | null;
+    addOnSelections?: unknown;
+    intakeResponses?: unknown;
   };
   try {
     body = await req.json();
@@ -94,6 +99,17 @@ export async function POST(req: Request) {
   if (slot.status !== "open") {
     return NextResponse.json({ error: "Slot not bookable" }, { status: 400 });
   }
+  const cutoffMs = (experience.bookingCutoffHours ?? 0) * 3600_000;
+  if (cutoffMs > 0) {
+    const dateStr = slot.slotDate.toISOString().slice(0, 10);
+    const slotStartMs = new Date(`${dateStr}T${slot.startTime}:00`).getTime();
+    if (slotStartMs - Date.now() < cutoffMs) {
+      return NextResponse.json(
+        { error: `Bookings close ${experience.bookingCutoffHours}h before the session` },
+        { status: 400 },
+      );
+    }
+  }
 
   if (participantCount < experience.minimumParticipants || participantCount > experience.maximumParticipants) {
     return NextResponse.json({ error: "Invalid participant count for this experience" }, { status: 400 });
@@ -114,8 +130,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: studioCanOperateMessage() }, { status: 400 });
   }
 
-  const fullLine = experience.priceCents * participantCount;
-  const charged = depositChargedCents(fullLine, experience.bookingDepositBps);
+  const addOnValidation = await validateAndSnapshotAddOnSelections(prisma, experience.id, body.addOnSelections);
+  if (!addOnValidation.ok) {
+    return NextResponse.json(
+      { error: addOnValidation.error, ...(addOnValidation.priceChanged ? { priceChanged: true } : {}) },
+      { status: addOnValidation.priceChanged ? 409 : 400 },
+    );
+  }
+
+  const intakeValidation = await validateIntakeResponses(prisma, experience.id, body.intakeResponses);
+  if (!intakeValidation.ok) {
+    return NextResponse.json({ error: intakeValidation.error }, { status: 400 });
+  }
+
+  const fullLine = experience.priceCents * participantCount + addOnValidation.totalCents;
+  const bookingPaymentPreference = normalizeBookingPaymentPreference(body.bookingPaymentPreference, {
+    bookingDepositBps: experience.bookingDepositBps,
+    allowFullPaymentOption: experience.allowFullPaymentOption,
+  });
+  const charged = bookingChargeNowCents(
+    fullLine,
+    {
+      bookingDepositBps: experience.bookingDepositBps,
+      allowFullPaymentOption: experience.allowFullPaymentOption,
+    },
+    bookingPaymentPreference,
+  );
   const bps = await resolveCommissionBps(studio.id, "booking");
   const commissionTotal = commissionCentsFromLine(charged, bps);
   const vendorCents = charged - commissionTotal;
@@ -147,6 +187,32 @@ export async function POST(req: Request) {
         notes: body.notes?.trim() || null,
       },
     });
+
+    if (addOnValidation.selections.length > 0) {
+      await tx.bookingAddOn.createMany({
+        data: addOnValidation.selections.map((selection) => ({
+          bookingId: booking.id,
+          addOnId: selection.addOnId,
+          addOnName: selection.name,
+          quantity: selection.quantity,
+          unitPriceCents: selection.unitPriceCents,
+          durationMinutesExtra: selection.durationMinutesExtra,
+        })),
+      });
+    }
+
+    if (intakeValidation.responses.length > 0) {
+      await tx.intakeFormResponse.createMany({
+        data: intakeValidation.responses.map((response) => ({
+          bookingId: booking.id,
+          formId: response.formId,
+          labelSnapshot: response.label,
+          fieldTypeSnapshot: response.fieldType,
+          includeInInvoiceSnapshot: response.includeInInvoice,
+          value: response.value,
+        })),
+      });
+    }
 
     const order = await tx.order.create({
       data: {
@@ -180,9 +246,12 @@ export async function POST(req: Request) {
 
   const stripe = getStripe();
   const isDeposit = charged < fullLine;
+  const addOnSuffix = addOnValidation.selections.length
+    ? ` + ${addOnSelectionSummary(addOnValidation.selections).join(", ")}`
+    : "";
   const stripeName = isDeposit
-    ? `${experience.title} — deposit (${participantCount} pax)`
-    : `${experience.title} (per person)`;
+    ? `${experience.title}${addOnSuffix} — deposit (${participantCount} pax)`
+    : `${experience.title}${addOnSuffix}`;
 
   const session = await stripe.checkout.sessions.create(
     {
@@ -190,10 +259,10 @@ export async function POST(req: Request) {
       customer_email: customerEmail,
       line_items: [
         {
-          quantity: isDeposit ? 1 : participantCount,
+          quantity: 1,
           price_data: {
             currency: "eur",
-            unit_amount: isDeposit ? charged : experience.priceCents,
+            unit_amount: charged,
             product_data: { name: stripeName },
           },
         },
@@ -202,9 +271,9 @@ export async function POST(req: Request) {
       cancel_url: `${baseUrl()}/classes/${experience.id}?cancelled=1`,
       payment_intent_data: {
         ...(commissionTotal > 0 ? { application_fee_amount: commissionTotal } : {}),
-        metadata: { orderId: order.id },
+        metadata: { orderId: order.id, bookingPaymentPreference },
       },
-      metadata: { orderId: order.id },
+      metadata: { orderId: order.id, bookingPaymentPreference },
     },
     { stripeAccount: stripeRow.stripeAccountId },
   );

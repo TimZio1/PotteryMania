@@ -8,10 +8,17 @@ export type StudioBookingListRow = {
   totalAmountCents: number;
   depositAmountCents: number;
   remainingBalanceCents: number;
+  depositPaidAt: string | null;
+  remainderPaidAt: string | null;
+  remainderPaymentLink: string | null;
   customerName: string;
   customerEmail: string;
   customerPhone: string | null;
   ticketRef: string | null;
+  notes: string | null;
+  cancellationPolicySummary: string | null;
+  addOns: { name: string; quantity: number; unitPriceCents: number }[];
+  intakeResponses: { label: string; value: string; includeInInvoice: boolean }[];
   experience: { id: string; title: string };
   slot: { slotDate: string; startTime: string; endTime: string };
   createdAt: string;

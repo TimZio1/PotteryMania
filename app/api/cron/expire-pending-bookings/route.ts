@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { logCronRun } from "@/lib/cron-audit";
 import type { Prisma } from "@prisma/client";
 import { removeGoogleCalendarEventForBooking } from "@/lib/calendar/google-sync";
+import { releaseGiftCardRedemptionsForOrder } from "@/lib/gift-cards/checkout";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,8 @@ export async function GET(req: Request) {
     let bookingsExpired = 0;
 
     for (const order of orders) {
+      await releaseGiftCardRedemptionsForOrder(tx, { orderId: order.id });
+
       for (const item of order.items) {
         if (item.itemType !== "booking" || !item.bookingId) continue;
         const b = await tx.booking.findUnique({ where: { id: item.bookingId } });
