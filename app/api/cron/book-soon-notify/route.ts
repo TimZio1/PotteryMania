@@ -4,17 +4,10 @@ import { prisma } from "@/lib/db";
 import { logCronRun } from "@/lib/cron-audit";
 import { sendEmailMessages } from "@/lib/email/base";
 import { bookSoonCopy } from "@/lib/email/booking-notify";
+import { renderTemplateVariables, resolveNotificationTemplate } from "@/lib/email/notification-template";
 
 function siteOrigin() {
   return (process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
-}
-
-function renderBookSoonBody(template: string, vars: Record<string, string>) {
-  let output = template;
-  for (const [key, value] of Object.entries(vars)) {
-    output = output.replaceAll(`{{${key}}}`, value);
-  }
-  return output;
 }
 
 export async function GET(req: Request) {
@@ -57,6 +50,7 @@ export async function GET(req: Request) {
         },
         select: {
           id: true,
+          experienceId: true,
           customerName: true,
           customerEmail: true,
           customerUserId: true,
@@ -87,8 +81,13 @@ export async function GET(req: Request) {
             lastVisitDate: booking.slot.slotDate.toISOString().slice(0, 10),
             daysAfterVisit: String(rule.daysAfterVisit),
           };
-          const subject = renderBookSoonBody(rule.emailSubject, vars);
-          const body = renderBookSoonBody(rule.emailBody, vars);
+          const template = await resolveNotificationTemplate({
+            studioId: rule.studioId,
+            templateType: "book_soon",
+            experienceId: booking.experienceId,
+          });
+          const subject = renderTemplateVariables(template?.subject ?? rule.emailSubject, vars);
+          const body = renderTemplateVariables(template?.bodyHtml ?? rule.emailBody, vars);
           await sendEmailMessages([
             {
               to: booking.customerEmail,

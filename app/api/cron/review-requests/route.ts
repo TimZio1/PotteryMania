@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { logCronRun } from "@/lib/cron-audit";
-import { sendEmailMessages } from "@/lib/email/base";
+import { renderEmailShell, sendEmailMessages } from "@/lib/email/base";
 import { reviewRequestCopy } from "@/lib/email/booking-notify";
+import { renderTemplateVariables, resolveNotificationTemplate } from "@/lib/email/notification-template";
 
 function siteOrigin() {
   return (process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
@@ -39,16 +40,40 @@ export async function GET(req: Request) {
     for (const booking of candidates) {
       try {
         const reviewUrl = `${origin}/reviews/new?booking=${encodeURIComponent(booking.id)}`;
-        await sendEmailMessages([
-          {
-            to: booking.customerEmail,
-            subject: `How was your ${booking.experience.title} session?`,
-            html: reviewRequestCopy({
+        const template = await resolveNotificationTemplate({
+          studioId: booking.studioId,
+          templateType: "review_request",
+          experienceId: booking.experienceId,
+        });
+        const vars = {
+          customerName: booking.customerName,
+          className: booking.experience.title,
+          studioName: booking.studio.displayName,
+          reviewUrl,
+        };
+        const subject = template
+          ? renderTemplateVariables(template.subject, vars)
+          : `How was your ${booking.experience.title} session?`;
+        const html = template
+          ? renderEmailShell({
+              eyebrow: "How was your session?",
+              title: subject,
+              intro: `Thanks for attending ${booking.experience.title} at ${booking.studio.displayName}.`,
+              bodyHtml: renderTemplateVariables(template.bodyHtml, vars),
+              ctaLabel: "Leave a review",
+              ctaUrl: reviewUrl,
+            })
+          : reviewRequestCopy({
               customerName: booking.customerName,
               experienceTitle: booking.experience.title,
               studioName: booking.studio.displayName,
               reviewUrl,
-            }),
+            });
+        await sendEmailMessages([
+          {
+            to: booking.customerEmail,
+            subject,
+            html,
           },
         ]);
 

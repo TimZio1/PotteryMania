@@ -19,6 +19,7 @@ export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
     { href: b("/loyalty"), label: "Loyalty points" },
     { href: b("/book-soon"), label: "Book soon reminders" },
     { href: b("/reviews"), label: "Reviews moderation" },
+    { href: b("/notifications"), label: "Notifications" },
     { href: b("/gift-cards"), label: "Gift cards" },
     { href: b("/packages"), label: "Class packages" },
     { href: b("/memberships"), label: "Memberships" },
