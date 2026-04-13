@@ -126,12 +126,20 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Session calendar</h1>
           <p className="mt-2 text-sm text-stone-600">Upcoming reservations, reschedules, and calendar links for your studio visits.</p>
         </div>
-        <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center sm:w-auto!`}>
-          View waitlist
-        </Link>
-        <Link href="/my-loyalty" className={`${platformUi.buttonSecondary} text-center sm:w-auto!`}>
-          Loyalty points
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center`}>
+            View waitlist
+          </Link>
+          <Link href="/my-loyalty" className={`${platformUi.buttonSecondary} text-center`}>
+            Loyalty points
+          </Link>
+          <Link href="/my-packages" className={`${platformUi.buttonSecondary} text-center`}>
+            Packages
+          </Link>
+          <Link href="/my-memberships" className={`${platformUi.buttonSecondary} text-center`}>
+            Memberships
+          </Link>
+        </div>
       </div>
 
       {actionMsg ? (

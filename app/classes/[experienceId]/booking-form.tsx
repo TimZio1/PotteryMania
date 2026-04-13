@@ -118,6 +118,8 @@ export function ClassBookingForm(props: {
     }),
   );
 
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const [payAtStudioMode, setPayAtStudioMode] = useState(false);
   const [pasName, setPasName] = useState("");
   const [pasEmail, setPasEmail] = useState("");
@@ -363,6 +365,7 @@ export function ClassBookingForm(props: {
         classPackagePurchaseId: selectedPackagePurchaseId || null,
         addOnSelections: selectedAddOnPayload,
         intakeResponses: intakePayload,
+        acceptTerms: true,
       };
       if (seatKeys.length) body.seatType = seatType;
       if (bookingNotes.trim()) body.notes = bookingNotes.trim();
@@ -918,6 +921,21 @@ export function ClassBookingForm(props: {
               Cancellation policy: {props.cancellationPolicyLabel}
             </p>
           ) : null}
+          <label className="flex items-start gap-3 rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-stone-300 text-amber-900 focus:ring-amber-900/25"
+            />
+            <span>
+              I accept the{" "}
+              <Link href="/terms" target="_blank" className="font-medium text-amber-900 underline underline-offset-2">
+                terms of service
+              </Link>
+              {props.cancellationPolicyLabel ? " and the cancellation policy shown above" : ""}.
+            </span>
+          </label>
           {props.allowPayAtStudio && (
             <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
               <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
@@ -943,7 +961,7 @@ export function ClassBookingForm(props: {
               </p>
               <button
                 type="submit"
-                disabled={loading || !slotId || (seatKeys.length > 0 && !seatType)}
+                disabled={loading || !slotId || (seatKeys.length > 0 && !seatType) || !termsAccepted}
                 className={ui.buttonPrimary}
               >
                 {loading ? (
@@ -979,7 +997,7 @@ export function ClassBookingForm(props: {
               </label>
               <button
                 type="button"
-                disabled={pasLoading || !slotId || (seatKeys.length > 0 && !seatType) || !pasName.trim() || !pasEmail.trim()}
+                disabled={pasLoading || !slotId || (seatKeys.length > 0 && !seatType) || !pasName.trim() || !pasEmail.trim() || !termsAccepted}
                 onClick={onPayAtStudio}
                 className={ui.buttonPrimary}
               >

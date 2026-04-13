@@ -385,11 +385,11 @@ export default async function ClassesPage({ searchParams }: Props) {
               <>
                 <p className="font-medium text-stone-800">No classes match these filters</p>
                 <p className="mt-2 text-sm text-stone-600">
-                  Try clearing filters or open{" "}
-                  <Link href="/dashboard/studio/new?setup=bookings" className="font-medium text-amber-900 underline underline-offset-2">
-                    bookings setup
+                  Try clearing filters or browse{" "}
+                  <Link href="/studios" className="font-medium text-amber-900 underline underline-offset-2">
+                    all studios
                   </Link>{" "}
-                  to publish your own sessions.
+                  to discover new experiences.
                 </p>
                 <Link
                   href="/classes"
@@ -402,11 +402,11 @@ export default async function ClassesPage({ searchParams }: Props) {
               <>
                 <p className="font-medium text-stone-800">No public classes yet</p>
                 <p className="mt-2 text-sm text-stone-600">
-                  Start with{" "}
-                  <Link href="/dashboard/studio/new?setup=bookings" className="font-medium text-amber-900 underline underline-offset-2">
-                    bookings setup
+                  Check back soon — studios are adding new classes regularly. In the meantime,{" "}
+                  <Link href="/studios" className="font-medium text-amber-900 underline underline-offset-2">
+                    explore studios
                   </Link>{" "}
-                  and publish classes on your own studio page.
+                  to find upcoming sessions.
                 </p>
               </>
             )}

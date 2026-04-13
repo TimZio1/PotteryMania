@@ -6,6 +6,8 @@ import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
 import { PackagePurchaseForm } from "@/components/packages/package-purchase-form";
 import { buildMetadata } from "@/lib/seo";
+import { MarketingLayout } from "@/components/marketing-layout";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 
 type Props = { params: Promise<{ studioId: string }> };
 
@@ -59,14 +61,16 @@ export default async function StudioPackagesPublicPage({ params }: Props) {
 
   const today = new Date().toISOString().slice(0, 10);
 
+  const toolbar = (
+    <Breadcrumbs items={[{ label: studio.displayName, href: `/studios/${studio.id}` }, { label: "Packages" }]} />
+  );
+
   return (
+    <MarketingLayout toolbar={toolbar}>
     <main className={`${ui.pageContainer} py-8 sm:py-12`}>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
-          <Link href={`/studios/${studio.id}`} className="text-sm font-medium text-amber-900 hover:underline">
-            ← Back to studio
-          </Link>
-          <h1 className="mt-3 text-3xl font-semibold text-amber-950">Class packages</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-amber-950">Class packages</h1>
           <p className="mt-2 text-sm text-stone-600">
             Prepay once, then spend credits on included classes at {studio.displayName}.
           </p>
@@ -128,5 +132,6 @@ export default async function StudioPackagesPublicPage({ params }: Props) {
         )}
       </div>
     </main>
+    </MarketingLayout>
   );
 }
