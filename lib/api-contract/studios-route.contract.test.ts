@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const studioRouteMocks = vi.hoisted(() => ({
   getSessionUser: vi.fn(),
   studioCreate: vi.fn(),
+  userUpdate: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-session", () => ({
@@ -13,6 +14,9 @@ vi.mock("@/lib/db", () => ({
   prisma: {
     studio: {
       create: (...args: unknown[]) => studioRouteMocks.studioCreate(...args),
+    },
+    user: {
+      update: (...args: unknown[]) => studioRouteMocks.userUpdate(...args),
     },
   },
 }));

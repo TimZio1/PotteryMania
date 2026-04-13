@@ -13,9 +13,6 @@ export const dynamic = "force-dynamic";
  * Cancels unpaid pending orders and their pending bookings (no capacity was reserved).
  */
 export async function GET(req: Request) {
-  if (!process.env.CRON_SECRET?.trim()) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
   if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

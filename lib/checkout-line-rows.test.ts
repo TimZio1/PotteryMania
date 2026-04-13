@@ -11,6 +11,10 @@ vi.mock("@/lib/commission", () => ({
     Math.floor((lineTotalCents * basisPoints) / 10000),
 }));
 
+vi.mock("@/lib/intake-forms/validate-responses", () => ({
+  validateIntakeResponses: async () => ({ ok: true, responses: [] }),
+}));
+
 describe("checkout line rows", () => {
   beforeEach(() => {
     vi.clearAllMocks();

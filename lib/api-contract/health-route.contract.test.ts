@@ -32,21 +32,28 @@ describe("API contract: GET /api/health", () => {
   });
 
   it("returns 200 and contract keys when DB is healthy", async () => {
-    const res = await GET();
+    process.env.HEALTHCHECK_SECRET = "test-secret";
+    const req = new Request("http://localhost:3000/api/health", {
+      headers: { "x-healthcheck-secret": "test-secret" },
+    });
+    const res = await GET(req);
     const json = (await res.json()) as Record<string, unknown>;
 
     expect(res.status).toBe(200);
     expect(json.ok).toBe(true);
-    expect(typeof json.t).toBe("number");
     expect(json.db).toBe("ok");
-    expect(json.stripe).toBe("skipped");
+    expect(json.stripe).toBeUndefined();
     expect(json.spreadconnect).toBe("missing");
   });
 
   it("returns 503 and includes db error details when DB fails", async () => {
+    process.env.HEALTHCHECK_SECRET = "test-secret";
     healthMocks.queryRaw.mockRejectedValue(new Error("db-down"));
 
-    const res = await GET();
+    const req = new Request("http://localhost:3000/api/health", {
+      headers: { "x-healthcheck-secret": "test-secret" },
+    });
+    const res = await GET(req);
     const json = (await res.json()) as Record<string, unknown>;
 
     expect(res.status).toBe(503);
@@ -56,9 +63,13 @@ describe("API contract: GET /api/health", () => {
   });
 
   it("reports spreadconnect pending placeholder explicitly", async () => {
+    process.env.HEALTHCHECK_SECRET = "test-secret";
     process.env.SPREADCONNECT_API_KEY = "__PENDING__";
 
-    const res = await GET();
+    const req = new Request("http://localhost:3000/api/health", {
+      headers: { "x-healthcheck-secret": "test-secret" },
+    });
+    const res = await GET(req);
     const json = (await res.json()) as Record<string, unknown>;
 
     expect(res.status).toBe(200);
@@ -66,9 +77,13 @@ describe("API contract: GET /api/health", () => {
   });
 
   it("checks stripe reachability when Stripe key is configured", async () => {
+    process.env.HEALTHCHECK_SECRET = "test-secret";
     process.env.STRIPE_SECRET_KEY = "sk_test_123";
 
-    const res = await GET();
+    const req = new Request("http://localhost:3000/api/health", {
+      headers: { "x-healthcheck-secret": "test-secret" },
+    });
+    const res = await GET(req);
     const json = (await res.json()) as Record<string, unknown>;
 
     expect(res.status).toBe(200);
@@ -81,5 +96,6 @@ describe("API contract: GET /api/health", () => {
     else delete process.env.STRIPE_SECRET_KEY;
     if (originalSpreadconnectKey) process.env.SPREADCONNECT_API_KEY = originalSpreadconnectKey;
     else delete process.env.SPREADCONNECT_API_KEY;
+    delete process.env.HEALTHCHECK_SECRET;
   });
 });

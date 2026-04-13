@@ -12,6 +12,13 @@ const mocks = vi.hoisted(() => ({
     bookingAuditLog: {
       create: vi.fn(),
     },
+    classPackageUsage: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      update: vi.fn(),
+    },
+    classPackagePurchase: {
+      update: vi.fn(),
+    },
   },
   transaction: vi.fn(),
   safeReleaseCapacity: vi.fn(),
