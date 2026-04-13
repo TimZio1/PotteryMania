@@ -56,6 +56,7 @@ model User {
   giftCardRedemptions  GiftCardRedemption[]  @relation("GiftCardRedeemer")
   bookSoonSent         BookSoonSent[]
   classPackagePurchases ClassPackagePurchase[]
+  membershipPurchases  MembershipPurchase[]
   loyaltyBalances      LoyaltyBalance[]
   clientFieldResponses StudioClientFieldResponse[]
   loyaltyAdjustments   LoyaltyTransaction[] @relation("LoyaltyAdminUser")
@@ -257,6 +258,8 @@ model Studio {
   publicTheme           Json?                  @map("public_theme")
   /// Per-service visibility on `/studios/:id`: hidden | visible | visible_link | active (+ optional linkUrl for visible_link).
   publicServiceModes    Json?                  @map("public_service_modes")
+  dailyReportEnabled    Boolean                @default(false) @map("daily_report_enabled")
+  dailyReportTime       String?                @default("08:00") @map("daily_report_time")
   createdAt             DateTime     @default(now()) @map("created_at")
   updatedAt             DateTime     @updatedAt @map("updated_at")
 
@@ -268,6 +271,8 @@ model Studio {
   giftCards            GiftCard[]
   giftCardTemplates    GiftCardTemplate[]
   classPackages        ClassPackage[]
+  memberships         Membership[]
+  invoices            Invoice[]
   bookSoonRules        BookSoonRule[]
   loyaltyConfig        LoyaltyConfig?
   loyaltyBalances      LoyaltyBalance[]
@@ -790,6 +795,7 @@ model Experience {
   /// If true, customers can join a waitlist when the slot is full (no capacity held).
   waitlistEnabled      Boolean              @default(false) @map("waitlist_enabled")
   loyaltyPointsEarned  Int                  @default(0) @map("loyalty_points_earned")
+  taxRateBps           Int                  @default(0) @map("tax_rate_bps")
   status               ExperienceStatus
   visibility           ExperienceVisibility @default(public)
   createdAt            DateTime             @default(now()) @map("created_at")
@@ -805,6 +811,7 @@ model Experience {
   intakeFormLinks      IntakeFormExperienceLink[]
   classPackageItems    ClassPackageItem[]
   classPackageUsages   ClassPackageUsage[]
+  membershipLinks      MembershipExperience[]
   cartItems            CartItem[]
   waitlistEntries      BookingWaitlistEntry[]
   reviews              Review[]
@@ -987,6 +994,77 @@ model ClassPackageUsage {
   @@map("class_package_usages")
 }
 
+enum MembershipPurchaseStatus {
+  active
+  expired
+  cancelled
+  pending_renewal
+}
+
+model Membership {
+  id                   String   @id @default(uuid()) @db.Uuid
+  studioId             String   @map("studio_id") @db.Uuid
+  name                 String
+  description          String?
+  imageUrl             String?  @map("image_url")
+  durationDays         Int      @map("duration_days")
+  sessionsPerPeriod    Int?     @map("sessions_per_period")
+  maxFutureBookings    Int?     @map("max_future_bookings")
+  priceCents           Int      @map("price_cents")
+  currency             String   @default("EUR")
+  isRecurring          Boolean  @default(false) @map("is_recurring")
+  recurringPriceCents  Int?     @map("recurring_price_cents")
+  isActive             Boolean  @default(true) @map("is_active")
+  isVisible            Boolean  @default(true) @map("is_visible")
+  sortOrder            Int      @default(0) @map("sort_order")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  studio     Studio                  @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  experiences MembershipExperience[]
+  purchases   MembershipPurchase[]
+
+  @@index([studioId, isVisible, isActive, sortOrder])
+  @@map("memberships")
+}
+
+model MembershipExperience {
+  id            String @id @default(uuid()) @db.Uuid
+  membershipId  String @map("membership_id") @db.Uuid
+  experienceId  String @map("experience_id") @db.Uuid
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, experienceId])
+  @@index([experienceId])
+  @@map("membership_experiences")
+}
+
+model MembershipPurchase {
+  id                   String                   @id @default(uuid()) @db.Uuid
+  membershipId         String                   @map("membership_id") @db.Uuid
+  userId               String                   @map("user_id") @db.Uuid
+  status               MembershipPurchaseStatus @default(active)
+  startsAt             DateTime                 @map("starts_at")
+  expiresAt            DateTime                 @map("expires_at")
+  sessionsUsed         Int                      @default(0) @map("sessions_used")
+  paidCents            Int                      @map("paid_cents")
+  stripeSubscriptionId String?                  @map("stripe_subscription_id")
+  isRecurring          Boolean                  @default(false) @map("is_recurring")
+  cancelledAt          DateTime?                @map("cancelled_at")
+  createdAt            DateTime                 @default(now()) @map("created_at")
+  updatedAt            DateTime                 @updatedAt @map("updated_at")
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings   Booking[]
+
+  @@index([userId, status])
+  @@index([membershipId, status])
+  @@map("membership_purchases")
+}
+
 model ExperienceImage {
   id           String   @id @default(uuid()) @db.Uuid
   experienceId String   @map("experience_id") @db.Uuid
@@ -1165,6 +1243,7 @@ model Booking {
   /// totalAmountCents − depositAmountCents (balance still due in person / future flow).
   remainingBalanceCents      Int                  @default(0) @map("remaining_balance_cents")
   classPackagePurchaseId     String?              @map("class_package_purchase_id") @db.Uuid
+  membershipPurchaseId       String?              @map("membership_purchase_id") @db.Uuid
   depositPaidAt              DateTime?            @map("deposit_paid_at")
   remainderPaidAt            DateTime?            @map("remainder_paid_at")
   remainderPaymentLink       String?              @map("remainder_payment_link")
@@ -1187,6 +1266,7 @@ model Booking {
   slot             BookingSlot            @relation(fields: [slotId], references: [id], onDelete: Restrict)
   customerUser     User?                  @relation("BookingCustomer", fields: [customerUserId], references: [id], onDelete: SetNull)
   classPackagePurchase ClassPackagePurchase? @relation(fields: [classPackagePurchaseId], references: [id], onDelete: SetNull)
+  membershipPurchase MembershipPurchase?   @relation(fields: [membershipPurchaseId], references: [id], onDelete: SetNull)
   cancellations    BookingCancellation[]
   reschedules      BookingReschedule[]
   bookingAddOns    BookingAddOn[]
@@ -1200,6 +1280,7 @@ model Booking {
   classPackageUsages ClassPackageUsage[]
   bookSoonSent      BookSoonSent[]
   loyaltyTransactions LoyaltyTransaction[]
+  invoices         Invoice[]
 
   @@index([studioId])
   @@map("bookings")
@@ -1524,9 +1605,38 @@ model Order {
   financeLedgerEntries FinanceLedgerEntry[] @relation("LedgerOrder")
   discountRedemptions  DiscountRedemption[]
   giftCardRedemptions  GiftCardRedemption[]
+  invoices             Invoice[]
 
   @@index([customerUserId])
   @@map("orders")
+}
+
+model Invoice {
+  id              String   @id @default(uuid()) @db.Uuid
+  studioId        String   @map("studio_id") @db.Uuid
+  invoiceNumber   String   @unique @map("invoice_number")
+  bookingId       String?  @map("booking_id") @db.Uuid
+  orderId         String?  @map("order_id") @db.Uuid
+  customerName    String   @map("customer_name")
+  customerEmail   String   @map("customer_email")
+  customerAddress String?  @map("customer_address")
+  subtotalCents   Int      @map("subtotal_cents")
+  taxCents        Int      @default(0) @map("tax_cents")
+  totalCents      Int      @map("total_cents")
+  currency        String   @default("EUR")
+  lineItems       Json     @map("line_items")
+  pdfUrl          String?  @map("pdf_url")
+  sentAt          DateTime? @map("sent_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  studio  Studio  @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  order   Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([studioId, createdAt])
+  @@index([bookingId])
+  @@index([orderId])
+  @@map("invoices")
 }
 
 enum OrderItemType {
