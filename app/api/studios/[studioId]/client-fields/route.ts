@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 
@@ -75,7 +76,7 @@ export async function POST(req: Request, ctx: Ctx) {
         | "date"
         | "file_upload",
       isRequired: body.isRequired === true,
-      options,
+      options: fieldType === "dropdown" ? (options as Prisma.InputJsonValue) : Prisma.JsonNull,
       sortOrder:
         typeof body.sortOrder === "number" && Number.isFinite(body.sortOrder)
           ? Math.max(0, Math.floor(body.sortOrder))

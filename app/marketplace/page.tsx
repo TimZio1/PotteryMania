@@ -63,7 +63,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
       pageSize: 12,
     });
   } catch {
-    catalog = { products: [], total: 0, page: 1, pageSize: 12, pages: 0 };
+    catalog = { products: [], total: 0, page: 1, pageSize: 12, pageCount: 0 };
   }
   let categories: { id: string; name: string; slug: string }[] = allCeramicCategories().map((category) => ({
     id: category.slug,

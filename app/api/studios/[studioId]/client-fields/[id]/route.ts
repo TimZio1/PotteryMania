@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 
@@ -41,13 +42,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const data: {
-    title?: string;
-    fieldType?: "text_single" | "text_multi" | "number" | "checkbox" | "dropdown" | "date" | "file_upload";
-    isRequired?: boolean;
-    options?: string[] | null;
-    sortOrder?: number;
-  } = {};
+  const data: Prisma.StudioClientFieldUpdateInput = {};
 
   const nextFieldType = "fieldType" in body ? normalizeFieldType(body.fieldType) : existing.fieldType;
   if ("fieldType" in body && !nextFieldType) return NextResponse.json({ error: "fieldType is invalid" }, { status: 400 });
@@ -80,7 +75,11 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (nextFieldType === "dropdown" && (!options || options.length === 0)) {
       return NextResponse.json({ error: "Dropdown fields need at least one option" }, { status: 400 });
     }
-    data.options = nextFieldType === "dropdown" ? options : null;
+    if (nextFieldType === "dropdown") {
+      data.options = options as Prisma.InputJsonValue;
+    } else {
+      data.options = Prisma.JsonNull;
+    }
   }
 
   if (Object.keys(data).length === 0) return NextResponse.json({ error: "No updates provided" }, { status: 400 });

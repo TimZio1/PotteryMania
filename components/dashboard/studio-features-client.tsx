@@ -102,7 +102,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
   async function toggle(slug: string, next: boolean) {
     const row = rows.find((r) => r.slug === slug);
     const label = row?.name ?? slug;
-    let cancelAtPeriodEndChoice = true;
+    const cancelAtPeriodEndChoice = true;
     if (!next) {
       if (row?.requiresPaidSubscription) {
         if (!window.confirm(`Cancel "${label}"?\n\nYour access continues until the end of the current billing period.`)) {

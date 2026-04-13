@@ -4,10 +4,17 @@ import { ui } from "@/lib/ui-styles";
 
 /** Studio-facing health hints based on profile completeness and studio activity. */
 export default async function StudioMarketplaceVisibility({ studioId }: { studioId: string }) {
-  let studio: Awaited<ReturnType<typeof prisma.studio.findUnique>> & {
-    rankingScore?: { percentileRank: number | null; calculatedAt: Date | null } | null;
-    stripeAccount?: { chargesEnabled: boolean } | null;
-  } | null = null;
+  type StudioHealth = {
+    coverImageUrl: string | null;
+    logoUrl: string | null;
+    shortDescription: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    rankingScore: { percentileRank: number | null; calculatedAt: Date | null } | null;
+    stripeAccount: { chargesEnabled: boolean } | null;
+  } | null;
+
+  let studio: StudioHealth = null;
   let publicClassCount = 0;
   let activeProductCount = 0;
 
@@ -29,7 +36,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
           },
           stripeAccount: { select: { chargesEnabled: true } },
         },
-      }) as Promise<typeof studio>,
+      }),
       prisma.experience.count({
         where: { studioId, status: "active", visibility: "public" },
       }),
