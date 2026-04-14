@@ -18,7 +18,7 @@ export function FilterCollapse({ label = "Filters", defaultOpen = false, childre
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-800 shadow-sm md:hidden"
+        className="flex w-full items-center justify-between rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-medium text-[var(--foreground)] shadow-sm md:hidden"
         aria-expanded={open}
         aria-controls={panelId}
       >

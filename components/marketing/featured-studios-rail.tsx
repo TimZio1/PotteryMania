@@ -24,20 +24,20 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
   if (studios.length === 0) return null;
 
   return (
-    <section className="border-y border-(--brand-line) bg-white">
+    <section className="border-y border-[var(--border)] bg-[var(--background)]">
       <div className={`${ui.pageContainer} py-12 sm:py-16`}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">Spotlight</p>
-            <h2 className="mt-3 font-serif text-2xl font-normal tracking-[-0.02em] text-(--brand-ink) sm:text-3xl">
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Spotlight</p>
+            <h2 className="mt-3 font-serif text-2xl font-normal tracking-[-0.02em] text-[var(--foreground)] sm:text-3xl">
               {title}
             </h2>
           </div>
           <Link
             href="/studios"
-            className="text-sm font-medium text-stone-700 underline decoration-stone-300 underline-offset-4 transition hover:text-(--brand-ink) hover:decoration-amber-600/50"
+            className="text-sm font-medium text-[var(--muted)] underline decoration-[var(--border)] underline-offset-4 transition hover:text-[var(--foreground)] hover:decoration-[var(--accent)]"
           >
-            Browse all studios →
+            Browse all studios &rarr;
           </Link>
         </div>
         <motion.div
@@ -51,35 +51,35 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
             <motion.div key={s.placementId} variants={itemVars} transition={modalTransition(reduced)} className="shrink-0">
               <Link
                 href={`/studios/${s.studioId}`}
-                className="group relative flex w-[min(100%,280px)] flex-col overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_2px_16px_rgba(28,25,23,0.04)] transition hover:border-stone-300 hover:shadow-[0_8px_28px_rgba(28,25,23,0.07)]"
+                className="group relative flex w-[min(100%,280px)] flex-col overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--pm-shadow-rest)] transition hover:border-[var(--accent)] hover:shadow-[var(--pm-shadow-lift)]"
               >
-              <div className="relative aspect-[16/10] w-full bg-stone-200">
+              <div className="relative aspect-[16/10] w-full bg-[var(--surface-elevated)]">
                 {s.coverImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- remote studio URLs from Connect / uploads
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={s.coverImageUrl}
                     alt={`${s.displayName} studio cover`}
                     className="h-full w-full object-cover transition group-hover:scale-[1.02]"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-stone-400">No image</div>
+                  <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">No image</div>
                 )}
                 {s.logoUrl ? (
-                  <div className="absolute bottom-2 left-2 h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-white shadow">
+                  <div className="absolute bottom-2 left-2 h-12 w-12 overflow-hidden rounded-full border-2 border-[var(--border)] bg-[var(--surface)] shadow">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={s.logoUrl} alt={`${s.displayName} logo`} width={48} height={48} className="h-full w-full object-cover" />
                   </div>
                 ) : null}
               </div>
               <div className="flex flex-1 flex-col p-4">
-                <h3 className="font-semibold text-(--brand-ink) transition group-hover:text-amber-950">{s.displayName}</h3>
+                <h3 className="font-semibold text-[var(--foreground)] transition group-hover:text-[var(--accent)]">{s.displayName}</h3>
                 {(s.city || s.country) && (
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     {[s.city, s.country].filter(Boolean).join(", ")}
                   </p>
                 )}
                 {s.shortDescription ? (
-                  <p className="mt-2 line-clamp-2 text-sm text-stone-600">{s.shortDescription}</p>
+                  <p className="mt-2 line-clamp-2 text-sm text-[var(--muted)]">{s.shortDescription}</p>
                 ) : null}
               </div>
             </Link>

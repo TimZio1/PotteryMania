@@ -37,7 +37,7 @@ export function BrandLogo({
   );
 
   const colorClass =
-    variant === "on-dark" ? "text-stone-50" : "text-(--brand-ink)";
+    variant === "on-dark" ? "text-white" : "text-[var(--foreground)]";
 
   if (href === null) {
     return (

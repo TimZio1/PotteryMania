@@ -116,16 +116,16 @@ export default async function MarketplacePage({ searchParams }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
           <p className={ui.overline}>Shop</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Products from studios</h1>
-          <p className="mt-3 text-stone-600">
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Products from studios</h1>
+          <p className="mt-3 text-[var(--muted)]">
             Pieces from live studios — each listing shows who made it and where they are based.
           </p>
-          <p className="mt-1 text-sm text-stone-600">
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Region: <strong className="uppercase">{resolvedRegion.region}</strong> {resolvedRegion.country ? `(${resolvedRegion.country})` : ""}
           </p>
         </div>
 
-        <form className="mt-8 grid gap-4 rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
+        <form className="mt-8 grid gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
           <label className="block lg:col-span-2">
             <span className={ui.label}>Search</span>
             <input className={`${ui.input} mt-1`} name="q" defaultValue={sp.q ?? ""} placeholder="Mug, vase, stoneware, studio…" />
@@ -187,10 +187,10 @@ export default async function MarketplacePage({ searchParams }: Props) {
 
         {products.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-            <p className="font-medium text-stone-800">No listings yet</p>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="font-medium text-[var(--foreground)]">No listings yet</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Studios are onboarding. Check back soon, or browse{" "}
-              <Link href="/classes" className="font-medium text-amber-900 underline underline-offset-2">
+              <Link href="/classes" className="font-medium text-[var(--accent)] underline underline-offset-2">
                 classes
               </Link>{" "}
               in the meantime.
@@ -218,31 +218,31 @@ export default async function MarketplacePage({ searchParams }: Props) {
               );
               return (
                 <Link key={p.id} href={`/marketplace/products/${p.id}`} className={ui.tile}>
-                  <div className="aspect-square bg-stone-100">
+                  <div className="aspect-square bg-[var(--surface-elevated)]">
                     {img ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={img} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-[1.02]" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-stone-400">No image</div>
+                      <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">No image</div>
                     )}
                   </div>
                   <div className="p-4 sm:p-5">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-medium text-stone-600">{p.studio.displayName}</p>
+                      <p className="text-xs font-medium text-[var(--muted)]">{p.studio.displayName}</p>
                     </div>
                     <p className="mt-2">
-                      <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-600">
+                      <span className="rounded-full bg-[var(--surface-elevated)] px-2.5 py-1 text-[11px] font-medium text-[var(--muted)]">
                         {ceramicCategoryMetaByValue(p.category).title}
                       </span>
                     </p>
-                    <h2 className="mt-1 text-base font-semibold text-stone-900">{p.title}</h2>
+                    <h2 className="mt-1 text-base font-semibold text-[var(--foreground)]">{p.title}</h2>
                     {p.shortDescription ? (
-                      <p className="mt-2 line-clamp-2 text-sm text-stone-600">{p.shortDescription}</p>
+                      <p className="mt-2 line-clamp-2 text-sm text-[var(--muted)]">{p.shortDescription}</p>
                     ) : null}
                     <p className={`mt-2 text-xs font-medium ${ships ? "text-emerald-700" : "text-rose-700"}`}>
                       {ships ? "Ships to your location" : "Not available in your region"}
                     </p>
-                    <p className="mt-2 text-lg font-medium text-amber-950">
+                    <p className="mt-2 text-lg font-medium text-[var(--foreground)]">
                       {recurring
                         ? `€${(p.recurringPriceCents! / 100).toFixed(2)}/${billingIntervalLabel(
                             p.billingInterval as "weekly" | "monthly" | "custom",
@@ -259,7 +259,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
 
         {catalog.pageCount > 1 ? (
           <div className="mt-10 flex items-center justify-between gap-3">
-            <p className="text-sm text-stone-600">
+            <p className="text-sm text-[var(--muted)]">
               Page {catalog.page} of {catalog.pageCount}
             </p>
             <div className="flex gap-3">

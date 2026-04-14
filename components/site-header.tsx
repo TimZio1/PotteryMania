@@ -68,7 +68,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     cn(
       ui.buttonGhost,
       pathname === href || (href !== "/" && pathname.startsWith(href + "/"))
-        ? "bg-amber-50 text-amber-950"
+        ? "bg-[var(--surface-elevated)] text-[var(--foreground)]"
         : "",
     );
 
@@ -77,17 +77,17 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
       ui.buttonGhost,
       "min-h-12 justify-start px-4 text-base",
       pathname === href || (href !== "/" && pathname.startsWith(href + "/"))
-        ? "bg-amber-50 text-amber-950"
+        ? "bg-[var(--surface-elevated)] text-[var(--foreground)]"
         : "",
     );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-200/60 bg-white/75 backdrop-blur-xl supports-backdrop-filter:bg-white/65">
+    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-8 lg:px-12">
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 text-stone-700 md:hidden"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-card)] border border-[var(--border)] text-[var(--muted)] md:hidden"
             aria-expanded={open}
             aria-controls="mobile-nav"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -101,7 +101,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               )}
             </svg>
           </button>
-          <BrandLogo className="min-w-0 truncate text-(--brand-ink)" />
+          <BrandLogo className="min-w-0 truncate text-[var(--foreground)]" />
         </div>
 
         <nav className="flex shrink-0 flex-wrap items-center justify-end gap-1 sm:gap-2" aria-label="Primary">
@@ -132,7 +132,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               ) : null}
               <button
                 type="button"
-                className={cn(ui.buttonGhost, "text-stone-600")}
+                className={cn(ui.buttonGhost, "text-[var(--muted)]")}
                 onClick={() => signOut({ callbackUrl: "/" })}
               >
                 Sign out
@@ -169,7 +169,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
         <div className="md:hidden" />
       </div>
 
-      {/* Mobile sheet — available for all users */}
+      {/* Mobile sheet */}
       <div
         className={cn(
           "fixed inset-0 z-50 md:hidden transition-opacity",
@@ -183,18 +183,18 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
       >
         <button
           type="button"
-          className={cn("absolute inset-0 bg-[rgba(44,24,16,0.35)] transition-opacity", open ? "opacity-100" : "opacity-0")}
+          className={cn("absolute inset-0 bg-black/60 transition-opacity", open ? "opacity-100" : "opacity-0")}
           aria-label="Close menu"
           onClick={close}
         />
         <div
           className={cn(
-            "absolute right-0 top-0 flex h-full w-[min(100%,20rem)] flex-col border-l border-stone-200 bg-white shadow-xl transition-transform duration-200",
+            "absolute right-0 top-0 flex h-full w-[min(100%,20rem)] flex-col border-l border-[var(--border)] bg-[var(--surface)] shadow-xl transition-transform duration-200",
             open ? "translate-x-0" : "translate-x-full",
           )}
         >
-          <div className="flex h-14 items-center justify-between border-b border-stone-100 px-4">
-            <span className="text-sm font-semibold text-(--brand-ink)">Menu</span>
+          <div className="flex h-14 items-center justify-between border-b border-[var(--border)] px-4">
+            <span className="text-sm font-semibold text-[var(--foreground)]">Menu</span>
             <button ref={closeButtonRef} type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
               Close
             </button>
@@ -227,7 +227,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                 ) : null}
                 <button
                   type="button"
-                  className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-stone-600")}
+                  className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-[var(--muted)]")}
                   onClick={() => {
                     close();
                     signOut({ callbackUrl: "/" });
@@ -247,7 +247,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                 <Link href="/marketplace" className={mobileLinkClass("/marketplace")} onClick={close}>
                   Shop
                 </Link>
-                <hr className="my-2 border-stone-100" />
+                <hr className="my-2 border-[var(--border)]" />
                 {showPublicSignIn ? (
                   <Link href="/login" className={mobileLinkClass("/login")} onClick={close}>
                     Sign in

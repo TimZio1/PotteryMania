@@ -110,8 +110,8 @@ export default async function StudiosPage({ searchParams }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
           <p className={ui.overline}>Studios</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Independent makers</h1>
-          <p className="mt-3 text-stone-600">
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Independent makers</h1>
+          <p className="mt-3 text-[var(--muted)]">
             Every studio here is verified. Open a profile to see classes and products in one place. Studios are shown by
             relevance; switch to A–Z if you prefer.
           </p>
@@ -119,7 +119,7 @@ export default async function StudiosPage({ searchParams }: Props) {
 
         <form method="get" action="/studios" className={`${ui.cardMuted} mt-8 space-y-4`}>
           {byName ? <input type="hidden" name="sort" value="name" /> : null}
-          <p className="text-sm font-medium text-stone-800">Filter studios</p>
+          <p className="text-sm font-medium text-[var(--foreground)]">Filter studios</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
               <label className={ui.label} htmlFor="studios-q">
@@ -160,13 +160,13 @@ export default async function StudiosPage({ searchParams }: Props) {
               />
             </div>
             <div className="flex items-end pb-1">
-              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-stone-800">
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[var(--foreground)]">
                 <input
                   type="checkbox"
                   name="offer"
                   value="classes"
                   defaultChecked={filters.hasPublicClasses}
-                  className="h-4 w-4 rounded border-stone-300 text-amber-900 focus:ring-amber-900/25"
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent-muted)]"
                 />
                 Has public classes
               </label>
@@ -200,13 +200,13 @@ export default async function StudiosPage({ searchParams }: Props) {
         </form>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-stone-500">Sort</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Sort</span>
           <Link
             href={hrefRecommended}
             className={cn(
               ui.buttonSecondary,
               "min-h-9 px-3 py-1.5 text-xs",
-              !byName ? "border-amber-400/50 bg-amber-50" : "",
+              !byName ? "border-[var(--accent)] bg-[var(--accent-muted)]" : "",
             )}
           >
             Recommended
@@ -216,7 +216,7 @@ export default async function StudiosPage({ searchParams }: Props) {
             className={cn(
               ui.buttonSecondary,
               "min-h-9 px-3 py-1.5 text-xs",
-              byName ? "border-amber-400/50 bg-amber-50" : "",
+              byName ? "border-[var(--accent)] bg-[var(--accent-muted)]" : "",
             )}
           >
             Name A–Z
@@ -225,10 +225,10 @@ export default async function StudiosPage({ searchParams }: Props) {
 
         {near ? (
           <section className="mt-10" aria-labelledby="studios-map-heading">
-            <h2 id="studios-map-heading" className="text-lg font-semibold text-amber-950">
+            <h2 id="studios-map-heading" className="text-lg font-semibold text-[var(--foreground)]">
               Map
             </h2>
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm text-[var(--muted)]">
               Amber circle: your search radius. Pins match the list below — click a pin to open the studio.
             </p>
             <div className="mt-4">
@@ -245,10 +245,10 @@ export default async function StudiosPage({ searchParams }: Props) {
         {studios.length === 0 ? (
           filtered ? (
             <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-              <p className="font-medium text-stone-800">No studios match these filters</p>
-              <p className="mt-2 text-sm text-stone-600">
+              <p className="font-medium text-[var(--foreground)]">No studios match these filters</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">
                 Try clearing filters or visit the{" "}
-                <Link href="/classes" className="font-medium text-amber-900 underline underline-offset-2">
+                <Link href="/classes" className="font-medium text-[var(--accent)] underline underline-offset-2">
                   classes
                 </Link>{" "}
                 page.
@@ -261,9 +261,9 @@ export default async function StudiosPage({ searchParams }: Props) {
               </Link>
             </div>
           ) : dbUnavailable ? (
-            <p className="mt-10 text-stone-500">Studios are temporarily unavailable. Please try again shortly.</p>
+            <p className="mt-10 text-[var(--muted)]">Studios are temporarily unavailable. Please try again shortly.</p>
           ) : (
-            <p className="mt-10 text-stone-500">No live studios yet.</p>
+            <p className="mt-10 text-[var(--muted)]">No live studios yet.</p>
           )
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -280,23 +280,23 @@ export default async function StudiosPage({ searchParams }: Props) {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h2 className="text-lg font-semibold text-stone-900">{studio.displayName}</h2>
-                    <p className="mt-1 text-sm text-stone-500">
+                    <h2 className="text-lg font-semibold text-[var(--foreground)]">{studio.displayName}</h2>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
                       {studio.city}, {studio.country}
                     </p>
-                    {km != null ? <p className="mt-1 text-xs text-stone-500">~{km.toFixed(1)} km away</p> : null}
+                    {km != null ? <p className="mt-1 text-xs text-[var(--muted)]">~{km.toFixed(1)} km away</p> : null}
                   </div>
                   {studio.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={studio.logoUrl}
                       alt={`${studio.displayName} logo`}
-                      className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-stone-100"
+                      className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-[var(--border)]"
                     />
                   ) : null}
                 </div>
                 {studio.shortDescription ? (
-                  <p className="mt-4 line-clamp-3 text-sm text-stone-600">{studio.shortDescription}</p>
+                  <p className="mt-4 line-clamp-3 text-sm text-[var(--muted)]">{studio.shortDescription}</p>
                 ) : null}
               </Link>
             );

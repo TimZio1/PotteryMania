@@ -22,7 +22,7 @@ const demoStudio = {
   publicTheme: {
     themePreset: "warm-minimal",
     primaryTone: "warm_neutral",
-    accentTone: "terracotta",
+    accentTone: "clay",
     fontPair: "serif_editorial",
     layoutMode: "balanced",
     imageStyle: "rounded",

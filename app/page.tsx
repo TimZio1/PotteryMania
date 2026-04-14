@@ -15,7 +15,6 @@ import { ui } from "@/lib/ui-styles";
 import { monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
 import { MARKETING_HERO_PRIMARY } from "@/lib/marketing-hero-variants";
 
-/** Homepage is DB-aware for counters/content and must not prerender at build. */
 export const dynamic = "force-dynamic";
 
 async function getPreRegCountSafe() {
@@ -85,7 +84,7 @@ const differentiators = [
   },
   {
     title: "Premium presentation",
-    body: "A warm, gallery-style presentation that respects handmade work and feels worth belonging to.",
+    body: "A dark, gallery-style presentation that respects handmade work and feels worth belonging to.",
   },
 ];
 
@@ -156,29 +155,29 @@ export default async function Home() {
             Replaces the patchwork of DMs, spreadsheets, and generic site builders — without giving up your brand.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link href="/demo" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-medium text-(--brand-ink) shadow-[0_4px_24px_rgba(44,24,16,0.2)] transition hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="/demo" className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-button)] bg-[var(--accent)] px-8 py-3 text-sm font-medium text-[var(--accent-contrast)] shadow-[0_4px_24px_rgba(0,0,0,0.3)] transition hover:bg-[var(--accent-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
               {MARKETING_HERO_PRIMARY.ctaPrimary}
             </Link>
-            <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/35 bg-transparent px-8 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="#clarity" className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-button)] border border-white/35 bg-transparent px-8 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               {MARKETING_HERO_PRIMARY.ctaSecondary}
             </Link>
             <Link
               href="/pricing"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 px-8 py-3 text-sm font-medium text-white/95 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex min-h-12 items-center justify-center rounded-[var(--radius-button)] border border-white/25 px-8 py-3 text-sm font-medium text-white/95 backdrop-blur-sm transition hover:border-white/40 hover:bg-white/6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               See plans
             </Link>
           </div>
         </ImageSection>
 
-        <section className="border-b border-[rgba(62,42,30,0.35)] bg-linear-to-b from-[#2a1810] via-[#23150f] to-[#1a100c] text-stone-100">
+        <section className="border-b border-[var(--border)] bg-[var(--surface)]">
           <div className={`${ui.pageContainer} py-14 sm:py-20`}>
             <div className="max-w-2xl">
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">Money on the table</p>
-              <h2 className="mt-5 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-white sm:text-4xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Money on the table</p>
+              <h2 className="mt-5 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-[var(--foreground)] sm:text-4xl">
                 This is what&apos;s costing you money
               </h2>
-              <p className="mt-4 text-sm leading-relaxed text-stone-400 sm:text-base">
+              <p className="mt-4 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
                 If any of this sounds familiar, you are leaving bookings and sales on the table every week.
               </p>
             </div>
@@ -186,14 +185,14 @@ export default async function Home() {
               {[
                 "Customers message you instead of completing real bookings",
                 "Deposits and balances slip through — no reliable payment flow",
-                "No single structure: calendars, inventory, and DMs don’t talk to each other",
+                "No single structure: calendars, inventory, and DMs don't talk to each other",
                 "No real system — so growth feels like more chaos, not more revenue",
               ].map((line) => (
                 <li
                   key={line}
-                  className="flex gap-3.5 rounded-2xl border border-white/[0.07] bg-white/3 px-5 py-4 text-sm leading-relaxed text-stone-200 sm:text-base"
+                  className="flex gap-3.5 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface-elevated)] px-5 py-4 text-sm leading-relaxed text-[var(--foreground)] sm:text-base"
                 >
-                  <span className="mt-0.5 shrink-0 font-medium text-white/35" aria-hidden>
+                  <span className="mt-0.5 shrink-0 font-medium text-[var(--muted)]" aria-hidden>
                     —
                   </span>
                   <span>{line}</span>
@@ -203,13 +202,13 @@ export default async function Home() {
             <div className="mt-12 flex flex-wrap gap-3">
               <Link
                 href="/demo"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-7 py-2.5 text-sm font-medium text-(--brand-ink) shadow-sm transition hover:bg-stone-100"
+                className={ui.buttonPrimary}
               >
                 Create your studio
               </Link>
               <Link
                 href="/pricing"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 px-7 py-2.5 text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/6"
+                className={ui.buttonSecondary}
               >
                 See plans
               </Link>
@@ -217,26 +216,26 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="border-b border-(--brand-line) bg-white">
+        <section className="border-b border-[var(--border)] bg-[var(--background)]">
           <div className={`${ui.pageContainer} py-14 sm:py-16`}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">{EARLY_ACCESS_PROOF.eyebrow}</p>
-            <h2 className="mt-4 max-w-xl font-serif text-2xl font-normal leading-tight tracking-[-0.02em] text-(--brand-ink) sm:text-3xl">
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">{EARLY_ACCESS_PROOF.eyebrow}</p>
+            <h2 className="mt-4 max-w-xl font-serif text-2xl font-normal leading-tight tracking-[-0.02em] text-[var(--foreground)] sm:text-3xl">
               {EARLY_ACCESS_PROOF.headline}
             </h2>
-            <div className="mt-6 max-w-3xl rounded-3xl border border-stone-200/80 bg-[#fdfcfa] p-6 shadow-[0_1px_0_rgba(28,25,23,0.04)] sm:p-8">
-              <p className="text-base leading-relaxed text-stone-700">{EARLY_ACCESS_PROOF.body}</p>
+            <div className="mt-6 max-w-3xl rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--pm-shadow-rest)] sm:p-8">
+              <p className="text-base leading-relaxed text-[var(--muted)]">{EARLY_ACCESS_PROOF.body}</p>
               <ul className="mt-5 grid gap-3 sm:grid-cols-3">
                 {EARLY_ACCESS_PROOF.bullets.map((line) => (
-                  <li key={line} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-700">
+                  <li key={line} className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-3 text-sm leading-6 text-[var(--foreground)]">
                     {line}
                   </li>
                 ))}
               </ul>
               <div className="mt-6 flex flex-wrap items-center gap-4">
-                <p className="text-sm font-semibold text-amber-950">
+                <p className="text-sm font-semibold text-[var(--accent)]">
                   {displayedPreRegTotal(preRegCount)} studios joined early access.
                 </p>
-                <Link href={EARLY_ACCESS_PROOF.ctaHref} className="inline-flex min-h-11 items-center justify-center rounded-full bg-(--brand-ink) px-6 py-2.5 text-sm font-medium text-white transition hover:opacity-95">
+                <Link href={EARLY_ACCESS_PROOF.ctaHref} className={ui.buttonPrimary}>
                   {EARLY_ACCESS_PROOF.ctaLabel}
                 </Link>
               </div>
@@ -246,11 +245,11 @@ export default async function Home() {
 
         <FeaturedStudiosRail studios={featuredStudios} />
 
-        <section className="border-b border-(--brand-line) bg-white">
+        <section className="border-b border-[var(--border)] bg-[var(--background)]">
           <div className={`${ui.pageContainer} py-14 sm:py-20`}>
             <div className="max-w-2xl">
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">Start in one click</p>
-              <h2 className="mt-4 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-(--brand-ink) sm:text-4xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Start in one click</p>
+              <h2 className="mt-4 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-[var(--foreground)] sm:text-4xl">
                 Choose your path on PotteryMania.
               </h2>
             </div>
@@ -258,15 +257,15 @@ export default async function Home() {
               {visitorPaths.map((path) => (
                 <article
                   key={path.title}
-                  className="rounded-3xl border border-stone-200/80 bg-white p-7 shadow-[0_2px_20px_rgba(28,25,23,0.04)]"
+                  className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface)] p-7 shadow-[var(--pm-shadow-rest)]"
                 >
-                  <h3 className="font-serif text-xl font-normal tracking-[-0.01em] text-(--brand-ink) sm:text-2xl">
+                  <h3 className="font-serif text-xl font-normal tracking-[-0.01em] text-[var(--foreground)] sm:text-2xl">
                     {path.title}
                   </h3>
-                  <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">{path.body}</p>
+                  <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">{path.body}</p>
                   <Link
                     href={path.href}
-                    className={`${ui.buttonGhost} mt-6 inline-flex text-sm font-medium text-amber-950 underline decoration-amber-200/80 underline-offset-4 hover:decoration-amber-400/80`}
+                    className="mt-6 inline-flex text-sm font-medium text-[var(--accent)] underline decoration-[var(--accent)]/30 underline-offset-4 hover:decoration-[var(--accent)]/60"
                   >
                     {path.cta}
                   </Link>
@@ -276,29 +275,29 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="border-b border-(--brand-line) bg-(--warm-surface)">
+        <section className="border-b border-[var(--border)] bg-[var(--surface)]">
           <div className={`${ui.pageContainer} py-12 sm:py-14`}>
-            <div className="flex flex-col gap-6 rounded-3xl border border-stone-200/70 bg-white/90 p-7 shadow-[0_2px_20px_rgba(28,25,23,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div className="flex flex-col gap-6 rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface-elevated)] p-7 shadow-[var(--pm-shadow-rest)] sm:flex-row sm:items-center sm:justify-between sm:p-8">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">Pricing model</p>
-                <p className="mt-3 text-sm leading-relaxed text-stone-600 sm:text-base">
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Pricing model</p>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
                   Pay by studio usage: bookings-only, shop-only, both, or pro. Platform commission stays at 0%.
                 </p>
-                <p className="mt-3 text-sm font-medium text-amber-950">Free until 1 May 2026. No payment required.</p>
+                <p className="mt-3 text-sm font-medium text-[var(--accent)]">Free until 1 May 2026. No payment required.</p>
                 <Link
                   href="/pricing"
-                  className="mt-4 inline-flex text-sm font-medium text-amber-950 underline decoration-amber-200/80 underline-offset-4 transition hover:decoration-amber-500/80"
+                  className="mt-4 inline-flex text-sm font-medium text-[var(--accent)] underline decoration-[var(--accent)]/30 underline-offset-4 transition hover:decoration-[var(--accent)]/60"
                 >
-                  Full comparison →
+                  Full comparison &rarr;
                 </Link>
               </div>
               <ul className="flex flex-wrap gap-2">
                 {STUDIO_PLANS.map((plan) => (
                   <li
                     key={plan.key}
-                    className="rounded-full border border-stone-200/90 bg-stone-50/80 px-3.5 py-1.5 text-xs font-medium text-stone-600"
+                    className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-medium text-[var(--muted)]"
                   >
-                    {plan.name} · {monthlyLabel(plan)}
+                    {plan.name} &middot; {monthlyLabel(plan)}
                     {plan.recommended ? " · Most popular" : ""}
                   </li>
                 ))}
@@ -307,14 +306,14 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="clarity" className="border-y border-(--brand-line) bg-(--warm-surface)">
+        <section id="clarity" className="border-y border-[var(--border)] bg-[var(--surface)]">
           <div className={`${ui.pageContainer} py-20 sm:py-24`}>
             <div className="max-w-2xl">
-              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">What PotteryMania is</p>
-              <h2 className="mt-5 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-(--brand-ink) sm:text-4xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">What PotteryMania is</p>
+              <h2 className="mt-5 font-serif text-3xl font-normal leading-[1.12] tracking-[-0.02em] text-[var(--foreground)] sm:text-4xl">
                 A clearer, more beautiful digital home for independent ceramics.
               </h2>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-stone-600 sm:text-lg">
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--muted)] sm:text-lg">
                 PotteryMania brings together selling, booking, and day-to-day operations so you spend less time on
                 patchwork tools.
               </p>
@@ -329,26 +328,26 @@ export default async function Home() {
           align="center"
           artwork={<StudioArtwork />}
         >
-          <div className="max-w-2xl rounded-4xl border border-white/10 bg-black/20 p-6 backdrop-blur-[2px] sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">For studio owners</p>
+          <div className="max-w-2xl rounded-[var(--radius-card)] border border-white/10 bg-black/20 p-6 backdrop-blur-[2px] sm:p-8">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)]">For studio owners</p>
             <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
               Everything a ceramic studio needs, gathered into one calm, credible place.
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-7 text-stone-100/90 sm:text-lg">
+            <p className="mt-4 max-w-xl text-base leading-7 text-white/90 sm:text-lg">
               PotteryMania helps you present the work beautifully, publish experiences confidently, and look established
               from the first visit.
             </p>
             <ul className="mt-8 grid gap-3 sm:grid-cols-2">
               {studioBenefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-3 text-sm leading-6 text-stone-100 sm:text-base">
-                  <span className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/15 text-xs text-white">
-                    ✓
+                <li key={benefit} className="flex items-start gap-3 text-sm leading-6 text-white/90 sm:text-base">
+                  <span className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/20 text-xs text-[var(--accent)]">
+                    &#10003;
                   </span>
                   <span>{benefit}</span>
                 </li>
               ))}
             </ul>
-            <Link href="/demo" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <Link href="/demo" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-[var(--radius-button)] bg-[var(--accent)] px-7 py-3 text-sm font-medium text-[var(--accent-contrast)] shadow-lg shadow-black/30 transition hover:bg-[var(--accent-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
               Create your studio
             </Link>
           </div>
@@ -361,25 +360,25 @@ export default async function Home() {
           artwork={<ShelfShowcaseArtwork />}
         >
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Studio-owned shop</p>
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)]">Studio-owned shop</p>
             <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
               Your shop lives on your studio page — your brand, your products.
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/90 sm:text-lg">
               Keep a strong voice, present handmade work with care, and manage products from one dashboard.
             </p>
           </div>
         </ImageSection>
 
-        <section className="border-y border-(--brand-line) bg-(--brand-soft)">
+        <section className="border-y border-[var(--border)] bg-[var(--surface)]">
           <div className={`${ui.pageContainer} py-16 sm:py-24`}>
             <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-start">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-600">Why it feels different</p>
-                <h2 className="mt-4 font-serif text-3xl leading-tight text-(--brand-ink) sm:text-4xl">
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)]">Why it feels different</p>
+                <h2 className="mt-4 font-serif text-3xl leading-tight text-[var(--foreground)] sm:text-4xl">
                   PotteryMania is not trying to be everything. That is exactly why it can be right for ceramics.
                 </h2>
-                <p className="mt-4 max-w-xl text-base leading-7 text-stone-600 sm:text-lg">
+                <p className="mt-4 max-w-xl text-base leading-7 text-[var(--muted)] sm:text-lg">
                   The platform is focused on real studio operations: website, bookings, products, trust, and consistent
                   branding for ceramic businesses.
                 </p>
@@ -388,10 +387,10 @@ export default async function Home() {
                 {differentiators.map((item) => (
                   <article
                     key={item.title}
-                    className="rounded-[1.6rem] border border-(--brand-line) bg-white p-6 shadow-[0_24px_70px_rgba(61,36,23,0.06)]"
+                    className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-[var(--pm-shadow-rest)]"
                   >
-                    <h3 className="font-serif text-2xl text-(--brand-ink)">{item.title}</h3>
-                    <p className="mt-3 text-sm leading-7 text-stone-600 sm:text-base">{item.body}</p>
+                    <h3 className="font-serif text-2xl text-[var(--foreground)]">{item.title}</h3>
+                    <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">{item.body}</p>
                   </article>
                 ))}
               </div>
@@ -407,19 +406,19 @@ export default async function Home() {
         >
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
             <div className="max-w-2xl">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Bookings and learning</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)]">Bookings and learning</p>
               <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
                 Real studios. Real classes. Real ceramic craft.
               </h2>
-              <p className="mt-4 max-w-xl text-base leading-7 text-stone-100/90 sm:text-lg">
+              <p className="mt-4 max-w-xl text-base leading-7 text-white/90 sm:text-lg">
                 PotteryMania is designed for studios that teach with confidence. Publish classes, set policies, and keep
                 your public presence aligned with your brand.
               </p>
             </div>
             <div className="grid gap-4">
               {EARLY_ACCESS_PROOF.bullets.map((line) => (
-                <article key={line} className="rounded-[1.6rem] border border-white/10 bg-white/10 p-5 text-left backdrop-blur-md">
-                  <p className="text-base leading-7 text-stone-100">{line}</p>
+                <article key={line} className="rounded-[var(--radius-card)] border border-white/10 bg-white/10 p-5 text-left backdrop-blur-md">
+                  <p className="text-base leading-7 text-white/90">{line}</p>
                 </article>
               ))}
             </div>
@@ -433,22 +432,22 @@ export default async function Home() {
           artwork={<TextureArtwork />}
         >
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-200">Get started</p>
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-[var(--muted)]">Get started</p>
             <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl lg:text-6xl">
               Your studio deserves a calmer setup online.
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stone-100/90 sm:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/90 sm:text-lg">
               Create your studio when you are ready. Free until 1 May 2026, then plans from €19/month with 0% platform
               commission on checkout sales and bookings.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/demo" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-medium text-(--brand-ink) shadow-lg shadow-black/20 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+              <Link href="/demo" className="inline-flex min-h-12 w-full items-center justify-center rounded-[var(--radius-button)] bg-[var(--accent)] px-7 py-3 text-sm font-medium text-[var(--accent-contrast)] shadow-lg shadow-black/30 transition hover:bg-[var(--accent-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] sm:w-auto">
                 Create your studio
               </Link>
-              <Link href="/pricing" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+              <Link href="/pricing" className="inline-flex min-h-12 w-full items-center justify-center rounded-[var(--radius-button)] border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
                 See plans
               </Link>
-              <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+              <Link href="/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-[var(--radius-button)] border border-white/25 bg-white/5 px-7 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
                 Sign in
               </Link>
             </div>
@@ -461,18 +460,18 @@ export default async function Home() {
 
 function AnnouncementStrip({ preRegShown }: { preRegShown: number }) {
   const preRegLine = (
-    <p className="text-sm text-stone-600 sm:text-right" aria-live="polite">
-      <span className="font-semibold tabular-nums text-(--brand-ink)">{preRegShown}</span>
-      <span className="tabular-nums text-stone-600"> studios joined early access</span>
+    <p className="text-sm text-[var(--muted)] sm:text-right" aria-live="polite">
+      <span className="font-semibold tabular-nums text-[var(--foreground)]">{preRegShown}</span>
+      <span className="tabular-nums text-[var(--muted)]"> studios joined early access</span>
     </p>
   );
 
   return (
-    <section className="border-b border-(--brand-line) bg-(--warm-surface)">
-      <div className={`${ui.pageContainer} flex flex-col gap-3 py-3 text-sm text-stone-700 sm:flex-row sm:items-start sm:justify-between`}>
+    <section className="border-b border-[var(--border)] bg-[var(--surface)]">
+      <div className={`${ui.pageContainer} flex flex-col gap-3 py-3 text-sm text-[var(--muted)] sm:flex-row sm:items-start sm:justify-between`}>
         <div className="max-w-xl space-y-1">
-          <p className="font-medium text-(--brand-ink)">Built for ceramic studios and makers who sell, teach, and run the business.</p>
-          <p className="text-xs leading-relaxed text-stone-600 sm:text-sm">
+          <p className="font-medium text-[var(--foreground)]">Built for ceramic studios and makers who sell, teach, and run the business.</p>
+          <p className="text-xs leading-relaxed text-[var(--muted)] sm:text-sm">
             Build your studio site, launch classes, and start selling in one calm system.
           </p>
         </div>
@@ -498,11 +497,11 @@ function ImageSection({
   priority?: boolean;
 }) {
   const overlayClass = {
-    hero: "from-[#170d09]/85 via-[#2c1810]/48 to-[#4a3228]/14",
-    studio: "from-[#120e0b]/84 via-[#21150f]/42 to-[#4b2e21]/15",
-    showcase: "from-[#100d0b]/82 via-[#1a1411]/35 to-[#594636]/14",
-    classes: "from-[#130f0d]/84 via-[#241b15]/45 to-[#5a4636]/14",
-    texture: "from-[#120d0a]/90 via-[#271a14]/48 to-[#6b513d]/18",
+    hero: "from-[#0A0A0A]/90 via-[#0E0E0E]/55 to-[#161616]/20",
+    studio: "from-[#0A0A0A]/88 via-[#0E0E0E]/50 to-[#161616]/18",
+    showcase: "from-[#0A0A0A]/85 via-[#0E0E0E]/45 to-[#1C1C1C]/16",
+    classes: "from-[#0A0A0A]/88 via-[#0E0E0E]/50 to-[#161616]/18",
+    texture: "from-[#0A0A0A]/92 via-[#0E0E0E]/55 to-[#161616]/22",
   }[tone];
 
   const justifyClass = align === "bottom" ? "items-end" : align === "end" ? "items-end" : "items-center";
@@ -512,7 +511,7 @@ function ImageSection({
     <section className={`relative isolate overflow-hidden ${minHeight}`}>
       <div className="absolute inset-0 min-h-0">{artwork}</div>
       <div className={`absolute inset-0 bg-linear-to-t ${overlayClass}`} aria-hidden />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(255,214,170,0.12),transparent_28%)]" aria-hidden />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(196,122,44,0.08),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(196,122,44,0.06),transparent_28%)]" aria-hidden />
       <div className={`relative z-10 mx-auto flex ${minHeight} ${justifyClass} ${ui.pageContainer} ${paddingClass}`}>
         <div className="w-full">{children}</div>
       </div>

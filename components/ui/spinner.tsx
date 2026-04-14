@@ -4,7 +4,7 @@ export function Spinner({ className, size = "md" }: { className?: string; size?:
   const dim = size === "sm" ? "h-4 w-4" : size === "lg" ? "h-8 w-8" : "h-5 w-5";
   return (
     <svg
-      className={cn("animate-spin text-stone-500", dim, className)}
+      className={cn("animate-spin text-[var(--muted)]", dim, className)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

@@ -21,7 +21,8 @@ export const STUDIO_PRIMARY_TONES = [
 
 export type StudioPrimaryTone = (typeof STUDIO_PRIMARY_TONES)[number];
 
-export const STUDIO_ACCENT_TONES = ["terracotta", "sage", "slate", "gold", "ink", "blush"] as const;
+/** Controlled accent palette — studios choose exactly ONE. */
+export const STUDIO_ACCENT_TONES = ["clay", "sand", "olive", "stone", "wine"] as const;
 export type StudioAccentTone = (typeof STUDIO_ACCENT_TONES)[number];
 
 export const STUDIO_FONT_PAIRS = [

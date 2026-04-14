@@ -173,23 +173,23 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
   return (
     <MarketingLayout toolbar={toolbar}>
       <main className={`${ui.pageContainer} max-w-4xl py-8 sm:py-12`}>
-        <p className="text-sm text-stone-500">
-          <Link href={`/studios/${experience.studio.id}`} className="font-medium text-amber-900 hover:underline">
+        <p className="text-sm text-[var(--muted)]">
+          <Link href={`/studios/${experience.studio.id}`} className="font-medium text-[var(--accent)] hover:underline">
             {experience.studio.displayName}
           </Link>
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">{experience.title}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">{experience.title}</h1>
           {experience.category && (
             <Link
               href={`/classes?category=${encodeURIComponent(experience.category)}`}
-              className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-600 hover:bg-stone-200"
+              className="rounded-full bg-[var(--surface-elevated)] px-2.5 py-0.5 text-xs font-medium text-[var(--muted)] hover:bg-[var(--surface-elevated)]"
             >
               {experience.category}
             </Link>
           )}
         </div>
-        <p className="mt-3 text-xl font-medium text-amber-950">
+        <p className="mt-3 text-xl font-medium text-[var(--foreground)]">
           {recurring
             ? `€${((experience.recurringPriceCents as number) / 100).toFixed(2)}/${billingIntervalLabel(
                 experience.billingInterval as "weekly" | "monthly" | "custom",
@@ -198,40 +198,40 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
             : `€${price.toFixed(2)} per person`}
         </p>
         {experience.bookingDepositBps > 0 && (
-          <p className="mt-2 max-w-2xl text-sm text-stone-600">
+          <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
             A deposit may be charged at checkout ({(experience.bookingDepositBps / 100).toFixed(1)}% of the booking
             total). The remainder follows the studio&apos;s policy.
           </p>
         )}
         {experience.bookingApprovalRequired && (
-          <p className="mt-2 max-w-2xl rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+          <p className="mt-2 max-w-2xl rounded-xl border border-[var(--accent)]/50 bg-[var(--accent-muted)] px-4 py-3 text-sm text-[var(--foreground)]">
             This studio confirms bookings after payment — you may see &quot;pending approval&quot; until they accept.
           </p>
         )}
         {(experience.bookingCutoffHours ?? 0) > 0 && (
-          <p className="mt-2 max-w-2xl text-sm text-stone-500">
+          <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
             Bookings close {experience.bookingCutoffHours}h before the session starts.
           </p>
         )}
         {primary?.imageUrl ? (
-          <div className="mt-8 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
+          <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={primary.imageUrl} alt={experience.title} className="max-h-88 w-full object-cover sm:max-h-96" />
           </div>
         ) : null}
-        {experience.shortDescription && <p className="mt-8 text-base text-stone-700">{experience.shortDescription}</p>}
+        {experience.shortDescription && <p className="mt-8 text-base text-[var(--muted)]">{experience.shortDescription}</p>}
         {experience.fullDescription && (
-          <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-stone-600">{experience.fullDescription}</div>
+          <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">{experience.fullDescription}</div>
         )}
-        {cancellationPolicyLabel ? <p className="mt-6 text-xs text-stone-500">Cancellation: {cancellationPolicyLabel}</p> : null}
-        <div className="mt-10 border-t border-stone-200 pt-10">
+        {cancellationPolicyLabel ? <p className="mt-6 text-xs text-[var(--muted)]">Cancellation: {cancellationPolicyLabel}</p> : null}
+        <div className="mt-10 border-t border-[var(--border)] pt-10">
           {recurring ? (
             <>
-              <h2 className="text-lg font-semibold text-amber-950">Start recurring membership</h2>
-              <p className="mt-1 text-sm text-stone-600">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Start recurring membership</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">
                 Clear renewal terms are shown before checkout. Cancelation and trial terms apply as listed below.
               </p>
-              <ul className="mt-3 space-y-1 text-xs text-stone-600">
+              <ul className="mt-3 space-y-1 text-xs text-[var(--muted)]">
                 <li>Billing cycle: {billingIntervalLabel(experience.billingInterval!, experience.billingIntervalCount ?? 1)}</li>
                 <li>Auto-renew: {experience.autoRenew ? "On" : "Off"}</li>
                 {experience.minimumCommitmentCycles ? (
@@ -246,8 +246,8 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
             </>
           ) : (
             <>
-              <h2 className="text-lg font-semibold text-amber-950">Book a session</h2>
-              <p className="mt-1 text-sm text-stone-600">Choose a time, party size, and seat type when offered.</p>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Book a session</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">Choose a time, party size, and seat type when offered.</p>
               <ClassBookingForm
                 studioId={experience.studio.id}
                 experienceId={experience.id}

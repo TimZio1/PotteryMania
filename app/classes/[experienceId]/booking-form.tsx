@@ -471,21 +471,21 @@ export function ClassBookingForm(props: {
   return (
     <div className="mt-6 space-y-8">
       {props.slots.length === 0 ? (
-        <p className="text-sm text-stone-500">No open sessions with enough seats in this window.</p>
+        <p className="text-sm text-[var(--muted)]">No open sessions with enough seats in this window.</p>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-stone-200 bg-white p-4">
-          <h2 className="text-lg font-medium text-amber-950">Book</h2>
-          {err && <p ref={errRef} className="text-sm text-red-600">{err}</p>}
+        <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+          <h2 className="text-lg font-medium text-[var(--foreground)]">Book</h2>
+          {err && <p ref={errRef} className="text-sm text-red-400">{err}</p>}
           {added && (
-            <p className="text-sm text-stone-600">
+            <p className="text-sm text-[var(--muted)]">
               Class added to cart.{" "}
-              <Link href="/cart" className="text-amber-800 underline">
+              <Link href="/cart" className="text-[var(--accent)] underline">
                 Go to checkout
               </Link>
             </p>
           )}
           <label className="block text-sm">
-            <span className="text-stone-600">Date &amp; time</span>
+            <span className="text-[var(--muted)]">Date &amp; time</span>
             <select
               className={`${ui.input} mt-1`}
               value={slotId}
@@ -505,7 +505,7 @@ export function ClassBookingForm(props: {
           </label>
           {seatKeys.length > 0 && (
             <label className="block text-sm">
-              <span className="text-stone-600">Seat type</span>
+              <span className="text-[var(--muted)]">Seat type</span>
               <select
                 className={`${ui.input} mt-1`}
                 value={seatType}
@@ -522,7 +522,7 @@ export function ClassBookingForm(props: {
             </label>
           )}
           <label className="block text-sm">
-            <span className="text-stone-600">
+            <span className="text-[var(--muted)]">
               How many guests? ({props.minP}–{props.maxP})
             </span>
             <input
@@ -535,7 +535,7 @@ export function ClassBookingForm(props: {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-stone-600">Notes for the studio (optional)</span>
+            <span className="text-[var(--muted)]">Notes for the studio (optional)</span>
             <textarea
               className={`${ui.input} mt-1 min-h-24`}
               value={bookingNotes}
@@ -544,20 +544,20 @@ export function ClassBookingForm(props: {
               placeholder="Anything the studio should know before your session?"
             />
           </label>
-          <div className="space-y-2 rounded-lg border border-stone-200 bg-stone-50 p-3">
-            <p className="text-sm font-medium text-stone-800">Use package credits</p>
+          <div className="space-y-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+            <p className="text-sm font-medium text-[var(--foreground)]">Use package credits</p>
             {packageLoading ? (
-              <p className="text-sm text-stone-500">Checking your active credits…</p>
+              <p className="text-sm text-[var(--muted)]">Checking your active credits…</p>
             ) : packageOptions.length === 0 ? (
-              <p className="text-sm text-stone-500">
+              <p className="text-sm text-[var(--muted)]">
                 No active package credits found for this class.{" "}
-                <Link href={`/studios/${props.studioId}/packages`} className="text-amber-800 underline">
+                <Link href={`/studios/${props.studioId}/packages`} className="text-[var(--accent)] underline">
                   Browse packages
                 </Link>
               </p>
             ) : (
               <label className="block text-sm">
-                <span className="text-stone-600">Package purchase</span>
+                <span className="text-[var(--muted)]">Package purchase</span>
                 <select
                   className={`${ui.input} mt-1`}
                   value={selectedPackagePurchaseId}
@@ -574,19 +574,19 @@ export function ClassBookingForm(props: {
             )}
           </div>
           {addOnsLoading ? (
-            <p className="text-sm text-stone-500">Loading extras…</p>
+            <p className="text-sm text-[var(--muted)]">Loading extras…</p>
           ) : addOns.length > 0 ? (
-            <div className="space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
               <div>
-                <p className="text-sm font-medium text-stone-800">Optional extras</p>
-                <p className="text-xs text-stone-500">Add premium materials, upgrades, or extras to this booking.</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">Optional extras</p>
+                <p className="text-xs text-[var(--muted)]">Add premium materials, upgrades, or extras to this booking.</p>
               </div>
               <div className="space-y-3">
                 {addOns.map((addOn) => {
                   const qty = selectedAddOns[addOn.id] ?? 0;
                   const checked = qty > 0;
                   return (
-                    <div key={addOn.id} className="rounded-lg border border-stone-200 bg-white p-3">
+                    <div key={addOn.id} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <label className="flex min-w-0 items-start gap-3">
                           <input
@@ -601,22 +601,22 @@ export function ClassBookingForm(props: {
                             className="mt-1"
                           />
                           <span className="min-w-0">
-                            <span className="block text-sm font-medium text-stone-900">{addOn.name}</span>
+                            <span className="block text-sm font-medium text-[var(--foreground)]">{addOn.name}</span>
                             {addOn.description ? (
-                              <span className="mt-1 block text-xs text-stone-500">{addOn.description}</span>
+                              <span className="mt-1 block text-xs text-[var(--muted)]">{addOn.description}</span>
                             ) : null}
                             {addOn.durationMinutesExtra > 0 ? (
-                              <span className="mt-1 block text-xs text-stone-500">
+                              <span className="mt-1 block text-xs text-[var(--muted)]">
                                 Adds {addOn.durationMinutesExtra} minute{addOn.durationMinutesExtra === 1 ? "" : "s"} to the session.
                               </span>
                             ) : null}
                           </span>
                         </label>
-                        <span className="shrink-0 text-sm font-medium text-amber-950">+€{(addOn.priceCents / 100).toFixed(2)}</span>
+                        <span className="shrink-0 text-sm font-medium text-[var(--foreground)]">+€{(addOn.priceCents / 100).toFixed(2)}</span>
                       </div>
                       {checked && addOn.maxPerBooking > 1 ? (
                         <div className="mt-3 max-w-28">
-                          <label className="block text-xs text-stone-500">
+                          <label className="block text-xs text-[var(--muted)]">
                             Quantity
                             <input
                               type="number"
@@ -641,12 +641,12 @@ export function ClassBookingForm(props: {
             </div>
           ) : null}
           {intakeLoading ? (
-            <p className="text-sm text-stone-500">Loading booking questions…</p>
+            <p className="text-sm text-[var(--muted)]">Loading booking questions…</p>
           ) : intakeForms.length > 0 ? (
-            <div className="space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
               <div>
-                <p className="text-sm font-medium text-stone-800">Booking questions</p>
-                <p className="text-xs text-stone-500">Answer these before you complete your reservation.</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">Booking questions</p>
+                <p className="text-xs text-[var(--muted)]">Answer these before you complete your reservation.</p>
               </div>
               {intakeForms.map((form) => {
                 const options = Array.isArray(form.options)
@@ -655,7 +655,7 @@ export function ClassBookingForm(props: {
                 const value = intakeValues[form.id];
                 return (
                   <label key={form.id} className="block text-sm">
-                    <span className="text-stone-700">
+                    <span className="text-[var(--muted)]">
                       {form.title}
                       {form.isRequired ? " *" : ""}
                     </span>
@@ -692,7 +692,7 @@ export function ClassBookingForm(props: {
                           onChange={(e) => setIntakeValues((current) => ({ ...current, [form.id]: e.target.checked }))}
                           required={form.isRequired}
                         />
-                        <span className="text-xs text-stone-500">{form.isRequired ? "Required" : "Optional"}</span>
+                        <span className="text-xs text-[var(--muted)]">{form.isRequired ? "Required" : "Optional"}</span>
                       </div>
                     ) : null}
                     {form.fieldType === "dropdown" ? (
@@ -721,7 +721,7 @@ export function ClassBookingForm(props: {
                     ) : null}
                     {form.fieldType === "file_upload" ? (
                       <div className="mt-2 space-y-2">
-                        <label className="inline-flex cursor-pointer items-center gap-2 rounded border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 hover:border-amber-300">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--muted)] hover:border-amber-300">
                           <input
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
@@ -750,11 +750,11 @@ export function ClassBookingForm(props: {
                           }}
                           required={form.isRequired}
                         />
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-[var(--muted)]">
                           Upload a JPG, PNG, or WebP image, or paste a hosted file URL.
                         </p>
                         {uploadStates[form.id]?.error ? (
-                          <p className="text-xs text-red-600">{uploadStates[form.id]?.error}</p>
+                          <p className="text-xs text-red-400">{uploadStates[form.id]?.error}</p>
                         ) : null}
                       </div>
                     ) : null}
@@ -764,12 +764,12 @@ export function ClassBookingForm(props: {
             </div>
           ) : null}
           {clientFieldsLoading ? (
-            <p className="text-sm text-stone-500">Loading client profile fields…</p>
+            <p className="text-sm text-[var(--muted)]">Loading client profile fields…</p>
           ) : clientFields.length > 0 ? (
-            <div className="space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
               <div>
-                <p className="text-sm font-medium text-stone-800">Client profile fields</p>
-                <p className="text-xs text-stone-500">These details are saved to your profile for future bookings.</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">Client profile fields</p>
+                <p className="text-xs text-[var(--muted)]">These details are saved to your profile for future bookings.</p>
               </div>
               {clientFields.map((field) => {
                 const options = Array.isArray(field.options)
@@ -778,7 +778,7 @@ export function ClassBookingForm(props: {
                 const value = clientFieldValues[field.id];
                 return (
                   <label key={field.id} className="block text-sm">
-                    <span className="text-stone-700">
+                    <span className="text-[var(--muted)]">
                       {field.title}
                       {field.isRequired ? " *" : ""}
                     </span>
@@ -815,7 +815,7 @@ export function ClassBookingForm(props: {
                           onChange={(e) => setClientFieldValues((current) => ({ ...current, [field.id]: e.target.checked }))}
                           required={field.isRequired}
                         />
-                        <span className="text-xs text-stone-500">{field.isRequired ? "Required" : "Optional"}</span>
+                        <span className="text-xs text-[var(--muted)]">{field.isRequired ? "Required" : "Optional"}</span>
                       </div>
                     ) : null}
                     {field.fieldType === "dropdown" ? (
@@ -857,7 +857,7 @@ export function ClassBookingForm(props: {
               })}
             </div>
           ) : null}
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-[var(--muted)]">
             Experience total: €{(fullLineCents / 100).toFixed(2)}
             {props.bookingDepositBps > 0 || packageCoversClassBase ? (
               <>
@@ -867,8 +867,8 @@ export function ClassBookingForm(props: {
             ) : null}
           </p>
           {props.bookingDepositBps > 0 || packageCoversClassBase ? (
-            <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-              <p className="text-sm font-medium text-stone-800">Payment options</p>
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+              <p className="text-sm font-medium text-[var(--foreground)]">Payment options</p>
               {packageCoversClassBase ? (
                 <p className="mt-2 text-xs text-emerald-700">
                   Package credit applied to class price (€{((props.priceCents * participantCount) / 100).toFixed(2)}).
@@ -878,7 +878,7 @@ export function ClassBookingForm(props: {
                 </p>
               ) : null}
               <div className="mt-3 space-y-2">
-                <label className="flex items-start gap-3 text-sm text-stone-700">
+                <label className="flex items-start gap-3 text-sm text-[var(--muted)]">
                   <input
                     type="radio"
                     name="booking-payment-choice"
@@ -887,10 +887,10 @@ export function ClassBookingForm(props: {
                     disabled={packageCoversClassBase}
                   />
                   <span>
-                    <span className="block font-medium text-stone-900">
+                    <span className="block font-medium text-[var(--foreground)]">
                       Pay deposit now
                     </span>
-                    <span className="block text-xs text-stone-500">
+                    <span className="block text-xs text-[var(--muted)]">
                       €{(dueNowCents / 100).toFixed(2)} now ({depositPct.toFixed(1)}%) · €{((payableLineCents - dueNowCents) / 100).toFixed(2)} later
                     </span>
                   </span>
@@ -900,7 +900,7 @@ export function ClassBookingForm(props: {
                   bookingDepositBps: props.bookingDepositBps,
                   allowFullPaymentOption: props.allowFullPaymentOption,
                 }) ? (
-                  <label className="flex items-start gap-3 text-sm text-stone-700">
+                  <label className="flex items-start gap-3 text-sm text-[var(--muted)]">
                     <input
                       type="radio"
                       name="booking-payment-choice"
@@ -908,10 +908,10 @@ export function ClassBookingForm(props: {
                       onChange={() => setPaymentChoice("full")}
                     />
                     <span>
-                      <span className="block font-medium text-stone-900">
+                      <span className="block font-medium text-[var(--foreground)]">
                         Pay full price now
                       </span>
-                      <span className="block text-xs text-stone-500">
+                      <span className="block text-xs text-[var(--muted)]">
                         €{(payableLineCents / 100).toFixed(2)} charged today
                       </span>
                     </span>
@@ -921,7 +921,7 @@ export function ClassBookingForm(props: {
             </div>
           ) : null}
           {selectedSlot ? (
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-[var(--muted)]">
               {(() => {
                 const left = selectedSlot.capacityTotal - selectedSlot.capacityReserved;
                 if (left <= 2) return `Only ${left} spot${left === 1 ? "" : "s"} left on this session.`;
@@ -930,28 +930,28 @@ export function ClassBookingForm(props: {
             </p>
           ) : null}
           {props.cancellationPolicyLabel ? (
-            <p className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+            <p className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--muted)]">
               Cancellation policy: {props.cancellationPolicyLabel}
             </p>
           ) : null}
-          <label className="flex items-start gap-3 rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm text-stone-700">
+          <label className="flex items-start gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--muted)]">
             <input
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-stone-300 text-amber-900 focus:ring-amber-900/25"
+              className="mt-0.5 h-4 w-4 rounded border-[var(--border)] text-[var(--accent)] focus:ring-amber-900/25"
             />
             <span>
               I accept the{" "}
-              <Link href="/terms" target="_blank" className="font-medium text-amber-900 underline underline-offset-2">
+              <Link href="/terms" target="_blank" className="font-medium text-[var(--accent)] underline underline-offset-2">
                 terms of service
               </Link>
               {props.cancellationPolicyLabel ? " and the cancellation policy shown above" : ""}.
             </span>
           </label>
           {props.allowPayAtStudio && (
-            <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-              <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-[var(--muted)]">
                 <input
                   type="checkbox"
                   checked={payAtStudioMode}
@@ -960,15 +960,15 @@ export function ClassBookingForm(props: {
                 Pay at the studio instead
               </label>
               {payAtStudioMode && (
-                <p className="mt-1 text-xs text-stone-500">
+                <p className="mt-1 text-xs text-[var(--muted)]">
                   No online payment required. Pay €{(fullLineCents / 100).toFixed(2)} when you arrive.
                 </p>
               )}
             </div>
           )}
-          {pasOk && <p className="text-sm text-emerald-800">{pasOk}</p>}
+          {pasOk && <p className="text-sm text-emerald-400">{pasOk}</p>}
           {!payAtStudioMode ? (
-            <div className="sticky bottom-4 z-10 -mx-4 rounded-xl bg-white/95 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+            <div className="sticky bottom-4 z-10 -mx-4 rounded-xl bg-[var(--surface)]/95 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.3)] backdrop-blur-sm sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
               <button
                 type="submit"
                 disabled={loading || !slotId || (seatKeys.length > 0 && !seatType) || !termsAccepted}
@@ -983,14 +983,14 @@ export function ClassBookingForm(props: {
                   "Book now — pay securely"
                 )}
               </button>
-              <p className="mt-2 text-center text-xs text-stone-400">
+              <p className="mt-2 text-center text-xs text-[var(--muted)]">
                 Secure checkout via Stripe. You can add more items before paying.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               <label className="block text-sm">
-                <span className="text-stone-600">Your name</span>
+                <span className="text-[var(--muted)]">Your name</span>
                 <input
                   className={`${ui.input} mt-1`}
                   value={pasName}
@@ -999,7 +999,7 @@ export function ClassBookingForm(props: {
                 />
               </label>
               <label className="block text-sm">
-                <span className="text-stone-600">Email</span>
+                <span className="text-[var(--muted)]">Email</span>
                 <input
                   type="email"
                   className={`${ui.input} mt-1`}
@@ -1029,16 +1029,16 @@ export function ClassBookingForm(props: {
       )}
 
       {props.waitlistSlots.length > 0 && (
-        <form onSubmit={onWaitlist} className="space-y-4 rounded-lg border border-dashed border-amber-300 bg-amber-50/40 p-4">
-          <h2 className="text-lg font-medium text-amber-950">Join waitlist</h2>
-          <p className="text-sm text-stone-600">
+        <form onSubmit={onWaitlist} className="space-y-4 rounded-lg border border-dashed border-amber-300 bg-[var(--accent-muted)]/40 p-4">
+          <h2 className="text-lg font-medium text-[var(--foreground)]">Join waitlist</h2>
+          <p className="text-sm text-[var(--muted)]">
             No seats available for your group right now. You can join the waitlist. No payment is taken and no seat is
             reserved.
           </p>
-          {wlErr && <p className="text-sm text-red-600">{wlErr}</p>}
+          {wlErr && <p className="text-sm text-red-400">{wlErr}</p>}
           {wlOk && <p className="text-sm text-green-800">{wlOk}</p>}
           <label className="block text-sm">
-            <span className="text-stone-600">Session</span>
+            <span className="text-[var(--muted)]">Session</span>
             <select
               className={`${ui.input} mt-1`}
               value={wlSlotId}
@@ -1057,7 +1057,7 @@ export function ClassBookingForm(props: {
           </label>
           {wlSeatKeys.length > 0 && (
             <label className="block text-sm">
-              <span className="text-stone-600">Seat type</span>
+              <span className="text-[var(--muted)]">Seat type</span>
               <select
                 className={`${ui.input} mt-1`}
                 value={wlSeatType}
@@ -1074,7 +1074,7 @@ export function ClassBookingForm(props: {
             </label>
           )}
           <label className="block text-sm">
-            <span className="text-stone-600">Participants</span>
+            <span className="text-[var(--muted)]">Participants</span>
             <input
               type="number"
               min={props.minP}
@@ -1085,7 +1085,7 @@ export function ClassBookingForm(props: {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-stone-600">Name</span>
+            <span className="text-[var(--muted)]">Name</span>
             <input
               className={`${ui.input} mt-1`}
               value={wlName}
@@ -1094,7 +1094,7 @@ export function ClassBookingForm(props: {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-stone-600">Email</span>
+            <span className="text-[var(--muted)]">Email</span>
             <input
               type="email"
               className={`${ui.input} mt-1`}

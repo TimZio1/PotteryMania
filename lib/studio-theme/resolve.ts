@@ -44,7 +44,7 @@ export function resolveStudioPublicTheme(studio: StudioForThemeTier): ResolvedSt
   const parsed = parseStudioPublicThemeJson(studio.publicTheme);
   const preset = clampThemePresetForTier(parsed.themePreset, tier);
   let base = { ...PRESET_BASE[preset] };
-  const accent = ACCENT_HEX[parsed.accentTone] ?? ACCENT_HEX.terracotta;
+  const accent = ACCENT_HEX[parsed.accentTone] ?? ACCENT_HEX.clay;
 
   /* Primary tone: subtle shifts on curated bases only (no user hex). */
   if (parsed.primaryTone === "deep_ink" && preset !== "dark-artisan") {

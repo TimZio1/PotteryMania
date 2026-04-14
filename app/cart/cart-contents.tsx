@@ -313,27 +313,27 @@ export function CartContents() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex flex-wrap gap-3 text-sm">
-        <Link href="/classes" className="font-medium text-amber-900 hover:underline">
+        <Link href="/classes" className="font-medium text-[var(--accent)] hover:underline">
           ← Browse classes
         </Link>
-        <Link href="/marketplace" className="font-medium text-amber-900 hover:underline">
+        <Link href="/marketplace" className="font-medium text-[var(--accent)] hover:underline">
           Browse marketplace
         </Link>
       </div>
-      <h1 className="mt-6 text-3xl font-semibold tracking-tight text-amber-950">Cart</h1>
-      <p className="mt-2 text-sm text-stone-600">Review items, then pay securely with Stripe.</p>
+      <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Cart</h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">Review items, then pay securely with Stripe.</p>
       {wasCancelled && (
-        <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 text-sm text-amber-950">
+        <div className="mt-4 rounded-xl border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-4 text-sm text-[var(--foreground)]">
           Payment was cancelled — your cart is still here. Continue when you&apos;re ready.
         </div>
       )}
       {cartError && (
-        <div className="mt-4 rounded-xl border border-red-200/80 bg-red-50/90 p-4 text-sm text-red-900">
+        <div className="mt-4 rounded-xl border border-red-800/40 bg-red-950/30 p-4 text-sm text-red-900">
           Could not load your cart. Please refresh the page or try again in a moment.
         </div>
       )}
       {multiVendor ? (
-        <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-amber-200/80 bg-amber-50/90 p-[var(--pm-space-4)] text-sm text-amber-950">
+        <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-[var(--pm-space-4)] text-sm text-[var(--foreground)]">
           Your cart includes <strong>more than one studio</strong>. Each studio is paid out separately via Stripe Connect, so you will complete{" "}
           <strong>one secure checkout per studio</strong>. After paying for the first, return here to pay the rest.
         </p>
@@ -341,13 +341,13 @@ export function CartContents() {
 
       {items.length === 0 ? (
         <div className={`${ui.cardMuted} mt-10`}>
-          <p className="font-medium text-stone-800">Your cart is empty</p>
-          <p className="mt-2 text-sm text-stone-600">
-            <Link href="/classes" className="font-medium text-amber-900 underline underline-offset-2">
+          <p className="font-medium text-[var(--foreground)]">Your cart is empty</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            <Link href="/classes" className="font-medium text-[var(--accent)] underline underline-offset-2">
               Browse classes
             </Link>{" "}
             or{" "}
-            <Link href="/marketplace" className="font-medium text-amber-900 underline underline-offset-2">
+            <Link href="/marketplace" className="font-medium text-[var(--accent)] underline underline-offset-2">
               explore the marketplace
             </Link>{" "}
             to get started.
@@ -359,7 +359,7 @@ export function CartContents() {
             {vendorGroups.map((group) => (
               <section key={group.studioId}>
                 {multiVendor ? (
-                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
                     {group.displayName}
                   </h2>
                 ) : null}
@@ -379,7 +379,7 @@ export function CartContents() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <div className="flex min-w-0 gap-4">
                       {i.itemType === "product" ? (
-                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[length:var(--pm-radius-control)] bg-stone-100">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[length:var(--pm-radius-control)] bg-[var(--surface-elevated)]">
                           {i.product?.images[0]?.imageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -388,7 +388,7 @@ export function CartContents() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center text-[11px] text-stone-400">
+                            <div className="flex h-full items-center justify-center text-[11px] text-[var(--muted)]">
                               No image
                             </div>
                           )}
@@ -396,16 +396,16 @@ export function CartContents() {
                       ) : null}
                       <div className="min-w-0">
                       {!multiVendor && i.vendor?.displayName ? (
-                        <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{i.vendor.displayName}</p>
+                        <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{i.vendor.displayName}</p>
                       ) : null}
-                      <p className="font-medium text-stone-900">
+                      <p className="font-medium text-[var(--foreground)]">
                         {i.itemType === "product" ? i.product?.title : i.experience?.title}
                       </p>
                       {i.itemType === "booking" && i.classPackagePurchaseId ? (
                         <p className="mt-1 text-xs font-medium text-emerald-700">Package credit applied</p>
                       ) : null}
                       {i.itemType === "booking" && i.slot ? (
-                        <p className="mt-1 text-xs text-stone-500">
+                        <p className="mt-1 text-xs text-[var(--muted)]">
                           {i.slot.slotDate.slice(0, 10)} · {i.slot.startTime}–{i.slot.endTime}
                         </p>
                       ) : null}
@@ -416,7 +416,7 @@ export function CartContents() {
                         <input
                           type="number"
                           min={1}
-                          className="min-h-11 w-20 rounded-[length:var(--pm-radius-control)] border border-stone-200 px-2 text-center text-sm shadow-[var(--pm-shadow-rest)]"
+                          className="min-h-11 w-20 rounded-[length:var(--pm-radius-control)] border border-[var(--border)] px-2 text-center text-sm shadow-[var(--pm-shadow-rest)]"
                           value={i.quantity}
                           onChange={(e) => updateQty(i.id, parseInt(e.target.value, 10) || 1)}
                           aria-label="Quantity"
@@ -425,7 +425,7 @@ export function CartContents() {
                         <input
                           type="number"
                           min={1}
-                          className="min-h-11 w-20 rounded-[length:var(--pm-radius-control)] border border-stone-200 px-2 text-center text-sm shadow-[var(--pm-shadow-rest)]"
+                          className="min-h-11 w-20 rounded-[length:var(--pm-radius-control)] border border-[var(--border)] px-2 text-center text-sm shadow-[var(--pm-shadow-rest)]"
                           value={i.participantCount ?? 1}
                           onChange={(e) => updateParticipants(i.id, parseInt(e.target.value, 10) || 1)}
                           aria-label="Participants"
@@ -434,16 +434,16 @@ export function CartContents() {
                       <div className="text-right text-sm">
                         {i.itemType === "booking" && hasDeposit ? (
                           <>
-                            <span className="font-medium text-stone-900">Total €{fullEur}</span>
-                            <span className="mt-0.5 block text-xs text-stone-500">Due now €{dueEur}</span>
+                            <span className="font-medium text-[var(--foreground)]">Total €{fullEur}</span>
+                            <span className="mt-0.5 block text-xs text-[var(--muted)]">Due now €{dueEur}</span>
                           </>
                         ) : (
-                          <span className="font-medium text-stone-900">€{dueEur}</span>
+                          <span className="font-medium text-[var(--foreground)]">€{dueEur}</span>
                         )}
                       </div>
                       <button
                         type="button"
-                        className="text-xs font-medium text-red-600 hover:text-red-800 hover:underline"
+                        className="text-xs font-medium text-red-400 hover:text-red-300 hover:underline"
                         onClick={() => removeItem(i.id, i.itemType)}
                         aria-label={`Remove ${i.itemType === "product" ? i.product?.title : i.experience?.title}`}
                       >
@@ -472,14 +472,14 @@ export function CartContents() {
                   {i.itemType === "booking" ? (
                     <div className="mt-4">
                       {i.classPackagePurchaseId ? (
-                        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                        <div className="mb-4 rounded-lg border border-emerald-800/40 bg-emerald-950/30 p-3">
                           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Package credit</p>
-                          <p className="mt-1 text-sm text-emerald-800">
+                          <p className="mt-1 text-sm text-emerald-400">
                             Class price is covered by your package. Only add-ons are charged at checkout.
                           </p>
                           <button
                             type="button"
-                            className="mt-2 text-xs font-medium text-emerald-800 underline"
+                            className="mt-2 text-xs font-medium text-emerald-400 underline"
                             onClick={() => updatePackageCredit(i.id, null)}
                           >
                             Remove package credit
@@ -487,10 +487,10 @@ export function CartContents() {
                         </div>
                       ) : null}
                       {(i.experience?.bookingDepositBps ?? 0) > 0 && !i.classPackagePurchaseId ? (
-                        <div className="mb-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Payment</p>
+                        <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Payment</p>
                           <div className="mt-2 space-y-2">
-                            <label className="flex items-start gap-3 text-sm text-stone-700">
+                            <label className="flex items-start gap-3 text-sm text-[var(--muted)]">
                               <input
                                 type="radio"
                                 name={`booking-payment-${i.id}`}
@@ -498,8 +498,8 @@ export function CartContents() {
                                 onChange={() => updateBookingPaymentPreference(i.id, "deposit")}
                               />
                               <span>
-                                <span className="block font-medium text-stone-900">Pay deposit now</span>
-                                <span className="block text-xs text-stone-500">
+                                <span className="block font-medium text-[var(--foreground)]">Pay deposit now</span>
+                                <span className="block text-xs text-[var(--muted)]">
                                   Due now €{(
                                     bookingChargeNowCents(
                                       lineDisplayFullCents(i),
@@ -517,7 +517,7 @@ export function CartContents() {
                               bookingDepositBps: i.experience?.bookingDepositBps ?? 0,
                               allowFullPaymentOption: i.experience?.allowFullPaymentOption ?? false,
                             }) ? (
-                              <label className="flex items-start gap-3 text-sm text-stone-700">
+                              <label className="flex items-start gap-3 text-sm text-[var(--muted)]">
                                 <input
                                   type="radio"
                                   name={`booking-payment-${i.id}`}
@@ -525,8 +525,8 @@ export function CartContents() {
                                   onChange={() => updateBookingPaymentPreference(i.id, "full")}
                                 />
                                 <span>
-                                  <span className="block font-medium text-stone-900">Pay full price now</span>
-                                  <span className="block text-xs text-stone-500">
+                                  <span className="block font-medium text-[var(--foreground)]">Pay full price now</span>
+                                  <span className="block text-xs text-[var(--muted)]">
                                     Charge €{(lineDisplayFullCents(i) / 100).toFixed(2)} today
                                   </span>
                                 </span>
@@ -547,9 +547,9 @@ export function CartContents() {
                         onBlur={(e) => updateBookingNotes(i.id, e.target.value)}
                       />
                       {i.addOnSelections && i.addOnSelections.length > 0 ? (
-                        <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Extras</p>
-                          <ul className="mt-2 space-y-1 text-sm text-stone-700">
+                        <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Extras</p>
+                          <ul className="mt-2 space-y-1 text-sm text-[var(--muted)]">
                             {i.addOnSelections.map((selection) => (
                               <li key={`${i.id}-${selection.addOnId}`}>
                                 {selection.name}
@@ -561,13 +561,13 @@ export function CartContents() {
                         </div>
                       ) : null}
                       {i.intakeResponsePayload && i.intakeResponsePayload.length > 0 ? (
-                        <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Booking answers</p>
-                          <dl className="mt-2 space-y-2 text-sm text-stone-700">
+                        <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Booking answers</p>
+                          <dl className="mt-2 space-y-2 text-sm text-[var(--muted)]">
                             {i.intakeResponsePayload.map((response) => (
                               <div key={`${i.id}-${response.formId}`}>
-                                <dt className="font-medium text-stone-800">{response.label}</dt>
-                                <dd className="whitespace-pre-wrap text-stone-600">{response.value || "—"}</dd>
+                                <dt className="font-medium text-[var(--foreground)]">{response.label}</dt>
+                                <dd className="whitespace-pre-wrap text-[var(--muted)]">{response.value || "—"}</dd>
                               </div>
                             ))}
                           </dl>
@@ -582,35 +582,35 @@ export function CartContents() {
               </section>
             ))}
           </div>
-          <div className="mt-6 space-y-1 text-right text-sm text-stone-600">
+          <div className="mt-6 space-y-1 text-right text-sm text-[var(--muted)]">
             <p>
               Subtotal (due now){" "}
-              <span className="text-base font-semibold text-amber-950">€{sub.toFixed(2)}</span>
+              <span className="text-base font-semibold text-[var(--foreground)]">€{sub.toFixed(2)}</span>
             </p>
             {couponPreview ? (
               <>
                 <p>
                   {couponPreview.paymentMethod === "gift_card" ? "Gift card" : "Discount"} ({couponPreview.code}
                   {couponPreview.name ? ` — ${couponPreview.name}` : ""}){" "}
-                  <span className="font-semibold text-emerald-800">
+                  <span className="font-semibold text-emerald-400">
                     −€{(couponPreview.discountCents / 100).toFixed(2)}
                   </span>
                 </p>
                 <p>
                   After discount{" "}
-                  <span className="text-base font-semibold text-amber-950">
+                  <span className="text-base font-semibold text-[var(--foreground)]">
                     €{(couponPreview.subtotalAfter / 100).toFixed(2)}
                   </span>
                 </p>
                 {hasProducts ? (
                   <>
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs text-[var(--muted)]">
                       Est. shipping €{(couponPreview.shippingCents / 100).toFixed(2)} · Est. tax €
                       {(couponPreview.taxCents / 100).toFixed(2)}
                     </p>
                     <p>
                       Est. total{" "}
-                      <span className="text-base font-semibold text-amber-950">
+                      <span className="text-base font-semibold text-[var(--foreground)]">
                         €{(couponPreview.estimatedTotal / 100).toFixed(2)}
                       </span>
                     </p>
@@ -618,7 +618,7 @@ export function CartContents() {
                 ) : (
                   <p>
                     Estimated total at checkout{" "}
-                    <span className="text-base font-semibold text-amber-950">
+                    <span className="text-base font-semibold text-[var(--foreground)]">
                       €{(couponPreview.estimatedTotal / 100).toFixed(2)}
                     </span>
                   </p>
@@ -627,13 +627,13 @@ export function CartContents() {
             ) : null}
           </div>
 
-          <div className="mt-10 border-t border-stone-200 pt-10">
-            <h2 className="text-lg font-semibold text-amber-950">Checkout details</h2>
-            <p className="mt-1 text-sm text-stone-600">We use these details for your Stripe receipt and shipping when applicable.</p>
+          <div className="mt-10 border-t border-[var(--border)] pt-10">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Checkout details</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">We use these details for your Stripe receipt and shipping when applicable.</p>
             {err ? <p className={`${ui.errorText} mt-4`}>{err}</p> : null}
             {couponErr ? <p className={`${ui.errorText} mt-2`}>{couponErr}</p> : null}
             {!hasProducts ? (
-              <p className="mt-4 text-sm text-stone-500">Booking-only: no shipping address needed. Name and email are required.</p>
+              <p className="mt-4 text-sm text-[var(--muted)]">Booking-only: no shipping address needed. Name and email are required.</p>
             ) : null}
             <div className="mt-6 space-y-4">
               <div>
@@ -725,7 +725,7 @@ export function CartContents() {
                   Promo code
                 </label>
                 {multiVendor ? (
-                  <p className="mt-2 text-sm text-stone-600">
+                  <p className="mt-2 text-sm text-[var(--muted)]">
                     Promo codes apply to a single studio checkout. Use a code after your cart only contains items from one studio, or apply it on each studio&apos;s checkout one at a time.
                   </p>
                 ) : (
@@ -755,12 +755,12 @@ export function CartContents() {
                         ) : null}
                       </div>
                     </div>
-                    <p className="mt-2 text-xs text-stone-500">
+                    <p className="mt-2 text-xs text-[var(--muted)]">
                       {hasProducts
                         ? "Shipping and tax estimates use your address above."
                         : "Discount applies to class deposits in this cart."}
                     </p>
-                    <div className="mt-4 border-t border-stone-200 pt-4">
+                    <div className="mt-4 border-t border-[var(--border)] pt-4">
                       <label className={ui.label} htmlFor="cart-gift-card">
                         Gift card
                       </label>
@@ -782,7 +782,7 @@ export function CartContents() {
                           Apply gift card
                         </button>
                       </div>
-                      <p className="mt-2 text-xs text-stone-500">
+                      <p className="mt-2 text-xs text-[var(--muted)]">
                         Gift cards are studio-specific and reduce the amount charged at checkout.
                       </p>
                     </div>
@@ -805,7 +805,7 @@ export function CartContents() {
                           <>Continue to payment — {g.displayName}</>
                         )}
                       </button>
-                      <p className="flex items-center justify-center gap-2 text-xs text-stone-500">
+                      <p className="flex items-center justify-center gap-2 text-xs text-[var(--muted)]">
                         <span aria-hidden="true">🔒</span>
                         Secure Stripe checkout
                       </p>
@@ -821,7 +821,7 @@ export function CartContents() {
                       "Continue to payment"
                     )}
                   </button>
-                  <p className="flex items-center justify-center gap-2 text-xs text-stone-500">
+                  <p className="flex items-center justify-center gap-2 text-xs text-[var(--muted)]">
                     <span aria-hidden="true">🔒</span>
                     Secure Stripe checkout
                   </p>

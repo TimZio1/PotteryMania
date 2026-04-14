@@ -132,10 +132,10 @@ export default async function ClassesPage({ searchParams }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
           <p className={ui.overline}>Book</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">
             Classes &amp; experiences
           </h1>
-          <p className="mt-3 text-stone-600">
+          <p className="mt-3 text-[var(--muted)]">
             Pick a session at a studio. Pricing is per person; deposits and policies are shown before you pay.
           </p>
         </div>
@@ -147,7 +147,7 @@ export default async function ClassesPage({ searchParams }: Props) {
           action="/classes"
           className={`${ui.cardMuted} mt-3 space-y-5 md:mt-0`}
         >
-          <p className="hidden text-sm font-medium text-stone-800 md:block">Filter classes</p>
+          <p className="hidden text-sm font-medium text-[var(--foreground)] md:block">Filter classes</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
               <label className={ui.label} htmlFor="classes-q">
@@ -287,13 +287,13 @@ export default async function ClassesPage({ searchParams }: Props) {
               />
             </div>
             <div className="flex items-end pb-1">
-              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-stone-800">
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[var(--foreground)]">
                 <input
                   type="checkbox"
                   name="spots"
                   value="open"
                   defaultChecked={filters.openSpotsOnly}
-                  className="h-4 w-4 rounded border-stone-300 text-amber-900 focus:ring-amber-900/25"
+                  className="h-4 w-4 rounded border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent-muted)]"
                 />
                 Only show dates with open spots
               </label>
@@ -337,8 +337,8 @@ export default async function ClassesPage({ searchParams }: Props) {
               className={cn(
                 "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
                 !filters.category
-                  ? "border-amber-800 bg-amber-900 text-white"
-                  : "border-stone-200 bg-white text-stone-700 hover:border-amber-300 hover:bg-amber-50",
+                  ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                  : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)]",
               )}
             >
               All
@@ -350,8 +350,8 @@ export default async function ClassesPage({ searchParams }: Props) {
                 className={cn(
                   "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
                   filters.category === c
-                    ? "border-amber-800 bg-amber-900 text-white"
-                    : "border-stone-200 bg-white text-stone-700 hover:border-amber-300 hover:bg-amber-50",
+                    ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:border-[var(--accent)] hover:bg-[var(--accent-muted)]",
                 )}
               >
                 {c}
@@ -362,10 +362,10 @@ export default async function ClassesPage({ searchParams }: Props) {
 
         {near ? (
           <section className="mt-10" aria-labelledby="classes-map-heading">
-            <h2 id="classes-map-heading" className="text-lg font-semibold text-amber-950">
+            <h2 id="classes-map-heading" className="text-lg font-semibold text-[var(--foreground)]">
               Map
             </h2>
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm text-[var(--muted)]">
               Amber circle: your search radius. Pins match the list below — click a pin to open the class.
             </p>
             <div className="mt-4">
@@ -383,10 +383,10 @@ export default async function ClassesPage({ searchParams }: Props) {
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
             {filtered ? (
               <>
-                <p className="font-medium text-stone-800">No classes match these filters</p>
-                <p className="mt-2 text-sm text-stone-600">
+                <p className="font-medium text-[var(--foreground)]">No classes match these filters</p>
+                <p className="mt-2 text-sm text-[var(--muted)]">
                   Try clearing filters or browse{" "}
-                  <Link href="/studios" className="font-medium text-amber-900 underline underline-offset-2">
+                  <Link href="/studios" className="font-medium text-[var(--accent)] underline underline-offset-2">
                     all studios
                   </Link>{" "}
                   to discover new experiences.
@@ -400,10 +400,10 @@ export default async function ClassesPage({ searchParams }: Props) {
               </>
             ) : (
               <>
-                <p className="font-medium text-stone-800">No public classes yet</p>
-                <p className="mt-2 text-sm text-stone-600">
+                <p className="font-medium text-[var(--foreground)]">No public classes yet</p>
+                <p className="mt-2 text-sm text-[var(--muted)]">
                   Check back soon — studios are adding new classes regularly. In the meantime,{" "}
-                  <Link href="/studios" className="font-medium text-amber-900 underline underline-offset-2">
+                  <Link href="/studios" className="font-medium text-[var(--accent)] underline underline-offset-2">
                     explore studios
                   </Link>{" "}
                   to find upcoming sessions.
@@ -422,28 +422,28 @@ export default async function ClassesPage({ searchParams }: Props) {
                 near && pt ? haversineKm(near.lat, near.lng, pt.lat, pt.lng) : null;
               return (
                 <Link key={ex.id} href={`/classes/${ex.id}`} className={ui.tile}>
-                  <div className="aspect-video bg-stone-100">
+                  <div className="aspect-video bg-[var(--surface-elevated)]">
                     {img ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={img} alt="" className="h-full w-full object-cover transition group-hover:scale-[1.02]" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-stone-400">No image</div>
+                      <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">No image</div>
                     )}
                   </div>
                   <div className="p-4 sm:p-5">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs font-medium text-stone-600">{ex.studio.displayName}</p>
+                      <p className="text-xs font-medium text-[var(--muted)]">{ex.studio.displayName}</p>
                       {ex.category ? (
-                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
+                        <span className="rounded-full bg-[var(--surface-elevated)] px-2 py-0.5 text-[10px] font-medium text-[var(--muted)]">
                           {ex.category}
                         </span>
                       ) : null}
                     </div>
-                    <h2 className="mt-1 text-base font-semibold text-stone-900">{ex.title}</h2>
+                    <h2 className="mt-1 text-base font-semibold text-[var(--foreground)]">{ex.title}</h2>
                     {km != null ? (
-                      <p className="mt-1 text-xs text-stone-600">~{km.toFixed(1)} km away</p>
+                      <p className="mt-1 text-xs text-[var(--muted)]">~{km.toFixed(1)} km away</p>
                     ) : null}
-                    <p className="mt-2 text-sm font-medium text-amber-950">
+                    <p className="mt-2 text-sm font-medium text-[var(--foreground)]">
                       {recurring
                         ? `€${(ex.recurringPriceCents! / 100).toFixed(2)}/${billingIntervalLabel(
                             ex.billingInterval as "weekly" | "monthly" | "custom",

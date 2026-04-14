@@ -115,7 +115,7 @@ export default function LoginInner() {
         <p className={ui.errorText}>This account has been suspended. Contact support if you think this is a mistake.</p>
       ) : null}
       {verifiedOk ? (
-        <div className={`${ui.cardMuted} border-emerald-200/80 bg-emerald-50/90`}>
+        <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
           <p className={ui.successText}>Your email is verified. You can sign in.</p>
         </div>
       ) : null}
@@ -131,10 +131,10 @@ export default function LoginInner() {
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignIn()} className={`${ui.buttonSecondary} w-full`}>
             {googlePending ? "Connecting Google…" : "Continue with Google"}
           </button>
-          <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-stone-400`}>
-            <span className="h-px flex-1 bg-stone-200" />
+          <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-[var(--muted)]`}>
+            <span className="h-px flex-1 bg-[var(--border)]" />
             <span>or sign in with email</span>
-            <span className="h-px flex-1 bg-stone-200" />
+            <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
         </>
       ) : null}
@@ -170,7 +170,7 @@ export default function LoginInner() {
           disabled={pending}
         />
         <p className="mt-2 text-right text-sm">
-          <Link href="/forgot-password" className="font-medium text-amber-900 hover:underline">
+          <Link href="/forgot-password" className="font-medium text-[var(--accent)] hover:underline">
             Forgot password?
           </Link>
         </p>
@@ -178,13 +178,13 @@ export default function LoginInner() {
       <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
         {pending ? "Signing in…" : "Sign in"}
       </button>
-      <p className="text-center text-sm text-stone-600">
+      <p className="text-center text-sm text-[var(--muted)]">
         New here?{" "}
-        <Link href={callbackUrl && callbackUrl !== "/dashboard" ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"} className="font-medium text-amber-900 hover:underline">
+        <Link href={callbackUrl && callbackUrl !== "/dashboard" ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"} className="font-medium text-[var(--accent)] hover:underline">
           Create an account
         </Link>
       </p>
-      <p className="text-center text-xs text-stone-500">
+      <p className="text-center text-xs text-[var(--muted)]">
         Early-access interest alone doesn&apos;t create a password — you need a full account when registration is open.
       </p>
     </form>

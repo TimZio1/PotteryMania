@@ -35,7 +35,7 @@ function pick<T extends string>(v: unknown, allowed: Set<string>, fallback: T): 
 export const DEFAULT_STUDIO_PUBLIC_THEME: StudioPublicThemeV1 = {
   themePreset: "warm-minimal",
   primaryTone: "warm_neutral",
-  accentTone: "terracotta",
+  accentTone: "clay",
   fontPair: "system_neutral",
   layoutMode: "balanced",
   imageStyle: "rounded",

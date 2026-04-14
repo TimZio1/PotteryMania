@@ -27,7 +27,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#fcfaf7",
+  themeColor: "#0E0E0E",
 };
 
 export const metadata: Metadata = {
@@ -69,11 +69,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} font-sans text-(--brand-ink) antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} font-sans text-[var(--foreground)] antialiased`}
       >
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only fixed left-4 top-4 z-200 rounded-lg bg-amber-950 px-4 py-2 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
+          className="sr-only focus:not-sr-only fixed left-4 top-4 z-200 rounded-[var(--radius-button)] bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         >
           Skip to content
         </a>

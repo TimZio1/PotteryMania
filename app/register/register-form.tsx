@@ -80,9 +80,9 @@ export function RegisterForm() {
         </p>
       ) : null}
       {ok ? (
-        <div className={`${ui.cardMuted} border-emerald-200/80 bg-emerald-50/90`}>
+        <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
           <p className={ui.successText}>{ok}</p>
-          <Link href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"} className="mt-2 inline-block text-sm font-medium text-amber-900 hover:underline">
+          <Link href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"} className="mt-2 inline-block text-sm font-medium text-[var(--accent)] hover:underline">
             Go to sign in →
           </Link>
         </div>
@@ -92,18 +92,18 @@ export function RegisterForm() {
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignUp()} className={`${ui.buttonSecondary} w-full`}>
             {googlePending ? "Connecting Google…" : "Continue with Google"}
           </button>
-          <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-stone-400`}>
-            <span className="h-px flex-1 bg-stone-200" />
+          <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-[var(--muted)]`}>
+            <span className="h-px flex-1 bg-[var(--border)]" />
             <span>or register with email</span>
-            <span className="h-px flex-1 bg-stone-200" />
+            <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
         </>
       ) : null}
-      <div className={`${ui.cardMuted} border-stone-200/80 bg-stone-50/90`}>
-        <p className="text-sm font-medium text-stone-900">Create your customer account first.</p>
-        <p className="mt-2 text-sm text-stone-600">
+      <div className={`${ui.cardMuted} border-[var(--border)]/80`}>
+        <p className="text-sm font-medium text-[var(--foreground)]">Create your customer account first.</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Studio owners can create a studio after signing in and will review the{" "}
-          <Link href="/vendor-terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+          <Link href="/vendor-terms" className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
             studio terms
           </Link>{" "}
           during setup.
@@ -125,10 +125,10 @@ export function RegisterForm() {
           disabled={pending}
         />
       </div>
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-stone-700">
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--muted)]">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 rounded border-stone-300"
+          className="mt-1 h-4 w-4 rounded border-[var(--border)]"
           checked={marketingConsent}
           onChange={(e) => setMarketingConsent(e.target.checked)}
           disabled={pending}
@@ -157,9 +157,9 @@ export function RegisterForm() {
       <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
         {pending ? "Creating account…" : "Create account"}
       </button>
-      <p className="text-center text-sm text-stone-600">
+      <p className="text-center text-sm text-[var(--muted)]">
         Already have an account?{" "}
-        <Link href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"} className="font-medium text-amber-900 hover:underline">
+        <Link href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"} className="font-medium text-[var(--accent)] hover:underline">
           Sign in
         </Link>
       </p>

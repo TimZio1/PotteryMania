@@ -123,8 +123,8 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className={platformUi.overline}>Today / upcoming sessions</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Session calendar</h1>
-          <p className="mt-2 text-sm text-stone-600">Upcoming reservations, reschedules, and calendar links for your studio visits.</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Session calendar</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">Upcoming reservations, reschedules, and calendar links for your studio visits.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center`}>
@@ -143,19 +143,19 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
       </div>
 
       {actionMsg ? (
-        <div className="mt-6 rounded-xl border border-stone-200/80 bg-white px-4 py-3 text-sm text-stone-700 shadow-(--pm-shadow-rest)">
+        <div className="mt-6 rounded-xl border border-[var(--border)]/80 bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)] shadow-(--pm-shadow-rest)">
           {actionMsg}
         </div>
       ) : null}
 
       {calendarLinkErr ? (
-        <p className="mt-4 text-sm text-stone-500">{calendarLinkErr}</p>
+        <p className="mt-4 text-sm text-[var(--muted)]">{calendarLinkErr}</p>
       ) : null}
 
       {calendarLink ? (
         <div className={`${platformUi.cardMuted} mt-6 space-y-3`}>
-          <p className="text-sm font-medium text-stone-800">Calendar</p>
-          <p className="text-xs text-stone-600">{calendarLink.note}</p>
+          <p className="text-sm font-medium text-[var(--foreground)]">Calendar</p>
+          <p className="text-xs text-[var(--muted)]">{calendarLink.note}</p>
           <div className="flex flex-wrap gap-2">
             <a href="/api/my-bookings/calendar" className={platformUi.buttonSecondary}>
               Download all (.ics)
@@ -189,7 +189,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
           <p className={platformUi.helper}>
             In Apple Calendar: File → New Calendar Subscription. Google Calendar: Settings → Add calendar → From URL.
             You can also try{" "}
-            <a href={calendarLink.webcalUrl} className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-800">
+            <a href={calendarLink.webcalUrl} className="font-medium text-[var(--foreground)] underline underline-offset-2 hover:text-[var(--accent)]">
               open in calendar app (webcal)
             </a>
             .
@@ -200,9 +200,9 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
       <div className="mt-8 space-y-4">
         {bookings.length === 0 ? (
           <div className={`${platformUi.cardMuted}`}>
-            <p className="font-medium text-stone-900">No reservations yet</p>
-            <p className="mt-2 text-sm text-stone-600">
-              <Link href="/classes" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-800">
+            <p className="font-medium text-[var(--foreground)]">No reservations yet</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              <Link href="/classes" className="font-medium text-[var(--foreground)] underline underline-offset-2 hover:text-[var(--accent)]">
                 Browse studio sessions
               </Link>{" "}
               to get started.
@@ -213,16 +213,16 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
           <div key={b.id} className={platformUi.card}>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
               <div className="min-w-0">
-                <p className="font-semibold text-amber-950">{b.experience.title}</p>
-                <p className="mt-1 text-sm text-stone-500">{b.studio.displayName}</p>
-                <p className="mt-2 text-sm text-stone-600">
+                <p className="font-semibold text-[var(--foreground)]">{b.experience.title}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{b.studio.displayName}</p>
+                <p className="mt-2 text-sm text-[var(--muted)]">
                   {b.slot.slotDate.slice(0, 10)} · {b.slot.startTime}–{b.slot.endTime}
                 </p>
-                <p className="mt-1 text-sm text-stone-600">{b.participantCount} participants</p>
-                {b.seatType ? <p className="mt-1 text-sm text-stone-600">Seat: {b.seatType}</p> : null}
+                <p className="mt-1 text-sm text-[var(--muted)]">{b.participantCount} participants</p>
+                {b.seatType ? <p className="mt-1 text-sm text-[var(--muted)]">Seat: {b.seatType}</p> : null}
                 {b.bookingAddOns.length > 0 ? (
-                  <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
-                    <p className="font-medium text-stone-800">Extras</p>
+                  <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--muted)]">
+                    <p className="font-medium text-[var(--foreground)]">Extras</p>
                     <ul className="mt-2 space-y-1">
                       {b.bookingAddOns.map((entry, index) => (
                         <li key={`${b.id}-addon-${index}`}>
@@ -235,12 +235,12 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                   </div>
                 ) : null}
                 {b.intakeResponses.length > 0 ? (
-                  <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
-                    <p className="font-medium text-stone-800">Your booking answers</p>
+                  <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--muted)]">
+                    <p className="font-medium text-[var(--foreground)]">Your booking answers</p>
                     <dl className="mt-2 space-y-2">
                       {b.intakeResponses.map((entry, index) => (
                         <div key={`${b.id}-intake-${index}`}>
-                          <dt className="font-medium text-stone-800">{entry.labelSnapshot}</dt>
+                          <dt className="font-medium text-[var(--foreground)]">{entry.labelSnapshot}</dt>
                           <dd className="whitespace-pre-wrap">{entry.value}</dd>
                         </div>
                       ))}
@@ -248,14 +248,14 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                   </div>
                 ) : null}
                 {b.notes ? (
-                  <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
-                    <p className="font-medium text-stone-800">Notes for the studio</p>
+                  <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--muted)]">
+                    <p className="font-medium text-[var(--foreground)]">Notes for the studio</p>
                     <p className="mt-2 whitespace-pre-wrap">{b.notes}</p>
                   </div>
                 ) : null}
-                {b.ticketRef ? <p className="mt-2 text-sm font-medium text-stone-800">Ref: {b.ticketRef}</p> : null}
+                {b.ticketRef ? <p className="mt-2 text-sm font-medium text-[var(--foreground)]">Ref: {b.ticketRef}</p> : null}
                 {b.ticketRef && ACTIVE_QR_STATUSES.has(b.bookingStatus) ? (
-                  <div className="mt-4 inline-flex rounded-2xl border border-stone-200 bg-white p-3 shadow-sm">
+                  <div className="mt-4 inline-flex rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`/api/bookings/${b.id}/ticket-qr`}
@@ -266,29 +266,29 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                 ) : null}
               </div>
               <div className="text-left sm:text-right">
-                <p className="text-lg font-semibold text-amber-950">€{(b.totalAmountCents / 100).toFixed(2)}</p>
+                <p className="text-lg font-semibold text-[var(--foreground)]">€{(b.totalAmountCents / 100).toFixed(2)}</p>
                 {b.remainingBalanceCents > 0 ? (
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     Paid online €{(b.depositAmountCents / 100).toFixed(2)} · Balance €
                     {(b.remainingBalanceCents / 100).toFixed(2)}
                   </p>
                 ) : null}
                 {b.remainderPaidAt ? (
-                  <p className="mt-1 text-xs text-emerald-700">
+                  <p className="mt-1 text-xs text-emerald-400">
                     Remaining balance paid {new Date(b.remainderPaidAt).toLocaleDateString()}
                   </p>
                 ) : null}
-                <p className="mt-2 text-xs font-medium uppercase tracking-wide text-stone-500">
+                <p className="mt-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
                   {b.bookingStatus.replace(/_/g, " ").replace("vendor", "studio")} · {b.paymentStatus.replace(/_/g, " ")}
                 </p>
                 {b.cancellations.length > 0 ? (
-                  <p className="mt-2 text-xs text-red-700">
+                  <p className="mt-2 text-xs text-red-400">
                     Cancelled ({b.cancellations[0].cancelledByRole.replace("vendor", "studio")}) — {b.cancellations[0].refundOutcome}
                   </p>
                 ) : null}
               </div>
             </div>
-            <div className="mt-5 space-y-4 border-t border-stone-200/80 pt-4">
+            <div className="mt-5 space-y-4 border-t border-[var(--border)]/80 pt-4">
               <AddToCalendarButtons bookingId={b.id} bookingStatus={b.bookingStatus} visualMode="platform" />
               <a
                 href={`/api/bookings/${b.id}/calendar`}
@@ -316,7 +316,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                 <button
                   type="button"
                   onClick={() => handleCancel(b.id)}
-                  className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"
+                  className="rounded-full border border-red-400/30 bg-[var(--surface)] px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950/30"
                 >
                   Cancel reservation
                 </button>
@@ -324,7 +324,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
               {b.bookingStatus === "completed" && b.reviews.length === 0 ? (
                 <Link
                   href={`/reviews/new?booking=${encodeURIComponent(b.id)}`}
-                  className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
+                  className="inline-flex rounded-full border border-[var(--accent)] bg-[var(--accent-muted)] px-4 py-2 text-sm font-medium text-[var(--accent)] hover:bg-[var(--surface-elevated)]"
                 >
                   Leave a review
                 </Link>
