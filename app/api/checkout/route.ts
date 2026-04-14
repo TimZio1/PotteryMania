@@ -117,9 +117,20 @@ export async function POST(req: Request) {
     if (!coupon) {
       return NextResponse.json({ error: "Unknown coupon code" }, { status: 400 });
     }
-    const couponErr = validateCouponState(coupon);
+    const couponErr = validateCouponState(coupon, {
+      studioId,
+      subtotalCents: subtotal,
+    });
     if (couponErr) {
       return NextResponse.json({ error: couponErr }, { status: 400 });
+    }
+    if (coupon.maxPerCustomer != null && user?.id) {
+      const redeemed = await prisma.discountRedemption.count({
+        where: { couponId: coupon.id, userId: user.id },
+      });
+      if (redeemed >= coupon.maxPerCustomer) {
+        return NextResponse.json({ error: "Coupon usage limit reached for this account" }, { status: 400 });
+      }
     }
     const cur = coupon.currency?.toUpperCase() ?? "EUR";
     if (cur !== "EUR") {

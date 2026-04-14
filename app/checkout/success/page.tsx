@@ -204,8 +204,8 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                 View my bookings
               </Link>
             )}
-            <Link href="/classes" className={hasBookings ? ui.buttonSecondary : ui.buttonPrimary}>
-              Browse more classes
+            <Link href="/" className={hasBookings ? ui.buttonSecondary : ui.buttonPrimary}>
+              Back to home
             </Link>
           </div>
         </div>

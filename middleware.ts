@@ -14,11 +14,12 @@ import {
   isStateChangingMethod,
 } from "@/lib/csrf-protection";
 
-const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-waitlist", "/cart", "/account"];
+const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-orders", "/my-waitlist", "/cart", "/account"];
 /** Public core pages; legacy catalog entry URLs redirect separately. */
 const BASE_PUBLIC_CORE = [
   "/",
   "/pricing",
+  "/demo",
   "/wear",
   "/early-access",
   "/login",

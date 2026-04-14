@@ -61,3 +61,34 @@ export function abandonedCartCopy(input: { recoveryUrl: string; itemCount: numbe
     ctaUrl: input.recoveryUrl,
   });
 }
+
+export function orderShippedCopy(input: {
+  customerName: string;
+  studioName: string;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  trackingCarrier?: string | null;
+}) {
+  const trackingLine = input.trackingNumber
+    ? `<p style="margin:0 0 8px;">Tracking number: ${escapeHtml(input.trackingNumber)}</p>`
+    : "";
+  const carrierLine = input.trackingCarrier
+    ? `<p style="margin:0 0 8px;">Carrier: ${escapeHtml(input.trackingCarrier)}</p>`
+    : "";
+  const trackingIntro = input.trackingUrl
+    ? "Your studio shared a tracking link for this shipment."
+    : "Your studio marked the order as shipped.";
+
+  return renderEmailShell({
+    eyebrow: "Order update",
+    title: "Your order is on the way",
+    intro: `Hi ${input.customerName}, your order from ${input.studioName} has shipped.`,
+    bodyHtml: `<p style="margin:0 0 12px;">${trackingIntro}</p>${carrierLine}${trackingLine}`,
+    ctaLabel: input.trackingUrl ? "Track shipment" : "Open PotteryMania",
+    ctaUrl:
+      input.trackingUrl ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.AUTH_URL ||
+      "http://localhost:3000",
+  });
+}

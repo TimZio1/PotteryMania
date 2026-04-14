@@ -8,28 +8,28 @@ export function GiftCardSuccessClient() {
   const sessionId = searchParams.get("session_id");
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-20 text-(--brand-ink) sm:px-6 sm:py-28">
+    <main className="min-h-[60vh] bg-[var(--background)] px-4 py-20 text-[var(--foreground)] sm:px-6 sm:py-28">
       <div className="mx-auto max-w-md text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Thank you</p>
-        <h1 className="mt-6 font-serif text-3xl text-amber-950 sm:text-4xl">Gift card purchased</h1>
-        <p className="mt-6 text-sm leading-relaxed text-stone-600">
+        <p className="text-xs font-medium uppercase tracking-[0.28em] text-[var(--muted)]">Thank you</p>
+        <h1 className="mt-6 font-serif text-3xl text-[var(--foreground)] sm:text-4xl">Gift card purchased</h1>
+        <p className="mt-6 text-sm leading-relaxed text-[var(--muted)]">
           Payment confirmed. We are activating the gift card and sending the code to your recipient by email.
         </p>
         {sessionId ? (
-          <p className="mt-4 break-all font-mono text-[11px] text-stone-500">Ref: {sessionId}</p>
+          <p className="mt-4 break-all font-mono text-[11px] text-[var(--muted)]">Ref: {sessionId}</p>
         ) : null}
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/gift-cards"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium text-white hover:bg-amber-900"
+            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-button)] border border-[var(--accent)]/50 bg-[var(--accent)] px-6 text-sm font-medium text-[var(--accent-contrast)] hover:bg-[var(--accent-hover)]"
           >
             Buy another gift card
           </Link>
           <Link
-            href="/classes"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 bg-white px-6 text-sm font-medium text-stone-700 hover:border-amber-300/60 hover:bg-amber-50/60"
+            href="/"
+            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-button)] border border-[var(--border)] bg-[var(--surface)] px-6 text-sm font-medium text-[var(--foreground)] hover:border-[var(--accent)] hover:bg-[var(--surface-elevated)]"
           >
-            Browse classes
+            Back to home
           </Link>
         </div>
       </div>

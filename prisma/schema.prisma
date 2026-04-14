@@ -279,6 +279,7 @@ model Studio {
   experienceAddOns     ExperienceAddOn[]
   intakeForms          IntakeForm[]
   giftCards            GiftCard[]
+  coupons              Coupon[]
   giftCardTemplates    GiftCardTemplate[]
   classPackages        ClassPackage[]
   memberships         Membership[]
@@ -2569,22 +2570,27 @@ model OfferingSubscriptionEvent {
 }
 
 model Coupon {
-  id          String   @id @default(uuid()) @db.Uuid
-  code        String   @unique
-  name        String?
-  percentOff  Int?     @map("percent_off")
-  amountOffCents Int?  @map("amount_off_cents")
-  currency    String?  @default("EUR")
-  maxRedemptions Int? @map("max_redemptions")
-  redeemedCount Int    @default(0) @map("redeemed_count")
-  validFrom   DateTime? @map("valid_from")
-  validUntil  DateTime? @map("valid_until")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(uuid()) @db.Uuid
+  studioId         String?  @map("studio_id") @db.Uuid
+  code             String   @unique
+  name             String?
+  percentOff       Int?     @map("percent_off")
+  amountOffCents   Int?     @map("amount_off_cents")
+  currency         String?  @default("EUR")
+  maxRedemptions   Int?     @map("max_redemptions")
+  maxPerCustomer   Int?     @map("max_per_customer")
+  minSubtotalCents Int?     @map("min_subtotal_cents")
+  redeemedCount    Int      @default(0) @map("redeemed_count")
+  validFrom        DateTime? @map("valid_from")
+  validUntil       DateTime? @map("valid_until")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
+  studio      Studio?               @relation(fields: [studioId], references: [id], onDelete: SetNull)
   redemptions DiscountRedemption[]
 
+  @@index([studioId, isActive])
   @@map("coupons")
 }
 

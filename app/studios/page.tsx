@@ -247,11 +247,7 @@ export default async function StudiosPage({ searchParams }: Props) {
             <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
               <p className="font-medium text-[var(--foreground)]">No studios match these filters</p>
               <p className="mt-2 text-sm text-[var(--muted)]">
-                Try clearing filters or visit the{" "}
-                <Link href="/classes" className="font-medium text-[var(--accent)] underline underline-offset-2">
-                  classes
-                </Link>{" "}
-                page.
+                Try clearing your filters or adjusting your search.
               </p>
               <Link
                 href={byName ? "/studios?sort=name" : "/studios"}

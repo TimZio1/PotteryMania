@@ -10,10 +10,30 @@ export function normalizeCouponCode(code: string): string {
   return code.trim().toUpperCase();
 }
 
-export function validateCouponState(coupon: Coupon, now = new Date()): string | null {
+type CouponValidationContext = {
+  now?: Date;
+  studioId?: string;
+  subtotalCents?: number;
+};
+
+export function validateCouponState(coupon: Coupon, context: CouponValidationContext = {}): string | null {
+  const now = context.now ?? new Date();
   if (!coupon.isActive) return "Coupon is not active";
   if (coupon.validFrom && now < coupon.validFrom) return "Coupon is not valid yet";
   if (coupon.validUntil && now > coupon.validUntil) return "Coupon has expired";
+  if (coupon.studioId && context.studioId && coupon.studioId !== context.studioId) {
+    return "Coupon is not valid for this studio";
+  }
+  if (coupon.studioId && !context.studioId) {
+    return "Coupon requires a single-studio checkout";
+  }
+  if (
+    coupon.minSubtotalCents != null &&
+    context.subtotalCents != null &&
+    context.subtotalCents < coupon.minSubtotalCents
+  ) {
+    return `Coupon requires a minimum subtotal of €${(coupon.minSubtotalCents / 100).toFixed(2)}`;
+  }
   const pct = coupon.percentOff;
   const amt = coupon.amountOffCents;
   const hasPct = pct != null && pct > 0;

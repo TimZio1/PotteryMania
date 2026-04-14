@@ -17,23 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const adminSession = await requireAdminUser();
   if (adminSession) {
-    return (
-      <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
-        <p className={platformUi.overline}>Hyperadmin</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Control center</h1>
-        <p className="mt-3 text-stone-600">
-          Open the platform control center to review studios, activity, finance, and system health.
-        </p>
-        <div className={`${platformUi.card} mt-8 space-y-3`}>
-          <Link href="/admin" className={`${platformUi.buttonPrimary} block w-full text-center`}>
-            Open control center
-          </Link>
-          <Link href="/admin/finance" className={`${platformUi.buttonSecondary} block w-full text-center`}>
-            Open finance command
-          </Link>
-        </div>
-      </div>
-    );
+    redirect("/admin");
   }
 
   const user = await getSessionUser();

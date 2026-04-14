@@ -202,10 +202,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
           <div className={`${platformUi.cardMuted}`}>
             <p className="font-medium text-[var(--foreground)]">No reservations yet</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              <Link href="/classes" className="font-medium text-[var(--foreground)] underline underline-offset-2 hover:text-[var(--accent)]">
-                Browse studio sessions
-              </Link>{" "}
-              to get started.
+              Visit a studio page to browse their sessions and book.
             </p>
           </div>
         ) : null}

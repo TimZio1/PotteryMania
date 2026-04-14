@@ -25,6 +25,7 @@ export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
     { href: b("/memberships"), label: "Memberships" },
     { href: b("/locations"), label: "Locations" },
     { href: b("/shop"), label: "Catalog" },
+    { href: b("/promotions"), label: "Promotions" },
     { href: b("/payments"), label: "Payments & payouts" },
     { href: b("/students"), label: "Participants" },
     { href: b("/calendar"), label: "Schedule" },

@@ -32,6 +32,7 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
         : [
             { href: "/dashboard", label: "Studio control panel" },
             { href: "/my-bookings", label: "Session calendar" },
+            { href: "/my-orders", label: "My orders" },
             { href: "/account", label: "Account" },
           ],
     [variant],

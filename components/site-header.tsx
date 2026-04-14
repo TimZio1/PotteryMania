@@ -8,8 +8,12 @@ import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
 
-function adminVisible(role: string | undefined) {
+function isAdminRole(role: string | undefined) {
   return role === "admin" || role === "hyper_admin";
+}
+
+function isVendorRole(role: string | undefined) {
+  return role === "vendor";
 }
 
 type SiteHeaderProps = {
@@ -107,29 +111,37 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
         <nav className="flex shrink-0 flex-wrap items-center justify-end gap-1 sm:gap-2" aria-label="Primary">
           {authed ? (
             <div className="hidden items-center gap-1 md:flex">
-              <Link href="/pricing" className={linkClass("/pricing")}>
-                Pricing
-              </Link>
-              <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
-                Create your studio
-              </Link>
-              <Link href="/cart" className={linkClass("/cart")}>
-                Cart
-              </Link>
-              <Link href="/dashboard" className={linkClass("/dashboard")}>
-                Dashboard
-              </Link>
-              <Link href="/my-bookings" className={linkClass("/my-bookings")}>
-                My bookings
-              </Link>
-              <Link href="/account" className={linkClass("/account")}>
-                Account
-              </Link>
-              {adminVisible(role) ? (
+              {isAdminRole(role) ? (
                 <Link href="/admin" className={linkClass("/admin")}>
                   Admin
                 </Link>
               ) : null}
+              {isVendorRole(role) || isAdminRole(role) ? (
+                <Link href="/dashboard" className={linkClass("/dashboard")}>
+                  Dashboard
+                </Link>
+              ) : null}
+              {!isVendorRole(role) && !isAdminRole(role) ? (
+                <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
+                  Create your studio
+                </Link>
+              ) : null}
+              {!isAdminRole(role) ? (
+                <>
+                  <Link href="/my-bookings" className={linkClass("/my-bookings")}>
+                    My bookings
+                  </Link>
+                  <Link href="/my-orders" className={linkClass("/my-orders")}>
+                    My orders
+                  </Link>
+                  <Link href="/cart" className={linkClass("/cart")}>
+                    Cart
+                  </Link>
+                </>
+              ) : null}
+              <Link href="/account" className={linkClass("/account")}>
+                Account
+              </Link>
               <button
                 type="button"
                 className={cn(ui.buttonGhost, "text-[var(--muted)]")}
@@ -141,21 +153,18 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
-                <Link href="/classes" className={linkClass("/classes")}>
-                  Book a class
-                </Link>
-                <Link href="/studios" className={linkClass("/studios")}>
-                  Studios
-                </Link>
                 <Link href="/pricing" className={linkClass("/pricing")}>
                   Pricing
+                </Link>
+                <Link href="/demo" className={linkClass("/demo")}>
+                  Demo
                 </Link>
                 <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
                   Create your studio
                 </Link>
               </div>
-              <Link href="/classes" className={`${ui.buttonMarketing} md:hidden`}>
-                Book a class
+              <Link href="/demo" className={`${ui.buttonMarketing} md:hidden`}>
+                Create your studio
               </Link>
               {showPublicSignIn ? (
                 <Link href="/login" className={cn(linkClass("/login"), "hidden md:inline-flex")}>
@@ -200,31 +209,39 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
             </button>
           </div>
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Mobile primary">
-            <Link href="/pricing" className={mobileLinkClass("/pricing")} onClick={close}>
-              Pricing
-            </Link>
-            <Link href={createStudioHref} className={mobileLinkClass(createStudioActiveHref)} onClick={close}>
-              Create your studio
-            </Link>
             {authed ? (
               <>
-                <Link href="/cart" className={mobileLinkClass("/cart")} onClick={close}>
-                  Cart
-                </Link>
-                <Link href="/dashboard" className={mobileLinkClass("/dashboard")} onClick={close}>
-                  Dashboard
-                </Link>
-                <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")} onClick={close}>
-                  My bookings
-                </Link>
-                <Link href="/account" className={mobileLinkClass("/account")} onClick={close}>
-                  Account
-                </Link>
-                {adminVisible(role) ? (
+                {isAdminRole(role) ? (
                   <Link href="/admin" className={mobileLinkClass("/admin")} onClick={close}>
                     Admin
                   </Link>
                 ) : null}
+                {isVendorRole(role) || isAdminRole(role) ? (
+                  <Link href="/dashboard" className={mobileLinkClass("/dashboard")} onClick={close}>
+                    Dashboard
+                  </Link>
+                ) : null}
+                {!isVendorRole(role) && !isAdminRole(role) ? (
+                  <Link href="/dashboard/studio/new?setup=both" className={mobileLinkClass("/dashboard/studio/new")} onClick={close}>
+                    Create your studio
+                  </Link>
+                ) : null}
+                {!isAdminRole(role) ? (
+                  <>
+                    <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")} onClick={close}>
+                      My bookings
+                    </Link>
+                    <Link href="/my-orders" className={mobileLinkClass("/my-orders")} onClick={close}>
+                      My orders
+                    </Link>
+                    <Link href="/cart" className={mobileLinkClass("/cart")} onClick={close}>
+                      Cart
+                    </Link>
+                  </>
+                ) : null}
+                <Link href="/account" className={mobileLinkClass("/account")} onClick={close}>
+                  Account
+                </Link>
                 <button
                   type="button"
                   className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-[var(--muted)]")}
@@ -238,14 +255,14 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </>
             ) : (
               <>
-                <Link href="/classes" className={mobileLinkClass("/classes")} onClick={close}>
-                  Book a class
+                <Link href="/pricing" className={mobileLinkClass("/pricing")} onClick={close}>
+                  Pricing
                 </Link>
-                <Link href="/studios" className={mobileLinkClass("/studios")} onClick={close}>
-                  Studios
+                <Link href="/demo" className={mobileLinkClass("/demo")} onClick={close}>
+                  Demo
                 </Link>
-                <Link href="/marketplace" className={mobileLinkClass("/marketplace")} onClick={close}>
-                  Shop
+                <Link href={createStudioHref} className={mobileLinkClass(createStudioActiveHref)} onClick={close}>
+                  Create your studio
                 </Link>
                 <hr className="my-2 border-[var(--border)]" />
                 {showPublicSignIn ? (

@@ -31,6 +31,7 @@ export function uploadConfigPayload(folder = "potterymania/products") {
 
 const ALLOWED_UPLOAD_FOLDERS = new Set([
   "potterymania/studio-brand",
+  "potterymania/product-images",
 ]);
 
 const PUBLIC_ALLOWED_UPLOAD_FOLDERS = new Set([

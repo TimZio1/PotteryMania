@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { bookingAllowsFullPaymentOption, bookingChargeNowCents, normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
@@ -313,12 +312,13 @@ export function CartContents() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex flex-wrap gap-3 text-sm">
-        <Link href="/classes" className="font-medium text-[var(--accent)] hover:underline">
-          ← Browse classes
-        </Link>
-        <Link href="/marketplace" className="font-medium text-[var(--accent)] hover:underline">
-          Browse marketplace
-        </Link>
+        <button
+          type="button"
+          onClick={() => window.history.back()}
+          className="font-medium text-[var(--accent)] hover:underline"
+        >
+          ← Back
+        </button>
       </div>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Cart</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">Review items, then pay securely with Stripe.</p>
@@ -343,14 +343,7 @@ export function CartContents() {
         <div className={`${ui.cardMuted} mt-10`}>
           <p className="font-medium text-[var(--foreground)]">Your cart is empty</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            <Link href="/classes" className="font-medium text-[var(--accent)] underline underline-offset-2">
-              Browse classes
-            </Link>{" "}
-            or{" "}
-            <Link href="/marketplace" className="font-medium text-[var(--accent)] underline underline-offset-2">
-              explore the marketplace
-            </Link>{" "}
-            to get started.
+            Visit a studio page to browse their classes and products.
           </p>
         </div>
       ) : (

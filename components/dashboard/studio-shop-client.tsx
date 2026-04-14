@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ui } from "@/lib/ui-styles";
 import { cn } from "@/lib/cn";
+import { uploadImage } from "@/lib/client-upload";
+import { optimizeImageForUpload } from "@/lib/optimize-image-client";
 import { allCeramicCategories } from "@/lib/ceramic-categories";
 import { billingIntervalLabel } from "@/lib/offering-pricing";
 import type { StudioShopOrderRow, StudioShopProductRow } from "@/lib/studio-shop-page-data";
@@ -33,6 +35,15 @@ const FULFILLMENT_OPTS = [
 
 type Tab = "products" | "orders";
 
+const PRODUCT_IMAGE_FOLDER = "potterymania/product-images";
+const PRODUCT_IMAGE_MAX = 10;
+
+type EditableProductImage = {
+  imageUrl: string;
+  altText: string;
+  isPrimary: boolean;
+};
+
 export default function StudioShopClient({
   studioId,
   products: initialProducts,
@@ -55,6 +66,7 @@ export default function StudioShopClient({
     subcategory: "",
     shortDescription: "",
     priceEur: "",
+    salePriceEur: "",
     recurringPriceEur: "",
     pricingType: "one_time",
     billingInterval: "monthly",
@@ -71,8 +83,11 @@ export default function StudioShopClient({
     stockStatus: "in_stock",
     status: "draft",
   });
+  const [formImages, setFormImages] = useState<EditableProductImage[]>([]);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [uploadingEditImage, setUploadingEditImage] = useState(false);
+  const [uploadingCreateImage, setUploadingCreateImage] = useState(false);
   const [createForm, setCreateForm] = useState({
     title: "",
     category: "tableware",
@@ -89,6 +104,7 @@ export default function StudioShopClient({
     paymentRetryMax: 3,
     failedPaymentAction: "pause",
   });
+  const [createImages, setCreateImages] = useState<EditableProductImage[]>([]);
   const [orderBusy, setOrderBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -128,6 +144,7 @@ export default function StudioShopClient({
       subcategory: p.subcategory ?? "",
       shortDescription: p.shortDescription ?? "",
       priceEur: ((p.salePriceCents ?? p.priceCents) / 100).toFixed(2),
+      salePriceEur: p.salePriceCents == null ? "" : (p.salePriceCents / 100).toFixed(2),
       recurringPriceEur: ((p.recurringPriceCents ?? 0) / 100).toFixed(2),
       pricingType: p.pricingType,
       billingInterval: p.billingInterval ?? "monthly",
@@ -144,8 +161,44 @@ export default function StudioShopClient({
       stockStatus: p.stockStatus,
       status: p.status,
     });
+    setFormImages(
+      [...p.images]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((image, idx) => ({
+          imageUrl: image.imageUrl,
+          altText: image.altText ?? "",
+          isPrimary: image.isPrimary || idx === 0,
+        })),
+    );
     setErr(null);
   }, []);
+
+  function normalizePrimaryImage(images: EditableProductImage[]) {
+    if (images.length === 0) return images;
+    const hasPrimary = images.some((image) => image.isPrimary);
+    if (hasPrimary) return images;
+    return images.map((image, idx) => ({ ...image, isPrimary: idx === 0 }));
+  }
+
+  function moveImage(images: EditableProductImage[], index: number, direction: "up" | "down") {
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (target < 0 || target >= images.length) return images;
+    const next = [...images];
+    const current = next[index];
+    next[index] = next[target];
+    next[target] = current;
+    return next;
+  }
+
+  async function uploadProductImage(file: File) {
+    const optimized = await optimizeImageForUpload(file, {
+      maxWidth: 2000,
+      maxHeight: 2000,
+      maxInputBytes: 15_000_000,
+      quality: 0.86,
+    });
+    return uploadImage(optimized, PRODUCT_IMAGE_FOLDER);
+  }
 
   async function saveProduct() {
     if (!selected) return;
@@ -155,6 +208,17 @@ export default function StudioShopClient({
       return;
     }
     const priceCents = Math.round(price * 100);
+    const salePriceRaw = String(form.salePriceEur).trim();
+    const salePrice = salePriceRaw ? parseFloat(salePriceRaw.replace(",", ".")) : Number.NaN;
+    if (salePriceRaw && (!Number.isFinite(salePrice) || salePrice < 0)) {
+      setErr("Invalid sale price");
+      return;
+    }
+    const salePriceCents = salePriceRaw ? Math.round(salePrice * 100) : null;
+    if (salePriceCents != null && salePriceCents > priceCents) {
+      setErr("Sale price cannot exceed base price");
+      return;
+    }
     const recurringPrice = parseFloat(String(form.recurringPriceEur).replace(",", "."));
     const recurringPriceCents = Number.isFinite(recurringPrice) ? Math.round(recurringPrice * 100) : 0;
     if (form.pricingType === "recurring" && recurringPriceCents < 50) {
@@ -164,6 +228,11 @@ export default function StudioShopClient({
     setSaving(true);
     setErr(null);
     try {
+      const normalizedImages = normalizePrimaryImage(formImages).map((image) => ({
+        imageUrl: image.imageUrl.trim(),
+        altText: image.altText.trim() || undefined,
+        isPrimary: image.isPrimary,
+      }));
       const res = await fetch(`/api/studios/${studioId}/products/${selected.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -186,11 +255,12 @@ export default function StudioShopClient({
           failedPaymentAction: form.pricingType === "recurring" ? form.failedPaymentAction : "pause",
           category: form.category,
           subcategory: form.subcategory.trim() || null,
-          salePriceCents: null,
+          salePriceCents,
           sku: form.sku.trim() || null,
           stockQuantity: form.stockQuantity,
           stockStatus: form.stockStatus,
           status: form.status,
+          images: normalizedImages,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -218,6 +288,11 @@ export default function StudioShopClient({
     setCreating(true);
     setErr(null);
     try {
+      const normalizedImages = normalizePrimaryImage(createImages).map((image) => ({
+        imageUrl: image.imageUrl.trim(),
+        altText: image.altText.trim() || undefined,
+        isPrimary: image.isPrimary,
+      }));
       const res = await fetch(`/api/studios/${studioId}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -245,7 +320,7 @@ export default function StudioShopClient({
           status: "draft",
           stockStatus: "in_stock",
           stockQuantity: 0,
-          images: [],
+          images: normalizedImages,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -266,6 +341,7 @@ export default function StudioShopClient({
         paymentRetryMax: 3,
         failedPaymentAction: "pause",
       });
+      setCreateImages([]);
       router.refresh();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Create failed");
@@ -274,20 +350,41 @@ export default function StudioShopClient({
     }
   }
 
-  async function patchOrderFulfillment(orderId: string, fulfillmentStatus: string) {
+  async function patchOrder(orderId: string, payload: Record<string, unknown>) {
     setOrderBusy(orderId);
     setErr(null);
     try {
       const res = await fetch(`/api/studios/${studioId}/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fulfillmentStatus }),
+        body: JSON.stringify(payload),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Update failed");
-      setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, fulfillmentStatus } : o)),
-      );
+      const updatedOrder = (data as { order?: StudioShopOrderRow }).order;
+      if (updatedOrder) {
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? updatedOrder : o)));
+      } else {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.id === orderId
+              ? {
+                  ...o,
+                  fulfillmentStatus:
+                    typeof payload.fulfillmentStatus === "string"
+                      ? payload.fulfillmentStatus
+                      : o.fulfillmentStatus,
+                  trackingCarrier:
+                    typeof payload.trackingCarrier === "string" ? payload.trackingCarrier : o.trackingCarrier,
+                  trackingNumber:
+                    typeof payload.trackingNumber === "string" ? payload.trackingNumber : o.trackingNumber,
+                  trackingUrl:
+                    typeof payload.trackingUrl === "string" ? payload.trackingUrl : o.trackingUrl,
+                }
+              : o,
+          ),
+        );
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Update failed");
     } finally {
@@ -326,11 +423,11 @@ export default function StudioShopClient({
         <div className="relative grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="space-y-4">
             <p className="text-sm text-stone-600">
-              Low-stock highlight when quantity is between 1 and {DEFAULT_LOW_STOCK_THRESHOLD}. Full catalog and images in the{" "}
+              Low-stock highlight when quantity is between 1 and {DEFAULT_LOW_STOCK_THRESHOLD}. Open the{" "}
               <Link href={`/dashboard/products/${studioId}`} className="font-medium text-amber-900 underline">
                 product workspace
               </Link>
-              .
+              {" "}for full product controls.
             </p>
 
             <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-xl border border-stone-200 bg-stone-50/95 p-4 backdrop-blur sm:flex-row sm:flex-wrap sm:items-end">
@@ -455,6 +552,118 @@ export default function StudioShopClient({
                     </div>
                   ) : null}
                 </div>
+              </div>
+              <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                    Product images ({createImages.length}/{PRODUCT_IMAGE_MAX})
+                  </p>
+                  <label className={cn(ui.buttonSecondary, "cursor-pointer px-3 py-1.5 text-xs")}>
+                    {uploadingCreateImage ? "Uploading..." : "Upload image"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      disabled={uploadingCreateImage || createImages.length >= PRODUCT_IMAGE_MAX}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.currentTarget.value = "";
+                        if (!file) return;
+                        if (createImages.length >= PRODUCT_IMAGE_MAX) {
+                          setErr(`Maximum ${PRODUCT_IMAGE_MAX} images per product`);
+                          return;
+                        }
+                        setUploadingCreateImage(true);
+                        try {
+                          const uploaded = await uploadProductImage(file);
+                          setCreateImages((prev) =>
+                            normalizePrimaryImage([
+                              ...prev,
+                              { imageUrl: uploaded.secureUrl, altText: "", isPrimary: prev.length === 0 },
+                            ]),
+                          );
+                        } catch (error) {
+                          setErr(error instanceof Error ? error.message : "Image upload failed");
+                        } finally {
+                          setUploadingCreateImage(false);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {createImages.length === 0 ? (
+                  <p className="mt-2 text-xs text-stone-500">Upload at least one image so products look complete in storefront listings.</p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {createImages.map((image, idx) => (
+                      <li key={`${image.imageUrl}-${idx}`} className="rounded-lg border border-stone-200 bg-white p-2">
+                        <div className="flex items-start gap-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={image.imageUrl} alt="" className="h-14 w-14 rounded-md object-cover" />
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <input
+                              className={cn(ui.input, "h-9 text-xs")}
+                              placeholder="Alt text (optional)"
+                              value={image.altText}
+                              onChange={(e) =>
+                                setCreateImages((prev) =>
+                                  prev.map((item, imageIdx) =>
+                                    imageIdx === idx ? { ...item, altText: e.target.value } : item,
+                                  ),
+                                )
+                              }
+                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                className={cn(ui.buttonGhost, "min-h-8 px-2 text-xs")}
+                                onClick={() =>
+                                  setCreateImages((prev) => moveImage(prev, idx, "up"))
+                                }
+                                disabled={idx === 0}
+                              >
+                                Up
+                              </button>
+                              <button
+                                type="button"
+                                className={cn(ui.buttonGhost, "min-h-8 px-2 text-xs")}
+                                onClick={() =>
+                                  setCreateImages((prev) => moveImage(prev, idx, "down"))
+                                }
+                                disabled={idx === createImages.length - 1}
+                              >
+                                Down
+                              </button>
+                              <label className="inline-flex items-center gap-1 text-xs text-stone-700">
+                                <input
+                                  type="radio"
+                                  checked={image.isPrimary}
+                                  onChange={() =>
+                                    setCreateImages((prev) =>
+                                      prev.map((item, imageIdx) => ({ ...item, isPrimary: imageIdx === idx })),
+                                    )
+                                  }
+                                />
+                                Primary
+                              </label>
+                              <button
+                                type="button"
+                                className="ml-auto text-xs font-medium text-red-600 hover:underline"
+                                onClick={() =>
+                                  setCreateImages((prev) =>
+                                    normalizePrimaryImage(prev.filter((_, imageIdx) => imageIdx !== idx)),
+                                  )
+                                }
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <button type="submit" disabled={creating} className={`${ui.buttonPrimary} mt-4`}>
                 {creating ? "Creating..." : "Create draft"}
@@ -590,6 +799,16 @@ export default function StudioShopClient({
                   inputMode="decimal"
                   value={form.priceEur}
                   onChange={(e) => setForm((f) => ({ ...f, priceEur: e.target.value }))}
+                />
+              </label>
+              <label>
+                <span className={ui.label}>Sale price (EUR, optional)</span>
+                <input
+                  className={cn(ui.input, "mt-1")}
+                  inputMode="decimal"
+                  value={form.salePriceEur}
+                  onChange={(e) => setForm((f) => ({ ...f, salePriceEur: e.target.value }))}
+                  placeholder="Leave empty for no sale"
                 />
               </label>
               <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
@@ -771,6 +990,118 @@ export default function StudioShopClient({
                   ))}
                 </select>
               </label>
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                    Product images ({formImages.length}/{PRODUCT_IMAGE_MAX})
+                  </p>
+                  <label className={cn(ui.buttonSecondary, "cursor-pointer px-3 py-1.5 text-xs")}>
+                    {uploadingEditImage ? "Uploading..." : "Upload image"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      disabled={uploadingEditImage || formImages.length >= PRODUCT_IMAGE_MAX}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.currentTarget.value = "";
+                        if (!file) return;
+                        if (formImages.length >= PRODUCT_IMAGE_MAX) {
+                          setErr(`Maximum ${PRODUCT_IMAGE_MAX} images per product`);
+                          return;
+                        }
+                        setUploadingEditImage(true);
+                        try {
+                          const uploaded = await uploadProductImage(file);
+                          setFormImages((prev) =>
+                            normalizePrimaryImage([
+                              ...prev,
+                              { imageUrl: uploaded.secureUrl, altText: "", isPrimary: prev.length === 0 },
+                            ]),
+                          );
+                        } catch (error) {
+                          setErr(error instanceof Error ? error.message : "Image upload failed");
+                        } finally {
+                          setUploadingEditImage(false);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {formImages.length === 0 ? (
+                  <p className="mt-2 text-xs text-stone-500">No images yet. Upload at least one image for storefront quality.</p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {formImages.map((image, idx) => (
+                      <li key={`${image.imageUrl}-${idx}`} className="rounded-lg border border-stone-200 bg-white p-2">
+                        <div className="flex items-start gap-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={image.imageUrl} alt="" className="h-14 w-14 rounded-md object-cover" />
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <input
+                              className={cn(ui.input, "h-9 text-xs")}
+                              placeholder="Alt text (optional)"
+                              value={image.altText}
+                              onChange={(e) =>
+                                setFormImages((prev) =>
+                                  prev.map((item, imageIdx) =>
+                                    imageIdx === idx ? { ...item, altText: e.target.value } : item,
+                                  ),
+                                )
+                              }
+                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                className={cn(ui.buttonGhost, "min-h-8 px-2 text-xs")}
+                                onClick={() =>
+                                  setFormImages((prev) => moveImage(prev, idx, "up"))
+                                }
+                                disabled={idx === 0}
+                              >
+                                Up
+                              </button>
+                              <button
+                                type="button"
+                                className={cn(ui.buttonGhost, "min-h-8 px-2 text-xs")}
+                                onClick={() =>
+                                  setFormImages((prev) => moveImage(prev, idx, "down"))
+                                }
+                                disabled={idx === formImages.length - 1}
+                              >
+                                Down
+                              </button>
+                              <label className="inline-flex items-center gap-1 text-xs text-stone-700">
+                                <input
+                                  type="radio"
+                                  checked={image.isPrimary}
+                                  onChange={() =>
+                                    setFormImages((prev) =>
+                                      prev.map((item, imageIdx) => ({ ...item, isPrimary: imageIdx === idx })),
+                                    )
+                                  }
+                                />
+                                Primary
+                              </label>
+                              <button
+                                type="button"
+                                className="ml-auto text-xs font-medium text-red-600 hover:underline"
+                                onClick={() =>
+                                  setFormImages((prev) =>
+                                    normalizePrimaryImage(prev.filter((_, imageIdx) => imageIdx !== idx)),
+                                  )
+                                }
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <button type="button" disabled={saving} onClick={() => void saveProduct()} className={cn(ui.buttonPrimary, "w-full")}>
                 {saving ? "Saving…" : "Save"}
               </button>
@@ -788,12 +1119,13 @@ export default function StudioShopClient({
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Payment</th>
                 <th className="px-4 py-3">Fulfillment</th>
+                <th className="px-4 py-3">Tracking</th>
               </tr>
             </thead>
             <tbody>
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
+                  <td colSpan={7} className="px-4 py-8 text-center text-stone-500">
                     No product sales yet.
                   </td>
                 </tr>
@@ -822,7 +1154,11 @@ export default function StudioShopClient({
                         className={cn(ui.input, "text-sm")}
                         value={o.fulfillmentStatus}
                         disabled={orderBusy === o.id}
-                        onChange={(e) => void patchOrderFulfillment(o.id, e.target.value)}
+                        onChange={(e) =>
+                          void patchOrder(o.id, {
+                            fulfillmentStatus: e.target.value,
+                          })
+                        }
                       >
                         {FULFILLMENT_OPTS.map((opt) => (
                           <option key={opt.value} value={opt.value}>
@@ -830,6 +1166,40 @@ export default function StudioShopClient({
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="min-w-44 space-y-2">
+                        <input
+                          className={cn(ui.input, "h-9 text-xs")}
+                          defaultValue={o.trackingCarrier ?? ""}
+                          placeholder="Carrier"
+                          onBlur={(e) =>
+                            void patchOrder(o.id, {
+                              trackingCarrier: e.target.value,
+                            })
+                          }
+                        />
+                        <input
+                          className={cn(ui.input, "h-9 text-xs")}
+                          defaultValue={o.trackingNumber ?? ""}
+                          placeholder="Tracking number"
+                          onBlur={(e) =>
+                            void patchOrder(o.id, {
+                              trackingNumber: e.target.value,
+                            })
+                          }
+                        />
+                        <input
+                          className={cn(ui.input, "h-9 text-xs")}
+                          defaultValue={o.trackingUrl ?? ""}
+                          placeholder="Tracking URL"
+                          onBlur={(e) =>
+                            void patchOrder(o.id, {
+                              trackingUrl: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -189,11 +189,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
             <p className="font-medium text-[var(--foreground)]">No listings yet</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Studios are onboarding. Check back soon, or browse{" "}
-              <Link href="/classes" className="font-medium text-[var(--accent)] underline underline-offset-2">
-                classes
-              </Link>{" "}
-              in the meantime.
+              Studios are onboarding their products. Check back soon.
             </p>
           </div>
         ) : (

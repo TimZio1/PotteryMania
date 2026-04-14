@@ -34,6 +34,12 @@ export type StudioShopProductRow = {
   stockQuantity: number;
   stockStatus: string;
   isLowStock: boolean;
+  images: {
+    imageUrl: string;
+    altText: string | null;
+    sortOrder: number;
+    isPrimary: boolean;
+  }[];
 };
 
 export type StudioShopOrderRow = {
@@ -44,6 +50,9 @@ export type StudioShopOrderRow = {
   orderStatus: string;
   paymentStatus: string;
   fulfillmentStatus: string;
+  trackingCarrier: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
   totalCents: number;
   shippingMethod: string | null;
   items: { title: string; quantity: number }[];
@@ -78,6 +87,14 @@ type StudioShopProductRecord = Prisma.ProductGetPayload<{
     shippingAsiaCents: true;
     stockQuantity: true;
     stockStatus: true;
+    images: {
+      select: {
+        imageUrl: true;
+        altText: true;
+        sortOrder: true;
+        isPrimary: true;
+      };
+    };
     categoryMeta: {
       select: {
         slug: true;
@@ -137,6 +154,14 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
           shippingAsiaCents: true,
           stockQuantity: true,
           stockStatus: true,
+          images: {
+            select: {
+              imageUrl: true,
+              altText: true,
+              sortOrder: true,
+              isPrimary: true,
+            },
+          },
           categoryMeta: {
             select: {
               slug: true,
@@ -194,6 +219,14 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
     stockQuantity: p.stockQuantity,
     stockStatus: p.stockStatus,
     isLowStock: p.stockQuantity > 0 && p.stockQuantity <= DEFAULT_LOW_STOCK_THRESHOLD,
+    images: p.images
+      .map((image) => ({
+        imageUrl: image.imageUrl,
+        altText: image.altText,
+        sortOrder: image.sortOrder,
+        isPrimary: image.isPrimary,
+      }))
+      .sort((a, b) => a.sortOrder - b.sortOrder),
   }));
 
   const orderRows: StudioShopOrderRow[] = orders.map((o) => ({
@@ -204,6 +237,9 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
     orderStatus: o.orderStatus,
     paymentStatus: o.paymentStatus,
     fulfillmentStatus: o.fulfillmentStatus,
+    trackingCarrier: o.trackingCarrier,
+    trackingNumber: o.trackingNumber,
+    trackingUrl: o.trackingUrl,
     totalCents: o.totalCents,
     shippingMethod: o.shippingMethod,
     items: o.items.map((it) => ({

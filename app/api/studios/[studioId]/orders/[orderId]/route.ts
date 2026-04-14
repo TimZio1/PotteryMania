@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { FulfillmentStatus, OrderStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
+import { orderShippedCopy, sendOrderEmails } from "@/lib/email/order-notify";
 
 type Ctx = { params: Promise<{ studioId: string; orderId: string }> };
 
@@ -76,5 +77,25 @@ export async function PATCH(req: Request, ctx: Ctx) {
     where: { id: orderId },
     data,
   });
+
+  if (body.fulfillmentStatus === "shipped" && order.fulfillmentStatus !== "shipped" && updated.customerEmail) {
+    const customerHtml = orderShippedCopy({
+      customerName: updated.customerName || "there",
+      studioName: studio.displayName,
+      trackingCarrier: updated.trackingCarrier,
+      trackingNumber: updated.trackingNumber,
+      trackingUrl: updated.trackingUrl,
+    });
+    try {
+      await sendOrderEmails({
+        subject: "Your order has shipped",
+        customerEmail: updated.customerEmail,
+        customerHtml,
+      });
+    } catch {
+      // Keep fulfillment update successful even if email transport fails.
+    }
+  }
+
   return NextResponse.json({ order: updated });
 }
