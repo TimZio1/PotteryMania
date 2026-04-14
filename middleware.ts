@@ -32,7 +32,7 @@ const BASE_PUBLIC_CORE = [
 ];
 
 function publicAllowlist(): string[] {
-  return [...BASE_PUBLIC_CORE, "/register"];
+  return [...BASE_PUBLIC_CORE, "/register", "/classes", "/studios", "/marketplace"];
 }
 
 export default auth(async (req) => {
@@ -46,13 +46,7 @@ export default auth(async (req) => {
   const path = req.nextUrl.pathname;
   const isApiPath = path.startsWith("/api/");
 
-  // Legacy catalog index URLs redirect home; studio pages and deep links stay as implemented.
-  if (
-    path === "/marketplace" ||
-    path === "/classes" ||
-    path === "/studios" ||
-    path.startsWith("/category/")
-  ) {
+  if (path.startsWith("/category/")) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 

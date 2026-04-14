@@ -141,6 +141,12 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
+                <Link href="/classes" className={linkClass("/classes")}>
+                  Book a class
+                </Link>
+                <Link href="/studios" className={linkClass("/studios")}>
+                  Studios
+                </Link>
                 <Link href="/pricing" className={linkClass("/pricing")}>
                   Pricing
                 </Link>
@@ -148,11 +154,8 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                   Create your studio
                 </Link>
               </div>
-              <Link href="/demo" className={`${ui.buttonMarketing} md:hidden`}>
-                Create your studio
-              </Link>
-              <Link href="/demo" className={`${ui.buttonMarketing} hidden md:inline-flex`}>
-                Create your studio
+              <Link href="/classes" className={`${ui.buttonMarketing} md:hidden`}>
+                Book a class
               </Link>
               {showPublicSignIn ? (
                 <Link href="/login" className={cn(linkClass("/login"), "hidden md:inline-flex")}>
@@ -235,6 +238,15 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </>
             ) : (
               <>
+                <Link href="/classes" className={mobileLinkClass("/classes")} onClick={close}>
+                  Book a class
+                </Link>
+                <Link href="/studios" className={mobileLinkClass("/studios")} onClick={close}>
+                  Studios
+                </Link>
+                <Link href="/marketplace" className={mobileLinkClass("/marketplace")} onClick={close}>
+                  Shop
+                </Link>
                 <hr className="my-2 border-stone-100" />
                 {showPublicSignIn ? (
                   <Link href="/login" className={mobileLinkClass("/login")} onClick={close}>

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { metaPublicPage } from "@/lib/seo-routes";
+import { Spinner } from "@/components/ui/spinner";
 import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = metaPublicPage(
@@ -15,7 +17,9 @@ export default function RegisterPage() {
       title="Create account"
       description="Choose a studio account to set up your business, or a customer account to shop and book."
     >
-      <RegisterForm />
+      <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
+        <RegisterForm />
+      </Suspense>
     </AuthShell>
   );
 }

@@ -74,7 +74,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
             {sp.orderId && !sp.session_id ? "Order confirmed" : "Payment received"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-stone-600">
-            Thank you for your order! A confirmation email has been sent to your inbox.
+            Thank you for your order! If a confirmation email is configured, it should arrive in your inbox shortly.
           </p>
 
           {hasBookings && (
@@ -199,10 +199,12 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           )}
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link href="/my-bookings" className={ui.buttonPrimary}>
-              View my bookings
-            </Link>
-            <Link href="/classes" className={ui.buttonSecondary}>
+            {hasBookings && (
+              <Link href="/my-bookings" className={ui.buttonPrimary}>
+                View my bookings
+              </Link>
+            )}
+            <Link href="/classes" className={hasBookings ? ui.buttonSecondary : ui.buttonPrimary}>
               Browse more classes
             </Link>
           </div>

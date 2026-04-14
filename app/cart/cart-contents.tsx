@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { bookingAllowsFullPaymentOption, bookingChargeNowCents, normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
@@ -45,8 +46,11 @@ type CouponPreview = {
 };
 
 export function CartContents() {
+  const searchParams = useSearchParams();
+  const wasCancelled = searchParams.get("cancelled") === "1";
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cartError, setCartError] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [line1, setLine1] = useState("");
@@ -64,21 +68,32 @@ export function CartContents() {
   const cartSigRef = useRef("");
 
   async function load() {
-    const r = await fetch("/api/cart");
-    const j = await r.json();
-    const next: Item[] = j.cart?.items || [];
-    const sig = next
-      .map((i) => `${i.id}:${i.quantity}:${i.participantCount ?? ""}:${i.seatType ?? ""}:${i.priceSnapshotCents}:${(i.addOnSelections ?? []).map((selection) => `${selection.addOnId}:${selection.quantity}`).join(",")}`)
-      .join("|");
-    if (cartSigRef.current !== "" && cartSigRef.current !== sig) {
-      setCouponPreview(null);
-      setAppliedCode("");
-      setAppliedMethod(null);
-      setCouponErr("");
+    try {
+      const r = await fetch("/api/cart");
+      if (!r.ok) {
+        setCartError(true);
+        setLoading(false);
+        return;
+      }
+      const j = await r.json();
+      const next: Item[] = j.cart?.items || [];
+      const sig = next
+        .map((i) => `${i.id}:${i.quantity}:${i.participantCount ?? ""}:${i.seatType ?? ""}:${i.priceSnapshotCents}:${(i.addOnSelections ?? []).map((selection) => `${selection.addOnId}:${selection.quantity}`).join(",")}`)
+        .join("|");
+      if (cartSigRef.current !== "" && cartSigRef.current !== sig) {
+        setCouponPreview(null);
+        setAppliedCode("");
+        setAppliedMethod(null);
+        setCouponErr("");
+      }
+      cartSigRef.current = sig;
+      setCartError(false);
+      setItems(next);
+    } catch {
+      setCartError(true);
+    } finally {
+      setLoading(false);
     }
-    cartSigRef.current = sig;
-    setItems(next);
-    setLoading(false);
   }
 
   useEffect(() => {
@@ -90,6 +105,15 @@ export function CartContents() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itemId, quantity }),
+    });
+    load();
+  }
+
+  async function removeItem(itemId: string, itemType: "product" | "booking") {
+    await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId, ...(itemType === "product" ? { quantity: 0 } : { participantCount: 0 }) }),
     });
     load();
   }
@@ -298,6 +322,16 @@ export function CartContents() {
       </div>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-amber-950">Cart</h1>
       <p className="mt-2 text-sm text-stone-600">Review items, then pay securely with Stripe.</p>
+      {wasCancelled && (
+        <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 text-sm text-amber-950">
+          Payment was cancelled — your cart is still here. Continue when you&apos;re ready.
+        </div>
+      )}
+      {cartError && (
+        <div className="mt-4 rounded-xl border border-red-200/80 bg-red-50/90 p-4 text-sm text-red-900">
+          Could not load your cart. Please refresh the page or try again in a moment.
+        </div>
+      )}
       {multiVendor ? (
         <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-amber-200/80 bg-amber-50/90 p-[var(--pm-space-4)] text-sm text-amber-950">
           Your cart includes <strong>more than one studio</strong>. Each studio is paid out separately via Stripe Connect, so you will complete{" "}
@@ -407,6 +441,14 @@ export function CartContents() {
                           <span className="font-medium text-stone-900">€{dueEur}</span>
                         )}
                       </div>
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-red-600 hover:text-red-800 hover:underline"
+                        onClick={() => removeItem(i.id, i.itemType)}
+                        aria-label={`Remove ${i.itemType === "product" ? i.product?.title : i.experience?.title}`}
+                      >
+                        Remove
+                      </button>
                     </div>
                   </div>
                   {seatKeys.length > 0 && (
@@ -418,10 +460,10 @@ export function CartContents() {
                         value={i.seatType ?? ""}
                         onChange={(e) => updateSeatType(i.id, e.target.value)}
                       >
-                        <option value="">Select…</option>
+                        <option value="">Choose a seat…</option>
                         {seatKeys.map((k) => (
                           <option key={k} value={k}>
-                            {k}
+                            {k.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                           </option>
                         ))}
                       </select>

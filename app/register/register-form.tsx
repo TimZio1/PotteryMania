@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getProviders, signIn } from "next-auth/react";
 import { ui } from "@/lib/ui-styles";
 
 export function RegisterForm() {
+  const sp = useSearchParams();
+  const callbackUrl = sp.get("callbackUrl") || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
@@ -62,7 +65,7 @@ export function RegisterForm() {
     setErr("");
     setGooglePending(true);
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      await signIn("google", { callbackUrl });
     } catch {
       setErr("Google sign-up is unavailable right now.");
       setGooglePending(false);
@@ -79,7 +82,7 @@ export function RegisterForm() {
       {ok ? (
         <div className={`${ui.cardMuted} border-emerald-200/80 bg-emerald-50/90`}>
           <p className={ui.successText}>{ok}</p>
-          <Link href="/login" className="mt-2 inline-block text-sm font-medium text-amber-900 hover:underline">
+          <Link href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"} className="mt-2 inline-block text-sm font-medium text-amber-900 hover:underline">
             Go to sign in →
           </Link>
         </div>
@@ -156,7 +159,7 @@ export function RegisterForm() {
       </button>
       <p className="text-center text-sm text-stone-600">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-amber-900 hover:underline">
+        <Link href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"} className="font-medium text-amber-900 hover:underline">
           Sign in
         </Link>
       </p>

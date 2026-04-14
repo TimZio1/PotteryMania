@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ui } from "@/lib/ui-styles";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -87,6 +87,7 @@ export function ClassBookingForm(props: {
   /** Deep-link from studio listing: `/classes/[id]?slot=…` */
   initialSlotId?: string;
 }) {
+  const errRef = useRef<HTMLParagraphElement>(null);
   const [slotId, setSlotId] = useState(() => {
     if (props.initialSlotId && props.slots.some((s) => s.id === props.initialSlotId)) {
       return props.initialSlotId;
@@ -96,6 +97,12 @@ export function ClassBookingForm(props: {
   const [participantCount, setParticipantCount] = useState(props.minP);
   const [seatType, setSeatType] = useState<string>("");
   const [err, setErr] = useState("");
+
+  const handleSlotChange = useCallback((newSlotId: string) => {
+    setSlotId(newSlotId);
+    setSeatType("");
+    setAdded(false);
+  }, []);
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
   const [addOns, setAddOns] = useState<PublicAddOn[]>([]);
@@ -146,6 +153,12 @@ export function ClassBookingForm(props: {
     [props.waitlistSlots, wlSlotId]
   );
   const wlSeatKeys = wlSelected?.seatPoolKeys ?? [];
+
+  useEffect(() => {
+    if (err && errRef.current) {
+      errRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [err]);
 
   useEffect(() => {
     let cancelled = false;
@@ -462,7 +475,7 @@ export function ClassBookingForm(props: {
       ) : (
         <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-stone-200 bg-white p-4">
           <h2 className="text-lg font-medium text-amber-950">Book</h2>
-          {err && <p className="text-sm text-red-600">{err}</p>}
+          {err && <p ref={errRef} className="text-sm text-red-600">{err}</p>}
           {added && (
             <p className="text-sm text-stone-600">
               Class added to cart.{" "}
@@ -472,11 +485,11 @@ export function ClassBookingForm(props: {
             </p>
           )}
           <label className="block text-sm">
-            <span className="text-stone-600">Session</span>
+            <span className="text-stone-600">Date &amp; time</span>
             <select
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`${ui.input} mt-1`}
               value={slotId}
-              onChange={(e) => setSlotId(e.target.value)}
+              onChange={(e) => handleSlotChange(e.target.value)}
             >
               {props.slots.map((s) => {
                 const left = s.capacityTotal - s.capacityReserved;
@@ -494,15 +507,15 @@ export function ClassBookingForm(props: {
             <label className="block text-sm">
               <span className="text-stone-600">Seat type</span>
               <select
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`${ui.input} mt-1`}
                 value={seatType}
                 onChange={(e) => setSeatType(e.target.value)}
                 required
               >
-                <option value="">Select…</option>
+                <option value="">Choose a seat…</option>
                 {seatKeys.map((k) => (
                   <option key={k} value={k}>
-                    {k}
+                    {k.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                   </option>
                 ))}
               </select>
@@ -510,21 +523,21 @@ export function ClassBookingForm(props: {
           )}
           <label className="block text-sm">
             <span className="text-stone-600">
-              Participants ({props.minP}–{props.maxP})
+              How many guests? ({props.minP}–{props.maxP})
             </span>
             <input
               type="number"
               min={props.minP}
               max={props.maxP}
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`${ui.input} mt-1`}
               value={participantCount}
               onChange={(e) => setParticipantCount(Number(e.target.value))}
             />
           </label>
           <label className="block text-sm">
-            <span className="text-stone-600">Booking notes for the studio</span>
+            <span className="text-stone-600">Notes for the studio (optional)</span>
             <textarea
-              className="mt-1 min-h-24 w-full rounded border px-3 py-2"
+              className={`${ui.input} mt-1 min-h-24`}
               value={bookingNotes}
               onChange={(e) => setBookingNotes(e.target.value)}
               maxLength={1000}
@@ -955,31 +968,31 @@ export function ClassBookingForm(props: {
           )}
           {pasOk && <p className="text-sm text-emerald-800">{pasOk}</p>}
           {!payAtStudioMode ? (
-            <>
-              <p className="text-sm text-stone-500">
-                Add this class to your cart, then complete one checkout for products and bookings from the same studio.
-              </p>
+            <div className="sticky bottom-4 z-10 -mx-4 rounded-xl bg-white/95 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] backdrop-blur-sm sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
               <button
                 type="submit"
                 disabled={loading || !slotId || (seatKeys.length > 0 && !seatType) || !termsAccepted}
-                className={ui.buttonPrimary}
+                className={`${ui.buttonPrimary} w-full`}
               >
                 {loading ? (
                   <span className="inline-flex items-center justify-center gap-2">
                     <Spinner size="sm" className="text-white" />
-                    Adding…
+                    Booking…
                   </span>
                 ) : (
-                  "Add class to cart"
+                  "Book now — pay securely"
                 )}
               </button>
-            </>
+              <p className="mt-2 text-center text-xs text-stone-400">
+                Secure checkout via Stripe. You can add more items before paying.
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               <label className="block text-sm">
                 <span className="text-stone-600">Your name</span>
                 <input
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`${ui.input} mt-1`}
                   value={pasName}
                   onChange={(e) => setPasName(e.target.value)}
                   required
@@ -989,7 +1002,7 @@ export function ClassBookingForm(props: {
                 <span className="text-stone-600">Email</span>
                 <input
                   type="email"
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`${ui.input} mt-1`}
                   value={pasEmail}
                   onChange={(e) => setPasEmail(e.target.value)}
                   required

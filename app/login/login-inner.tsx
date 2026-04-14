@@ -180,7 +180,7 @@ export default function LoginInner() {
       </button>
       <p className="text-center text-sm text-stone-600">
         New here?{" "}
-        <Link href="/register" className="font-medium text-amber-900 hover:underline">
+        <Link href={callbackUrl && callbackUrl !== "/dashboard" ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"} className="font-medium text-amber-900 hover:underline">
           Create an account
         </Link>
       </p>
