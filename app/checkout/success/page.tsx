@@ -84,7 +84,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                   ? new Date(b.slot.slotDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })
                   : null;
                 return (
-                  <div key={b.id} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                  <div key={b.id} className={ui.card}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-xs font-medium uppercase tracking-wide text-stone-400">{b.studio.displayName}</p>
@@ -127,7 +127,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                     </dl>
 
                     {b.bookingAddOns.length > 0 ? (
-                      <div className="mt-4 rounded-xl border border-stone-100 bg-stone-50 p-4">
+                      <div className={`${ui.cardMuted} mt-4`}>
                         <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Extras</p>
                         <ul className="mt-2 space-y-1 text-sm text-stone-700">
                           {b.bookingAddOns.map((entry, index) => (
@@ -142,7 +142,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                     ) : null}
 
                     {b.intakeResponses.length > 0 ? (
-                      <div className="mt-4 rounded-xl border border-stone-100 bg-stone-50 p-4">
+                      <div className={`${ui.cardMuted} mt-4`}>
                         <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Your answers</p>
                         <dl className="mt-2 space-y-2 text-sm text-stone-700">
                           {b.intakeResponses.map((entry, index) => (
@@ -156,7 +156,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                     ) : null}
 
                     {qrDataUrl ? (
-                      <div className="mt-4 rounded-xl border border-stone-100 bg-stone-50 p-4 text-center">
+                      <div className={`${ui.cardMuted} mt-4 text-center`}>
                         <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Check-in ticket</p>
                         <div className="mt-3 flex justify-center">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -176,7 +176,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           )}
 
           {!hasBookings && (
-            <div className="mx-auto mt-8 max-w-sm rounded-2xl border border-stone-200 bg-white p-5 text-left shadow-sm">
+              <div className={`${ui.card} mx-auto mt-8 max-w-sm text-left`}>
               <h2 className="text-sm font-semibold text-amber-950">What happens next</h2>
               <ol className="mt-3 space-y-3 text-sm text-stone-600">
                 <li className="flex gap-3">

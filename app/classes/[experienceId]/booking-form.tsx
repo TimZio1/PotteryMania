@@ -559,7 +559,7 @@ export function ClassBookingForm(props: {
               <label className="block text-sm">
                 <span className="text-stone-600">Package purchase</span>
                 <select
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`${ui.input} mt-1`}
                   value={selectedPackagePurchaseId}
                   onChange={(e) => setSelectedPackagePurchaseId(e.target.value)}
                 >
@@ -622,7 +622,7 @@ export function ClassBookingForm(props: {
                               type="number"
                               min={1}
                               max={addOn.maxPerBooking}
-                              className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                              className={`${ui.input} mt-1 text-sm`}
                               value={qty}
                               onChange={(e) =>
                                 setSelectedAddOns((current) => ({
@@ -661,7 +661,7 @@ export function ClassBookingForm(props: {
                     </span>
                     {form.fieldType === "text_single" ? (
                       <input
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setIntakeValues((current) => ({ ...current, [form.id]: e.target.value }))}
                         required={form.isRequired}
@@ -669,7 +669,7 @@ export function ClassBookingForm(props: {
                     ) : null}
                     {form.fieldType === "text_multi" ? (
                       <textarea
-                        className="mt-1 min-h-24 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1 min-h-24`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setIntakeValues((current) => ({ ...current, [form.id]: e.target.value }))}
                         required={form.isRequired}
@@ -678,7 +678,7 @@ export function ClassBookingForm(props: {
                     {form.fieldType === "number" ? (
                       <input
                         type="number"
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setIntakeValues((current) => ({ ...current, [form.id]: e.target.value }))}
                         required={form.isRequired}
@@ -697,7 +697,7 @@ export function ClassBookingForm(props: {
                     ) : null}
                     {form.fieldType === "dropdown" ? (
                       <select
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setIntakeValues((current) => ({ ...current, [form.id]: e.target.value }))}
                         required={form.isRequired}
@@ -713,7 +713,7 @@ export function ClassBookingForm(props: {
                     {form.fieldType === "date" ? (
                       <input
                         type="date"
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setIntakeValues((current) => ({ ...current, [form.id]: e.target.value }))}
                         required={form.isRequired}
@@ -734,7 +734,7 @@ export function ClassBookingForm(props: {
                         </label>
                         <input
                           type="url"
-                          className="w-full rounded border px-3 py-2"
+                          className={ui.input}
                           placeholder="Uploaded file URL"
                           value={typeof value === "string" ? value : ""}
                           onChange={(e) => {
@@ -784,7 +784,7 @@ export function ClassBookingForm(props: {
                     </span>
                     {field.fieldType === "text_single" ? (
                       <input
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setClientFieldValues((current) => ({ ...current, [field.id]: e.target.value }))}
                         required={field.isRequired}
@@ -792,7 +792,7 @@ export function ClassBookingForm(props: {
                     ) : null}
                     {field.fieldType === "text_multi" ? (
                       <textarea
-                        className="mt-1 min-h-24 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1 min-h-24`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setClientFieldValues((current) => ({ ...current, [field.id]: e.target.value }))}
                         required={field.isRequired}
@@ -801,7 +801,7 @@ export function ClassBookingForm(props: {
                     {field.fieldType === "number" ? (
                       <input
                         type="number"
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setClientFieldValues((current) => ({ ...current, [field.id]: e.target.value }))}
                         required={field.isRequired}
@@ -820,7 +820,7 @@ export function ClassBookingForm(props: {
                     ) : null}
                     {field.fieldType === "dropdown" ? (
                       <select
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setClientFieldValues((current) => ({ ...current, [field.id]: e.target.value }))}
                         required={field.isRequired}
@@ -836,7 +836,7 @@ export function ClassBookingForm(props: {
                     {field.fieldType === "date" ? (
                       <input
                         type="date"
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setClientFieldValues((current) => ({ ...current, [field.id]: e.target.value }))}
                         required={field.isRequired}
@@ -845,7 +845,7 @@ export function ClassBookingForm(props: {
                     {field.fieldType === "file_upload" ? (
                       <input
                         type="url"
-                        className="mt-1 w-full rounded border px-3 py-2"
+                        className={`${ui.input} mt-1`}
                         value={typeof value === "string" ? value : ""}
                         onChange={(e) => setClientFieldValues((current) => ({ ...current, [field.id]: e.target.value }))}
                         placeholder="https://..."
@@ -1040,7 +1040,7 @@ export function ClassBookingForm(props: {
           <label className="block text-sm">
             <span className="text-stone-600">Session</span>
             <select
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`${ui.input} mt-1`}
               value={wlSlotId}
               onChange={(e) => setWlSlotId(e.target.value)}
             >
@@ -1059,7 +1059,7 @@ export function ClassBookingForm(props: {
             <label className="block text-sm">
               <span className="text-stone-600">Seat type</span>
               <select
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`${ui.input} mt-1`}
                 value={wlSeatType}
                 onChange={(e) => setWlSeatType(e.target.value)}
                 required
@@ -1079,7 +1079,7 @@ export function ClassBookingForm(props: {
               type="number"
               min={props.minP}
               max={props.maxP}
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`${ui.input} mt-1`}
               value={wlParticipants}
               onChange={(e) => setWlParticipants(Number(e.target.value))}
             />
@@ -1087,7 +1087,7 @@ export function ClassBookingForm(props: {
           <label className="block text-sm">
             <span className="text-stone-600">Name</span>
             <input
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`${ui.input} mt-1`}
               value={wlName}
               onChange={(e) => setWlName(e.target.value)}
               required
@@ -1097,7 +1097,7 @@ export function ClassBookingForm(props: {
             <span className="text-stone-600">Email</span>
             <input
               type="email"
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`${ui.input} mt-1`}
               value={wlEmail}
               onChange={(e) => setWlEmail(e.target.value)}
               required

@@ -62,7 +62,7 @@ export function FeaturedStudiosRail({ studios, title = "Featured studios" }: Pro
                     className="h-full w-full object-cover transition group-hover:scale-[1.02]"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-stone-400">No cover</div>
+                  <div className="flex h-full items-center justify-center text-sm text-stone-400">No image</div>
                 )}
                 {s.logoUrl ? (
                   <div className="absolute bottom-2 left-2 h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-white shadow">
