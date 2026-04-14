@@ -99,22 +99,36 @@ export function CartContents() {
     load();
   }, []);
 
-  async function updateQty(itemId: string, quantity: number) {
-    await fetch("/api/cart", {
+  async function mutateCart(body: Record<string, unknown>) {
+    const res = await fetch("/api/cart", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, quantity }),
+      body: JSON.stringify(body),
     });
-    load();
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({} as { error?: string }));
+      throw new Error(payload.error || "Could not update cart");
+    }
+  }
+
+  async function updateQty(itemId: string, quantity: number) {
+    setErr("");
+    try {
+      await mutateCart({ itemId, quantity });
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not update cart");
+    }
   }
 
   async function removeItem(itemId: string, itemType: "product" | "booking") {
-    await fetch("/api/cart", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, ...(itemType === "product" ? { quantity: 0 } : { participantCount: 0 }) }),
-    });
-    load();
+    setErr("");
+    try {
+      await mutateCart({ itemId, ...(itemType === "product" ? { quantity: 0 } : { participantCount: 0 }) });
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not update cart");
+    }
   }
 
   const vendorGroups = useMemo(() => {
@@ -215,48 +229,53 @@ export function CartContents() {
   }
 
   async function updateParticipants(itemId: string, participantCount: number) {
-    await fetch("/api/cart", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, participantCount }),
-    });
-    load();
+    setErr("");
+    try {
+      await mutateCart({ itemId, participantCount });
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not update cart");
+    }
   }
 
   async function updateSeatType(itemId: string, seatType: string) {
-    await fetch("/api/cart", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, seatType }),
-    });
-    load();
+    setErr("");
+    try {
+      await mutateCart({ itemId, seatType });
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not update cart");
+    }
   }
 
   async function updateBookingNotes(itemId: string, notes: string) {
-    await fetch("/api/cart", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, notes }),
-    });
-    load();
+    setErr("");
+    try {
+      await mutateCart({ itemId, notes });
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not update cart");
+    }
   }
 
   async function updateBookingPaymentPreference(itemId: string, bookingPaymentPreference: "deposit" | "full") {
-    await fetch("/api/cart", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, bookingPaymentPreference }),
-    });
-    load();
+    setErr("");
+    try {
+      await mutateCart({ itemId, bookingPaymentPreference });
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not update cart");
+    }
   }
 
   async function updatePackageCredit(itemId: string, classPackagePurchaseId: string | null) {
-    await fetch("/api/cart", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, classPackagePurchaseId }),
-    });
-    load();
+    setErr("");
+    try {
+      await mutateCart({ itemId, classPackagePurchaseId });
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not update cart");
+    }
   }
 
   function effectiveBookingPaymentPreference(i: Item): "deposit" | "full" {

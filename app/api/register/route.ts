@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   const marketingConsent = body.marketingConsent === true;
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true }, { status: 201 });
   }
   const passwordHash = await hash(password, 12);
   const user = await prisma.user.create({
@@ -62,5 +62,5 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
-  return NextResponse.json({ ok: true, user }, { status: 201 });
+  return NextResponse.json({ ok: true }, { status: 201 });
 }

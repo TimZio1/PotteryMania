@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 import { ui } from "@/lib/ui-styles";
+import { StudioPostsClient } from "@/components/dashboard/studio-posts-client";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ studioId: string }> };
@@ -39,20 +40,7 @@ export default async function StudioNewsPage({ params }: Props) {
         </p>
       </div>
       <section className={ui.card}>
-        {posts.length === 0 ? (
-          <p className="text-sm text-stone-600">No posts yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {posts.map((post) => (
-              <li key={post.id} className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-xs text-stone-500">{post.isPublished ? "Published" : "Draft"}</p>
-                <p className="mt-1 font-medium text-stone-900">{post.title}</p>
-                <p className="text-xs text-stone-500">/{post.slug}</p>
-                <p className="mt-2 line-clamp-2 text-sm text-stone-700">{post.content}</p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <StudioPostsClient studioId={studioId} initialPosts={posts} />
       </section>
     </div>
   );

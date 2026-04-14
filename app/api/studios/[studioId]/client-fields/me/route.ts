@@ -14,8 +14,24 @@ function normalizeFieldValue(fieldType: FieldType, value: unknown): string {
 
 export async function GET(_req: Request, ctx: Ctx) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
+  if (!user) {
+    const fields = await prisma.studioClientField.findMany({
+      where: { studioId },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      select: {
+        id: true,
+        title: true,
+        fieldType: true,
+        isRequired: true,
+        options: true,
+        sortOrder: true,
+      },
+    });
+    return NextResponse.json({
+      fields: fields.map((field) => ({ ...field, value: "" })),
+    });
+  }
 
   const fields = await prisma.studioClientField.findMany({
     where: { studioId },

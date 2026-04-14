@@ -26,6 +26,7 @@ import { giftCardEmailCopy, sendGiftCardEmail } from "@/lib/gift-cards/email";
 import { releaseGiftCardRedemptionsForSession } from "@/lib/gift-cards/checkout";
 import { runCheckoutCompletionSideEffects, settleCheckoutOrderPayment } from "@/lib/orders/checkout-completion";
 import { settleBookingRemainderPayment } from "@/lib/bookings/remainder";
+import { orderPaymentFailedCopy, sendOrderEmails } from "@/lib/email/order-notify";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -743,6 +744,47 @@ export async function POST(req: Request) {
     return ack();
   }
 
+  if (event.type === "payment_intent.payment_failed") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const orderId = typeof paymentIntent.metadata?.orderId === "string" ? paymentIntent.metadata.orderId : "";
+    if (!orderId) return ack();
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: {
+            vendor: { select: { displayName: true } },
+          },
+        },
+      },
+    });
+    if (!order) return ack();
+
+    if (order.paymentStatus === "pending") {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: "failed" },
+      });
+    }
+
+    const studioName = order.items[0]?.vendor.displayName ?? "the studio";
+    const customerHtml = orderPaymentFailedCopy({
+      customerName: order.customerName || "there",
+      orderId: order.id,
+      studioName,
+    });
+    await runStripeWebhookSideEffect(event.id, `order_payment_failed_email:${order.id}`, async () => {
+      await sendOrderEmails({
+        customerEmail: order.customerEmail,
+        subject: "Payment failed for your order",
+        customerHtml,
+      });
+    });
+
+    return ack();
+  }
+
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;
     await releaseGiftCardRedemptionsForSession(prisma, {
@@ -759,6 +801,32 @@ export async function POST(req: Request) {
         data: {
           remainderPaymentLink: null,
         },
+      });
+    }
+    const orderId = typeof session.metadata?.orderId === "string" ? session.metadata.orderId : null;
+    if (orderId) {
+      await prisma.$transaction(async (tx) => {
+        await tx.order.updateMany({
+          where: { id: orderId, orderStatus: "pending", paymentStatus: "pending" },
+          data: { orderStatus: "cancelled", paymentStatus: "failed" },
+        });
+        const orderItems = await tx.orderItem.findMany({
+          where: { orderId, itemType: "booking", bookingId: { not: null } },
+          select: { bookingId: true },
+        });
+        if (orderItems.length) {
+          await tx.booking.updateMany({
+            where: {
+              id: { in: orderItems.map((item) => item.bookingId!).filter(Boolean) },
+              bookingStatus: "pending",
+              paymentStatus: "pending",
+            },
+            data: {
+              bookingStatus: "cancelled_by_admin",
+              notes: "Checkout session expired before payment confirmation.",
+            },
+          });
+        }
       });
     }
     return ack();

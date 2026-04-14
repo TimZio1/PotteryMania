@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  const rate = assertRateLimit(req, "memberships-purchase", 10, 60_000);
+  if (!rate.allowed) return NextResponse.json({ error: "Too many purchase attempts" }, { status: 429 });
+
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -15,40 +19,15 @@ export async function POST(req: Request) {
 
   const membershipId = typeof body.membershipId === "string" ? body.membershipId.trim() : "";
   if (!membershipId) return NextResponse.json({ error: "membershipId is required" }, { status: 400 });
-
-  const membership = await prisma.membership.findFirst({
+  const membershipExists = await prisma.membership.findFirst({
     where: { id: membershipId, isActive: true, isVisible: true },
-    select: {
-      id: true,
-      studioId: true,
-      durationDays: true,
-      priceCents: true,
-      isRecurring: true,
-      recurringPriceCents: true,
-      sessionsPerPeriod: true,
-    },
+    select: { id: true },
   });
-  if (!membership) return NextResponse.json({ error: "Membership not found" }, { status: 404 });
+  if (!membershipExists) return NextResponse.json({ error: "Membership not found" }, { status: 404 });
 
-  const startsAt = new Date();
-  const expiresAt = new Date(startsAt.getTime() + membership.durationDays * 24 * 60 * 60 * 1000);
-  const paidCents = membership.isRecurring && membership.recurringPriceCents != null ? membership.recurringPriceCents : membership.priceCents;
-
-  const purchase = await prisma.membershipPurchase.create({
-    data: {
-      membershipId: membership.id,
-      userId: user.id,
-      startsAt,
-      expiresAt,
-      status: "active",
-      sessionsUsed: 0,
-      paidCents,
-      isRecurring: membership.isRecurring,
-    },
-    include: {
-      membership: { select: { id: true, name: true, studioId: true, sessionsPerPeriod: true, durationDays: true } },
-    },
-  });
-
-  return NextResponse.json({ purchase }, { status: 201 });
+  // Security hard-stop: membership activation must happen only after verified payment webhook settlement.
+  return NextResponse.json(
+    { error: "Membership checkout is temporarily unavailable while secure payment flow is finalized." },
+    { status: 503 },
+  );
 }

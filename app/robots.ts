@@ -11,7 +11,7 @@ export default function robots() {
         : ["/", "/unauthorized-admin"],
       disallow: prereg
         ? ["/dashboard", "/admin", "/api", "/login", "/register", "/marketplace", "/classes", "/studios", "/cart"]
-        : ["/dashboard", "/admin", "/api", "/marketplace", "/classes", "/studios", "/category"],
+        : ["/dashboard", "/admin", "/api", "/category"],
     },
     sitemap: `${siteMetadata.url}/sitemap.xml`,
   };

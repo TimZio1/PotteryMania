@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 import { ui } from "@/lib/ui-styles";
+import { StudioLocationsClient } from "@/components/dashboard/studio-locations-client";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ studioId: string }> };
@@ -33,24 +34,7 @@ export default async function StudioLocationsPage({ params }: Props) {
         <p className="mt-2 text-sm text-stone-600">Multiple branches for one studio account.</p>
       </div>
       <section className={ui.card}>
-        {items.length === 0 ? (
-          <p className="text-sm text-stone-600">No locations yet. Create via `/api/studios/{studioId}/locations`.</p>
-        ) : (
-          <ul className="space-y-3">
-            {items.map((loc) => (
-              <li key={loc.id} className="rounded-xl border border-stone-200 bg-white p-3">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-stone-900">{loc.name}</p>
-                  <p className="text-xs text-stone-500">{loc.isDefault ? "Default" : loc.isActive ? "Active" : "Inactive"}</p>
-                </div>
-                <p className="mt-1 text-sm text-stone-700">
-                  {loc.addressLine1}
-                  {loc.addressLine2 ? `, ${loc.addressLine2}` : ""}, {loc.city}, {loc.country}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <StudioLocationsClient studioId={studioId} initialItems={items} />
       </section>
     </div>
   );

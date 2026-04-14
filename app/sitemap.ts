@@ -9,7 +9,20 @@ function staticSitemapFallback(): MetadataRoute.Sitemap {
   const now = new Date();
   const paths = isPreregistrationOnly()
     ? ["/", "/pricing", "/terms", "/privacy", "/vendor-terms"]
-    : ["/", "/pricing", "/login", "/register", "/terms", "/privacy", "/vendor-terms"];
+    : [
+        "/",
+        "/pricing",
+        "/demo",
+        "/classes",
+        "/studios",
+        "/marketplace",
+        "/gift-cards",
+        "/login",
+        "/register",
+        "/terms",
+        "/privacy",
+        "/vendor-terms",
+      ];
   return paths.map((path) => ({
     url: new URL(path, siteMetadata.url).toString(),
     lastModified: now,
@@ -44,6 +57,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       { url: `${base}/`, lastModified: now },
       { url: `${base}/pricing`, lastModified: now },
+      { url: `${base}/demo`, lastModified: now },
+      { url: `${base}/classes`, lastModified: now },
+      { url: `${base}/studios`, lastModified: now },
+      { url: `${base}/marketplace`, lastModified: now },
+      { url: `${base}/gift-cards`, lastModified: now },
       { url: `${base}/login`, lastModified: now },
       { url: `${base}/register`, lastModified: now },
       { url: `${base}/terms`, lastModified: now },

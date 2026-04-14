@@ -301,6 +301,10 @@ export function ClassBookingForm(props: {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ responses: clientFieldPayload }),
     });
+    if (res.status === 401) {
+      // Guest bookings still proceed; values are collected for immediate booking context only.
+      return true;
+    }
     if (!res.ok) {
       const data = await res.json().catch(() => ({} as { error?: string }));
       setErr(data.error || "Could not save profile fields.");

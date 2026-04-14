@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 import { ui } from "@/lib/ui-styles";
+import { StudioInstructorsClient } from "@/components/dashboard/studio-instructors-client";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ studioId: string }> };
@@ -36,24 +37,7 @@ export default async function StudioInstructorsPage({ params }: Props) {
         </p>
       </div>
       <section className={ui.card}>
-        {instructors.length === 0 ? (
-          <p className="text-sm text-stone-600">No instructors configured.</p>
-        ) : (
-          <ul className="space-y-3">
-            {instructors.map((instructor) => (
-              <li key={instructor.id} className="rounded-xl border border-stone-200 bg-white p-3">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-stone-900">{instructor.name}</p>
-                  <p className="text-xs text-stone-500">{instructor.isActive ? "Active" : "Inactive"}</p>
-                </div>
-                {instructor.bio ? <p className="mt-1 text-sm text-stone-700">{instructor.bio}</p> : null}
-                <p className="mt-2 text-xs text-stone-500">
-                  Classes: {instructor.experiences.map((link) => link.experience.title).join(", ") || "None"}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <StudioInstructorsClient studioId={studioId} initialInstructors={instructors} />
       </section>
     </div>
   );

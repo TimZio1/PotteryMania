@@ -90,10 +90,12 @@ export function GuidedApp({
   const [productPublished, setProductPublished] = useState(false);
   const [classPublished, setClassPublished] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [stripeSyncing, setStripeSyncing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [resumeHint, setResumeHint] = useState<GuidedResume | null>(null);
   const quickScheduleSubmitLock = useRef(false);
+  const stripeSyncAttemptedRef = useRef(false);
 
   const showWelcomeBanner = searchParams.get("welcome") === "1";
   const stripeDone = searchParams.get("stripe") === "done";
@@ -122,10 +124,20 @@ export function GuidedApp({
   }, [pathname, router, searchParams]);
 
   useEffect(() => {
-    if (stripeDone && flow === "paid") {
-      /* success UI handled in paid branch */
-    }
-  }, [stripeDone, flow]);
+    if (!(stripeDone && flow === "paid")) return;
+    if (stripeSyncAttemptedRef.current) return;
+    stripeSyncAttemptedRef.current = true;
+    setStripeSyncing(true);
+    (async () => {
+      try {
+        await fetch(`/api/studios/${studioId}/stripe/sync`, { cache: "no-store" });
+      } catch {
+        /* non-fatal; user can still refresh from studio workspace */
+      } finally {
+        setStripeSyncing(false);
+      }
+    })();
+  }, [stripeDone, flow, studioId]);
 
   useEffect(() => {
     setErr(null);
@@ -916,7 +928,11 @@ export function GuidedApp({
               ✓
             </p>
             <h2 className="font-serif text-xl text-(--brand-ink)">You’re connected</h2>
-            <p className="text-sm text-stone-600">When Stripe finishes checking, you can take payments. This can take a few minutes.</p>
+            <p className="text-sm text-stone-600">
+              {stripeSyncing
+                ? "Syncing your Stripe status…"
+                : "When Stripe finishes checking, you can take payments. This can take a few minutes."}
+            </p>
             <p className="text-sm text-stone-600">Next, you can put drafts on your page or add more.</p>
             <Link href={`/studios/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`} target="_blank" rel="noreferrer">
               Preview my page

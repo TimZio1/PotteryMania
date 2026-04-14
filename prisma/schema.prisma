@@ -1309,6 +1309,7 @@ model Booking {
   invoices         Invoice[]
 
   @@index([studioId])
+  @@index([customerUserId])
   @@index([instructorId])
   @@map("bookings")
 }

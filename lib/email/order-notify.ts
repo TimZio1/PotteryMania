@@ -92,3 +92,22 @@ export function orderShippedCopy(input: {
       "http://localhost:3000",
   });
 }
+
+export function orderPaymentFailedCopy(input: {
+  customerName: string;
+  orderId: string;
+  studioName: string;
+}) {
+  const fallbackUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.AUTH_URL ||
+    "http://localhost:3000";
+  return renderEmailShell({
+    eyebrow: "Payment issue",
+    title: "We could not complete your payment",
+    intro: `Hi ${input.customerName}, we could not complete payment for your order from ${input.studioName}.`,
+    bodyHtml: `<p style="margin:0 0 8px;">Order reference: ${escapeHtml(input.orderId)}</p><p style="margin:0;">Please return to checkout and try again with another card if needed.</p>`,
+    ctaLabel: "Open cart",
+    ctaUrl: `${fallbackUrl.replace(/\/+$/, "")}/cart`,
+  });
+}

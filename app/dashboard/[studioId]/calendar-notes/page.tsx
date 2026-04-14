@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 import { ui } from "@/lib/ui-styles";
+import { StudioCalendarNotesClient } from "@/components/dashboard/studio-calendar-notes-client";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ studioId: string }> };
@@ -36,20 +37,16 @@ export default async function StudioCalendarNotesPage({ params }: Props) {
         <p className="mt-2 text-sm text-stone-600">Internal reminders and context blocks for your studio team.</p>
       </div>
       <section className={ui.card}>
-        {notes.length === 0 ? (
-          <p className="text-sm text-stone-600">No notes in the current planning window.</p>
-        ) : (
-          <ul className="space-y-2">
-            {notes.map((note) => (
-              <li key={note.id} className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-xs text-stone-500">
-                  {note.date.toISOString().slice(0, 10)} {note.startTime ? `${note.startTime}-${note.endTime ?? ""}` : "(all day)"}
-                </p>
-                <p className="mt-1 text-sm text-stone-800">{note.note}</p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <StudioCalendarNotesClient
+          studioId={studioId}
+          initialNotes={notes.map((note) => ({
+            id: note.id,
+            date: note.date.toISOString(),
+            startTime: note.startTime,
+            endTime: note.endTime,
+            note: note.note,
+          }))}
+        />
       </section>
     </div>
   );

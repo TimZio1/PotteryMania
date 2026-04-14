@@ -14,7 +14,19 @@ import {
   isStateChangingMethod,
 } from "@/lib/csrf-protection";
 
-const LOGIN_REQUIRED = ["/dashboard", "/admin", "/my-bookings", "/my-orders", "/my-waitlist", "/cart", "/account"];
+const LOGIN_REQUIRED = [
+  "/dashboard",
+  "/admin",
+  "/my-bookings",
+  "/my-orders",
+  "/my-memberships",
+  "/my-loyalty",
+  "/my-packages",
+  "/my-waitlist",
+  "/reviews/new",
+  "/cart",
+  "/account",
+];
 /** Public core pages; legacy catalog entry URLs redirect separately. */
 const BASE_PUBLIC_CORE = [
   "/",
@@ -33,7 +45,7 @@ const BASE_PUBLIC_CORE = [
 ];
 
 function publicAllowlist(): string[] {
-  return [...BASE_PUBLIC_CORE, "/register", "/classes", "/studios", "/marketplace"];
+  return [...BASE_PUBLIC_CORE, "/register", "/classes", "/studios", "/marketplace", "/gift-cards"];
 }
 
 export default auth(async (req) => {
