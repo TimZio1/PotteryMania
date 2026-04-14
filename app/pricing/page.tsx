@@ -161,7 +161,7 @@ export default function PricingPage() {
             </div>
             <div>
               <dt className="font-semibold text-stone-900">Which countries are supported?</dt>
-              <dd className="mt-1">PotteryMania is built for studios serving customers across Europe first, with broader support expanding over time as payments and operations mature.</dd>
+              <dd className="mt-1">PotteryMania works worldwide — any studio in a Stripe-supported country can accept payments from customers anywhere. Shipping, taxes, and local regulations remain the studio&apos;s responsibility.</dd>
             </div>
             <div>
               <dt className="font-semibold text-stone-900">Can I use my own domain?</dt>
