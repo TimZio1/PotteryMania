@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server";
 import type { FulfillmentStatus, OrderStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 import { orderShippedCopy, sendOrderEmails } from "@/lib/email/order-notify";
 
 type Ctx = { params: Promise<{ studioId: string; orderId: string }> };
 
 export async function PATCH(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId, orderId } = await ctx.params;
-  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   let body: {
     fulfillmentStatus?: "pending" | "processing" | "shipped" | "delivered" | "ready_for_pickup" | "cancelled";
@@ -79,9 +75,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
   });
 
   if (body.fulfillmentStatus === "shipped" && order.fulfillmentStatus !== "shipped" && updated.customerEmail) {
+    const studio = await prisma.studio.findUnique({ where: { id: studioId }, select: { displayName: true } });
     const customerHtml = orderShippedCopy({
       customerName: updated.customerName || "there",
-      studioName: studio.displayName,
+      studioName: studio?.displayName ?? "Your studio",
       trackingCarrier: updated.trackingCarrier,
       trackingNumber: updated.trackingNumber,
       trackingUrl: updated.trackingUrl,

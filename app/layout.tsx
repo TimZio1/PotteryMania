@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { MetaPixel } from "@/components/meta-pixel";
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { BRAND_ICON_PUBLIC_PATH } from "@/lib/brand";
 import { siteMetadata } from "@/lib/seo";
 
@@ -59,8 +60,6 @@ export const metadata: Metadata = {
   },
 };
 
-const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -79,20 +78,10 @@ export default function RootLayout({
         </a>
         <GoogleAnalytics />
         <MetaPixel />
-        {metaPixelId ? (
-          <noscript>
-            {/* Meta Pixel noscript fallback — must be a plain img per Meta docs; not a Next.js route. */}
-            {/* eslint-disable-next-line @next/next/no-img-element -- external 1×1 tracking pixel */}
-            <img
-              height={1}
-              width={1}
-              style={{ display: "none" }}
-              src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
-              alt=""
-            />
-          </noscript>
-        ) : null}
-        <Providers><div id="main-content">{children}</div></Providers>
+        <Providers>
+          <div id="main-content">{children}</div>
+          <CookieConsentBanner />
+        </Providers>
       </body>
     </html>
   );

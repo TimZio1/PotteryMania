@@ -1,26 +1,26 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
+import { apiError, apiSuccess } from "@/lib/api-response";
 
 export async function GET() {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return apiError("Unauthorized", 401);
   const studios = await prisma.studio.findMany({
     where: { ownerUserId: user.id },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json({ studios });
+  return apiSuccess({ studios });
 }
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return apiError("Unauthorized", 401);
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return apiError("Invalid JSON", 400);
   }
 
   const str = (k: string) => (typeof body[k] === "string" ? (body[k] as string).trim() : "");
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
               : quickMissing.includes("country")
                 ? "Country is required."
                 : "Please complete the required fields.";
-      return NextResponse.json({ error: errMsg, missing: quickMissing }, { status: 400 });
+      return apiError(errMsg, 400, { missing: quickMissing });
     }
   } else {
     const fullMissing: string[] = [];
@@ -81,13 +81,9 @@ export async function POST(req: Request) {
     if (!city) fullMissing.push("city");
     if (!addressLine1) fullMissing.push("addressLine1");
     if (fullMissing.length) {
-      return NextResponse.json(
-        {
-          error: "Fill in every required field (marked with * on the form).",
-          missing: fullMissing,
-        },
-        { status: 400 },
-      );
+      return apiError("Fill in every required field (marked with * on the form).", 400, {
+        missing: fullMissing,
+      });
     }
   }
 
@@ -117,8 +113,8 @@ export async function POST(req: Request) {
       preferredLanguage: opt("preferredLanguage"),
       preferredCurrency: opt("preferredCurrency"),
       supportedLanguages: supportedLanguages.length > 0 ? supportedLanguages : ["en"],
-      status: "approved",
-      approvedAt: new Date(),
+      status: "pending_review",
+      approvedAt: null,
     },
   });
 
@@ -130,5 +126,5 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ studio }, { status: 201 });
+  return apiSuccess({ studio }, 201);
 }

@@ -61,5 +61,14 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Unit tests
+        run: npm test
+
+      - name: API contract tests
+        run: npm run test:api-contract
+
+      - name: Coverage gate
+        run: npm run test:coverage
+
       - name: Build
         run: npm run build:ci

@@ -1,20 +1,18 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
 import { getStripe } from "@/lib/stripe";
+import { apiError, apiSuccess } from "@/lib/api-response";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
 export async function GET(_req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return apiError(auth.error, auth.status);
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  if (!studio) return apiError("Studio not found", 404);
   const row = await prisma.stripeAccount.findUnique({ where: { studioId } });
-  if (!row) return NextResponse.json({ stripe: null });
+  if (!row) return apiSuccess({ stripe: null });
 
   const stripe = getStripe();
   const acct = await stripe.accounts.retrieve(row.stripeAccountId);
@@ -38,11 +36,10 @@ export async function GET(_req: Request, ctx: Ctx) {
     await prisma.studio.update({
       where: { id: studioId },
       data: {
-        status: "approved",
-        approvedAt: new Date(),
         activationPaidAt: studio.activationPaidAt ?? new Date(),
+        status: studio.status === "approved" ? "approved" : "pending_review",
       },
     });
   }
-  return NextResponse.json({ stripe: updated });
+  return apiSuccess({ stripe: updated });
 }

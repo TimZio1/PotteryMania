@@ -24,6 +24,19 @@ function chargeFromPi(pi: Stripe.PaymentIntent): Stripe.Charge | null {
   return c as Stripe.Charge;
 }
 
+async function resolveConnectedAccountForOrder(orderId: string): Promise<string | null> {
+  const item = await prisma.orderItem.findFirst({
+    where: { orderId },
+    select: { vendorId: true },
+  });
+  if (!item) return null;
+  const sa = await prisma.stripeAccount.findUnique({
+    where: { studioId: item.vendorId },
+    select: { stripeAccountId: true },
+  });
+  return sa?.stripeAccountId ?? null;
+}
+
 /**
  * Live refundable balance from Stripe (Connect PaymentIntent + charge).
  */
@@ -40,11 +53,15 @@ export async function getStripeOrderRefundSnapshot(orderId: string): Promise<Ord
     return { ok: false, error: "No succeeded Stripe payment on this order." };
   }
 
+  const connectedAccountId = await resolveConnectedAccountForOrder(orderId);
+
   try {
     const stripe = getStripe();
-    const pi = await stripe.paymentIntents.retrieve(pay.providerPaymentId, {
-      expand: ["latest_charge"],
-    });
+    const pi = await stripe.paymentIntents.retrieve(
+      pay.providerPaymentId,
+      { expand: ["latest_charge"] },
+      connectedAccountId ? { stripeAccount: connectedAccountId } : undefined,
+    );
     const charge = chargeFromPi(pi);
     if (!charge) {
       return { ok: false, error: "PaymentIntent has no charge yet." };
@@ -113,17 +130,21 @@ export async function executeAdminStripeOrderRefund(opts: {
 
   try {
     const stripe = getStripe();
-    const refund = await stripe.refunds.create({
-      payment_intent: snap.paymentIntentId,
-      amount,
-      reverse_transfer: true,
-      refund_application_fee: true,
-      metadata: {
-        orderId: opts.orderId,
-        source: "admin_order_refund",
-        adminUserId: opts.adminUserId,
+    const connectedAccountId = await resolveConnectedAccountForOrder(opts.orderId);
+    const refund = await stripe.refunds.create(
+      {
+        payment_intent: snap.paymentIntentId,
+        amount,
+        reverse_transfer: true,
+        refund_application_fee: true,
+        metadata: {
+          orderId: opts.orderId,
+          source: "admin_order_refund",
+          adminUserId: opts.adminUserId,
+        },
       },
-    });
+      connectedAccountId ? { stripeAccount: connectedAccountId } : undefined,
+    );
 
     const fullyRefunded = amount >= snap.refundableCents;
 

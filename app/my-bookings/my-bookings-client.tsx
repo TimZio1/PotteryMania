@@ -136,9 +136,6 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
           <Link href="/my-packages" className={`${platformUi.buttonSecondary} text-center`}>
             Packages
           </Link>
-          <Link href="/my-memberships" className={`${platformUi.buttonSecondary} text-center`}>
-            Memberships
-          </Link>
         </div>
       </div>
 

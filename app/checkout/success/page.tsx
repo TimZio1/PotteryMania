@@ -4,6 +4,7 @@ import { metaPublicPage } from "@/lib/seo-routes";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ui } from "@/lib/ui-styles";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth-session";
 import { AddToCalendarButtons } from "@/components/bookings/add-to-calendar-buttons";
 import { buildTicketQrDataUrl } from "@/lib/bookings/ticket-qr";
 
@@ -17,20 +18,44 @@ export const dynamic = "force-dynamic";
 
 type Props = { searchParams: Promise<{ session_id?: string; orderId?: string }> };
 
-async function getBookingsForOrder(input: { sessionId?: string; orderId?: string }) {
-  const orderId = input.orderId?.trim();
-  let resolvedOrderId = orderId || null;
-  if (!resolvedOrderId && input.sessionId) {
+async function resolveCheckoutSuccessOrder(input: { sessionId?: string; orderId?: string; userId?: string }) {
+  const providedOrderId = input.orderId?.trim();
+  if (input.sessionId) {
     const order = await prisma.order.findFirst({
       where: { stripeCheckoutSessionId: input.sessionId },
-      select: { id: true },
+      select: { id: true, paymentStatus: true },
     });
-    resolvedOrderId = order?.id ?? null;
+    if (!order) {
+      return { orderId: null, paymentStatus: null as string | null };
+    }
+    return { orderId: order.id, paymentStatus: order.paymentStatus };
   }
-  if (!resolvedOrderId) return [];
+
+  if (!providedOrderId) {
+    return { orderId: null, paymentStatus: null as string | null };
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: providedOrderId },
+    select: { id: true, customerUserId: true, paymentStatus: true },
+  });
+  if (!order) {
+    return { orderId: null, paymentStatus: null as string | null };
+  }
+
+  // For orderId-only links, show checkout details only to the order owner.
+  if (!input.userId || order.customerUserId !== input.userId) {
+    return { orderId: null, paymentStatus: null as string | null };
+  }
+
+  return { orderId: order.id, paymentStatus: order.paymentStatus };
+}
+
+async function getBookingsForOrder(orderId: string | null) {
+  if (!orderId) return [];
 
   const items = await prisma.orderItem.findMany({
-    where: { orderId: resolvedOrderId, itemType: "booking", bookingId: { not: null } },
+    where: { orderId, itemType: "booking", bookingId: { not: null } },
     select: { bookingId: true },
   });
 
@@ -41,6 +66,7 @@ async function getBookingsForOrder(input: { sessionId?: string; orderId?: string
     where: { id: { in: bookingIds } },
     include: {
       experience: { select: { title: true, loyaltyPointsEarned: true } },
+      instructor: { select: { name: true } },
       slot: { select: { slotDate: true, startTime: true, endTime: true } },
       studio: { select: { displayName: true } },
       bookingAddOns: { select: { addOnName: true, quantity: true, unitPriceCents: true } },
@@ -52,7 +78,14 @@ async function getBookingsForOrder(input: { sessionId?: string; orderId?: string
 
 export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const bookings = await getBookingsForOrder({ sessionId: sp.session_id, orderId: sp.orderId });
+  const user = await getSessionUser();
+  const successOrder = await resolveCheckoutSuccessOrder({
+    sessionId: sp.session_id,
+    orderId: sp.orderId,
+    userId: user?.id,
+  });
+  const bookings = await getBookingsForOrder(successOrder.orderId);
+  const paymentVerified = successOrder.paymentStatus === "paid" || successOrder.paymentStatus === "partial";
   const bookingsWithQr = await Promise.all(
     bookings.map(async (booking) => ({
       booking,
@@ -71,10 +104,12 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
             </svg>
           </div>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-            {sp.orderId && !sp.session_id ? "Order confirmed" : "Payment received"}
+            {paymentVerified ? "Payment received" : "Payment processing"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            Thank you for your order! If a confirmation email is configured, it should arrive in your inbox shortly.
+            {paymentVerified
+              ? "Thank you for your order! If a confirmation email is configured, it should arrive in your inbox shortly."
+              : "We are still verifying your checkout. Refresh in a moment, or check your account bookings/orders."}
           </p>
 
           {hasBookings && (
@@ -106,6 +141,12 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                     <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                       <dt className="text-[var(--muted)]">Guests</dt>
                       <dd className="font-medium text-[var(--foreground)]">{b.participantCount}</dd>
+                      {b.instructor?.name ? (
+                        <>
+                          <dt className="text-[var(--muted)]">Instructor</dt>
+                          <dd className="font-medium text-[var(--foreground)]">{b.instructor.name}</dd>
+                        </>
+                      ) : null}
                       <dt className="text-[var(--muted)]">Status</dt>
                       <dd className="font-medium text-[var(--foreground)]">{b.bookingStatus.replace(/_/g, " ")}</dd>
                       <dt className="text-[var(--muted)]">Total</dt>

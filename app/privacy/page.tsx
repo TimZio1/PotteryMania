@@ -83,8 +83,8 @@ export default function PrivacyPage() {
       <h2>6. Cookies and analytics</h2>
       <p>
         We use cookies and similar technologies for authentication, session continuity, security, preferences, and
-        measurement. Blocking essential cookies may prevent sign-in, checkout, or dashboard features from working
-        correctly.
+        measurement. Non-essential analytics only run after you grant consent via the cookie banner. Blocking essential
+        cookies may prevent sign-in, checkout, or dashboard features from working correctly.
       </p>
 
       <h2>7. Retention</h2>
@@ -97,8 +97,8 @@ export default function PrivacyPage() {
       <h2>8. Your rights</h2>
       <p>
         Depending on your location, you may have rights to access, correct, delete, export, or object to certain uses of
-        your data. You may also have the right to withdraw consent where processing depends on consent. Requests can be
-        submitted through the support pathways available inside PotteryMania during early access.
+        your data. You may also have the right to withdraw consent where processing depends on consent. Self-service data
+        export and account anonymization controls are available in your account page.
       </p>
 
       <h2>9. International transfers</h2>

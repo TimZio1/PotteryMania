@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { reviewAuthorLabel } from "@/lib/review-author";
 import { ui } from "@/lib/ui-styles";
 
 type ReviewRow = {
@@ -12,7 +13,7 @@ type ReviewRow = {
   isVisible: boolean;
   isFeatured: boolean;
   createdAt: string | Date;
-  author: { email: string; customerProfile: { fullName: string | null } | null };
+  author: { customerProfile: { fullName: string | null } | null } | null;
   experience: { title: string } | null;
 };
 
@@ -76,7 +77,7 @@ export default function StudioReviewsClient({
                   </p>
                   <p className="mt-1 text-sm font-semibold text-stone-900">{review.title || "Untitled review"}</p>
                   <p className="mt-1 text-xs text-stone-500">
-                    {review.author.customerProfile?.fullName || review.author.email}
+                    {reviewAuthorLabel(review.author)}
                     {review.experience ? ` · ${review.experience.title}` : ""}
                   </p>
                 </div>

@@ -28,6 +28,8 @@ export function AccountClient() {
   const [preferredCurrency, setPreferredCurrency] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
 
@@ -80,6 +82,58 @@ export function AccountClient() {
       }
     }
     setSaving(false);
+  }
+
+  async function onDownloadData() {
+    setExporting(true);
+    setMsg("");
+    setErr("");
+    try {
+      const res = await fetch("/api/me/data-export");
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(typeof data.error === "string" ? data.error : "Could not export your data.");
+        return;
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+      a.href = url;
+      a.download = `potterymania-data-export-${ts}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setMsg("Your data export is ready.");
+    } catch {
+      setErr("Could not export your data.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function onDeleteAccount() {
+    const confirmed = window.confirm(
+      "This will anonymize your account and sign you out immediately. This cannot be undone. Continue?",
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    setMsg("");
+    setErr("");
+    try {
+      const res = await fetch("/api/me/data-deletion", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(typeof data.error === "string" ? data.error : "Could not delete your account.");
+        return;
+      }
+      window.location.href = "/login?reason=account_deleted";
+    } catch {
+      setErr("Could not delete your account.");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   if (loading) {
@@ -187,6 +241,26 @@ export function AccountClient() {
           {saving ? "Saving…" : "Save changes"}
         </button>
       </form>
+
+      <section className={`${platformUi.cardMuted} mt-8 space-y-3`}>
+        <h2 className="text-base font-semibold text-amber-950">Data controls</h2>
+        <p className="text-sm text-stone-600">
+          Download a machine-readable copy of your account data or anonymize your account.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={onDownloadData} disabled={exporting} className={platformUi.buttonSecondary}>
+            {exporting ? "Preparing export…" : "Download my data"}
+          </button>
+          <button
+            type="button"
+            onClick={onDeleteAccount}
+            disabled={deleting}
+            className="rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60"
+          >
+            {deleting ? "Deleting…" : "Delete my account"}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

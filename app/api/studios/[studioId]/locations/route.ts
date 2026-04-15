@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
-async function canManageStudio(studioId: string) {
-  const user = await getSessionUser();
-  if (!user) return false;
-  const studio = await prisma.studio.findFirst({ where: { id: studioId, ownerUserId: user.id }, select: { id: true } });
-  return Boolean(studio);
-}
-
 export async function GET(_: Request, ctx: Ctx) {
   const { studioId } = await ctx.params;
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
   const items = await prisma.studioLocation.findMany({
     where: { studioId, isActive: true },
     orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
@@ -22,7 +18,8 @@ export async function GET(_: Request, ctx: Ctx) {
 
 export async function POST(req: Request, ctx: Ctx) {
   const { studioId } = await ctx.params;
-  if (!(await canManageStudio(studioId))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   let body: {
     name?: string;

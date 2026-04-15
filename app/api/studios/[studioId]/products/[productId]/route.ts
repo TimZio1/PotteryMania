@@ -1,18 +1,28 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
 import { ceramicCategoryFromSlug, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
 import { normalizeOfferingPricing } from "@/lib/offering-pricing";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 import { parseShippingZonesInput } from "@/lib/shipping-zones";
+import { apiError, apiSuccess } from "@/lib/api-response";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string; productId: string }> };
 
-async function assertProduct(studioId: string, productId: string, userId: string) {
+type ProductVariantInput = {
+  id?: string;
+  name?: string;
+  sku?: string | null;
+  priceCents?: number | null;
+  stockQuantity?: number | null;
+  sortOrder?: number;
+};
+
+async function assertProduct(studioId: string, productId: string) {
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== userId) return null;
+  if (!studio) return null;
   const product = await prisma.product.findFirst({
     where: { id: productId, studioId },
   });
@@ -21,20 +31,20 @@ async function assertProduct(studioId: string, productId: string, userId: string
 }
 
 export async function PATCH(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId, productId } = await ctx.params;
-  const pair = await assertProduct(studioId, productId, user.id);
-  if (!pair) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return apiError(auth.error, auth.status);
+  const pair = await assertProduct(studioId, productId);
+  if (!pair) return apiError("Not found", 404);
   if (pair.studio.status === "suspended") {
-    return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
+    return apiError("Studio suspended", 403);
   }
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return apiError("Invalid JSON", 400);
   }
 
   if (body.status === "active") {
@@ -64,7 +74,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (typeof body.category === "string") {
     const category = ceramicCategoryFromSlug(body.category);
     if (!category) {
-      return NextResponse.json({ error: "Invalid ceramic category" }, { status: 400 });
+      return apiError("Invalid ceramic category", 400);
     }
     try {
       await syncLockedCeramicCategories(prisma);
@@ -107,6 +117,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
     data.status = body.status;
   }
   if (typeof body.isFeatured === "boolean") data.isFeatured = body.isFeatured;
+  if ("variants" in body && body.variants != null && !Array.isArray(body.variants)) {
+    return apiError("variants must be an array", 400);
+  }
 
   const pricingKeys = [
     "pricingType",
@@ -174,14 +187,46 @@ export async function PATCH(req: Request, ctx: Ctx) {
       })),
     };
   }
+  if (Array.isArray(body.variants)) {
+    const variantsInput = body.variants as ProductVariantInput[];
+    const variantNames = new Set<string>();
+    for (let i = 0; i < variantsInput.length; i += 1) {
+      const row = variantsInput[i];
+      const name = typeof row.name === "string" ? row.name.trim() : "";
+      if (!name) {
+        return NextResponse.json({ error: `Variant #${i + 1} requires a name` }, { status: 400 });
+      }
+      const key = name.toLowerCase();
+      if (variantNames.has(key)) {
+        return NextResponse.json({ error: `Duplicate variant name: ${name}` }, { status: 400 });
+      }
+      variantNames.add(key);
+      if (row.priceCents != null && (typeof row.priceCents !== "number" || row.priceCents < 0)) {
+        return NextResponse.json({ error: `Variant #${i + 1} has invalid price` }, { status: 400 });
+      }
+      if (row.stockQuantity != null && (typeof row.stockQuantity !== "number" || row.stockQuantity < 0)) {
+        return NextResponse.json({ error: `Variant #${i + 1} has invalid stock quantity` }, { status: 400 });
+      }
+    }
+    data.variants = {
+      deleteMany: {},
+      create: variantsInput.map((row, idx) => ({
+        name: (row.name ?? "").trim(),
+        sku: typeof row.sku === "string" ? row.sku.trim() || null : null,
+        priceCents: typeof row.priceCents === "number" ? row.priceCents : null,
+        stockQuantity: typeof row.stockQuantity === "number" ? row.stockQuantity : null,
+        sortOrder: typeof row.sortOrder === "number" ? row.sortOrder : idx,
+      })),
+    };
+  }
 
   try {
     const product = await prisma.product.update({
       where: { id: productId },
       data: data as object,
-      include: { images: true },
+      include: { images: true, variants: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
     });
-    return NextResponse.json({ product });
+    return apiSuccess({ product });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
       return NextResponse.json(
@@ -194,14 +239,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
 }
 
 export async function DELETE(_req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId, productId } = await ctx.params;
-  const pair = await assertProduct(studioId, productId, user.id);
-  if (!pair) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return apiError(auth.error, auth.status);
+  const pair = await assertProduct(studioId, productId);
+  if (!pair) return apiError("Not found", 404);
   await prisma.product.update({
     where: { id: productId },
     data: { status: "archived" },
   });
-  return NextResponse.json({ ok: true });
+  return apiSuccess({ ok: true });
 }

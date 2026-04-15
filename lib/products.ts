@@ -66,8 +66,24 @@ export function buildProductWhere(input: ProductQueryInput): Prisma.ProductWhere
     where.studioId = input.studioId;
   }
   if (input.inStock) {
-    where.stockStatus = "in_stock";
-    where.stockQuantity = { gt: 0 };
+    const existingAnd = Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : [];
+    where.AND = [
+      ...existingAnd,
+      {
+        OR: [
+          {
+            AND: [{ variants: { none: {} } }, { stockStatus: "in_stock" }, { stockQuantity: { gt: 0 } }],
+          },
+          {
+            variants: {
+              some: {
+                OR: [{ stockQuantity: null }, { stockQuantity: { gt: 0 } }],
+              },
+            },
+          },
+        ],
+      },
+    ];
   }
   if (input.shippingRegion && isShippingZone(input.shippingRegion)) {
     const zone = input.shippingRegion;
@@ -168,7 +184,11 @@ const marketplaceListInclude = {
   },
   categoryMeta: { select: { id: true, name: true, slug: true } },
   images: { where: { isPrimary: true }, take: 1 },
-} as const;
+  variants: {
+    select: { id: true, name: true, priceCents: true, stockQuantity: true, sortOrder: true },
+    orderBy: [{ sortOrder: "asc" as const }, { createdAt: "asc" as const }],
+  },
+};
 
 export async function listMarketplaceProducts(input: ProductQueryInput) {
   const page = Math.max(1, input.page ?? 1);
@@ -188,7 +208,7 @@ export async function listMarketplaceProducts(input: ProductQueryInput) {
         take: cap,
         include: marketplaceListInclude,
       });
-      const ranked = sortProductsByMarketplaceRanking(batch);
+      const ranked = sortProductsByMarketplaceRanking(batch) as typeof batch;
       const products = ranked.slice(start, start + pageSize);
       return { products, total, page, pageSize, pageCount };
     }
@@ -232,6 +252,7 @@ export async function getMarketplaceProduct(productId: string) {
       studio: true,
       categoryMeta: true,
       images: { orderBy: { sortOrder: "asc" } },
+      variants: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
     },
   });
   if (!product) return null;

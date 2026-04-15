@@ -4,7 +4,10 @@ import { MarketingLayout } from "@/components/marketing-layout";
 import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 import type { StudioPlan } from "@/lib/studio-plan-pricing";
-import { annualEquivalentLabel, monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
+import { annualEquivalentLabel, buildStudioPlans, monthlyLabel } from "@/lib/studio-plan-pricing";
+import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Plans & pricing — studio shop + bookings",
@@ -13,16 +16,18 @@ export const metadata: Metadata = buildMetadata({
   path: "/pricing",
 });
 
-const COMPARISON_ROWS: { label: string; cells: Record<StudioPlan["key"], string | boolean> }[] = [
-  { label: "Public studio page", cells: { bookings: true, shop: true, both: true, pro: true } },
-  { label: "Online class bookings + checkout", cells: { bookings: true, shop: "—", both: true, pro: true } },
-  { label: "Product shop + stock", cells: { bookings: "—", shop: true, both: true, pro: true } },
-  { label: "Unified dashboard (shop + classes)", cells: { bookings: "—", shop: "—", both: true, pro: true } },
-  { label: "Branding controls", cells: { bookings: "Basic", shop: "Basic", both: true, pro: true } },
-  { label: "0% platform commission", cells: { bookings: true, shop: true, both: true, pro: true } },
-  { label: "Advanced analytics & automation", cells: { bookings: "Add-ons", shop: "Add-ons", both: "Add-ons", pro: true } },
-  { label: "Priority support", cells: { bookings: "—", shop: "—", both: "—", pro: true } },
-];
+function buildComparisonRows(commissionLabel: string): { label: string; cells: Record<StudioPlan["key"], string | boolean> }[] {
+  return [
+    { label: "Public studio page", cells: { bookings: true, shop: true, both: true, pro: true } },
+    { label: "Online class bookings + checkout", cells: { bookings: true, shop: "—", both: true, pro: true } },
+    { label: "Product shop + stock", cells: { bookings: "—", shop: true, both: true, pro: true } },
+    { label: "Unified dashboard (shop + classes)", cells: { bookings: "—", shop: "—", both: true, pro: true } },
+    { label: "Branding controls", cells: { bookings: "Basic", shop: "Basic", both: true, pro: true } },
+    { label: `${commissionLabel} platform commission`, cells: { bookings: true, shop: true, both: true, pro: true } },
+    { label: "Advanced analytics & automation", cells: { bookings: "Add-ons", shop: "Add-ons", both: "Add-ons", pro: true } },
+    { label: "Priority support", cells: { bookings: "—", shop: "—", both: "—", pro: true } },
+  ];
+}
 
 function Cell({ value }: { value: string | boolean }) {
   if (value === true) {
@@ -34,7 +39,11 @@ function Cell({ value }: { value: string | boolean }) {
   return <span className="text-[var(--muted)]">{value}</span>;
 }
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const STUDIO_PLANS = buildStudioPlans(commissionLabel);
+  const COMPARISON_ROWS = buildComparisonRows(commissionLabel);
+
   return (
     <MarketingLayout>
       <main className={`${ui.pageContainer} py-10 sm:py-14`}>
@@ -141,7 +150,7 @@ export default function PricingPage() {
           <dl className="mt-4 space-y-4 text-sm text-[var(--muted)]">
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Do I pay commission on sales?</dt>
-              <dd className="mt-1">0% platform commission on checkout — you keep your margin; Stripe fees still apply.</dd>
+              <dd className="mt-1">{commissionLabel} platform commission on checkout — you keep your margin; Stripe fees still apply.</dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Can I start with only classes or only products?</dt>

@@ -426,6 +426,8 @@ export function sortExperiencesByMarketplaceRanking<T extends ExperienceRowWithS
 
 /** `/marketplace` product row: studio ranking + featured + recency (recommended sort). */
 export type ProductRowWithStudioRanking = {
+  id: string;
+  title: string;
   isFeatured: boolean;
   createdAt: Date;
   studio: ExperienceListStudioForRanking;

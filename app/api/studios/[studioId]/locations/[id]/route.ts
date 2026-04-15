@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string; id: string }> };
 
-async function canManageStudio(studioId: string) {
-  const user = await getSessionUser();
-  if (!user) return false;
-  const studio = await prisma.studio.findFirst({ where: { id: studioId, ownerUserId: user.id }, select: { id: true } });
-  return Boolean(studio);
-}
-
 export async function PATCH(req: Request, ctx: Ctx) {
   const { studioId, id } = await ctx.params;
-  if (!(await canManageStudio(studioId))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   let body: {
     name?: string;
@@ -72,7 +66,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
 export async function DELETE(_: Request, ctx: Ctx) {
   const { studioId, id } = await ctx.params;
-  if (!(await canManageStudio(studioId))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
   const existing = await prisma.studioLocation.findFirst({ where: { id, studioId }, select: { id: true } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
   await prisma.studioLocation.delete({ where: { id } });

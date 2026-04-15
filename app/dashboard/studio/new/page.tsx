@@ -233,39 +233,40 @@ export default function NewStudioPage() {
   };
 
   return (
-    <div className="mx-auto max-w-xl px-5 py-12 sm:px-6">
-      <Link href="/dashboard" className="text-sm font-medium text-amber-900 hover:text-amber-950">
-        ← Studio control panel
+    <div className="mx-auto max-w-xl px-5 py-10 sm:px-6 sm:py-12">
+      <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-medium text-amber-900 hover:text-amber-950">
+        ← Back
       </Link>
       <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
-        Step 1 · What do you want to set up first?
+        Step 1 · What do you want to do?
       </p>
-      <h1 className="mt-2 font-serif text-3xl font-normal tracking-[-0.02em] text-(--brand-ink)">Set up your studio</h1>
+      <h1 className="mt-2 font-serif text-3xl font-normal tracking-[-0.02em] text-(--brand-ink)">Start selling your work</h1>
+      <p className="mt-1 text-xs text-stone-500">Whether you&apos;re a solo potter or running a full studio, pick what fits you best right now. You can always add more later.</p>
       <p className="mt-2 text-sm leading-relaxed text-stone-600">{pathCopy.helper}</p>
       <div className="mt-5 grid gap-2 sm:grid-cols-3">
         <Link
           href={`/dashboard/studio/new?setup=bookings${fullForm ? "&full=1" : ""}`}
-          className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
+          className={`inline-flex min-h-11 items-center justify-center rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
             setup === "bookings"
               ? "border-amber-700/50 bg-amber-50 text-amber-950 shadow-sm"
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
-          Experiences
+          Classes & bookings
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=shop${fullForm ? "&full=1" : ""}`}
-          className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
+          className={`inline-flex min-h-11 items-center justify-center rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
             setup === "shop"
               ? "border-amber-700/50 bg-amber-50 text-amber-950 shadow-sm"
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
-          Products
+          Shop products
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=both${fullForm ? "&full=1" : ""}`}
-          className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
+          className={`inline-flex min-h-11 items-center justify-center rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${
             setup === "both"
               ? "border-amber-700/50 bg-amber-50 text-amber-950 shadow-sm"
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
@@ -292,7 +293,7 @@ export default function NewStudioPage() {
               <p className="text-sm text-stone-500">Loading your account…</p>
             ) : null}
             <label className="block text-sm">
-              <span className="text-stone-600">Studio name *</span>
+              <span className="text-stone-600">Your name or studio name *</span>
               <input
                 aria-invalid={fieldErrors.displayName ? "true" : undefined}
                 className={`${inputBaseClass} ${fieldErrors.displayName ? inputInvalidClass : "border-stone-200"}`}
@@ -301,7 +302,7 @@ export default function NewStudioPage() {
                   setQuick({ ...quick, displayName: e.target.value });
                   clearFieldError("displayName");
                 }}
-                placeholder="e.g. River Clay Studio"
+                placeholder="e.g. Maria Ceramics or River Clay Studio"
                 required
                 autoComplete="organization"
                 disabled={submitting}
@@ -309,7 +310,7 @@ export default function NewStudioPage() {
               {fieldErrors.displayName ? (
                 <p className="mt-1 text-xs text-rose-600">{fieldErrors.displayName}</p>
               ) : (
-                <span className="mt-1 block text-xs text-stone-500">Shown on your public page.</span>
+                <span className="mt-1 block text-xs text-stone-500">This is what customers see. Use your artist name or studio name.</span>
               )}
             </label>
             <label className="block text-sm">

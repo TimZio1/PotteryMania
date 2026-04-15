@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { bookingAllowsFullPaymentOption, bookingChargeNowCents, normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
@@ -23,6 +24,7 @@ type Item = {
   priceSnapshotCents: number;
   bookingPaymentPreference?: "deposit" | "full" | null;
   product?: { title: string; images: { imageUrl: string }[] } | null;
+  variant?: { id: string; name: string } | null;
   experience?: { title: string; bookingDepositBps: number; allowFullPaymentOption?: boolean } | null;
   slot?: {
     slotDate: string;
@@ -44,7 +46,7 @@ type CouponPreview = {
   estimatedTotal: number;
 };
 
-export function CartContents() {
+export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) {
   const searchParams = useSearchParams();
   const wasCancelled = searchParams.get("cancelled") === "1";
   const [items, setItems] = useState<Item[]>([]);
@@ -77,7 +79,7 @@ export function CartContents() {
       const j = await r.json();
       const next: Item[] = j.cart?.items || [];
       const sig = next
-        .map((i) => `${i.id}:${i.quantity}:${i.participantCount ?? ""}:${i.seatType ?? ""}:${i.priceSnapshotCents}:${(i.addOnSelections ?? []).map((selection) => `${selection.addOnId}:${selection.quantity}`).join(",")}`)
+        .map((i) => `${i.id}:${i.quantity}:${i.variant?.id ?? ""}:${i.participantCount ?? ""}:${i.seatType ?? ""}:${i.priceSnapshotCents}:${(i.addOnSelections ?? []).map((selection) => `${selection.addOnId}:${selection.quantity}`).join(",")}`)
         .join("|");
       if (cartSigRef.current !== "" && cartSigRef.current !== sig) {
         setCouponPreview(null);
@@ -196,6 +198,7 @@ export function CartContents() {
   }
 
   const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const isCheckoutMode = mode === "checkout";
 
   async function checkout(studioScopeId?: string) {
     if (checkoutBusy) return;
@@ -340,7 +343,9 @@ export function CartContents() {
         </button>
       </div>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Cart</h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">Review items, then pay securely with Stripe.</p>
+      <p className="mt-2 text-sm text-[var(--muted)]">
+        {isCheckoutMode ? "Review totals and complete secure Stripe payment." : "Review your cart before checkout."}
+      </p>
       {wasCancelled && (
         <div className="mt-4 rounded-xl border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-4 text-sm text-[var(--foreground)]">
           Payment was cancelled — your cart is still here. Continue when you&apos;re ready.
@@ -413,6 +418,9 @@ export function CartContents() {
                       <p className="font-medium text-[var(--foreground)]">
                         {i.itemType === "product" ? i.product?.title : i.experience?.title}
                       </p>
+                      {i.itemType === "product" && i.variant?.name ? (
+                        <p className="mt-1 text-xs text-[var(--muted)]">Variant: {i.variant.name}</p>
+                      ) : null}
                       {i.itemType === "booking" && i.classPackagePurchaseId ? (
                         <p className="mt-1 text-xs font-medium text-emerald-700">Package credit applied</p>
                       ) : null}
@@ -640,6 +648,18 @@ export function CartContents() {
           </div>
 
           <div className="mt-10 border-t border-[var(--border)] pt-10">
+            {!isCheckoutMode ? (
+              <div className="space-y-4">
+                <p className="text-sm text-[var(--muted)]">
+                  Next step: review final totals, discounts, shipping, and cancellation terms before payment.
+                </p>
+                <Link href="/checkout" className={`${ui.buttonPrimary} inline-flex`}>
+                  Continue to checkout summary
+                </Link>
+              </div>
+            ) : null}
+            {isCheckoutMode ? (
+              <>
             <h2 className="text-lg font-semibold text-[var(--foreground)]">Checkout details</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">We use these details for your Stripe receipt and shipping when applicable.</p>
             {err ? <p className={`${ui.errorText} mt-4`}>{err}</p> : null}
@@ -840,6 +860,8 @@ export function CartContents() {
                 </div>
               )}
             </div>
+              </>
+            ) : null}
           </div>
         </>
       )}

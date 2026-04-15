@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
 import { IntakeFieldType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string; id: string }> };
-
-async function assertOwner(studioId: string, userId: string) {
-  const studio = await prisma.studio.findUnique({
-    where: { id: studioId },
-    select: { id: true, ownerUserId: true, status: true },
-  });
-  if (!studio || studio.ownerUserId !== userId) return null;
-  return studio;
-}
 
 function normalizeOptions(raw: unknown): string[] | null {
   if (raw == null) return null;
@@ -22,11 +13,14 @@ function normalizeOptions(raw: unknown): string[] | null {
 }
 
 export async function PATCH(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { studioId, id } = await ctx.params;
-  const studio = await assertOwner(studioId, user.id);
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const studio = await prisma.studio.findUnique({
+    where: { id: studioId },
+    select: { status: true },
+  });
   if (!studio) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
@@ -118,13 +112,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
 }
 
 export async function DELETE(_req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { studioId, id } = await ctx.params;
-  if (!(await assertOwner(studioId, user.id))) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const existing = await prisma.intakeForm.findFirst({
     where: { id, studioId },

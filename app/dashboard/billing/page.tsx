@@ -5,7 +5,8 @@ import { getSessionUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 import { metaDashboardPage } from "@/lib/seo-routes";
-import { annualEquivalentLabel, monthlyLabel, STUDIO_PLANS } from "@/lib/studio-plan-pricing";
+import { annualEquivalentLabel, buildStudioPlans, monthlyLabel } from "@/lib/studio-plan-pricing";
+import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 
 export const metadata: Metadata = metaDashboardPage(
   "Workspace billing",
@@ -21,6 +22,8 @@ export const dynamic = "force-dynamic";
 export default async function DashboardBillingPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login?callbackUrl=/dashboard/billing");
+  const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
+  const STUDIO_PLANS = buildStudioPlans(commissionLabel);
   const studios =
     user.role === "vendor"
       ? await prisma.studio.findMany({
@@ -70,7 +73,7 @@ export default async function DashboardBillingPage() {
       <div className={`${ui.card} space-y-3`}>
         <h2 className="text-lg font-semibold text-stone-900">Studio plans (no PotteryMania transaction fee)</h2>
         <p className="text-sm text-stone-600">
-          Plans are based on studio usage: experiences-only, catalog-only, both, or pro. PotteryMania transaction fees stay at 0%.
+          Plans are based on studio usage: experiences-only, catalog-only, both, or pro. PotteryMania transaction fees stay at {commissionLabel}.
         </p>
         <p className="mt-3 text-sm font-medium text-amber-950">
           This replaces multiple tools you may otherwise juggle — public page, reservations, catalog, and the glue between them.

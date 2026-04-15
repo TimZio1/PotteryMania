@@ -5,6 +5,12 @@ import { assertRateLimit } from "@/lib/rate-limit";
 import { WEAR_CHECKOUT_SHIPPING_COUNTRIES } from "@/lib/wear-shipping";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { logApiError } from "@/lib/monitoring";
+import {
+  calculateWearMarginCents,
+  calculateWearPrice,
+  resolveStudioMarginBps,
+  resolveWearGlobalPricing,
+} from "@/lib/wear-commission";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -26,6 +32,7 @@ export async function POST(req: Request) {
     items?: BodyLine[];
     customerEmail?: string;
     customerName?: string;
+    studioId?: string;
   };
   try {
     body = await req.json();
@@ -140,18 +147,46 @@ export async function POST(req: Request) {
     });
   }
 
+  const referringStudioId = typeof body.studioId === "string" ? body.studioId.trim() || null : null;
+  let studioMarginBps = 0;
+  if (referringStudioId) {
+    const wearConfig = await prisma.studioWearConfig.findUnique({
+      where: { studioId: referringStudioId },
+      select: { enabled: true, marginBps: true },
+    });
+    if (wearConfig?.enabled) {
+      const global = await resolveWearGlobalPricing();
+      studioMarginBps = resolveStudioMarginBps(wearConfig.marginBps, global);
+      for (const r of resolved) {
+        r.unitCents = calculateWearPrice(r.unitCents, studioMarginBps);
+      }
+    }
+  }
+
   let subtotalCents = 0;
   for (const r of resolved) {
     subtotalCents += r.unitCents * r.quantity;
   }
 
+  let totalStudioMarginCents = 0;
+  if (referringStudioId && studioMarginBps > 0) {
+    for (const r of resolved) {
+      const baseCents = r.variant?.priceCents ?? r.product.priceCents;
+      totalStudioMarginCents += calculateWearMarginCents(baseCents, r.unitCents) * r.quantity;
+    }
+  }
+  const platformRevenueCents = subtotalCents - totalStudioMarginCents;
+
   const orderId = await prisma.$transaction(async (tx) => {
     const order = await tx.wearOrder.create({
       data: {
+        studioId: referringStudioId,
         customerEmail,
         customerName,
         status: "pending",
         subtotalCents,
+        studioMarginCents: totalStudioMarginCents > 0 ? totalStudioMarginCents : null,
+        platformRevenueCents: platformRevenueCents > 0 ? platformRevenueCents : null,
         currency: currency.toUpperCase(),
       },
     });
@@ -213,11 +248,13 @@ export async function POST(req: Request) {
       metadata: {
         type: "wear_order",
         wearOrderId: orderId,
+        ...(referringStudioId ? { studioId: referringStudioId } : {}),
       },
       payment_intent_data: {
         metadata: {
           type: "wear_order",
           wearOrderId: orderId,
+          ...(referringStudioId ? { studioId: referringStudioId } : {}),
         },
       },
     });

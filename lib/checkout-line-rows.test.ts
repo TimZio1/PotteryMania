@@ -129,4 +129,156 @@ describe("checkout line rows", () => {
     expect(row?.vendorCents).toBe(2375);
     expect(row?.stripeQuantity).toBe(1); // deposit line is collapsed to one Stripe unit
   });
+
+  it("uses selected product variant pricing and metadata", async () => {
+    const cart = {
+      items: [
+        {
+          id: "ci_prod_variant",
+          itemType: "product",
+          vendorId: "studio_1",
+          vendor: { displayName: "Clay House" },
+          productId: "prod_1",
+          variantId: "var_small",
+          quantity: 2,
+          priceSnapshotCents: 5200,
+          variant: {
+            id: "var_small",
+            name: "Small",
+            priceCents: 5200,
+            stockQuantity: 5,
+          },
+          product: {
+            id: "prod_1",
+            title: "Mug",
+            status: "active",
+            studio: { status: "approved" },
+            pricingType: "one_time",
+            stockStatus: "in_stock",
+            stockQuantity: 10,
+            salePriceCents: null,
+            priceCents: 4999,
+            weightGrams: 250,
+            variants: [{ id: "var_small", name: "Small", priceCents: 5200, stockQuantity: 5 }],
+          },
+        },
+      ],
+    };
+    const result = await buildCheckoutLineRowsFromCart(cart as never);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected success");
+    expect(result.lineRows[0]?.title).toBe("Mug — Small");
+    expect(result.lineRows[0]?.variantId).toBe("var_small");
+    expect(result.subtotal).toBe(10400);
+  });
+
+  it("returns conflict when variant is required but missing", async () => {
+    const cart = {
+      items: [
+        {
+          id: "ci_prod_variant_missing",
+          itemType: "product",
+          vendorId: "studio_1",
+          vendor: { displayName: "Clay House" },
+          productId: "prod_1",
+          quantity: 1,
+          priceSnapshotCents: 4999,
+          product: {
+            id: "prod_1",
+            title: "Mug",
+            status: "active",
+            studio: { status: "approved" },
+            pricingType: "one_time",
+            stockStatus: "in_stock",
+            stockQuantity: 10,
+            salePriceCents: null,
+            priceCents: 4999,
+            weightGrams: 250,
+            variants: [{ id: "var_small", name: "Small", priceCents: 5200, stockQuantity: 5 }],
+          },
+        },
+      ],
+    };
+    const result = await buildCheckoutLineRowsFromCart(cart as never);
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected conflict");
+    expect(result.status).toBe(409);
+    expect(result.error).toContain("Variant is required");
+  });
+
+  it("returns conflict when selected variant no longer exists", async () => {
+    const cart = {
+      items: [
+        {
+          id: "ci_prod_variant_missing_row",
+          itemType: "product",
+          vendorId: "studio_1",
+          vendor: { displayName: "Clay House" },
+          productId: "prod_1",
+          variantId: "var_deleted",
+          quantity: 1,
+          priceSnapshotCents: 4999,
+          product: {
+            id: "prod_1",
+            title: "Mug",
+            status: "active",
+            studio: { status: "approved" },
+            pricingType: "one_time",
+            stockStatus: "in_stock",
+            stockQuantity: 10,
+            salePriceCents: null,
+            priceCents: 4999,
+            weightGrams: 250,
+            variants: [{ id: "var_small", name: "Small", priceCents: 5200, stockQuantity: 5 }],
+          },
+        },
+      ],
+    };
+    const result = await buildCheckoutLineRowsFromCart(cart as never);
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected conflict");
+    expect(result.status).toBe(409);
+    expect(result.error).toContain("no longer exists");
+  });
+
+  it("accepts untracked variant stock when stockQuantity is null", async () => {
+    const cart = {
+      items: [
+        {
+          id: "ci_prod_variant_untracked",
+          itemType: "product",
+          vendorId: "studio_1",
+          vendor: { displayName: "Clay House" },
+          productId: "prod_1",
+          variantId: "var_made_to_order",
+          quantity: 3,
+          priceSnapshotCents: 5100,
+          variant: {
+            id: "var_made_to_order",
+            name: "Made to order",
+            priceCents: 5100,
+            stockQuantity: null,
+          },
+          product: {
+            id: "prod_1",
+            title: "Mug",
+            status: "active",
+            studio: { status: "approved" },
+            pricingType: "one_time",
+            stockStatus: "in_stock",
+            stockQuantity: 0,
+            salePriceCents: null,
+            priceCents: 4999,
+            weightGrams: 250,
+            variants: [{ id: "var_made_to_order", name: "Made to order", priceCents: 5100, stockQuantity: null }],
+          },
+        },
+      ],
+    };
+    const result = await buildCheckoutLineRowsFromCart(cart as never);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("Expected success");
+    expect(result.subtotal).toBe(15300);
+    expect(result.lineRows[0]?.stripeName).toContain("Made to order");
+  });
 });

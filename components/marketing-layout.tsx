@@ -27,15 +27,15 @@ export function MarketingLayout({ children, toolbar }: Props) {
             <div className="max-w-md">
               <BrandLogo size="md" className="text-[var(--foreground)]" />
               <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">
-                The platform for pottery studios to create their website, sell their work, and manage bookings without
-                stitching together five half-working tools.
+                The platform for people who work with clay - from solo artists to full studios - to sell their work,
+                take bookings, and run everything in one calm system.
               </p>
             </div>
             <div className="grid gap-x-12 gap-y-6 text-sm text-[var(--muted)] sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Product</p>
                 <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
-                  Create your studio
+                  Get started
                 </Link>
                 <Link href="/dashboard/studio/new?setup=bookings" className="block transition hover:text-[var(--foreground)]">
                   Start with bookings
@@ -50,9 +50,9 @@ export function MarketingLayout({ children, toolbar }: Props) {
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Resources</p>
                 <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
-                  Demo studio
+                  See a demo
                 </Link>
-                <Link href="/#clarity" className="block transition hover:text-[var(--foreground)]">
+                <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
                   How it works
                 </Link>
                 <Link href="/pricing#faq" className="block transition hover:text-[var(--foreground)]">

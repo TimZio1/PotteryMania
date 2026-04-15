@@ -8,6 +8,16 @@ export default defineConfig({
     /** Playwright E2E specs live under tests/e2e — run via `npm run test:e2e`, not Vitest. */
     include: ["lib/**/*.test.ts"],
     exclude: ["node_modules", "tests/e2e/**", "**/*.spec.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary"],
+      thresholds: {
+        lines: 50,
+        statements: 50,
+        functions: 45,
+        branches: 40,
+      },
+    },
   },
   resolve: {
     alias: {

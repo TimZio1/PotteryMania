@@ -1,9 +1,11 @@
+import { reviewAuthorLabel } from "@/lib/review-author";
+
 type Review = {
   id: string;
   rating: number;
   title?: string | null;
   body?: string | null;
-  author?: { email?: string | null } | null;
+  author?: { customerProfile?: { fullName?: string | null } | null } | null;
   product?: { title?: string | null } | null;
   experience?: { title?: string | null } | null;
 };
@@ -43,9 +45,7 @@ export function ReviewSummary({
                 </p>
                 {review.title ? <h3 className="st-h3 mt-2 text-sm">{review.title}</h3> : null}
                 {review.body ? <p className="st-body mt-2 text-sm leading-relaxed">{review.body}</p> : null}
-                <p className="st-muted mt-2 text-xs">
-                  {review.author?.email ? review.author.email.replace(/(.{2}).+(@.*)/, "$1***$2") : "Verified customer"}
-                </p>
+                <p className="st-muted mt-2 text-xs">{reviewAuthorLabel(review.author ?? null)}</p>
               </article>
             ))}
           </div>
@@ -74,7 +74,7 @@ export function ReviewSummary({
               </p>
               {review.title ? <h3 className="mt-2 text-sm font-semibold text-stone-900">{review.title}</h3> : null}
               {review.body ? <p className="mt-2 text-sm leading-relaxed text-stone-600">{review.body}</p> : null}
-              <p className="mt-2 text-xs text-stone-400">{review.author?.email ? review.author.email.replace(/(.{2}).+(@.*)/, "$1***$2") : "Verified customer"}</p>
+              <p className="mt-2 text-xs text-stone-400">{reviewAuthorLabel(review.author ?? null)}</p>
             </article>
           ))}
         </div>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
@@ -8,6 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 import { ui } from "@/lib/ui-styles";
 
 export const dynamic = "force-dynamic";
+const MEMBERSHIPS_PUBLIC_ENABLED = false;
 
 type Props = { params: Promise<{ studioId: string }> };
 
@@ -27,6 +27,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function StudioMembershipsPublicPage({ params }: Props) {
   const { studioId } = await params;
+  // Kill-list execution: keep memberships hidden until secure checkout is production-ready.
+  if (!MEMBERSHIPS_PUBLIC_ENABLED) notFound();
 
   const studio = await prisma.studio.findFirst({
     where: { id: studioId, status: "approved" },
@@ -81,9 +83,9 @@ export default async function StudioMembershipsPublicPage({ params }: Props) {
                     <li key={`${membership.id}-${link.experienceId}`}>{link.experience.title}</li>
                   ))}
                 </ul>
-                <Link href={`/login?callbackUrl=/studios/${studioId}/memberships`} className={`${ui.buttonPrimary} mt-4 inline-flex`}>
-                  Continue to purchase
-                </Link>
+                <div className={`${ui.cardMuted} mt-4 text-xs`}>
+                  Membership checkout is temporarily unavailable while secure payment flow is finalized.
+                </div>
               </article>
             ))}
           </div>

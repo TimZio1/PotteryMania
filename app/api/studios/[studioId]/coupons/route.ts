@@ -1,23 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 import { normalizeCouponCode } from "@/lib/coupon-checkout";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
-async function assertOwner(studioId: string, userId: string) {
-  const studio = await prisma.studio.findUnique({ where: { id: studioId }, select: { ownerUserId: true } });
-  if (!studio || studio.ownerUserId !== userId) return false;
-  return true;
-}
-
 export async function GET(_req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
-  if (!(await assertOwner(studioId, user.id))) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const coupons = await prisma.coupon.findMany({
     where: { studioId },
@@ -44,12 +35,9 @@ export async function GET(_req: Request, ctx: Ctx) {
 }
 
 export async function POST(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
-  if (!(await assertOwner(studioId, user.id))) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   let body: {
     code?: string;

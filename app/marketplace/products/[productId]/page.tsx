@@ -51,12 +51,17 @@ export default async function ProductPage({ params }: Props) {
     prisma.review.findMany({
       where: { productId, isVisible: true },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-      include: { author: { select: { email: true } } },
+      include: { author: { select: { customerProfile: { select: { fullName: true } } } } },
       take: 8,
     }),
   ]);
   if (!result) notFound();
   const { product, related } = result;
+  const hasVariants = product.variants.length > 0;
+  const totalVariantStock = product.variants.reduce(
+    (sum, variant) => (variant.stockQuantity == null ? sum : sum + variant.stockQuantity),
+    0,
+  );
   const avgRating = reviewData.length ? reviewData.reduce((sum, review) => sum + review.rating, 0) / reviewData.length : 0;
 
   const price = (product.salePriceCents ?? product.priceCents) / 100;
@@ -120,7 +125,12 @@ export default async function ProductPage({ params }: Props) {
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
               <span className="rounded-full bg-stone-100 px-3 py-1">{ceramicCategoryMetaByValue(product.category).title}</span>
-              {product.stockQuantity > 0 ? (
+              {hasVariants ? (
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
+                  {product.variants.length} variant{product.variants.length === 1 ? "" : "s"}
+                  {totalVariantStock > 0 ? ` · ${totalVariantStock} in stock` : ""}
+                </span>
+              ) : product.stockQuantity > 0 ? (
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
                   {product.stockQuantity} in stock
                 </span>
@@ -154,6 +164,7 @@ export default async function ProductPage({ params }: Props) {
                     productId={product.id}
                     stockQuantity={product.stockQuantity}
                     stockStatus={product.stockStatus}
+                    variants={product.variants}
                   />
                 ) : (
                   <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">

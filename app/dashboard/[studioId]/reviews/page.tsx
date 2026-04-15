@@ -35,7 +35,7 @@ export default async function StudioReviewsPage({ params }: Props) {
     where: { studioId },
     orderBy: [{ createdAt: "desc" }],
     include: {
-      author: { select: { email: true, customerProfile: { select: { fullName: true } } } },
+      author: { select: { customerProfile: { select: { fullName: true } } } },
       experience: { select: { title: true } },
     },
     take: 200,

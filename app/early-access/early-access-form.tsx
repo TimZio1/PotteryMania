@@ -169,11 +169,11 @@ export function EarlyAccessForm({
         </div>
         <h2 className="mt-5 font-serif text-2xl text-amber-950 sm:text-3xl">Welcome.</h2>
         <p className="mt-3 text-sm leading-7 text-stone-600">
-          Thanks — you can create your studio in the app whenever you are ready.
+          Thanks — you can set up your public page in the app whenever you are ready.
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
         <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
-          {displayedPreRegTotal(count)} studios joined early access.
+          {displayedPreRegTotal(count)} creators and studios joined early access.
         </p>
       </div>
     );

@@ -8,14 +8,14 @@ import { RegisterForm } from "./register-form";
 export const metadata: Metadata = metaPublicPage(
   "Create account",
   "/register",
-  "Create a PotteryMania account to run your studio, sell work, and book classes.",
+  "Create a PotteryMania account to sell your work, take bookings, and manage everything in one place.",
 );
 
 export default function RegisterPage() {
   return (
     <AuthShell
       title="Create account"
-      description="Choose a studio account to set up your business, or a customer account to shop and book."
+      description="Choose a creator account to set up your shop or studio, or a customer account to browse and book."
     >
       <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
         <RegisterForm />

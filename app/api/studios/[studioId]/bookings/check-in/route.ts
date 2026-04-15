@@ -1,23 +1,16 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
-import { getSessionUser } from "@/lib/auth-session";
 import { normalizeTicketScan } from "@/lib/bookings/ticket-qr";
 import { prisma } from "@/lib/db";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
 export async function POST(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { studioId } = await ctx.params;
-  const studio = await prisma.studio.findUnique({
-    where: { id: studioId },
-    select: { ownerUserId: true },
-  });
-  if (!studio || studio.ownerUserId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.user.id;
 
   let body: { ticketRef?: string };
   try {
@@ -75,7 +68,7 @@ export async function POST(req: Request, ctx: Ctx) {
         bookingId: booking.id,
         actionType: "vendor_marked_completed",
         actorRole: "vendor",
-        actorUserId: user.id,
+        actorUserId: userId,
         payload: { via: "ticket_scan", ticketRef } as Prisma.InputJsonValue,
       },
     });

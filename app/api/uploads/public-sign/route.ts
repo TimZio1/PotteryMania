@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth-session";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { resolvePublicUploadFolder, uploadConfigPayload, uploadConfigured } from "@/lib/uploads";
 import { logApiError } from "@/lib/monitoring";
 
 export async function POST(req: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const rate = assertRateLimit(req, "uploads:public-sign", 10, 60_000);
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many upload requests" }, { status: 429 });

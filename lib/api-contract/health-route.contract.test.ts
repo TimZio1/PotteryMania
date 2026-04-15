@@ -73,7 +73,7 @@ describe("API contract: GET /api/health", () => {
     const json = (await res.json()) as Record<string, unknown>;
 
     expect(res.status).toBe(200);
-    expect(json.spreadconnect).toBe("pending_placeholder");
+    expect(json.spreadconnect).toBe("awaiting_key");
   });
 
   it("checks stripe reachability when Stripe key is configured", async () => {

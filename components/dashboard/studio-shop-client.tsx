@@ -11,6 +11,13 @@ import { allCeramicCategories } from "@/lib/ceramic-categories";
 import { billingIntervalLabel } from "@/lib/offering-pricing";
 import type { StudioShopOrderRow, StudioShopProductRow } from "@/lib/studio-shop-page-data";
 import { DEFAULT_LOW_STOCK_THRESHOLD } from "@/lib/studio-shop-page-data";
+import {
+  moveImage,
+  normalizePrimaryImage,
+  parseVariantsFromEditor,
+  serializeVariantsForEditor,
+  type EditableProductImage,
+} from "@/components/dashboard/studio-shop-utils";
 
 const PRODUCT_STATUS = [
   { value: "draft", label: "Draft" },
@@ -38,11 +45,6 @@ type Tab = "products" | "orders";
 const PRODUCT_IMAGE_FOLDER = "potterymania/product-images";
 const PRODUCT_IMAGE_MAX = 10;
 
-type EditableProductImage = {
-  imageUrl: string;
-  altText: string;
-  isPrimary: boolean;
-};
 
 export default function StudioShopClient({
   studioId,
@@ -82,6 +84,7 @@ export default function StudioShopClient({
     stockQuantity: 0,
     stockStatus: "in_stock",
     status: "draft",
+    variantsJson: "",
   });
   const [formImages, setFormImages] = useState<EditableProductImage[]>([]);
   const [saving, setSaving] = useState(false);
@@ -103,6 +106,7 @@ export default function StudioShopClient({
     gracePeriodDays: 3,
     paymentRetryMax: 3,
     failedPaymentAction: "pause",
+    variantsJson: "",
   });
   const [createImages, setCreateImages] = useState<EditableProductImage[]>([]);
   const [orderBusy, setOrderBusy] = useState<string | null>(null);
@@ -160,6 +164,7 @@ export default function StudioShopClient({
       stockQuantity: p.stockQuantity,
       stockStatus: p.stockStatus,
       status: p.status,
+      variantsJson: serializeVariantsForEditor(p.variants),
     });
     setFormImages(
       [...p.images]
@@ -172,23 +177,6 @@ export default function StudioShopClient({
     );
     setErr(null);
   }, []);
-
-  function normalizePrimaryImage(images: EditableProductImage[]) {
-    if (images.length === 0) return images;
-    const hasPrimary = images.some((image) => image.isPrimary);
-    if (hasPrimary) return images;
-    return images.map((image, idx) => ({ ...image, isPrimary: idx === 0 }));
-  }
-
-  function moveImage(images: EditableProductImage[], index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= images.length) return images;
-    const next = [...images];
-    const current = next[index];
-    next[index] = next[target];
-    next[target] = current;
-    return next;
-  }
 
   async function uploadProductImage(file: File) {
     const optimized = await optimizeImageForUpload(file, {
@@ -228,6 +216,10 @@ export default function StudioShopClient({
     setSaving(true);
     setErr(null);
     try {
+      const parsedVariants = parseVariantsFromEditor(form.variantsJson);
+      if (!parsedVariants.ok) {
+        throw new Error(parsedVariants.error);
+      }
       const normalizedImages = normalizePrimaryImage(formImages).map((image) => ({
         imageUrl: image.imageUrl.trim(),
         altText: image.altText.trim() || undefined,
@@ -260,6 +252,7 @@ export default function StudioShopClient({
           stockQuantity: form.stockQuantity,
           stockStatus: form.stockStatus,
           status: form.status,
+          variants: parsedVariants.value,
           images: normalizedImages,
         }),
       });
@@ -288,6 +281,10 @@ export default function StudioShopClient({
     setCreating(true);
     setErr(null);
     try {
+      const parsedVariants = parseVariantsFromEditor(createForm.variantsJson);
+      if (!parsedVariants.ok) {
+        throw new Error(parsedVariants.error);
+      }
       const normalizedImages = normalizePrimaryImage(createImages).map((image) => ({
         imageUrl: image.imageUrl.trim(),
         altText: image.altText.trim() || undefined,
@@ -320,6 +317,7 @@ export default function StudioShopClient({
           status: "draft",
           stockStatus: "in_stock",
           stockQuantity: 0,
+          variants: parsedVariants.value,
           images: normalizedImages,
         }),
       });
@@ -340,6 +338,7 @@ export default function StudioShopClient({
         gracePeriodDays: 3,
         paymentRetryMax: 3,
         failedPaymentAction: "pause",
+        variantsJson: "",
       });
       setCreateImages([]);
       router.refresh();
@@ -552,6 +551,18 @@ export default function StudioShopClient({
                     </div>
                   ) : null}
                 </div>
+                <label className="block sm:col-span-3">
+                  <span className={ui.label}>Variants JSON (optional)</span>
+                  <textarea
+                    className={`${ui.input} mt-1 min-h-[120px] font-mono text-xs`}
+                    value={createForm.variantsJson}
+                    onChange={(e) => setCreateForm((f) => ({ ...f, variantsJson: e.target.value }))}
+                    placeholder='[{"name":"Small","sku":"BOWL-S","priceCents":2200,"stockQuantity":12}]'
+                  />
+                  <p className="mt-1 text-xs text-stone-500">
+                    Leave empty for a single-SKU product. Fields: name, sku, priceCents, stockQuantity, sortOrder.
+                  </p>
+                </label>
               </div>
               <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
                 <div className="flex items-center justify-between gap-2">
@@ -989,6 +1000,15 @@ export default function StudioShopClient({
                     </option>
                   ))}
                 </select>
+              </label>
+              <label>
+                <span className={ui.label}>Variants JSON (optional)</span>
+                <textarea
+                  className={cn(ui.input, "mt-1 min-h-[120px] font-mono text-xs")}
+                  value={form.variantsJson}
+                  onChange={(e) => setForm((f) => ({ ...f, variantsJson: e.target.value }))}
+                  placeholder='[{"name":"Small","sku":"BOWL-S","priceCents":2200,"stockQuantity":12}]'
+                />
               </label>
               <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
                 <div className="flex items-center justify-between gap-2">

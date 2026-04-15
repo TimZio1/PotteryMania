@@ -5,6 +5,8 @@ const refundMocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   paymentUpdate: vi.fn(),
   orderUpdate: vi.fn(),
+  orderItemFindFirst: vi.fn(),
+  stripeAccountFindUnique: vi.fn(),
   transaction: vi.fn(),
   piRetrieve: vi.fn(),
   refundCreate: vi.fn(),
@@ -14,6 +16,8 @@ vi.mock("@/lib/db", () => ({
   prisma: {
     payment: { findFirst: refundMocks.findFirst, update: refundMocks.paymentUpdate },
     order: { findUnique: refundMocks.findUnique, update: refundMocks.orderUpdate },
+    orderItem: { findFirst: refundMocks.orderItemFindFirst },
+    stripeAccount: { findUnique: refundMocks.stripeAccountFindUnique },
     $transaction: refundMocks.transaction,
   },
 }));
@@ -44,6 +48,8 @@ function wirePi(received: number, refunded: number) {
 describe("getStripeOrderRefundSnapshot", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    refundMocks.orderItemFindFirst.mockResolvedValue({ vendorId: "studio-1" });
+    refundMocks.stripeAccountFindUnique.mockResolvedValue({ stripeAccountId: "acct_test_123" });
   });
 
   it("returns error when no Stripe payment exists", async () => {
@@ -73,6 +79,8 @@ describe("getStripeOrderRefundSnapshot", () => {
 describe("executeAdminStripeOrderRefund", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    refundMocks.orderItemFindFirst.mockResolvedValue({ vendorId: "studio-1" });
+    refundMocks.stripeAccountFindUnique.mockResolvedValue({ stripeAccountId: "acct_test_123" });
     refundMocks.findFirst.mockResolvedValue({
       id: payId,
       orderId,
@@ -130,6 +138,7 @@ describe("executeAdminStripeOrderRefund", () => {
         reverse_transfer: true,
         refund_application_fee: true,
       }),
+      expect.objectContaining({ stripeAccount: "acct_test_123" }),
     );
     expect(refundMocks.paymentUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ paymentStatus: "refunded" }) }),
@@ -199,6 +208,7 @@ describe("executeAdminStripeOrderRefund", () => {
     expect(r.fullyRefunded).toBe(true);
     expect(refundMocks.refundCreate).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 1_000 }),
+      expect.objectContaining({ stripeAccount: "acct_test_123" }),
     );
   });
 

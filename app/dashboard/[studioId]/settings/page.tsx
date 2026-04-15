@@ -76,6 +76,54 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
         </p>
       ) : null}
 
+      <section className={ui.card}>
+        <h2 className="text-lg font-semibold text-stone-900">Settings hub</h2>
+        <p className="mt-2 text-sm text-stone-600">Central access to profile, storefront, scheduling, and billing setup.</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <Link href={`/dashboard/${studioId}/template`} className={ui.buttonSecondary}>
+            Studio page design
+          </Link>
+          <Link href={`/dashboard/${studioId}/calendar`} className={ui.buttonSecondary}>
+            Schedule settings
+          </Link>
+          <Link href={`/dashboard/${studioId}/payments`} className={ui.buttonSecondary}>
+            Payments and payouts
+          </Link>
+          <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
+            Legal profile and Stripe
+          </Link>
+        </div>
+        <div className="mt-5 border-t border-stone-200 pt-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Advanced tools</p>
+          <p className="mt-1 text-xs text-stone-600">
+            Less-frequent controls moved out of primary navigation to keep the dashboard focused.
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Link href={`/dashboard/${studioId}/packages`} className={ui.buttonGhost}>
+              Class packages
+            </Link>
+            <Link href={`/dashboard/${studioId}/memberships`} className={ui.buttonGhost}>
+              Membership plans
+            </Link>
+            <Link href={`/dashboard/${studioId}/locations`} className={ui.buttonGhost}>
+              Studio locations
+            </Link>
+            <Link href={`/dashboard/${studioId}/client-fields`} className={ui.buttonGhost}>
+              Client profile fields
+            </Link>
+            <Link href={`/dashboard/${studioId}/intake-forms`} className={ui.buttonGhost}>
+              Booking questions
+            </Link>
+            <Link href={`/dashboard/${studioId}/wearables`} className={ui.buttonGhost}>
+              Wearables
+            </Link>
+            <Link href={`/dashboard/${studioId}/promotions`} className={ui.buttonGhost}>
+              Promotions
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <GoogleCalendarSettingsCard
         studioId={studioId}
         oauthConfigured={oauthConfigured}

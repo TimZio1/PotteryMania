@@ -10,6 +10,22 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { OnboardingShareBanner } from "@/components/dashboard/onboarding-share-banner";
 import { platformUi } from "@/lib/ui-styles";
 
+const NAV_SECTION_ORDER: StudioPanelNavItem["section"][] = [
+  "overview",
+  "operations",
+  "commerce",
+  "marketing",
+  "settings",
+];
+
+const NAV_SECTION_LABEL: Record<StudioPanelNavItem["section"], string> = {
+  overview: "Overview",
+  operations: "Operations",
+  commerce: "Commerce",
+  marketing: "Marketing",
+  settings: "Settings",
+};
+
 export default function StudioPanelShell({
   studioId,
   studioName,
@@ -27,6 +43,17 @@ export default function StudioPanelShell({
   const pathname = usePathname();
   const guidedMode = pathname.includes("/guided");
   const nav = navItems ?? studioPanelNav(studioId);
+  const navBySection = useMemo(() => {
+    const grouped = new Map<StudioPanelNavItem["section"], StudioPanelNavItem[]>();
+    for (const section of NAV_SECTION_ORDER) grouped.set(section, []);
+    for (const item of nav) {
+      const section = item.section ?? "overview";
+      grouped.set(section, [...(grouped.get(section) ?? []), item]);
+    }
+    return NAV_SECTION_ORDER
+      .map((section) => ({ section, label: NAV_SECTION_LABEL[section], items: grouped.get(section) ?? [] }))
+      .filter((section) => section.items.length > 0);
+  }, [nav]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -159,22 +186,29 @@ export default function StudioPanelShell({
               </button>
             </div>
           </div>
-          <nav className="flex flex-col gap-0.5 p-2" aria-label="Studio panel mobile">
-            {nav.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(item.href + "/");
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`rounded-lg px-3 py-3 text-sm font-medium transition ${
-                    active ? "bg-amber-950 text-white" : "text-stone-600 hover:bg-white hover:text-amber-950"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+          <nav className="overflow-auto p-2" aria-label="Studio panel mobile">
+            {navBySection.map((group) => (
+              <div key={group.section} className="mb-3">
+                <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500">{group.label}</p>
+                <div className="flex flex-col gap-0.5">
+                  {group.items.map((item) => {
+                    const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`rounded-lg px-3 py-3 text-sm font-medium transition ${
+                          active ? "bg-amber-950 text-white" : "text-stone-600 hover:bg-white hover:text-amber-950"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
           <div className="mt-auto border-t border-stone-200/80 p-3">
             <Link
@@ -210,22 +244,29 @@ export default function StudioPanelShell({
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Studio</p>
           <p className="mt-1 truncate text-sm font-semibold text-stone-900">{studioName}</p>
         </div>
-        <nav className="flex flex-col gap-0.5 p-2 lg:p-3" aria-label="Studio panel">
-          {nav.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                  active ? "bg-amber-950 text-white" : "text-stone-600 hover:bg-white hover:text-amber-950"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="overflow-auto p-2 lg:p-3" aria-label="Studio panel">
+          {navBySection.map((group) => (
+            <div key={group.section} className="mb-3">
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500">{group.label}</p>
+              <div className="flex flex-col gap-0.5">
+                {group.items.map((item) => {
+                  const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                        active ? "bg-amber-950 text-white" : "text-stone-600 hover:bg-white hover:text-amber-950"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
         <div className="mt-auto border-t border-stone-200/80 p-3">
           <Link

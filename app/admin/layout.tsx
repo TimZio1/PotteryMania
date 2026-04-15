@@ -9,6 +9,7 @@ import { AdminSignOut } from "./admin-sign-out";
 import { AdminMobileNav } from "./admin-mobile-nav";
 
 const adminLinks = [
+  { href: "/admin/my-business", label: "My business" },
   { href: "/admin", label: "Executive overview" },
   { href: "/admin/war-room", label: "War room" },
   { href: "/admin/notifications", label: "Notifications" },
@@ -17,7 +18,6 @@ const adminLinks = [
   { href: "/admin/studios", label: "Studios" },
   { href: "/admin/revenue", label: "Revenue" },
   { href: "/admin/features", label: "Features" },
-  { href: "/admin/ai-insights", label: "AI insights" },
   { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/wear-products", label: "Wear products" },
   { href: "/admin/wear-orders", label: "Wear sales" },
@@ -32,7 +32,6 @@ const adminLinks = [
   { href: "/admin/storefront-domains", label: "Storefront domains" },
   { href: "/admin/marketplace", label: "Discovery controls (off)" },
   { href: "/admin/categories", label: "Ceramic categories" },
-  { href: "/admin/experiments", label: "Experiments" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/system", label: "System" },
   { href: "/admin/settings", label: "Settings" },

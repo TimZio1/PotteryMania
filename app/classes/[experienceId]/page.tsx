@@ -84,7 +84,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
   const reviews = await prisma.review.findMany({
     where: { experienceId, isVisible: true },
     orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    include: { author: { select: { email: true } } },
+    include: { author: { select: { customerProfile: { select: { fullName: true } } } } },
     take: 8,
   });
   const avgRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;

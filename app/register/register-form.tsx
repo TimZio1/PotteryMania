@@ -102,7 +102,7 @@ export function RegisterForm() {
       <div className={`${ui.cardMuted} border-[var(--border)]/80`}>
         <p className="text-sm font-medium text-[var(--foreground)]">Create your customer account first.</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Studio owners can create a studio after signing in and will review the{" "}
+          Creators and studio owners can set up their public page after signing in and will review the{" "}
           <Link href="/vendor-terms" className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
             studio terms
           </Link>{" "}

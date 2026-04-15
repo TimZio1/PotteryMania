@@ -3,10 +3,6 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
-import {
-  markActivationsEndedForStripeSubscription,
-  syncStudioBillingSubscriptionFromStripe,
-} from "@/lib/studio-feature-billing";
 import { recordStudioFeatureActivationEvent } from "@/lib/studio-feature-activation-events";
 import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
 import { submitPaidWearOrderToSpreadconnect } from "@/lib/wear-order-spreadconnect";
@@ -20,8 +16,12 @@ import { logApiError } from "@/lib/monitoring";
 import {
   mapStripeSubscriptionStatus,
   recordOfferingSubscriptionEvent,
-  syncOfferingSubscriptionFromStripeSubscription,
 } from "@/lib/offering-subscriptions";
+import {
+  handleCustomerSubscriptionDeleted,
+  handleCustomerSubscriptionUpdated,
+  handleInvoicePaymentFailed,
+} from "@/lib/webhooks/stripe-subscription-events";
 import { giftCardEmailCopy, sendGiftCardEmail } from "@/lib/gift-cards/email";
 import { releaseGiftCardRedemptionsForSession } from "@/lib/gift-cards/checkout";
 import { runCheckoutCompletionSideEffects, settleCheckoutOrderPayment } from "@/lib/orders/checkout-completion";
@@ -63,91 +63,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true });
   };
 
-  if (event.type === "customer.subscription.deleted") {
-    const sub = event.data.object as Stripe.Subscription;
-    const now = new Date();
-    const row = await prisma.offeringSubscription.findUnique({
-      where: { stripeSubscriptionId: sub.id },
-      select: { id: true },
-    });
-    if (row) {
-      await prisma.offeringSubscription.update({
-        where: { id: row.id },
-        data: {
-          status: "canceled",
-          autoRenew: false,
-          cancelAtPeriodEnd: false,
-          canceledAt: now,
-          endedAt: now,
-          nextBillingDate: null,
-        },
-      });
-      await recordOfferingSubscriptionEvent(row.id, "canceled", { source: "customer.subscription.deleted" });
-      return ack();
-    }
-    await markActivationsEndedForStripeSubscription(sub.id);
-    return ack();
-  }
-
-  if (event.type === "customer.subscription.updated") {
-    const sub = event.data.object as Stripe.Subscription;
-    const row = await prisma.offeringSubscription.findUnique({
-      where: { stripeSubscriptionId: sub.id },
-      select: { id: true },
-    });
-    if (row) {
-      await syncOfferingSubscriptionFromStripeSubscription(sub);
-      return ack();
-    }
-    await syncStudioBillingSubscriptionFromStripe(sub);
-    return ack();
-  }
-
-  if (event.type === "invoice.payment_failed") {
-    const invoice = event.data.object as Stripe.Invoice;
-    const invoiceAny = invoice as unknown as { id?: string; subscription?: unknown };
-    const subId =
-      typeof invoiceAny.subscription === "string"
-        ? invoiceAny.subscription
-        : (invoiceAny.subscription as { id?: string } | null)?.id;
-    if (!subId) return ack();
-    const row = await prisma.offeringSubscription.findUnique({ where: { stripeSubscriptionId: subId } });
-    if (!row) return ack();
-
-    const now = new Date();
-    const nextFailures = row.failedPaymentCount + 1;
-    const graceEndsAt = new Date(now.getTime() + row.gracePeriodDays * 24 * 60 * 60 * 1000);
-    let nextStatus: "past_due" | "paused" | "canceled" = "past_due";
-    let endedAt: Date | null = null;
-    if (nextFailures >= row.paymentRetryMax && row.failedPaymentAction === "pause") {
-      nextStatus = "paused";
-    } else if (nextFailures >= row.paymentRetryMax && row.failedPaymentAction === "cancel") {
-      nextStatus = "canceled";
-      endedAt = now;
-      if (row.stripeSubscriptionId) {
-        try {
-          await getStripe().subscriptions.cancel(row.stripeSubscriptionId);
-        } catch {
-          // non-fatal; local status still marks cancel intent and next sync can reconcile
-        }
-      }
-    }
-    await prisma.offeringSubscription.update({
-      where: { id: row.id },
-      data: {
-        status: nextStatus,
-        failedPaymentCount: nextFailures,
-        graceEndsAt,
-        endedAt,
-      },
-    });
-    await recordOfferingSubscriptionEvent(row.id, "payment_failed", {
-      invoiceId: invoice.id,
-      attempts: nextFailures,
-      status: nextStatus,
-    });
-    return ack();
-  }
+  if (await handleCustomerSubscriptionDeleted(event)) return ack();
+  if (await handleCustomerSubscriptionUpdated(event)) return ack();
+  if (await handleInvoicePaymentFailed(event)) return ack();
 
   if (event.type === "invoice.payment_succeeded") {
     const invoice = event.data.object as Stripe.Invoice;
@@ -708,7 +626,13 @@ export async function POST(req: Request) {
         select: { totalCents: true },
       });
       if (!order) {
-        return { skip: true, confirmedBookingIds: [] as string[], pendingApprovalIds: [] as string[], autoCancelledIds: [] as string[] };
+        return {
+          skip: true,
+          confirmedBookingIds: [] as string[],
+          pendingApprovalIds: [] as string[],
+          autoCancelledIds: [] as string[],
+          stockFailureCancelled: false,
+        };
       }
       const metaCouponId = session.metadata?.couponId ?? null;
       const metaDiscount = parseInt(session.metadata?.discountCents ?? "0", 10);
@@ -720,6 +644,8 @@ export async function POST(req: Request) {
         orderId,
         currency: (session.currency || "eur").toUpperCase(),
         stripeAmountCents: session.amount_total ?? order.totalCents,
+        stripeTaxCents: session.total_details?.amount_tax ?? undefined,
+        stripeTotalCents: session.amount_total ?? undefined,
         stripePaymentId: piId,
         stripeCheckoutSessionId: session.id,
         couponRedemption:
@@ -738,6 +664,7 @@ export async function POST(req: Request) {
       confirmedBookingIds: processed.confirmedBookingIds,
       pendingApprovalIds: processed.pendingApprovalIds,
       autoCancelledIds: processed.autoCancelledIds,
+      stockFailureCancelled: processed.stockFailureCancelled,
       runSideEffect: (concern, fn) => runStripeWebhookSideEffect(event.id, concern, fn),
     });
 

@@ -1,27 +1,25 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
+import { apiError, apiSuccess } from "@/lib/api-response";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 import { parsePublicServiceModes, validatePublicServiceModesInput } from "@/lib/studio-public-service-modes";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
 export async function PATCH(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return apiError(auth.error, auth.status);
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  if (!studio) return apiError("Studio not found", 404);
   if (studio.status === "suspended") {
-    return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
+    return apiError("Studio suspended", 403);
   }
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return apiError("Invalid JSON", 400);
   }
 
   const str = (k: string) => (typeof body[k] === "string" ? (body[k] as string).trim() : undefined);
@@ -82,7 +80,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
   if (body.publicServiceModes !== undefined) {
     const patch = body.publicServiceModes;
     if (typeof patch !== "object" || patch === null || Array.isArray(patch)) {
-      return NextResponse.json({ error: "publicServiceModes must be an object" }, { status: 400 });
+      return apiError("publicServiceModes must be an object", 400);
     }
     const base = parsePublicServiceModes(studio.publicServiceModes);
     const p = patch as Record<string, unknown>;
@@ -102,7 +100,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     };
     const parsed = validatePublicServiceModesInput(merged);
     if (!parsed.ok) {
-      return NextResponse.json({ error: parsed.error }, { status: 400 });
+      return apiError(parsed.error, 400);
     }
     data.publicServiceModes = parsed.value as object;
   }
@@ -111,5 +109,5 @@ export async function PATCH(req: Request, ctx: Ctx) {
     where: { id: studioId },
     data: data as object,
   });
-  return NextResponse.json({ studio: updated });
+  return apiSuccess({ studio: updated });
 }

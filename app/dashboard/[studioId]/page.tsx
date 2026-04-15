@@ -3,6 +3,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
+import { resolveCommissionBps } from "@/lib/commission";
+import { resolveWearGlobalPricing, resolveStudioMarginBps } from "@/lib/wear-commission";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +29,7 @@ export default async function StudioPanelHomePage({ params }: Props) {
   const ago30 = new Date(dayStart);
   ago30.setDate(ago30.getDate() - 30);
 
-  const [orderAgg, bookingAgg, upcomingSlots, distinctStudents, slotFill, emptySlots, studio, activeDomain] = await Promise.all([
+  const [orderAgg, bookingAgg, upcomingSlots, distinctStudents, slotFill, emptySlots, studio, activeDomain, productCommissionBps, bookingCommissionBps] = await Promise.all([
     prisma.orderItem.aggregate({
       where: {
         vendorId: studioId,
@@ -88,7 +90,22 @@ export default async function StudioPanelHomePage({ params }: Props) {
       where: { studioId, isActive: true, verificationStatus: "verified" },
       select: { domainName: true },
     }),
+    resolveCommissionBps(studioId, "product"),
+    resolveCommissionBps(studioId, "booking"),
   ]);
+
+  let wearMarginLabel: string | null = null;
+  try {
+    const wearConfig = await prisma.studioWearConfig.findUnique({
+      where: { studioId },
+      select: { enabled: true, marginBps: true },
+    });
+    if (wearConfig?.enabled) {
+      const global = await resolveWearGlobalPricing();
+      const bps = resolveStudioMarginBps(wearConfig.marginBps, global);
+      wearMarginLabel = `${(bps / 100).toFixed(1)}%`;
+    }
+  } catch { /* wearables not configured */ }
 
   const orderCents = orderAgg._sum.vendorAmountSnapshotCents ?? 0;
   const bookingVendorCents = bookingAgg._sum.vendorAmountCents ?? 0;
@@ -152,6 +169,17 @@ export default async function StudioPanelHomePage({ params }: Props) {
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Upcoming sessions (7d)</p>
           <p className="mt-2 text-2xl font-semibold text-amber-950">{upcomingSlots.length}</p>
           <p className="mt-2 text-xs text-stone-500">Confirmed or approved reservations scheduled in the next week.</p>
+        </div>
+        <div className={ui.card}>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Platform fee rates</p>
+          <p className="mt-2 text-base font-semibold text-amber-950">
+            Products {(productCommissionBps / 100).toFixed(2)}% · Bookings {(bookingCommissionBps / 100).toFixed(2)}%
+            {wearMarginLabel ? ` · Wearables ${wearMarginLabel} margin` : null}
+          </p>
+          <p className="mt-2 text-xs text-stone-500">
+            Applied automatically to each paid line item during checkout settlement.
+            {wearMarginLabel ? " Wearable margins are added on top of base prices." : null}
+          </p>
         </div>
       </div>
 

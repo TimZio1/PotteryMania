@@ -195,12 +195,13 @@ export default async function MarketplacePage({ searchParams }: Props) {
         ) : (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => {
-              const img = p.images[0]?.imageUrl;
+              const img = (p as { images?: Array<{ imageUrl: string }> }).images?.[0]?.imageUrl;
+              const studio = (p as { studio?: { displayName?: string; country?: string } }).studio;
               const price = (p.salePriceCents ?? p.priceCents) / 100;
               const recurring = p.pricingType === "recurring" && p.recurringPriceCents != null && p.billingInterval != null;
               const zone = resolveShippingZoneForDestination({
                 destinationCountry: resolvedRegion.country,
-                studioCountry: p.studio.country,
+                studioCountry: studio?.country ?? resolvedRegion.country,
               });
               const ships = shipsToZone(
                 {
@@ -224,7 +225,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
                   </div>
                   <div className="p-4 sm:p-5">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-medium text-[var(--muted)]">{p.studio.displayName}</p>
+                      <p className="text-xs font-medium text-[var(--muted)]">{studio?.displayName ?? "Studio"}</p>
                     </div>
                     <p className="mt-2">
                       <span className="rounded-full bg-[var(--surface-elevated)] px-2.5 py-1 text-[11px] font-medium text-[var(--muted)]">

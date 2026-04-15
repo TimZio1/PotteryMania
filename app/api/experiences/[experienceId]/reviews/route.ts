@@ -19,7 +19,7 @@ export async function GET(req: Request, ctx: Ctx) {
       title: true,
       body: true,
       createdAt: true,
-      author: { select: { email: true } },
+      author: { select: { customerProfile: { select: { fullName: true } } } },
     },
   });
 

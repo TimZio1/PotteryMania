@@ -11,9 +11,9 @@ import { resolveStudioPublicTheme } from "@/lib/studio-theme/resolve";
 import { ui } from "@/lib/ui-styles";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Demo studio | PotteryMania",
+  title: "Demo page | PotteryMania",
   description:
-    "See exactly what a PotteryMania studio page looks like before you sign up: products, classes, story, imagery, and booking flow.",
+    "See exactly what a PotteryMania creator page looks like before you sign up: products, classes, story, imagery, and booking flow.",
   path: "/demo",
 });
 
@@ -95,14 +95,14 @@ const reviews = [
     rating: 5,
     title: "Exactly the kind of studio page I would trust",
     body: "Booking felt clear, the studio looked premium, and the class details answered the questions I usually need to DM about.",
-    author: { email: "sa***@gmail.com" },
+    author: { customerProfile: { fullName: "Sara M." } },
   },
   {
     id: "demo-review-2",
     rating: 5,
     title: "The shop and classes feel like one brand",
     body: "This is the first studio page demo that actually looks like a real ceramics business instead of a generic template.",
-    author: { email: "mi***@icloud.com" },
+    author: { customerProfile: { fullName: "Mika T." } },
   },
 ] as const;
 
@@ -129,12 +129,12 @@ export default function DemoPage() {
               <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <h1 className="st-h1 text-3xl font-semibold sm:text-4xl">Clay &amp; Fire Studio</h1>
-                  <p className="st-accent-text mt-2 text-sm font-medium">A warm, modern studio site built for classes, products, and trust.</p>
+                  <p className="st-accent-text mt-2 text-sm font-medium">A warm, modern creator page built for classes, products, and trust.</p>
                 </div>
                 <span className="st-pill">Demo page</span>
               </div>
               <p className="st-body mt-4 max-w-3xl text-base leading-relaxed">
-                This is the kind of public page a pottery studio can launch on PotteryMania: real imagery, a clear story,
+                This is the kind of public page a ceramic artist or studio can launch on PotteryMania: real imagery, a clear story,
                 class booking, product sales, and one consistent brand from first click to checkout.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
@@ -155,14 +155,14 @@ export default function DemoPage() {
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="st-card p-6 sm:p-8">
                 <p className="st-muted text-sm uppercase tracking-wide">Why this page converts</p>
-                <h2 className="st-h2 mt-3 text-2xl font-semibold">Studio owners need proof before signup.</h2>
+                <h2 className="st-h2 mt-3 text-2xl font-semibold">Creators need proof before they commit.</h2>
                 <p className="st-body mt-4 text-base leading-relaxed">
-                  PotteryMania gives you one public studio page for your classes, products, and brand story, so customers
+                  PotteryMania gives you one public page for your classes, products, and brand story, so customers
                   understand what you offer and trust it quickly.
                 </p>
                 <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                   {[
-                    "Beautiful studio presentation with real imagery",
+                    "Beautiful brand presentation with real imagery",
                     "Classes and products under one identity",
                     "Clear booking and buying CTAs",
                     "A site that feels premium from day one",
@@ -190,10 +190,10 @@ export default function DemoPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="st-muted text-sm uppercase tracking-wide">Classes</p>
-                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Bookable experiences under your own studio brand</h2>
+                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Bookable experiences under your own brand</h2>
                 </div>
                 <Link href="/register" className="st-btn-primary">
-                  Create your studio
+                  Get started
                 </Link>
               </div>
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -219,7 +219,7 @@ export default function DemoPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="st-muted text-sm uppercase tracking-wide">Shop</p>
-                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Products that feel like they belong to the same studio</h2>
+                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Products that feel like they belong to your brand</h2>
                 </div>
                 <Link href="/register" className="st-btn-secondary">
                   Start with shop
@@ -261,7 +261,7 @@ export default function DemoPage() {
               </div>
               <div className="st-card p-6 sm:p-8">
                 <p className="st-muted text-sm uppercase tracking-wide">About</p>
-                <h2 className="st-h2 mt-2 text-2xl font-semibold">A page that tells the studio story clearly</h2>
+                <h2 className="st-h2 mt-2 text-2xl font-semibold">A page that tells your story clearly</h2>
                 <p className="st-body mt-4 text-base leading-relaxed">
                   Clay &amp; Fire Studio teaches wheel throwing and glaze workshops while selling small-batch tableware.
                   PotteryMania makes that story easy to understand without forcing visitors to jump between social DMs,
@@ -283,7 +283,7 @@ export default function DemoPage() {
 
           <section className="mt-6">
             <ReviewSummary
-              title="What this kind of page should make a studio owner feel"
+              title="What this kind of page should make a creator feel"
               avgRating={5}
               count={reviews.length}
               reviews={[...reviews]}
@@ -291,13 +291,13 @@ export default function DemoPage() {
             />
           </section>
 
-          <section className="sticky bottom-4 mt-8">
+          <section className="sticky bottom-[max(env(safe-area-inset-bottom),0.75rem)] mt-8">
             <div className="rounded-(--st-radius-lg) border border-(--st-border) bg-(--st-surface-bg) px-5 py-4 shadow-[0_18px_50px_rgba(30,20,14,0.16)] backdrop-blur-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-(--st-heading) text-sm font-semibold">This is a demo studio page.</p>
+                  <p className="text-(--st-heading) text-sm font-semibold">This is a demo page.</p>
                   <p className="st-body text-sm">
-                    Create your studio to build your own version with your story, products, and classes.
+                    Build your own version with your story, products, and classes.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
@@ -305,7 +305,7 @@ export default function DemoPage() {
                     See plans
                   </Link>
                   <Link href="/register" className="st-btn-primary">
-                    Create your studio
+                    Get started
                   </Link>
                 </div>
               </div>

@@ -22,6 +22,8 @@ export type CheckoutLineRow = {
   stripeQuantity: number;
   stripeUnitCents: number;
   productId?: string;
+  variantId?: string | null;
+  variantName?: string | null;
   experienceId?: string;
   slotId?: string;
   participantCount?: number;
@@ -31,6 +33,7 @@ export type CheckoutLineRow = {
   intakeResponses?: IntakeResponseSnapshot[];
   policySnapshot?: Prisma.InputJsonValue;
   classPackagePurchaseId?: string | null;
+  instructorId?: string | null;
   classPackageCreditsToUse?: number;
   fullLineCents: number;
   originalChargedLineCents: number;
@@ -116,24 +119,42 @@ export async function buildCheckoutLineRowsFromCart(
         return { ok: false, error: "Invalid cart item", status: 400 };
       }
       const p = item.product;
+      const productVariants = p.variants ?? [];
       if (p.status !== "active" || p.studio.status !== "approved") {
         return { ok: false, error: `Product unavailable: ${p.title}`, status: 400 };
       }
       if (p.pricingType === "recurring") {
         return { ok: false, error: `Subscription product cannot be purchased as one-time: ${p.title}`, status: 409 };
       }
-      if (p.stockStatus === "out_of_stock" || p.stockQuantity < item.quantity) {
+      const variant = item.variantId
+        ? item.variant ?? productVariants.find((row) => row.id === item.variantId) ?? null
+        : null;
+      if (productVariants.length > 0 && !item.variantId) {
+        return { ok: false, error: `Variant is required for "${p.title}"`, status: 409 };
+      }
+      if (item.variantId && !variant) {
+        return { ok: false, error: `Selected variant no longer exists for "${p.title}"`, status: 409 };
+      }
+      if (variant) {
+        if (variant.stockQuantity != null && variant.stockQuantity < item.quantity) {
+          return {
+            ok: false,
+            error: `Not enough stock for "${p.title} — ${variant.name}" (available: ${Math.max(0, variant.stockQuantity)})`,
+            status: 400,
+          };
+        }
+      } else if (p.stockStatus === "out_of_stock" || p.stockQuantity < item.quantity) {
         return {
           ok: false,
           error: `Not enough stock for "${p.title}" (available: ${Math.max(0, p.stockQuantity)})`,
           status: 400,
         };
       }
-      const currentUnit = p.salePriceCents ?? p.priceCents;
+      const currentUnit = variant?.priceCents ?? p.salePriceCents ?? p.priceCents;
       if (currentUnit !== item.priceSnapshotCents) {
         return {
           ok: false,
-          error: `Price changed for "${p.title}". Refresh your cart and try again.`,
+          error: `Price changed for "${variant ? `${p.title} — ${variant.name}` : p.title}". Refresh your cart and try again.`,
           status: 409,
           priceChanged: true,
         };
@@ -147,12 +168,14 @@ export async function buildCheckoutLineRowsFromCart(
       lineRows.push({
         cartItemId: item.id,
         itemType: "product",
-        title: p.title,
-        stripeName: p.title,
+        title: variant ? `${p.title} — ${variant.name}` : p.title,
+        stripeName: variant ? `${p.title} — ${variant.name}` : p.title,
         quantity: item.quantity,
         stripeQuantity: item.quantity,
         stripeUnitCents: unit,
         productId: p.id,
+        variantId: variant?.id ?? null,
+        variantName: variant?.name ?? null,
         fullLineCents: lineCents,
         originalChargedLineCents: lineCents,
         chargedLineCents: lineCents,
@@ -240,6 +263,29 @@ export async function buildCheckoutLineRowsFromCart(
       };
     }
 
+    let validatedInstructorId: string | null = null;
+    if (item.instructorId) {
+      const instructorLink = await prisma.instructorExperienceLink.findFirst({
+        where: {
+          instructorId: item.instructorId,
+          experienceId: experience.id,
+          instructor: {
+            studioId,
+            isActive: true,
+          },
+        },
+        select: { instructorId: true },
+      });
+      if (!instructorLink) {
+        return {
+          ok: false,
+          error: `Selected instructor is no longer available for "${experience.title}"`,
+          status: 409,
+        };
+      }
+      validatedInstructorId = instructorLink.instructorId;
+    }
+
     const baseParticipantsCents = item.priceSnapshotCents * item.participantCount;
     const fullLine = baseParticipantsCents + addOnValidation.totalCents;
     let classPackagePurchaseId: string | null = null;
@@ -312,6 +358,7 @@ export async function buildCheckoutLineRowsFromCart(
       intakeResponses: intakeValidation.responses,
       policySnapshot: (item.policySnapshot as Prisma.InputJsonValue | null) ?? undefined,
       classPackagePurchaseId,
+      instructorId: validatedInstructorId,
       classPackageCreditsToUse,
       fullLineCents: payableLine,
       originalChargedLineCents: charged,

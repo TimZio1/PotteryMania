@@ -51,6 +51,7 @@ export async function POST(req: Request) {
     customerPhone?: string;
     notes?: string;
     bookingPaymentPreference?: "deposit" | "full";
+    instructorId?: string | null;
     seatType?: string | null;
     addOnSelections?: unknown;
     intakeResponses?: unknown;
@@ -70,6 +71,12 @@ export async function POST(req: Request) {
   const customerName = typeof body.customerName === "string" ? body.customerName.trim() : "";
   const customerEmail = typeof body.customerEmail === "string" ? body.customerEmail.trim().toLowerCase() : "";
   const seatType = typeof body.seatType === "string" && body.seatType.trim() ? body.seatType.trim() : null;
+  const instructorId =
+    body.instructorId === null
+      ? null
+      : typeof body.instructorId === "string"
+        ? body.instructorId.trim() || null
+        : null;
   const tipAmountCents =
     typeof body.tipAmountCents === "number" && Number.isFinite(body.tipAmountCents)
       ? Math.max(0, Math.floor(body.tipAmountCents))
@@ -180,6 +187,24 @@ export async function POST(req: Request) {
   }
 
   const fullLine = experience.priceCents * participantCount + addOnValidation.totalCents;
+  let validatedInstructorId: string | null = null;
+  if (instructorId) {
+    const instructorLink = await prisma.instructorExperienceLink.findFirst({
+      where: {
+        instructorId,
+        experienceId: experience.id,
+        instructor: {
+          studioId: experience.studioId,
+          isActive: true,
+        },
+      },
+      select: { instructorId: true },
+    });
+    if (!instructorLink) {
+      return NextResponse.json({ error: "Selected instructor is not available for this class" }, { status: 400 });
+    }
+    validatedInstructorId = instructorLink.instructorId;
+  }
   const bookingPaymentPreference = normalizeBookingPaymentPreference(body.bookingPaymentPreference, {
     bookingDepositBps: experience.bookingDepositBps,
     allowFullPaymentOption: experience.allowFullPaymentOption,
@@ -213,6 +238,7 @@ export async function POST(req: Request) {
         customerPhone: body.customerPhone?.trim() || null,
         participantCount,
         seatType,
+        instructorId: validatedInstructorId,
         ticketRef,
         bookingStatus: "pending",
         paymentStatus: "pending",

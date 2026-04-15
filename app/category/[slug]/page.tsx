@@ -166,11 +166,20 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     page: String(Math.min(listing.pageCount, listing.page + 1)),
   });
 
+  const listingProducts = listing.products as unknown as Array<{
+    id: string;
+    title: string;
+    images: Array<{ imageUrl: string }>;
+    salePriceCents: number | null;
+    priceCents: number;
+    studio: { displayName: string };
+  }>;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: `${categoryData.title} on PotteryMania`,
-    itemListElement: listing.products.map((product, index) => ({
+    itemListElement: listingProducts.map((product, index) => ({
       "@type": "ListItem",
       position: index + 1 + (listing.page - 1) * listing.pageSize,
       url: `https://potterymania.com/marketplace/products/${product.id}`,
@@ -288,7 +297,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               </div>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {listing.products.map((product) => {
+                {listingProducts.map((product) => {
                   const image = product.images[0]?.imageUrl;
                   const price = (product.salePriceCents ?? product.priceCents) / 100;
                   return (

@@ -33,7 +33,7 @@ describe("API contract: POST /api/studios", () => {
     });
     studioRouteMocks.studioCreate.mockResolvedValue({
       id: "studio_1",
-      status: "approved",
+      status: "pending_review",
       ownerUserId: "u-vendor",
     });
   });
@@ -61,7 +61,7 @@ describe("API contract: POST /api/studios", () => {
     expect(res.status).toBe(401);
   });
 
-  it("allows authenticated customer with full fields to create an approved studio (self-serve)", async () => {
+  it("creates customer studio in pending review", async () => {
     studioRouteMocks.getSessionUser.mockResolvedValueOnce({
       id: "u-customer",
       email: "customer@example.com",
@@ -69,7 +69,7 @@ describe("API contract: POST /api/studios", () => {
     });
     studioRouteMocks.studioCreate.mockResolvedValueOnce({
       id: "studio_customer_1",
-      status: "approved",
+      status: "pending_review",
       ownerUserId: "u-customer",
     });
     const req = new Request("http://localhost:3000/api/studios", {
@@ -81,19 +81,19 @@ describe("API contract: POST /api/studios", () => {
     const res = await POST(req);
     const json = (await res.json()) as Record<string, unknown>;
     expect(res.status).toBe(201);
-    expect(json.studio).toMatchObject({ id: "studio_customer_1", status: "approved" });
+    expect(json.studio).toMatchObject({ id: "studio_customer_1", status: "pending_review" });
     expect(studioRouteMocks.studioCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           ownerUserId: "u-customer",
-          status: "approved",
-          approvedAt: expect.any(Date),
+          status: "pending_review",
+          approvedAt: null,
         }),
       }),
     );
   });
 
-  it("allows customer free listing and auto-approves profile", async () => {
+  it("creates customer free listing in pending review", async () => {
     studioRouteMocks.getSessionUser.mockResolvedValueOnce({
       id: "u-customer-1",
       email: "customer@example.com",
@@ -101,7 +101,7 @@ describe("API contract: POST /api/studios", () => {
     });
     studioRouteMocks.studioCreate.mockResolvedValueOnce({
       id: "studio_free_1",
-      status: "approved",
+      status: "pending_review",
       ownerUserId: "u-customer-1",
     });
     const req = new Request("http://localhost:3000/api/studios", {
@@ -122,8 +122,8 @@ describe("API contract: POST /api/studios", () => {
     expect(studioRouteMocks.studioCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          status: "approved",
-          approvedAt: expect.any(Date),
+          status: "pending_review",
+          approvedAt: null,
           legalBusinessName: "Cozy Ceramics",
           vatNumber: expect.stringContaining("FREE-LISTING-"),
         }),
@@ -157,14 +157,14 @@ describe("API contract: POST /api/studios", () => {
           addressLine1: "Pending — complete in Studio profile",
           vatNumber: expect.stringMatching(/^QUICKSTART-/),
           responsiblePersonName: "vendor",
-          status: "approved",
-          approvedAt: expect.any(Date),
+          status: "pending_review",
+          approvedAt: null,
         }),
       }),
     );
   });
 
-  it("creates vendor studio as approved (immediate self-serve)", async () => {
+  it("creates vendor studio in pending review", async () => {
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",
       body: JSON.stringify(basePayload),
@@ -176,8 +176,8 @@ describe("API contract: POST /api/studios", () => {
     expect(studioRouteMocks.studioCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          status: "approved",
-          approvedAt: expect.any(Date),
+          status: "pending_review",
+          approvedAt: null,
         }),
       }),
     );

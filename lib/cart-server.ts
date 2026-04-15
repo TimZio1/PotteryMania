@@ -50,6 +50,27 @@ export const cartItemInclude = {
     include: {
       studio: { select: { id: true, displayName: true, status: true } },
       images: { orderBy: { sortOrder: "asc" as const } },
+      variants: {
+        select: {
+          id: true,
+          name: true,
+          sku: true,
+          priceCents: true,
+          stockQuantity: true,
+          sortOrder: true,
+        },
+        orderBy: [{ sortOrder: "asc" as const }, { createdAt: "asc" as const }],
+      },
+    },
+  },
+  variant: {
+    select: {
+      id: true,
+      name: true,
+      sku: true,
+      priceCents: true,
+      stockQuantity: true,
+      sortOrder: true,
     },
   },
   experience: {
@@ -59,6 +80,7 @@ export const cartItemInclude = {
       cancellationPolicy: true,
     },
   },
+  instructor: { select: { id: true, name: true } },
   slot: true,
   vendor: { select: { id: true, displayName: true, status: true } },
 } satisfies Prisma.CartItemInclude;

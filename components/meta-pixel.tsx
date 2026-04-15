@@ -2,9 +2,18 @@
 
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const CONSENT_COOKIE = "pm_cookie_consent";
+
+function hasAnalyticsConsent(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie
+    .split(";")
+    .map((chunk) => chunk.trim())
+    .some((chunk) => chunk === `${CONSENT_COOKIE}=accepted`);
+}
 
 function MetaPixelRouteCapture() {
   const pathname = usePathname();
@@ -28,7 +37,17 @@ function MetaPixelRouteCapture() {
 }
 
 export function MetaPixel() {
-  if (!PIXEL_ID) return null;
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!PIXEL_ID) return;
+    const sync = () => setEnabled(hasAnalyticsConsent());
+    sync();
+    window.addEventListener("pm-consent-changed", sync);
+    return () => window.removeEventListener("pm-consent-changed", sync);
+  }, []);
+
+  if (!PIXEL_ID || !enabled) return null;
 
   return (
     <>

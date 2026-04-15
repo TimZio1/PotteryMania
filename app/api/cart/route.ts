@@ -42,11 +42,13 @@ export async function POST(req: Request) {
 
   let body: {
     productId?: string;
+    variantId?: string | null;
     quantity?: number;
     slotId?: string;
     participantCount?: number;
     bookingPaymentPreference?: "deposit" | "full";
     classPackagePurchaseId?: string | null;
+    instructorId?: string | null;
     seatType?: string | null;
     notes?: string | null;
     addOnSelections?: unknown;
@@ -59,6 +61,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const productId = typeof body.productId === "string" ? body.productId : "";
+  const variantId =
+    body.variantId === null
+      ? null
+      : typeof body.variantId === "string"
+        ? body.variantId.trim() || null
+        : undefined;
   const slotId = typeof body.slotId === "string" ? body.slotId : "";
   const quantity = typeof body.quantity === "number" && body.quantity > 0 ? Math.floor(body.quantity) : 1;
   const participantCount =
@@ -81,13 +89,19 @@ export async function POST(req: Request) {
       : typeof body.classPackagePurchaseId === "string"
         ? body.classPackagePurchaseId.trim() || null
         : undefined;
+  const instructorId =
+    body.instructorId === null
+      ? null
+      : typeof body.instructorId === "string"
+        ? body.instructorId.trim() || null
+        : undefined;
   if (!productId && !slotId) {
     return NextResponse.json({ error: "productId or slotId required" }, { status: 400 });
   }
 
   const existingItems = await prisma.cartItem.findMany({
     where: { cartId },
-    include: { product: true, slot: true, experience: true },
+    include: { product: { include: { variants: true } }, variant: true, slot: true, experience: true },
   });
 
   if (productId) {
@@ -97,14 +111,55 @@ export async function POST(req: Request) {
         status: "active",
         studio: { status: "approved" },
       },
+      include: {
+        variants: {
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        },
+      },
     });
     if (!product) return NextResponse.json({ error: "Product not available" }, { status: 400 });
     if (product.pricingType === "recurring") {
       return NextResponse.json({ error: "This offering is subscription-based. Use subscription checkout." }, { status: 409 });
     }
+    const hasVariants = product.variants.length > 0;
+    if (hasVariants && !variantId) {
+      return NextResponse.json({ error: "Please choose a product variant" }, { status: 400 });
+    }
+    if (!hasVariants && variantId) {
+      return NextResponse.json({ error: "This product has no variants" }, { status: 400 });
+    }
+    const variant = variantId ? product.variants.find((row) => row.id === variantId) ?? null : null;
+    if (variantId && !variant) {
+      return NextResponse.json({ error: "Selected variant is not available" }, { status: 400 });
+    }
 
-    const unit = product.salePriceCents ?? product.priceCents;
-    const same = existingItems.find((i) => i.itemType === "product" && i.productId === productId);
+    const unit = variant?.priceCents ?? product.salePriceCents ?? product.priceCents;
+    const same = existingItems.find(
+      (i) =>
+        i.itemType === "product" &&
+        i.productId === productId &&
+        (i.variantId ?? null) === (variant?.id ?? null),
+    );
+    const nextQuantity = (same?.quantity ?? 0) + quantity;
+    if (variant) {
+      if (variant.stockQuantity != null && variant.stockQuantity < nextQuantity) {
+        return NextResponse.json(
+          {
+            error: `Not enough stock for variant "${variant.name}" (available: ${Math.max(0, variant.stockQuantity)})`,
+          },
+          { status: 400 },
+        );
+      }
+    } else {
+      if (product.stockStatus === "out_of_stock" || product.stockQuantity < nextQuantity) {
+        return NextResponse.json(
+          {
+            error: `Not enough stock for "${product.title}" (available: ${Math.max(0, product.stockQuantity)})`,
+          },
+          { status: 400 },
+        );
+      }
+    }
     if (same) {
       await prisma.cartItem.update({
         where: { id: same.id },
@@ -116,6 +171,7 @@ export async function POST(req: Request) {
           cartId,
           itemType: "product",
           productId,
+          variantId: variant?.id ?? null,
           vendorId: product.studioId,
           quantity,
           priceSnapshotCents: unit,
@@ -186,6 +242,24 @@ export async function POST(req: Request) {
     if (classPackagePurchaseId && !eligiblePackage) {
       return NextResponse.json({ error: "Selected package credit is not valid for this class" }, { status: 400 });
     }
+    let validatedInstructorId: string | null | undefined = instructorId;
+    if (instructorId) {
+      const instructorLink = await prisma.instructorExperienceLink.findFirst({
+        where: {
+          instructorId,
+          experienceId: experience.id,
+          instructor: {
+            studioId: experience.studioId,
+            isActive: true,
+          },
+        },
+        select: { instructorId: true },
+      });
+      if (!instructorLink) {
+        return NextResponse.json({ error: "Selected instructor is not available for this class" }, { status: 400 });
+      }
+      validatedInstructorId = instructorLink.instructorId;
+    }
     const policySnapshot = experience.cancellationPolicy
       ? {
           id: experience.cancellationPolicy.id,
@@ -214,6 +288,7 @@ export async function POST(req: Request) {
           ...(classPackagePurchaseId !== undefined
             ? { classPackagePurchaseId: eligiblePackage?.purchase.id ?? null }
             : {}),
+          ...(validatedInstructorId !== undefined ? { instructorId: validatedInstructorId } : {}),
           seatType,
           ...(notes !== undefined ? { notes } : {}),
           addOnSelections: addOnResult.selections as unknown as object,
@@ -234,6 +309,7 @@ export async function POST(req: Request) {
           participantCount,
           bookingPaymentPreference: effectiveBookingPaymentPreference,
           classPackagePurchaseId: eligiblePackage?.purchase.id ?? null,
+          instructorId: validatedInstructorId ?? null,
           seatType,
           notes: notes ?? null,
           addOnSelections: addOnResult.selections as unknown as object,
@@ -264,6 +340,7 @@ export async function PATCH(req: Request) {
     participantCount?: number;
     bookingPaymentPreference?: "deposit" | "full";
     classPackagePurchaseId?: string | null;
+    instructorId?: string | null;
     seatType?: string | null;
     notes?: string | null;
     addOnSelections?: unknown;
@@ -285,6 +362,8 @@ export async function PATCH(req: Request) {
   const item = await prisma.cartItem.findFirst({
     where: { id: itemId, cartId },
     include: {
+      product: { include: { variants: true } },
+      variant: true,
       experience: true,
       slot: true,
     },
@@ -312,6 +391,12 @@ export async function PATCH(req: Request) {
       ? null
       : typeof body.classPackagePurchaseId === "string"
         ? body.classPackagePurchaseId.trim() || null
+        : undefined;
+  const instructorIdPatch =
+    body.instructorId === null
+      ? null
+      : typeof body.instructorId === "string"
+        ? body.instructorId.trim() || null
         : undefined;
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -378,6 +463,24 @@ export async function PATCH(req: Request) {
       if (classPackagePurchaseIdPatch && !eligiblePackage) {
         return NextResponse.json({ error: "Selected package credit is not valid for this class" }, { status: 400 });
       }
+      let validatedInstructorPatch: string | null | undefined = instructorIdPatch;
+      if (instructorIdPatch) {
+        const instructorLink = await prisma.instructorExperienceLink.findFirst({
+          where: {
+            instructorId: instructorIdPatch,
+            experienceId: slot.experience.id,
+            instructor: {
+              studioId: slot.experience.studioId,
+              isActive: true,
+            },
+          },
+          select: { instructorId: true },
+        });
+        if (!instructorLink) {
+          return NextResponse.json({ error: "Selected instructor is not available for this class" }, { status: 400 });
+        }
+        validatedInstructorPatch = instructorLink.instructorId;
+      }
       await prisma.cartItem.update({
         where: { id: itemId },
         data: {
@@ -387,6 +490,7 @@ export async function PATCH(req: Request) {
           ...(classPackagePurchaseIdPatch !== undefined
             ? { classPackagePurchaseId: eligiblePackage?.purchase.id ?? null }
             : {}),
+          ...(validatedInstructorPatch !== undefined ? { instructorId: validatedInstructorPatch } : {}),
           ...(seatTypePatch !== undefined ? { seatType: nextSeat } : {}),
           ...(notesPatch !== undefined ? { notes: notesPatch } : {}),
           ...("addOnSelections" in body ? { addOnSelections: addOnResult.selections as unknown as object } : {}),
@@ -398,6 +502,28 @@ export async function PATCH(req: Request) {
   } else if (quantity <= 0) {
     await prisma.cartItem.delete({ where: { id: itemId } });
   } else {
+    if (item.itemType === "product" && item.product) {
+      if (item.variantId) {
+        const variant =
+          item.variant ?? item.product.variants.find((row) => row.id === item.variantId) ?? null;
+        if (!variant) {
+          return NextResponse.json({ error: "Selected product variant no longer exists" }, { status: 409 });
+        }
+        if (variant.stockQuantity != null && variant.stockQuantity < quantity) {
+          return NextResponse.json(
+            {
+              error: `Not enough stock for variant "${variant.name}" (available: ${Math.max(0, variant.stockQuantity)})`,
+            },
+            { status: 400 },
+          );
+        }
+      } else if (item.product.stockStatus === "out_of_stock" || item.product.stockQuantity < quantity) {
+        return NextResponse.json(
+          { error: `Not enough stock for "${item.product.title}" (available: ${Math.max(0, item.product.stockQuantity)})` },
+          { status: 400 },
+        );
+      }
+    }
     await prisma.cartItem.update({
       where: { id: itemId },
       data: { quantity },

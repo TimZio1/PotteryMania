@@ -40,6 +40,14 @@ export type StudioShopProductRow = {
     sortOrder: number;
     isPrimary: boolean;
   }[];
+  variants: {
+    id: string;
+    name: string;
+    sku: string | null;
+    priceCents: number | null;
+    stockQuantity: number | null;
+    sortOrder: number;
+  }[];
 };
 
 export type StudioShopOrderRow = {
@@ -100,6 +108,17 @@ type StudioShopProductRecord = Prisma.ProductGetPayload<{
         slug: true;
         name: true;
       };
+    };
+    variants: {
+      select: {
+        id: true;
+        name: true;
+        sku: true;
+        priceCents: true;
+        stockQuantity: true;
+        sortOrder: true;
+      };
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }];
     };
   };
 }>;
@@ -168,6 +187,17 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
               name: true,
             },
           },
+          variants: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              priceCents: true,
+              stockQuantity: true,
+              sortOrder: true,
+            },
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          },
         },
       }),
       prisma.order.findMany({
@@ -227,6 +257,14 @@ export async function loadStudioShopPageData(prisma: PrismaClient, studioId: str
         isPrimary: image.isPrimary,
       }))
       .sort((a, b) => a.sortOrder - b.sortOrder),
+    variants: p.variants.map((variant) => ({
+      id: variant.id,
+      name: variant.name,
+      sku: variant.sku,
+      priceCents: variant.priceCents,
+      stockQuantity: variant.stockQuantity,
+      sortOrder: variant.sortOrder,
+    })),
   }));
 
   const orderRows: StudioShopOrderRow[] = orders.map((o) => ({

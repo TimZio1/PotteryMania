@@ -38,7 +38,7 @@ export async function GET(req: Request) {
   if (wantsDetailed) {
     const scKey = process.env.SPREADCONNECT_API_KEY?.trim() ?? "";
     if (scKey === "__PENDING__") {
-      body.spreadconnect = "pending_placeholder";
+      body.spreadconnect = "awaiting_key";
     } else if (!scKey) {
       body.spreadconnect = "missing";
     } else {

@@ -15,6 +15,8 @@ import { redirectEndUserIfStudioHasNoPublicOfferings } from "@/lib/public-catalo
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import { buildMetadata } from "@/lib/seo";
 import { parsePublicServiceModes } from "@/lib/studio-public-service-modes";
+import { getStudioWearProducts } from "@/lib/studio-wear-catalog";
+import { StudioWearSection } from "@/components/studio-public/studio-wear-section";
 
 export const dynamic = "force-dynamic";
 
@@ -88,7 +90,10 @@ export default async function StudioPage({ params }: Props) {
       where: { studioId, status: "active" },
       orderBy: { createdAt: "desc" },
       take: 8,
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 4 } },
+      include: {
+        images: { orderBy: { sortOrder: "asc" }, take: 4 },
+        variants: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
+      },
     }),
     prisma.experience.findMany({
       where: { studioId, status: "active", visibility: "public" },
@@ -99,13 +104,19 @@ export default async function StudioPage({ params }: Props) {
     prisma.review.findMany({
       where: { studioId, isVisible: true },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-      include: { author: { select: { email: true } }, product: { select: { title: true } }, experience: { select: { title: true } } },
+      include: {
+        author: { select: { customerProfile: { select: { fullName: true } } } },
+        product: { select: { title: true } },
+        experience: { select: { title: true } },
+      },
       take: 8,
     }),
     isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.marketplaceCheckoutEnabled),
   ]);
 
   const avgRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
+
+  const studioWearItems = await getStudioWearProducts(studioId);
 
   const session = await auth();
   const allowEmptyPublicProfile = !studio.activationPaidAt;
@@ -516,6 +527,7 @@ export default async function StudioPage({ params }: Props) {
                           <StudioProductAddToCart
                             productId={product.id}
                             checkoutEnabled={marketplaceCheckoutEnabled}
+                            variants={product.variants}
                             studioThemed
                           />
                         </div>
@@ -526,6 +538,10 @@ export default async function StudioPage({ params }: Props) {
               </div>
               {products.length === 0 ? <p className="st-muted mt-4 text-sm">No active products yet.</p> : null}
             </section>
+          ) : null}
+
+          {studioWearItems && studioWearItems.length > 0 ? (
+            <StudioWearSection studioId={studioId} items={studioWearItems} />
           ) : null}
 
           <ReviewSummary

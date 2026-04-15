@@ -4,7 +4,6 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { getCartForRequest, cartItemInclude } from "@/lib/cart-server";
 import { getStripe } from "@/lib/stripe";
-import { allocateTicketRef } from "@/lib/bookings/ticket-ref";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import { calculateEstimatedTaxCents, stripeTaxEnabled } from "@/lib/tax";
@@ -19,18 +18,17 @@ import {
   recomputeTotalsFromLineRows,
   validateCouponState,
 } from "@/lib/coupon-checkout";
-import { couponHasRedemptionCapacity, lockCouponRow } from "@/lib/coupon-redemption-lock";
 import {
   attachGiftCardReservationsToSession,
   applyGiftCardToLineRows,
   previewGiftCardRedemption,
-  reserveGiftCardRedemption,
   releaseGiftCardRedemptionsForOrder,
 } from "@/lib/gift-cards/checkout";
 import { logApiError } from "@/lib/monitoring";
 import { runCheckoutCompletionSideEffects, settleCheckoutOrderPayment } from "@/lib/orders/checkout-completion";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 import { resolveShippingZoneForDestination, zonePriceCents } from "@/lib/shipping-zones";
+import { createPendingCheckoutOrder } from "@/lib/checkout/checkout-order-creation";
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 }
@@ -252,150 +250,31 @@ export async function POST(req: Request) {
 
   let order;
   try {
-    order = await prisma.$transaction(async (tx) => {
-    if (couponIdForMeta) {
-      await lockCouponRow(tx, couponIdForMeta);
-      const cap = await couponHasRedemptionCapacity(tx, couponIdForMeta);
-      if (!cap) {
-        throw new Error("COUPON_EXHAUSTED");
-      }
-    }
-
-    const createdOrder = await tx.order.create({
-      data: {
-        customerUserId: user?.id ?? null,
-        customerName,
-        customerEmail,
-        customerPhone: body.customerPhone?.trim() || null,
+    order = await createPendingCheckoutOrder({
+      prisma,
+      lineRows,
+      studioId,
+      customer: {
+        userId: user?.id ?? null,
+        name: customerName,
+        email: customerEmail,
+        phone: body.customerPhone?.trim() || null,
+      },
+      orderMeta: {
         shippingAddressJson,
-        billingAddressJson: body.billingAddress ? (body.billingAddress as object) : undefined,
+        billingAddress: body.billingAddress,
         notes: body.notes?.trim() || null,
-        orderStatus: "pending",
-        paymentStatus: "pending",
-        fulfillmentStatus: hasProducts ? "pending" : "processing",
+        hasProducts,
         shippingMethod: shippingQuote.methodLabel,
-        shippingRateCents: shippingQuote.shippingCents,
+        shippingCents: shippingQuote.shippingCents,
         taxCents: estimatedTaxCents,
         subtotalCents: subtotal,
         totalCents: grandTotal,
-        currency: "EUR",
       },
+      couponIdForMeta,
+      giftCardForMeta: giftCardForMeta ? { id: giftCardForMeta.id } : null,
+      giftCardAppliedCents,
     });
-
-    for (const row of lineRows) {
-      if (row.itemType === "product" && row.productId) {
-        await tx.orderItem.create({
-          data: {
-            orderId: createdOrder.id,
-            itemType: "product",
-            productId: row.productId,
-            vendorId: studioId,
-            quantity: row.quantity,
-            priceSnapshotCents: row.chargedLineCents,
-            commissionSnapshotCents: row.commissionCents,
-            vendorAmountSnapshotCents: row.vendorCents,
-          },
-        });
-        continue;
-      }
-
-      if (row.itemType === "booking" && row.experienceId && row.slotId && row.participantCount) {
-        const ticketRef = await allocateTicketRef(tx);
-        const bookingDiscountCents = Math.max(0, row.originalChargedLineCents - row.chargedLineCents);
-        const bookingNetTotalCents = Math.max(0, row.fullLineCents - bookingDiscountCents);
-        const booking = await tx.booking.create({
-          data: {
-            studioId,
-            experienceId: row.experienceId,
-            slotId: row.slotId,
-            customerUserId: user?.id ?? null,
-            customerName,
-            customerEmail,
-            customerPhone: body.customerPhone?.trim() || null,
-            participantCount: row.participantCount,
-            seatType: row.seatType ?? null,
-            ticketRef,
-            bookingStatus: "pending",
-            paymentStatus: "pending",
-            totalAmountCents: bookingNetTotalCents,
-            depositAmountCents: row.chargedLineCents,
-            remainingBalanceCents: Math.max(0, bookingNetTotalCents - row.chargedLineCents),
-            classPackagePurchaseId: row.classPackagePurchaseId ?? null,
-            remainderPaymentLink: null,
-            commissionAmountCents: row.commissionCents,
-            vendorAmountCents: row.vendorCents,
-            cancellationPolicySnapshot: row.policySnapshot,
-            notes: row.notes ?? (body.notes?.trim() || null),
-          },
-        });
-
-        if (row.addOnSelections?.length) {
-          await tx.bookingAddOn.createMany({
-            data: row.addOnSelections.map((selection) => ({
-              bookingId: booking.id,
-              addOnId: selection.addOnId,
-              addOnName: selection.name,
-              quantity: selection.quantity,
-              unitPriceCents: selection.unitPriceCents,
-              durationMinutesExtra: selection.durationMinutesExtra,
-            })),
-          });
-        }
-
-        if (row.intakeResponses?.length) {
-          await tx.intakeFormResponse.createMany({
-            data: row.intakeResponses.map((response) => ({
-              bookingId: booking.id,
-              formId: response.formId,
-              labelSnapshot: response.label,
-              fieldTypeSnapshot: response.fieldType,
-              includeInInvoiceSnapshot: response.includeInInvoice,
-              value: response.value,
-            })),
-          });
-        }
-
-        await tx.orderItem.create({
-          data: {
-            orderId: createdOrder.id,
-            itemType: "booking",
-            bookingId: booking.id,
-            vendorId: studioId,
-            quantity: 1,
-            participantCount: row.participantCount,
-            priceSnapshotCents: row.chargedLineCents,
-            commissionSnapshotCents: row.commissionCents,
-            vendorAmountSnapshotCents: row.vendorCents,
-          },
-        });
-      }
-    }
-
-    if (hasProducts) {
-      await tx.shippingRateQuote.create({
-        data: {
-          orderId: createdOrder.id,
-          studioId,
-          destinationCountry: shippingAddressJson.country || "GR",
-          destinationCity: shippingAddressJson.city || null,
-          subtotalCents: subtotal,
-          shippingCents: shippingQuote.shippingCents,
-          methodLabel: shippingQuote.methodLabel,
-        },
-      });
-    }
-
-    if (giftCardForMeta && giftCardAppliedCents > 0) {
-      await reserveGiftCardRedemption(tx, {
-        giftCardId: giftCardForMeta.id,
-        orderId: createdOrder.id,
-        redeemedByUserId: user?.id ?? null,
-        amountCents: giftCardAppliedCents,
-      });
-    }
-
-    return createdOrder;
-  });
   } catch (e) {
     if (e instanceof Error && e.message === "COUPON_EXHAUSTED") {
       return NextResponse.json(
@@ -439,6 +318,7 @@ export async function POST(req: Request) {
           confirmedBookingIds: processed.confirmedBookingIds,
           pendingApprovalIds: processed.pendingApprovalIds,
           autoCancelledIds: processed.autoCancelledIds,
+          stockFailureCancelled: processed.stockFailureCancelled,
         });
       }
       return NextResponse.json({
@@ -474,6 +354,18 @@ export async function POST(req: Request) {
         unit_amount: shippingQuote.shippingCents,
         product_data: {
           name: shippingQuote.methodLabel,
+        },
+      },
+    });
+  }
+  if (!stripeTaxEnabled() && estimatedTaxCents > 0) {
+    line_items.push({
+      quantity: 1,
+      price_data: {
+        currency: "eur",
+        unit_amount: estimatedTaxCents,
+        product_data: {
+          name: "Estimated tax",
         },
       },
     });

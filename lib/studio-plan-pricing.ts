@@ -12,14 +12,15 @@ export type StudioPlan = {
 
 export const STUDIO_PLAN_CURRENCY = "EUR";
 
-export const STUDIO_PLANS: readonly StudioPlan[] = [
+const BASE_PLANS: (Omit<StudioPlan, "includes"> &
+  { baseIncludes: readonly string[] })[] = [
   {
     key: "bookings",
     name: "Bookings",
     monthlyCents: 1900,
     annualMonthlyEquivalentCents: 1600,
     headline: "For studios selling classes only.",
-    includes: ["Class calendar", "Online booking checkout", "Policies and full-class alerts", "0% platform commission"],
+    baseIncludes: ["Class calendar", "Online booking checkout", "Policies and full-class alerts"],
   },
   {
     key: "shop",
@@ -27,7 +28,7 @@ export const STUDIO_PLANS: readonly StudioPlan[] = [
     monthlyCents: 1900,
     annualMonthlyEquivalentCents: 1600,
     headline: "For studios selling ceramics only.",
-    includes: ["Studio-owned shop", "Product and stock management", "Shipping zones", "0% platform commission"],
+    baseIncludes: ["Studio-owned shop", "Product and stock management", "Shipping zones"],
   },
   {
     key: "both",
@@ -35,7 +36,7 @@ export const STUDIO_PLANS: readonly StudioPlan[] = [
     monthlyCents: 2900,
     annualMonthlyEquivalentCents: 2400,
     headline: "Bookings + shop in one website.",
-    includes: ["Everything in Bookings + Shop", "Unified dashboard", "Branding controls", "0% platform commission"],
+    baseIncludes: ["Everything in Bookings + Shop", "Unified dashboard", "Branding controls"],
     recommended: true,
   },
   {
@@ -44,9 +45,25 @@ export const STUDIO_PLANS: readonly StudioPlan[] = [
     monthlyCents: 5900,
     annualMonthlyEquivalentCents: 4900,
     headline: "For growing studios with team workflows.",
-    includes: ["Advanced analytics", "Automation add-ons", "Priority support", "0% platform commission"],
+    baseIncludes: ["Advanced analytics", "Automation add-ons", "Priority support"],
   },
-] as const;
+];
+
+/** Build plans with the dynamic commission label injected. */
+export function buildStudioPlans(commissionLabel: string): StudioPlan[] {
+  return BASE_PLANS.map((p) => ({
+    key: p.key,
+    name: p.name,
+    monthlyCents: p.monthlyCents,
+    annualMonthlyEquivalentCents: p.annualMonthlyEquivalentCents,
+    headline: p.headline,
+    includes: [...p.baseIncludes, `${commissionLabel} platform commission`],
+    ...(p.recommended ? { recommended: true } : {}),
+  }));
+}
+
+/** Fallback for static/build-time contexts where DB is unavailable. */
+export const STUDIO_PLANS: readonly StudioPlan[] = buildStudioPlans("0%");
 
 export function euroFromCents(cents: number): string {
   return `€${Math.floor(cents / 100)}`;

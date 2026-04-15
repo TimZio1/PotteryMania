@@ -10,6 +10,9 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(req: Request) {
   const secret = process.env.VENDOR_DOMAIN_RESOLVE_SECRET?.trim();
+  if (!secret && process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Domain resolution not configured" }, { status: 503 });
+  }
   if (secret) {
     const h = req.headers.get("x-potterymania-resolve-secret");
     if (h !== secret) {

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
 import type { ExperienceStatus, ExperienceType, ExperienceVisibility, LocationType } from "@prisma/client";
 import { normalizeOfferingPricing } from "@/lib/offering-pricing";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -28,13 +28,10 @@ function parseLocationType(v: unknown): LocationType | null {
 }
 
 export async function GET(_req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
-  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
   const experiences = await prisma.experience.findMany({
     where: { studioId },
     orderBy: { updatedAt: "desc" },
@@ -44,18 +41,19 @@ export async function GET(_req: Request, ctx: Ctx) {
 }
 
 export async function POST(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { studioId } = await ctx.params;
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const user = auth.user;
+
   if (user.role === "customer") {
     await prisma.user.update({ where: { id: user.id }, data: { role: "vendor" } });
   } else if (user.role !== "vendor") {
     return NextResponse.json({ error: "Vendor role required" }, { status: 403 });
   }
-  const { studioId } = await ctx.params;
+
   const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  if (!studio) return NextResponse.json({ error: "Studio not found" }, { status: 404 });
   if (studio.status === "suspended") {
     return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
   }

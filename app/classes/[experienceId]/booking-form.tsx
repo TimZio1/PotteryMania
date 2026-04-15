@@ -57,6 +57,7 @@ type PackageOption = {
   };
   canUseForExperience?: boolean;
 };
+type PublicInstructor = { id: string; name: string };
 
 const BOOKING_INTAKE_CLOUDINARY_FOLDER = "potterymania/booking-intake";
 
@@ -118,6 +119,8 @@ export function ClassBookingForm(props: {
   const [clientFields, setClientFields] = useState<PublicClientField[]>([]);
   const [clientFieldValues, setClientFieldValues] = useState<Record<string, IntakeValue>>({});
   const [clientFieldsLoading, setClientFieldsLoading] = useState(true);
+  const [instructorOptions, setInstructorOptions] = useState<PublicInstructor[]>([]);
+  const [selectedInstructorId, setSelectedInstructorId] = useState("");
   const [paymentChoice, setPaymentChoice] = useState<"deposit" | "full">(
     normalizeBookingPaymentPreference(undefined, {
       bookingDepositBps: props.bookingDepositBps,
@@ -164,18 +167,20 @@ export function ClassBookingForm(props: {
     let cancelled = false;
     (async () => {
       try {
-        const [addOnRes, intakeRes, packageRes, clientFieldsRes] = await Promise.all([
+        const [addOnRes, intakeRes, packageRes, clientFieldsRes, instructorsRes] = await Promise.all([
           fetch(`/api/experiences/${props.experienceId}/add-ons`),
           fetch(`/api/experiences/${props.experienceId}/intake-forms`),
           fetch(
             `/api/packages/my?onlyActive=1&studioId=${encodeURIComponent(props.studioId)}&experienceId=${encodeURIComponent(props.experienceId)}`,
           ),
           fetch(`/api/studios/${props.studioId}/client-fields/me`),
+          fetch(`/api/studios/${props.studioId}/instructors`),
         ]);
         const addOnJson = await addOnRes.json().catch(() => ({}));
         const intakeJson = await intakeRes.json().catch(() => ({}));
         const packageJson = await packageRes.json().catch(() => ({}));
         const clientFieldsJson = await clientFieldsRes.json().catch(() => ({}));
+        const instructorsJson = await instructorsRes.json().catch(() => ({}));
         if (!cancelled) {
           const nextAddOns = addOnRes.ok ? ((addOnJson.addOns as PublicAddOn[] | undefined) ?? []) : [];
           setAddOns(nextAddOns);
@@ -218,6 +223,35 @@ export function ClassBookingForm(props: {
             setClientFieldValues({});
           }
           setClientFieldsLoading(false);
+
+          const linkedInstructors = instructorsRes.ok
+            ? (((instructorsJson.items as unknown[]) ?? [])
+                .map((entry) => {
+                  const row = entry as {
+                    id?: unknown;
+                    name?: unknown;
+                    experiences?: Array<{ experienceId?: unknown; experience?: { id?: unknown } }>;
+                  };
+                  const id = typeof row.id === "string" ? row.id : "";
+                  const name = typeof row.name === "string" ? row.name : "";
+                  const linked = Array.isArray(row.experiences)
+                    ? row.experiences.some((link) => {
+                        const byId = typeof link.experienceId === "string" ? link.experienceId : "";
+                        const nestedId =
+                          link.experience && typeof link.experience.id === "string" ? link.experience.id : "";
+                        return byId === props.experienceId || nestedId === props.experienceId;
+                      })
+                    : false;
+                  return id && name && linked ? ({ id, name } satisfies PublicInstructor) : null;
+                })
+                .filter((row): row is PublicInstructor => Boolean(row)))
+            : [];
+          setInstructorOptions(linkedInstructors);
+          setSelectedInstructorId((prev) => {
+            if (linkedInstructors.length === 1) return linkedInstructors[0].id;
+            if (linkedInstructors.some((option) => option.id === prev)) return prev;
+            return "";
+          });
         }
       } catch {
         if (!cancelled) {
@@ -230,6 +264,8 @@ export function ClassBookingForm(props: {
           setClientFields([]);
           setClientFieldValues({});
           setClientFieldsLoading(false);
+          setInstructorOptions([]);
+          setSelectedInstructorId("");
         }
       }
     })();
@@ -385,6 +421,7 @@ export function ClassBookingForm(props: {
         acceptTerms: true,
       };
       if (seatKeys.length) body.seatType = seatType;
+      if (selectedInstructorId) body.instructorId = selectedInstructorId;
       if (bookingNotes.trim()) body.notes = bookingNotes.trim();
       const r = await fetch("/api/cart", {
         method: "POST",
@@ -454,6 +491,7 @@ export function ClassBookingForm(props: {
         intakeResponses: intakePayload,
       };
       if (seatKeys.length) body.seatType = seatType;
+      if (selectedInstructorId) body.instructorId = selectedInstructorId;
       const r = await fetch("/api/bookings/pay-at-studio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -548,6 +586,26 @@ export function ClassBookingForm(props: {
               placeholder="Anything the studio should know before your session?"
             />
           </label>
+          {instructorOptions.length > 1 ? (
+            <label className="block text-sm">
+              <span className="text-[var(--muted)]">Instructor</span>
+              <select
+                className={`${ui.input} mt-1`}
+                value={selectedInstructorId}
+                onChange={(e) => setSelectedInstructorId(e.target.value)}
+              >
+                <option value="">No preference</option>
+                {instructorOptions.map((instructor) => (
+                  <option key={instructor.id} value={instructor.id}>
+                    {instructor.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          {instructorOptions.length === 1 ? (
+            <p className="text-xs text-[var(--muted)]">Instructor: {instructorOptions[0].name}</p>
+          ) : null}
           <div className="space-y-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
             <p className="text-sm font-medium text-[var(--foreground)]">Use package credits</p>
             {packageLoading ? (

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
-    title: "Create your studio",
+    title: "Get started",
     description:
       "Run your creative business online. Sell your work, book your classes, manage everything in one system. Official launch 1 May 2026.",
     path: "/early-access",

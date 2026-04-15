@@ -1,27 +1,29 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
 import { slugify } from "@/lib/slug";
 import { ceramicCategoryFromSlug, ceramicCategoryMetaByValue, syncLockedCeramicCategories } from "@/lib/ceramic-categories";
 import { normalizeOfferingPricing } from "@/lib/offering-pricing";
 import { studioCanOperateMessage } from "@/lib/studio-operating-gates";
 import { parseShippingZonesInput } from "@/lib/shipping-zones";
+import { apiError, apiSuccess } from "@/lib/api-response";
+import { requireStudioOwner } from "@/lib/studio-api-auth";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
-async function assertOwner(studioId: string, userId: string) {
-  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== userId) return null;
-  return studio;
-}
+type ProductVariantInput = {
+  id?: string;
+  name?: string;
+  sku?: string | null;
+  priceCents?: number | null;
+  stockQuantity?: number | null;
+  sortOrder?: number;
+};
 
 export async function GET(_req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
-  const studio = await assertOwner(studioId, user.id);
-  if (!studio) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return apiError(auth.error, auth.status);
 
   let products: unknown;
   try {
@@ -65,6 +67,17 @@ export async function GET(_req: Request, ctx: Ctx) {
         shippingCanadaCents: true,
         shippingAsiaCents: true,
         images: true,
+        variants: {
+          select: {
+            id: true,
+            name: true,
+            sku: true,
+            priceCents: true,
+            stockQuantity: true,
+            sortOrder: true,
+          },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        },
         categoryMeta: {
           select: {
             id: true,
@@ -83,17 +96,17 @@ export async function GET(_req: Request, ctx: Ctx) {
     }
     throw error;
   }
-  return NextResponse.json({ products });
+  return apiSuccess({ products });
 }
 
 export async function POST(req: Request, ctx: Ctx) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { studioId } = await ctx.params;
-  const studio = await assertOwner(studioId, user.id);
-  if (!studio) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const auth = await requireStudioOwner(studioId);
+  if (!auth.ok) return apiError(auth.error, auth.status);
+  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
+  if (!studio) return apiError("Studio not found", 404);
   if (studio.status === "suspended") {
-    return NextResponse.json({ error: "Studio suspended" }, { status: 403 });
+    return apiError("Studio suspended", 403);
   }
   let body: {
     title?: string;
@@ -135,19 +148,20 @@ export async function POST(req: Request, ctx: Ctx) {
       asia?: number | null;
     };
     images?: { imageUrl: string; altText?: string; isPrimary?: boolean }[];
+    variants?: ProductVariantInput[];
   };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return apiError("Invalid JSON", 400);
   }
 
   const title = typeof body.title === "string" ? body.title.trim() : "";
-  if (!title) return NextResponse.json({ error: "title required" }, { status: 400 });
+  if (!title) return apiError("title required", 400);
   const category = ceramicCategoryFromSlug(typeof body.category === "string" ? body.category : "") ?? "tableware";
   const subcategory = typeof body.subcategory === "string" ? body.subcategory.trim() || null : null;
   const priceCents = typeof body.priceCents === "number" ? body.priceCents : -1;
-  if (priceCents < 0) return NextResponse.json({ error: "priceCents required" }, { status: 400 });
+  if (priceCents < 0) return apiError("priceCents required", 400);
 
   let slug = typeof body.slug === "string" && body.slug.trim() ? slugify(body.slug) : slugify(title);
   const clash = await prisma.product.findUnique({
@@ -156,9 +170,29 @@ export async function POST(req: Request, ctx: Ctx) {
   if (clash) slug = `${slug}-${Date.now().toString(36)}`;
 
   const images = Array.isArray(body.images) ? body.images : [];
+  const variantsInput = Array.isArray(body.variants) ? body.variants : [];
   const primaryCount = images.filter((i) => i.isPrimary).length;
   if (images.length > 0 && primaryCount !== 1) {
-    return NextResponse.json({ error: "Exactly one primary image when images provided" }, { status: 400 });
+    return apiError("Exactly one primary image when images provided", 400);
+  }
+  const variantNames = new Set<string>();
+  for (let i = 0; i < variantsInput.length; i += 1) {
+    const row = variantsInput[i];
+    const name = typeof row.name === "string" ? row.name.trim() : "";
+    if (!name) {
+      return apiError(`Variant #${i + 1} requires a name`, 400);
+    }
+    const key = name.toLowerCase();
+    if (variantNames.has(key)) {
+      return apiError(`Duplicate variant name: ${name}`, 400);
+    }
+    variantNames.add(key);
+    if (row.priceCents != null && (typeof row.priceCents !== "number" || row.priceCents < 0)) {
+      return apiError(`Variant #${i + 1} has invalid price`, 400);
+    }
+    if (row.stockQuantity != null && (typeof row.stockQuantity !== "number" || row.stockQuantity < 0)) {
+      return apiError(`Variant #${i + 1} has invalid stock quantity`, 400);
+    }
   }
 
   const status =
@@ -168,16 +202,16 @@ export async function POST(req: Request, ctx: Ctx) {
 
   const stripeRow = await prisma.stripeAccount.findUnique({ where: { studioId } });
   if (status === "active" && (!stripeRow?.chargesEnabled || !stripeRow.payoutsEnabled)) {
-    return NextResponse.json({ error: studioCanOperateMessage() }, { status: 403 });
+    return apiError(studioCanOperateMessage(), 403);
   }
 
   const pricing = normalizeOfferingPricing(body);
   if (!pricing.ok) {
-    return NextResponse.json({ error: pricing.error }, { status: 400 });
+    return apiError(pricing.error, 400);
   }
   const shippingZones = parseShippingZonesInput(body.shippingZones);
   if (!shippingZones.ok) {
-    return NextResponse.json({ error: shippingZones.error }, { status: 400 });
+    return apiError(shippingZones.error, 400);
   }
 
   try {
@@ -235,11 +269,22 @@ export async function POST(req: Request, ctx: Ctx) {
             isPrimary: Boolean(im.isPrimary),
           })),
         },
+        variants: variantsInput.length
+          ? {
+              create: variantsInput.map((row, idx) => ({
+                name: (row.name ?? "").trim(),
+                sku: typeof row.sku === "string" ? row.sku.trim() || null : null,
+                priceCents: typeof row.priceCents === "number" ? row.priceCents : null,
+                stockQuantity: typeof row.stockQuantity === "number" ? row.stockQuantity : null,
+                sortOrder: typeof row.sortOrder === "number" ? row.sortOrder : idx,
+              })),
+            }
+          : undefined,
       },
-      include: { images: true },
+      include: { images: true, variants: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
     });
 
-    return NextResponse.json({ product }, { status: 201 });
+    return apiSuccess({ product }, 201);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2022") {
       return NextResponse.json(

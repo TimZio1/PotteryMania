@@ -14,12 +14,14 @@ import { logApiError } from "@/lib/monitoring";
 import { enrichCustomerEmailWithCalendar } from "@/lib/calendar/booking-email-calendar";
 import { removeGoogleCalendarEventForBooking, syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 import { consumePackageCreditForBooking } from "@/lib/packages/credits";
+import { executeAdminStripeOrderRefund } from "@/lib/orders/admin-stripe-order-refund";
 
 export type SettledCheckoutOrder = {
   skip: boolean;
   confirmedBookingIds: string[];
   pendingApprovalIds: string[];
   autoCancelledIds: string[];
+  stockFailureCancelled: boolean;
 };
 
 type SideEffectRunner = (concern: string, fn: () => Promise<void>) => Promise<void>;
@@ -38,6 +40,8 @@ export async function settleCheckoutOrderPayment(
     orderId: string;
     currency: string;
     stripeAmountCents?: number;
+    stripeTaxCents?: number;
+    stripeTotalCents?: number;
     stripePaymentId?: string | null;
     giftCardAmountCents?: number;
     stripeCheckoutSessionId?: string | null;
@@ -60,7 +64,13 @@ export async function settleCheckoutOrderPayment(
     rows[0].order_status !== "pending" ||
     rows[0].payment_status !== "pending"
   ) {
-    return { skip: true, confirmedBookingIds: [], pendingApprovalIds: [], autoCancelledIds: [] };
+    return {
+      skip: true,
+      confirmedBookingIds: [],
+      pendingApprovalIds: [],
+      autoCancelledIds: [],
+      stockFailureCancelled: false,
+    };
   }
 
   await tx.order.update({
@@ -68,6 +78,8 @@ export async function settleCheckoutOrderPayment(
     data: {
       orderStatus: "paid",
       paymentStatus: "paid",
+      ...(typeof input.stripeTaxCents === "number" ? { taxCents: Math.max(0, input.stripeTaxCents) } : {}),
+      ...(typeof input.stripeTotalCents === "number" ? { totalCents: Math.max(0, input.stripeTotalCents) } : {}),
       ...(input.stripeCheckoutSessionId ? { stripeCheckoutSessionId: input.stripeCheckoutSessionId } : {}),
     },
   });
@@ -130,8 +142,22 @@ export async function settleCheckoutOrderPayment(
     const dup = await tx.discountRedemption.findFirst({ where: { orderId: input.orderId } });
     if (!dup) {
       await lockCouponRow(tx, input.couponRedemption.couponId);
+      const coupon = await tx.coupon.findUnique({
+        where: { id: input.couponRedemption.couponId },
+        select: { id: true, maxPerCustomer: true },
+      });
       const cap = await couponHasRedemptionCapacity(tx, input.couponRedemption.couponId);
-      if (cap) {
+      let withinUserLimit = true;
+      if (coupon?.maxPerCustomer != null && rows[0].customer_user_id) {
+        const perUserRedemptions = await tx.discountRedemption.count({
+          where: {
+            couponId: input.couponRedemption.couponId,
+            userId: rows[0].customer_user_id,
+          },
+        });
+        withinUserLimit = perUserRedemptions < coupon.maxPerCustomer;
+      }
+      if (cap && withinUserLimit) {
         await tx.discountRedemption.create({
           data: {
             couponId: input.couponRedemption.couponId,
@@ -157,16 +183,69 @@ export async function settleCheckoutOrderPayment(
   const confirmedBookingIds: string[] = [];
   const pendingApprovalIds: string[] = [];
   const autoCancelledIds: string[] = [];
+  let stockFailureCancelled = false;
   const paidAt = new Date();
 
-  for (const it of items) {
-    if (it.itemType === "product" && it.productId) {
-      await tx.product.update({
-        where: { id: it.productId },
+  const productItems = items.filter((it) => it.itemType === "product" && !!it.productId);
+  const bookingItems = items.filter((it) => it.itemType === "booking" && !!it.bookingId);
+
+  for (const it of productItems) {
+    if (it.variantId) {
+      const variant = await tx.productVariant.findUnique({
+        where: { id: it.variantId },
+        select: { id: true, stockQuantity: true },
+      });
+      if (!variant) {
+        await tx.order.update({
+          where: { id: input.orderId },
+          data: {
+            orderStatus: "cancelled",
+            fulfillmentStatus: "cancelled",
+          },
+        });
+        stockFailureCancelled = true;
+        break;
+      }
+      if (variant.stockQuantity == null) {
+        continue;
+      }
+      const dec = await tx.productVariant.updateMany({
+        where: { id: variant.id, stockQuantity: { gte: it.quantity } },
         data: { stockQuantity: { decrement: it.quantity } },
       });
+      if (dec.count === 0) {
+        await tx.order.update({
+          where: { id: input.orderId },
+          data: {
+            orderStatus: "cancelled",
+            fulfillmentStatus: "cancelled",
+          },
+        });
+        stockFailureCancelled = true;
+        break;
+      }
+    } else if (it.productId) {
+      const dec = await tx.product.updateMany({
+        where: { id: it.productId, stockQuantity: { gte: it.quantity } },
+        data: { stockQuantity: { decrement: it.quantity } },
+      });
+      if (dec.count === 0) {
+        await tx.order.update({
+          where: { id: input.orderId },
+          data: {
+            orderStatus: "cancelled",
+            fulfillmentStatus: "cancelled",
+          },
+        });
+        stockFailureCancelled = true;
+        break;
+      }
     }
-    if (it.itemType === "booking" && it.bookingId) {
+  }
+
+  if (!stockFailureCancelled) {
+    for (const it of bookingItems) {
+      if (!it.bookingId) continue;
       const b = await tx.booking.findUnique({
         where: { id: it.bookingId },
         include: { experience: true },
@@ -277,7 +356,7 @@ export async function settleCheckoutOrderPayment(
     }
   }
 
-  return { skip: false, confirmedBookingIds, pendingApprovalIds, autoCancelledIds };
+  return { skip: false, confirmedBookingIds, pendingApprovalIds, autoCancelledIds, stockFailureCancelled };
 }
 
 export async function runCheckoutCompletionSideEffects(input: {
@@ -285,9 +364,25 @@ export async function runCheckoutCompletionSideEffects(input: {
   confirmedBookingIds: string[];
   pendingApprovalIds: string[];
   autoCancelledIds: string[];
+  stockFailureCancelled?: boolean;
   runSideEffect?: SideEffectRunner;
 }) {
   const runSideEffect = input.runSideEffect ?? defaultSideEffectRunner;
+
+  if (input.stockFailureCancelled) {
+    await runSideEffect(`order_auto_refund_stock_failure:${input.orderId}`, async () => {
+      const refunded = await executeAdminStripeOrderRefund({
+        orderId: input.orderId,
+        adminUserId: "system:stock-failure",
+        reason: "Automatic refund due to stock conflict after checkout settlement",
+      });
+      if (!refunded.ok) {
+        logApiError("checkout_completion_stock_failure_refund", new Error(refunded.error), {
+          orderId: input.orderId,
+        });
+      }
+    });
+  }
 
   const loadBookingEmailContext = async (bookingIds: string[]) => {
     if (!bookingIds.length) return [];
@@ -302,6 +397,7 @@ export async function runCheckoutCompletionSideEffects(input: {
           include: {
             experience: true,
             slot: true,
+            instructor: { select: { name: true } },
             bookingAddOns: true,
             intakeResponses: true,
           },
@@ -328,6 +424,7 @@ export async function runCheckoutCompletionSideEffects(input: {
       paidEur: (b.depositAmountCents / 100).toFixed(2),
       balanceEur: (b.remainingBalanceCents / 100).toFixed(2),
       seatType: b.seatType,
+      instructorName: b.instructor?.name ?? null,
       addOnLines: b.bookingAddOns.map((entry) =>
         entry.quantity > 1
           ? `${entry.addOnName} x${entry.quantity} (+€${((entry.unitPriceCents * entry.quantity) / 100).toFixed(2)})`
@@ -415,7 +512,7 @@ export async function runCheckoutCompletionSideEffects(input: {
 
   if (productEmailItems.length > 0) {
     const order = await prisma.order.findUnique({ where: { id: input.orderId } });
-    if (order && !order.orderConfirmationSentAt) {
+    if (order && order.orderStatus === "paid" && !order.orderConfirmationSentAt) {
       const studioNames = [...new Set(productEmailItems.map((i) => i.vendor.displayName))];
       const studioLabel = studioNames.length === 1 ? studioNames[0]! : `${studioNames.length} partner studios`;
 

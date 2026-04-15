@@ -16,6 +16,9 @@ export async function POST(req: Request) {
   }
 
   const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Login required for pay-at-studio bookings" }, { status: 401 });
+  }
 
   let body: {
     slotId?: string;
@@ -23,6 +26,7 @@ export async function POST(req: Request) {
     seatType?: string;
     customerName?: string;
     customerEmail?: string;
+    instructorId?: string | null;
     notes?: string;
     paymentMethod?: string;
     addOnSelections?: unknown;
@@ -40,6 +44,12 @@ export async function POST(req: Request) {
   const customerName = typeof body.customerName === "string" ? body.customerName.trim() : "";
   const customerEmail = typeof body.customerEmail === "string" ? body.customerEmail.trim().toLowerCase() : "";
   const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 1000) : "";
+  const instructorId =
+    body.instructorId === null
+      ? null
+      : typeof body.instructorId === "string"
+        ? body.instructorId.trim() || null
+        : null;
 
   if (!slotId || participantCount < 1 || !customerName || !customerEmail) {
     return NextResponse.json(
@@ -105,6 +115,24 @@ export async function POST(req: Request) {
   if (!intakeValidation.ok) {
     return NextResponse.json({ error: intakeValidation.error }, { status: 400 });
   }
+  let validatedInstructorId: string | null = null;
+  if (instructorId) {
+    const instructorLink = await prisma.instructorExperienceLink.findFirst({
+      where: {
+        instructorId,
+        experienceId: slot.experience.id,
+        instructor: {
+          studioId: slot.experience.studioId,
+          isActive: true,
+        },
+      },
+      select: { instructorId: true },
+    });
+    if (!instructorLink) {
+      return NextResponse.json({ error: "Selected instructor is not available for this class" }, { status: 400 });
+    }
+    validatedInstructorId = instructorLink.instructorId;
+  }
 
   try {
     const booking = await prisma.$transaction(async (tx) => {
@@ -128,11 +156,12 @@ export async function POST(req: Request) {
           studioId: slot.experience.studio.id,
           experienceId: slot.experience.id,
           slotId,
-          customerUserId: user?.id ?? null,
+          customerUserId: user.id,
           customerName,
           customerEmail,
           participantCount,
           seatType,
+          instructorId: validatedInstructorId,
           ticketRef,
           bookingStatus: slot.experience.bookingApprovalRequired ? "awaiting_vendor_approval" : "confirmed",
           paymentStatus: "pay_at_studio",
@@ -187,6 +216,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This session is fully booked" }, { status: 409 });
     }
     logApiError("pay_at_studio_booking", e, undefined, req);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: "Booking failed. Please try again." }, { status: 500 });
   }
 }

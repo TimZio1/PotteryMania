@@ -38,6 +38,7 @@ export type BookingEmailFields = {
   paidEur?: string;
   balanceEur?: string;
   seatType?: string | null;
+  instructorName?: string | null;
   addOnLines?: string[];
   intakeLines?: { label: string; value: string }[];
 };
@@ -91,12 +92,16 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
     ? `<p style="margin:0 0 8px;">Ticket / reference: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
     : "";
   const seat = p.seatType ? `<p style="margin:0 0 8px;">Seat type: ${escapeHtml(p.seatType)}</p>` : "";
+  const instructor = p.instructorName
+    ? `<p style="margin:0 0 8px;">Instructor: ${escapeHtml(p.instructorName)}</p>`
+    : "";
   const block = `
     <p style="margin:0 0 8px;">Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
     <p style="margin:0 0 8px;">Studio: ${escapeHtml(p.studioName)}</p>
     <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
     <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
     ${seat}
+    ${instructor}
     ${extrasBlock(p)}
     ${moneyLines(p)}
     ${ticket}
@@ -126,12 +131,16 @@ export function bookingPendingStudioConfirmationCopy(p: BookingEmailFields): { c
     ? `<p style="margin:0 0 8px;">Your reference: <strong>${escapeHtml(p.ticketRef)}</strong> (save this email)</p>`
     : "";
   const seat = p.seatType ? `<p style="margin:0 0 8px;">Seat type: ${escapeHtml(p.seatType)}</p>` : "";
+  const instructor = p.instructorName
+    ? `<p style="margin:0 0 8px;">Instructor: ${escapeHtml(p.instructorName)}</p>`
+    : "";
   const block = `
     <p style="margin:0 0 8px;">Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
     <p style="margin:0 0 8px;">Studio: ${escapeHtml(p.studioName)}</p>
     <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
     <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
     ${seat}
+    ${instructor}
     ${extrasBlock(p)}
     ${moneyLines(p)}
     ${ticket}
