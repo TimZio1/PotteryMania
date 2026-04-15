@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStudioWearProducts } from "@/lib/studio-wear-catalog";
 import { prisma } from "@/lib/db";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -17,7 +18,15 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: corsHeaders() });
 }
 
-export async function GET(_req: Request, ctx: Ctx) {
+export async function GET(req: Request, ctx: Ctx) {
+  const rate = assertRateLimit(req, "embed_wear", 60, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: corsHeaders() },
+    );
+  }
+
   const { studioId } = await ctx.params;
 
   const studio = await prisma.studio.findFirst({

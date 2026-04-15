@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { SOCIAL_PROOF_BASE } from "@/lib/brand";
 import { useCallback, useEffect, useState } from "react";
 
 type CatalogProduct = {
@@ -36,6 +37,7 @@ export default function StudioWearablesPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [activeCreators, setActiveCreators] = useState<number | null>(null);
 
   const [enabled, setEnabled] = useState(false);
   const [marginBps, setMarginBps] = useState(2000);
@@ -50,6 +52,7 @@ export default function StudioWearablesPage() {
       setEnabled(data.enabled);
       setMarginBps(data.marginBps);
       setSelected(new Set(data.selectedProductIds));
+      if (typeof data.activeCreators === "number") setActiveCreators(data.activeCreators);
     } catch {
       setError("Could not load wearables configuration.");
     } finally {
@@ -132,6 +135,12 @@ export default function StudioWearablesPage() {
         <p className="mt-1 text-sm text-stone-600">
           Sell curated pottery-inspired apparel directly from your shop — no stock, no shipping, no hassle.
         </p>
+        {activeCreators != null && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-900">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            {(activeCreators + SOCIAL_PROOF_BASE).toLocaleString()} creators selling wearables
+          </p>
+        )}
       </div>
 
       {error && <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
@@ -159,31 +168,38 @@ export default function StudioWearablesPage() {
         <>
           <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
             <p className="font-medium text-stone-900">Your Commission</p>
-            {config.marginLocked ? (
-              <p className="mt-2 text-sm text-stone-500">
-                Your margin is set to <strong>{marginPct}%</strong> and locked by the platform.
-              </p>
-            ) : (
-              <>
-                <p className="mt-1 text-xs text-stone-500">
-                  You earn {marginPct}% on every sale. Range: {(config.minMarginBps / 100).toFixed(0)}% – {(config.maxMarginBps / 100).toFixed(0)}%.
+            {(() => {
+              const avgBase = config.catalog.length > 0
+                ? config.catalog.reduce((s, p) => s + p.basePriceCents, 0) / config.catalog.length
+                : 2500;
+              const exampleEarning = (avgBase * marginBps) / 10000 / 100;
+              return config.marginLocked ? (
+                <p className="mt-2 text-sm text-stone-500">
+                  Your margin is set to <strong>{marginPct}%</strong> and locked by the platform.
+                  {" "}You earn ~<strong>{formatEur(Math.round(avgBase * marginBps / 10000))}</strong> per sale.
                 </p>
-                <input
-                  type="range"
-                  min={config.minMarginBps}
-                  max={config.maxMarginBps}
-                  step={100}
-                  value={marginBps}
-                  onChange={(e) => setMarginBps(Number(e.target.value))}
-                  className="mt-3 w-full accent-amber-600"
-                />
-                <div className="mt-1 flex justify-between text-xs text-stone-400">
-                  <span>{(config.minMarginBps / 100).toFixed(0)}%</span>
-                  <span className="font-medium text-amber-900">{marginPct}%</span>
-                  <span>{(config.maxMarginBps / 100).toFixed(0)}%</span>
-                </div>
-              </>
-            )}
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-stone-500">
+                    You earn {marginPct}% on every sale — roughly <strong>€{exampleEarning.toFixed(2)}</strong> per item.
+                  </p>
+                  <input
+                    type="range"
+                    min={config.minMarginBps}
+                    max={config.maxMarginBps}
+                    step={100}
+                    value={marginBps}
+                    onChange={(e) => setMarginBps(Number(e.target.value))}
+                    className="mt-3 w-full accent-amber-600"
+                  />
+                  <div className="mt-1 flex justify-between text-xs text-stone-400">
+                    <span>{(config.minMarginBps / 100).toFixed(0)}%</span>
+                    <span className="font-medium text-amber-900">{marginPct}% ≈ €{exampleEarning.toFixed(2)}/sale</span>
+                    <span>{(config.maxMarginBps / 100).toFixed(0)}%</span>
+                  </div>
+                </>
+              );
+            })()}
           </section>
 
           <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
@@ -293,6 +309,20 @@ export default function StudioWearablesPage() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-5">
+              <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Live preview</p>
+              <div className="mt-2 overflow-hidden rounded-lg border border-stone-200">
+                <iframe
+                  src={typeof window !== "undefined" ? `${window.location.origin}/embed/${studioId}/wearables` : ""}
+                  className="w-full border-0"
+                  style={{ minHeight: 320 }}
+                  title="Wearables embed preview"
+                  loading="lazy"
+                />
+              </div>
+              <p className="mt-1 text-xs text-stone-400">This is how your wearables shop looks when embedded on an external site.</p>
             </div>
           </section>
         </>

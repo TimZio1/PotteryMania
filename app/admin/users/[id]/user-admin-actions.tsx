@@ -32,6 +32,7 @@ export function UserAdminActions({
   const [pending, setPending] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
   const [suspendOpen, setSuspendOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [nextRole, setNextRole] = useState<UserRole>(role);
 
   async function patch(body: object): Promise<boolean> {
@@ -74,6 +75,28 @@ export function UserAdminActions({
     : (["customer", "vendor"] as UserRole[]);
   const canChangeRole =
     actorIsHyperAdmin || role === "customer" || role === "vendor";
+
+  async function deleteUser(reason: string) {
+    setPending(true);
+    setMsg("");
+    try {
+      const r = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setMsg(typeof j.error === "string" ? j.error : "Deletion failed");
+        return;
+      }
+      setDeleteOpen(false);
+      router.push("/admin/users");
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
+  }
 
   async function impersonate() {
     setPending(true);
@@ -158,6 +181,24 @@ export function UserAdminActions({
         </div>
       ) : null}
 
+      {actorIsHyperAdmin ? (
+        <div className="rounded-2xl border border-red-300 bg-red-50/60 p-5 shadow-sm">
+          <p className="text-sm font-semibold text-red-900">Danger zone</p>
+          <p className="mt-1 text-xs text-stone-600">
+            Permanently delete <strong>{email}</strong> and anonymize all their data. Orders and bookings are preserved
+            in anonymized form for financial records. This action cannot be undone.
+          </p>
+          <button
+            type="button"
+            className="mt-3 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-800 disabled:opacity-50"
+            disabled={pending}
+            onClick={() => setDeleteOpen(true)}
+          >
+            Delete user &amp; data
+          </button>
+        </div>
+      ) : null}
+
       <ConfirmActionModal
         open={roleOpen}
         title="Change role"
@@ -179,6 +220,17 @@ export function UserAdminActions({
         confirmLabel={suspended ? "Unsuspend" : "Suspend"}
         onCancel={() => setSuspendOpen(false)}
         onConfirm={patchSuspend}
+        pending={pending}
+      />
+
+      <ConfirmActionModal
+        open={deleteOpen}
+        title="Delete user & all data"
+        description={`This will permanently anonymize ${email}, erase personal data, remove reviews, carts, and tokens. Orders and bookings are kept in anonymized form for records. This cannot be undone.`}
+        confirmLabel="Delete permanently"
+        confirmationText={email}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={deleteUser}
         pending={pending}
       />
     </div>

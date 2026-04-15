@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { Prisma, UserRole } from "@prisma/client";
+import { Prisma, type UserRole } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { normalizeAdminTags } from "@/lib/admin-user-tags";
 import { requireAdminUser } from "@/lib/auth-session";
@@ -198,4 +198,118 @@ export async function PATCH(req: Request, ctx: Ctx) {
   });
 
   return NextResponse.json({ user: updated });
+}
+
+export async function DELETE(req: Request, ctx: Ctx) {
+  const admin = await requireAdminUser();
+  if (!admin || admin.role !== "hyper_admin") {
+    return NextResponse.json({ error: "Only hyper_admin can delete users" }, { status: 403 });
+  }
+
+  const { id } = await ctx.params;
+
+  if (id === admin.id) {
+    return NextResponse.json({ error: "You cannot delete your own account." }, { status: 400 });
+  }
+
+  let body: { reason?: string };
+  try {
+    body = await req.json();
+  } catch (e) {
+    logApiError("admin_user_delete_invalid_json", e, { id }, req);
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+  if (!reason.length) {
+    return NextResponse.json({ error: "reason is required" }, { status: 400 });
+  }
+
+  const target = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, email: true, role: true },
+  });
+  if (!target) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (target.role === "hyper_admin") {
+    const hyperCount = await prisma.user.count({ where: { role: "hyper_admin" } });
+    if (hyperCount <= 1) {
+      return NextResponse.json({ error: "Cannot delete the last hyper_admin" }, { status: 400 });
+    }
+  }
+
+  const anonEmail = `deleted+${id}@deleted.potterymania.local`;
+  const anonName = `Deleted User ${id.slice(0, 8)}`;
+  const now = new Date();
+
+  await prisma.$transaction(async (tx) => {
+    await Promise.all([
+      tx.customerProfile.updateMany({
+        where: { userId: id },
+        data: { fullName: null, phone: null, preferredLanguage: null, preferredCurrency: null },
+      }),
+      tx.booking.updateMany({
+        where: { customerUserId: id },
+        data: { customerName: anonName, customerEmail: anonEmail, customerPhone: null, notes: null },
+      }),
+      tx.order.updateMany({
+        where: { customerUserId: id },
+        data: {
+          customerName: anonName,
+          customerEmail: anonEmail,
+          customerPhone: null,
+          notes: null,
+          shippingAddressJson: Prisma.JsonNull,
+          billingAddressJson: Prisma.JsonNull,
+        },
+      }),
+      tx.bookingWaitlistEntry.updateMany({
+        where: { customerUserId: id },
+        data: { customerName: anonName, customerEmail: anonEmail },
+      }),
+      tx.giftCard.updateMany({
+        where: { purchaserUserId: id },
+        data: { purchaserName: anonName, purchaserEmail: anonEmail },
+      }),
+      tx.review.deleteMany({ where: { userId: id } }),
+      tx.cart.deleteMany({ where: { userId: id } }),
+      tx.acquisitionAttribution.deleteMany({ where: { userId: id } }),
+      tx.featureUsageFact.deleteMany({ where: { userId: id } }),
+      tx.discountRedemption.deleteMany({ where: { userId: id } }),
+      tx.bookSoonSent.deleteMany({ where: { userId: id } }),
+      tx.passwordResetToken.deleteMany({ where: { userId: id } }),
+      tx.emailVerificationToken.deleteMany({ where: { userId: id } }),
+      tx.adminNote.deleteMany({ where: { targetUserId: id } }),
+      tx.user.update({
+        where: { id },
+        data: {
+          email: anonEmail,
+          passwordHash: null,
+          suspendedAt: now,
+          suspendedReason: "admin_deleted",
+          emailVerifiedAt: null,
+          marketingConsent: false,
+          adminTags: [],
+          calendarFeedToken: null,
+          preferredLanguage: null,
+          detectedRegion: null,
+          regionOverride: null,
+        },
+      }),
+    ]);
+  });
+
+  await logAdminAction({
+    actorUserId: admin.id,
+    action: "user.delete",
+    entityType: "user",
+    entityId: id,
+    before: { email: target.email, role: target.role },
+    after: { email: anonEmail, suspended: true },
+    reason,
+  });
+
+  return NextResponse.json({ ok: true, message: `User ${target.email} has been deleted and anonymized.` });
 }

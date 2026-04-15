@@ -36,7 +36,10 @@ export async function GET(_req: Request, ctx: Ctx) {
     ? resolveStudioMarginBps(config.marginBps, global)
     : global.defaultMarginBps;
 
+  const activeCreators = await prisma.studioWearConfig.count({ where: { enabled: true } });
+
   return NextResponse.json({
+    activeCreators,
     enabled: config?.enabled ?? false,
     marginBps: effectiveMarginBps,
     marginLocked: global.marginLocked || (config?.marginLocked ?? false),
