@@ -22,6 +22,7 @@ type WearConfig = {
   maxMarginBps: number;
   selectedProductIds: string[];
   catalog: CatalogProduct[];
+  activeCreators?: number;
 };
 
 function formatEur(cents: number) {

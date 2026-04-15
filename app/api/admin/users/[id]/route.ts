@@ -273,7 +273,7 @@ export async function DELETE(req: Request, ctx: Ctx) {
         where: { purchaserUserId: id },
         data: { purchaserName: anonName, purchaserEmail: anonEmail },
       }),
-      tx.review.deleteMany({ where: { userId: id } }),
+      tx.review.deleteMany({ where: { authorUserId: id } }),
       tx.cart.deleteMany({ where: { userId: id } }),
       tx.acquisitionAttribution.deleteMany({ where: { userId: id } }),
       tx.featureUsageFact.deleteMany({ where: { userId: id } }),
