@@ -73,9 +73,9 @@ const landingPanels: LandingPanel[] = [
   {
     key: "wearables",
     title: "Shop Wearables",
-    subtitle: "Turn your craft into something people can wear.",
+    subtitle: "Sell them on your site, or buy for yourself.",
     points: ["Sell branded apparel", "No inventory required", "Print-on-demand fulfillment", "Expand your identity beyond clay"],
-    cta: "Explore Wearables",
+    cta: "Explore/buy Wearables",
     href: "/wear/shop",
     image:
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1600&q=80",

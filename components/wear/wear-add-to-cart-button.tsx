@@ -14,16 +14,38 @@ import { WEAR_EVENT_KINDS, trackWearEvent } from "@/lib/wear-analytics-client";
 type Props = {
   productId: string;
   variantId?: string | null;
+  studioId?: string;
   className?: string;
   label?: string;
 };
 
-export function WearAddToCartButton({ productId, variantId = null, className, label = "Add to cart" }: Props) {
+export function WearAddToCartButton({ productId, variantId = null, studioId, className, label = "Add to cart" }: Props) {
   const [busy, setBusy] = useState(false);
 
-  const onClick = useCallback(() => {
+  const onClick = useCallback(async () => {
     setBusy(true);
     try {
+      if (studioId) {
+        const res = await fetch("/api/cart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            wearProductId: productId,
+            wearProductVariantId: variantId,
+            studioId,
+            quantity: 1,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error("Could not add wearable to cart");
+        }
+        notifyWearCartChanged();
+        trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
+          productId,
+          variantId: variantId ?? undefined,
+        });
+        return;
+      }
       const raw = typeof window !== "undefined" ? localStorage.getItem(WEAR_CART_STORAGE_KEY) : null;
       const lines = parseWearCart(raw);
       const incoming: WearCartLine = {
@@ -55,7 +77,7 @@ export function WearAddToCartButton({ productId, variantId = null, className, la
     } finally {
       setBusy(false);
     }
-  }, [productId, variantId]);
+  }, [productId, studioId, variantId]);
 
   return (
     <button

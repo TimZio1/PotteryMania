@@ -177,6 +177,8 @@ export async function POST(req: Request) {
 
   const hasBookingsInCart = lineRows.some((row) => row.itemType === "booking");
   const hasProductsInCart = lineRows.some((row) => row.itemType === "product");
+  const hasWearInCart = lineRows.some((row) => row.itemType === "wear");
+  const mixedCheckoutEnabled = hasWearInCart && (await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.mixedCheckoutEnabled, false));
   if (hasBookingsInCart && !(await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.bookingCheckoutEnabled))) {
     return NextResponse.json(
       { error: "Class booking checkout is temporarily unavailable. Please try again later." },
@@ -189,6 +191,12 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
+  if (hasWearInCart && !mixedCheckoutEnabled) {
+    return NextResponse.json(
+      { error: "Studio wearable checkout is being enabled. Please remove wearables or try again shortly." },
+      { status: 503 },
+    );
+  }
 
   const shipping = body.shippingAddress || {};
   const shippingAddressJson = {
@@ -198,7 +206,7 @@ export async function POST(req: Request) {
     country: shipping.country || "",
     postal: shipping.postal || "",
   };
-  const hasProducts = lineRows.some((row) => row.itemType === "product");
+  const hasProducts = lineRows.some((row) => row.itemType === "product" || row.itemType === "wear");
   if (hasProducts && !shippingAddressJson.country.trim()) {
     return NextResponse.json({ error: "shippingAddress.country is required for shippable products." }, { status: 400 });
   }
@@ -224,6 +232,10 @@ export async function POST(req: Request) {
     const byId = new Map(productRows.map((p) => [p.id, p] as const));
     let shippingCents = 0;
     for (const row of lineRows) {
+      if (row.itemType === "wear") {
+        shippingCents += 900 * Math.max(1, row.quantity);
+        continue;
+      }
       if (row.itemType !== "product" || !row.productId) continue;
       const p = byId.get(row.productId);
       if (!p) return NextResponse.json({ error: "A cart product is no longer available." }, { status: 409 });
@@ -371,6 +383,13 @@ export async function POST(req: Request) {
     });
   }
 
+  const wearLines = stripeLineRows.filter((row) => row.itemType === "wear");
+  const standardProductLines = stripeLineRows.filter((row) => row.itemType === "product");
+  const wearSubtotalCents = wearLines.reduce((sum, row) => sum + row.chargedLineCents, 0);
+  const wearStudioMarginCents = wearLines.reduce((sum, row) => sum + row.vendorCents, 0);
+  const wearPlatformRevenueCents = wearLines.reduce((sum, row) => sum + row.commissionCents, 0);
+  const wearShippingCents = hasWearInCart && standardProductLines.length === 0 ? shippingQuote.shippingCents : Math.max(0, wearLines.length * 900);
+
   const sessionMetadata: Record<string, string> = {
     orderId: order.id,
     cartId,
@@ -389,32 +408,89 @@ export async function POST(req: Request) {
 
   let session: Stripe.Checkout.Session;
   try {
-    session = await stripe.checkout.sessions.create(
-      {
+    if (hasWearInCart) {
+      const nonWearCommissionCents = stripeLineRows
+        .filter((row) => row.itemType !== "wear")
+        .reduce((sum, row) => sum + row.commissionCents, 0);
+      const applicationFeeAmount = nonWearCommissionCents + wearPlatformRevenueCents;
+      session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer_email: customerEmail,
         line_items,
         success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl()}/cart?cancelled=1`,
         automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
+        shipping_address_collection: { allowed_countries: ["GR", "DE", "FR", "IT", "ES", "PT", "NL", "BE", "AT", "IE", "LU", "CY", "MT", "SI", "SK", "CZ", "PL", "HU", "RO", "BG", "HR", "DK", "SE", "FI", "EE", "LV", "LT", "US", "CA"] },
         payment_intent_data: {
-          ...(stripeTotals.commissionTotal > 0 ? { application_fee_amount: stripeTotals.commissionTotal } : {}),
+          ...(applicationFeeAmount > 0 ? { application_fee_amount: applicationFeeAmount } : {}),
+          transfer_data: { destination: stripeRow.stripeAccountId },
           metadata: {
             orderId: order.id,
+            mixedCheckout: "true",
             ...(couponIdForMeta ? { couponId: couponIdForMeta, discountCents: String(discountAppliedCents) } : {}),
             ...(giftCardForMeta ? { giftCardId: giftCardForMeta.id, giftCardAppliedCents: String(giftCardAppliedCents) } : {}),
           },
         },
-        metadata: sessionMetadata,
-      },
-      { stripeAccount: stripeRow.stripeAccountId },
-    );
+        metadata: {
+          ...sessionMetadata,
+          mixedCheckout: "true",
+        },
+      });
+    } else {
+      session = await stripe.checkout.sessions.create(
+        {
+          mode: "payment",
+          customer_email: customerEmail,
+          line_items,
+          success_url: `${baseUrl()}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${baseUrl()}/cart?cancelled=1`,
+          automatic_tax: stripeTaxEnabled() ? { enabled: true } : undefined,
+          payment_intent_data: {
+            ...(stripeTotals.commissionTotal > 0 ? { application_fee_amount: stripeTotals.commissionTotal } : {}),
+            metadata: {
+              orderId: order.id,
+              ...(couponIdForMeta ? { couponId: couponIdForMeta, discountCents: String(discountAppliedCents) } : {}),
+              ...(giftCardForMeta ? { giftCardId: giftCardForMeta.id, giftCardAppliedCents: String(giftCardAppliedCents) } : {}),
+            },
+          },
+          metadata: sessionMetadata,
+        },
+        { stripeAccount: stripeRow.stripeAccountId },
+      );
+    }
 
     await prisma.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: order.id },
         data: { stripeCheckoutSessionId: session.id },
       });
+      if (hasWearInCart) {
+        await tx.wearOrder.create({
+          data: {
+            orderId: order.id,
+            studioId,
+            customerEmail,
+            customerName,
+            status: "pending",
+            subtotalCents: wearSubtotalCents,
+            shippingCents: Math.max(0, wearShippingCents),
+            studioMarginCents: wearStudioMarginCents > 0 ? wearStudioMarginCents : null,
+            platformRevenueCents: wearPlatformRevenueCents > 0 ? wearPlatformRevenueCents : null,
+            currency: "EUR",
+            stripeCheckoutSessionId: session.id,
+            items: {
+              create: wearLines.map((row) => ({
+                wearProductId: row.wearProductId!,
+                wearProductVariantId: row.wearProductVariantId ?? null,
+                quantity: row.quantity,
+                unitPriceCents: row.chargedLineCents / Math.max(1, row.quantity),
+                productNameSnapshot: row.title,
+                variantLabelSnapshot: row.variantName ?? null,
+              })),
+            },
+          },
+        });
+      }
       if (giftCardForMeta && giftCardAppliedCents > 0) {
         await attachGiftCardReservationsToSession(tx, {
           orderId: order.id,

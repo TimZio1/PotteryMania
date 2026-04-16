@@ -8,6 +8,7 @@ const TTL_MS = 60_000;
 export const RUNTIME_FLAG_KEYS = {
   bookingCheckoutEnabled: "booking_checkout_enabled",
   marketplaceCheckoutEnabled: "marketplace_checkout_enabled",
+  mixedCheckoutEnabled: "mixed_checkout_enabled",
   rankingUpdateEnabled: "ranking_update_enabled",
   publicDiscoveryEnabled: "public_discovery_enabled",
 } as const;

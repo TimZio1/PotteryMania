@@ -87,6 +87,23 @@ export async function createPendingCheckoutOrder(input: CreatePendingOrderInput)
         continue;
       }
 
+      if (row.itemType === "wear" && row.wearProductId) {
+        await tx.orderItem.create({
+          data: {
+            orderId: createdOrder.id,
+            itemType: "wear",
+            wearProductId: row.wearProductId,
+            wearProductVariantId: row.wearProductVariantId ?? null,
+            vendorId: input.studioId,
+            quantity: row.quantity,
+            priceSnapshotCents: row.chargedLineCents,
+            commissionSnapshotCents: row.commissionCents,
+            vendorAmountSnapshotCents: row.vendorCents,
+          },
+        });
+        continue;
+      }
+
       if (row.itemType === "booking" && row.experienceId && row.slotId && row.participantCount) {
         const ticketRef = await allocateTicketRef(tx);
         const bookingDiscountCents = Math.max(0, row.originalChargedLineCents - row.chargedLineCents);

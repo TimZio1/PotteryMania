@@ -43,6 +43,7 @@ export async function settleCheckoutOrderPayment(
     stripeTaxCents?: number;
     stripeTotalCents?: number;
     stripePaymentId?: string | null;
+    stripeAccountId?: string | null;
     giftCardAmountCents?: number;
     stripeCheckoutSessionId?: string | null;
     couponRedemption?: { couponId: string; amountCents: number } | null;
@@ -98,6 +99,7 @@ export async function settleCheckoutOrderPayment(
           orderId: input.orderId,
           provider: "stripe",
           providerPaymentId: input.stripePaymentId ?? null,
+          providerAccountId: input.stripeAccountId ?? null,
           paymentStatus: "succeeded",
           amountCents: input.stripeAmountCents!,
           currency: input.currency,

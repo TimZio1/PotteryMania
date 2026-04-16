@@ -36,6 +36,8 @@ type WearShopProduct = Awaited<ReturnType<typeof prisma.wearProduct.findMany>>[n
   providerCategoryLabel: string | null;
 };
 
+const CATEGORY_DISPLAY_ORDER = ["tops", "hoodies", "headwear", "accessories", "other"] as const;
+
 export default async function WearShopPage({ searchParams }: WearShopProps) {
   const sp = await searchParams;
   const activeCategory = sp.category?.trim().toLowerCase() || null;
@@ -99,11 +101,21 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
       .map((p) => p.topSub),
   );
   const topSubNavItems = WEAR_TOP_SUBCATEGORIES.filter((s) => topsSubsInCatalog.has(s));
+  const hasTopsInCatalog = topsSubsInCatalog.size > 0;
 
   const categoryNavItems = Array.from(
     new Map(normalized.map((product) => [product.categorySlug, product.categoryLabel])).entries(),
   ).map(([slug, label]) => ({ slug, label }));
-  categoryNavItems.sort((a, b) => a.label.localeCompare(b.label));
+  categoryNavItems.sort((a, b) => {
+    const aIndex = CATEGORY_DISPLAY_ORDER.indexOf(a.slug as (typeof CATEGORY_DISPLAY_ORDER)[number]);
+    const bIndex = CATEGORY_DISPLAY_ORDER.indexOf(b.slug as (typeof CATEGORY_DISPLAY_ORDER)[number]);
+    const safeA = aIndex === -1 ? Number.MAX_SAFE_INTEGER : aIndex;
+    const safeB = bIndex === -1 ? Number.MAX_SAFE_INTEGER : bIndex;
+    return safeA - safeB || a.label.localeCompare(b.label);
+  });
+  const secondaryCategoryNavItems = hasTopsInCatalog
+    ? categoryNavItems.filter((category) => category.slug !== "tops")
+    : categoryNavItems;
 
   type ShopBlock =
     | {
@@ -158,6 +170,50 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <div className="mx-auto mt-8 max-w-4xl">
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex min-w-max items-center gap-2 pb-1">
+              {hasTopsInCatalog ? (
+                <>
+                  <Link
+                    href="/wear/shop?category=tops"
+                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                      activeCategory === "tops" && activeTopSub == null
+                        ? "border-amber-300 bg-amber-100 text-amber-950"
+                        : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                    }`}
+                  >
+                    All tops
+                  </Link>
+                  {topSubNavItems.map((sub) => (
+                    <Link
+                      key={sub}
+                      href={`/wear/shop?category=tops&sub=${sub}`}
+                      className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                        activeCategory === "tops" && activeTopSub === sub
+                          ? "border-amber-300 bg-amber-100 text-amber-950"
+                          : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                      }`}
+                    >
+                      {wearTopSubcategoryLabel(sub)}
+                    </Link>
+                  ))}
+                </>
+              ) : (
+                <Link
+                  href="/wear/shop"
+                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                    activeCategory == null
+                      ? "border-amber-300 bg-amber-100 text-amber-950"
+                      : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                  }`}
+                >
+                  All
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto mt-4 max-w-4xl">
+          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-max items-center gap-2 pb-1">
               <Link
                 href="/wear/shop"
                 className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
@@ -168,7 +224,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               >
                 All
               </Link>
-              {categoryNavItems.map((category) => (
+              {secondaryCategoryNavItems.map((category) => (
                 <Link
                   key={category.slug}
                   href={`/wear/shop?category=${category.slug}`}
@@ -184,38 +240,6 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             </div>
           </div>
         </div>
-        {(activeCategory == null || visible.some((product) => product.fallbackCategory === "tops")) &&
-        topSubNavItems.length > 1 ? (
-          <div className="mx-auto mt-4 max-w-4xl">
-            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex min-w-max items-center gap-2 pb-1">
-                <Link
-                  href={activeCategory ? `/wear/shop?category=${activeCategory}` : "/wear/shop"}
-                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
-                    activeTopSub == null
-                      ? "border-amber-300 bg-amber-100 text-amber-950"
-                      : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
-                  }`}
-                >
-                  All tops
-                </Link>
-                {topSubNavItems.map((sub) => (
-                  <Link
-                    key={sub}
-                    href={`/wear/shop${activeCategory ? `?category=${activeCategory}&sub=${sub}` : `?sub=${sub}`}`}
-                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
-                      activeTopSub === sub
-                        ? "border-amber-300 bg-amber-100 text-amber-950"
-                        : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
-                    }`}
-                  >
-                    {wearTopSubcategoryLabel(sub)}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : null}
 
         {visible.length === 0 ? (
           <div className="mx-auto mt-16 max-w-md text-center">

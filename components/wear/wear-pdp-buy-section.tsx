@@ -17,6 +17,7 @@ export function WearPdpBuySection({
   basePriceCents,
   currency,
   variants,
+  studioId,
   selectedColor: controlledSelectedColor,
   onSelectedColorChange,
 }: {
@@ -24,6 +25,7 @@ export function WearPdpBuySection({
   basePriceCents: number;
   currency: string;
   variants: WearPdpVariant[];
+  studioId?: string;
   selectedColor?: string;
   onSelectedColorChange?: (color: string) => void;
 }) {
@@ -182,6 +184,7 @@ export function WearPdpBuySection({
           <WearAddToCartButton
             productId={productId}
             variantId={needsVariant ? selected?.id ?? null : null}
+            studioId={studioId}
             label="Add to cart"
           />
         ) : (

@@ -13,7 +13,7 @@ type Item = {
   id: string;
   vendorId: string;
   vendor?: { id: string; displayName: string } | null;
-  itemType: "product" | "booking";
+  itemType: "product" | "booking" | "wear";
   quantity: number;
   participantCount?: number | null;
   seatType?: string | null;
@@ -25,6 +25,8 @@ type Item = {
   bookingPaymentPreference?: "deposit" | "full" | null;
   product?: { title: string; images: { imageUrl: string }[] } | null;
   variant?: { id: string; name: string } | null;
+  wearProduct?: { name: string; slug: string; images: string[]; currency: string } | null;
+  wearProductVariant?: { id: string; label: string } | null;
   experience?: { title: string; bookingDepositBps: number; allowFullPaymentOption?: boolean } | null;
   slot?: {
     slotDate: string;
@@ -123,10 +125,10 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
     }
   }
 
-  async function removeItem(itemId: string, itemType: "product" | "booking") {
+  async function removeItem(itemId: string, itemType: "product" | "booking" | "wear") {
     setErr("");
     try {
-      await mutateCart({ itemId, ...(itemType === "product" ? { quantity: 0 } : { participantCount: 0 }) });
+      await mutateCart({ itemId, ...(itemType === "booking" ? { participantCount: 0 } : { quantity: 0 }) });
       await load();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not update cart");
@@ -289,7 +291,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
   }
 
   function lineDueCents(i: Item): number {
-    if (i.itemType === "product") return i.priceSnapshotCents * i.quantity;
+    if (i.itemType === "product" || i.itemType === "wear") return i.priceSnapshotCents * i.quantity;
     const p = i.participantCount ?? 0;
     const addOnsTotal =
       i.addOnSelections?.reduce((sum, selection) => sum + selection.unitPriceCents * selection.quantity, 0) ?? 0;
@@ -308,14 +310,14 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
   }
 
   function lineDisplayFullCents(i: Item): number {
-    if (i.itemType === "product") return i.priceSnapshotCents * i.quantity;
+    if (i.itemType === "product" || i.itemType === "wear") return i.priceSnapshotCents * i.quantity;
     const addOnsTotal =
       i.addOnSelections?.reduce((sum, selection) => sum + selection.unitPriceCents * selection.quantity, 0) ?? 0;
     return i.priceSnapshotCents * (i.participantCount ?? 0) + addOnsTotal;
   }
 
   const sub = items.reduce((s, i) => s + lineDueCents(i), 0) / 100;
-  const hasProducts = items.some((i) => i.itemType === "product");
+  const hasProducts = items.some((i) => i.itemType === "product" || i.itemType === "wear");
 
   if (loading) {
     return (
@@ -395,13 +397,13 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                 <li key={i.id} className={`${ui.card} !p-[var(--pm-space-4)] sm:!p-[var(--pm-space-5)]`}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <div className="flex min-w-0 gap-4">
-                      {i.itemType === "product" ? (
+                      {i.itemType === "product" || i.itemType === "wear" ? (
                         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[length:var(--pm-radius-control)] bg-[var(--surface-elevated)]">
-                          {i.product?.images[0]?.imageUrl ? (
+                          {(i.itemType === "product" ? i.product?.images[0]?.imageUrl : i.wearProduct?.images?.[0]) ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={i.product.images[0].imageUrl}
-                              alt={i.product.title}
+                              src={i.itemType === "product" ? i.product!.images[0]!.imageUrl : i.wearProduct!.images[0]!}
+                              alt={i.itemType === "product" ? i.product!.title : i.wearProduct!.name}
                               className="h-full w-full object-cover"
                             />
                           ) : (
@@ -416,10 +418,13 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                         <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{i.vendor.displayName}</p>
                       ) : null}
                       <p className="font-medium text-[var(--foreground)]">
-                        {i.itemType === "product" ? i.product?.title : i.experience?.title}
+                        {i.itemType === "product" ? i.product?.title : i.itemType === "wear" ? i.wearProduct?.name : i.experience?.title}
                       </p>
                       {i.itemType === "product" && i.variant?.name ? (
                         <p className="mt-1 text-xs text-[var(--muted)]">Variant: {i.variant.name}</p>
+                      ) : null}
+                      {i.itemType === "wear" && i.wearProductVariant?.label ? (
+                        <p className="mt-1 text-xs text-[var(--muted)]">Option: {i.wearProductVariant.label}</p>
                       ) : null}
                       {i.itemType === "booking" && i.classPackagePurchaseId ? (
                         <p className="mt-1 text-xs font-medium text-emerald-700">Package credit applied</p>
@@ -432,7 +437,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-row items-center justify-between gap-4 sm:flex-col sm:items-end">
-                      {i.itemType === "product" ? (
+                      {i.itemType === "product" || i.itemType === "wear" ? (
                         <input
                           type="number"
                           min={1}
@@ -465,7 +470,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                         type="button"
                         className="text-xs font-medium text-red-400 hover:text-red-300 hover:underline"
                         onClick={() => removeItem(i.id, i.itemType)}
-                        aria-label={`Remove ${i.itemType === "product" ? i.product?.title : i.experience?.title}`}
+                        aria-label={`Remove ${i.itemType === "product" ? i.product?.title : i.itemType === "wear" ? i.wearProduct?.name : i.experience?.title}`}
                       >
                         Remove
                       </button>

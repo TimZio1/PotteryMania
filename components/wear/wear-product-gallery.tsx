@@ -24,6 +24,7 @@ export function WearProductGallery({
   variants,
   basePriceCents,
   currency,
+  studioId,
   backHref,
   categoryLabel,
   topSubLabel,
@@ -36,6 +37,7 @@ export function WearProductGallery({
   variants: WearPdpVariant[];
   basePriceCents: number;
   currency: string;
+  studioId?: string;
   backHref: string;
   categoryLabel: string;
   topSubLabel?: string | null;
@@ -142,6 +144,7 @@ export function WearProductGallery({
           basePriceCents={basePriceCents}
           currency={currency}
           variants={variants}
+          studioId={studioId}
           selectedColor={selectedColor}
           onSelectedColorChange={setSelectedColor}
         />

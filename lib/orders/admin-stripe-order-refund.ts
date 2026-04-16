@@ -25,6 +25,18 @@ function chargeFromPi(pi: Stripe.PaymentIntent): Stripe.Charge | null {
 }
 
 async function resolveConnectedAccountForOrder(orderId: string): Promise<string | null> {
+  const payment = await prisma.payment.findFirst({
+    where: {
+      orderId,
+      provider: "stripe",
+      paymentStatus: { in: ["succeeded", "partially_refunded"] },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { providerAccountId: true },
+  });
+  if (payment?.providerAccountId !== undefined) {
+    return payment.providerAccountId ?? null;
+  }
   const item = await prisma.orderItem.findFirst({
     where: { orderId },
     select: { vendorId: true },

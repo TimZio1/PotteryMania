@@ -7,6 +7,7 @@ import { validateAndSnapshotAddOnSelections, type AddOnSelectionSnapshot } from 
 import { validateIntakeResponses, type IntakeResponseSnapshot } from "@/lib/intake-forms/validate-responses";
 import { cartItemInclude } from "@/lib/cart-server";
 import { getEligiblePackagePurchase } from "@/lib/packages/credits";
+import { calculateWearMarginCents, calculateWearPrice, resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
 
 export type CartWithCheckoutItems = Prisma.CartGetPayload<{
   include: { items: { include: typeof cartItemInclude } };
@@ -14,7 +15,7 @@ export type CartWithCheckoutItems = Prisma.CartGetPayload<{
 
 export type CheckoutLineRow = {
   cartItemId: string;
-  itemType: "product" | "booking";
+  itemType: "product" | "booking" | "wear";
   bookingPaymentPreference?: "deposit" | "full";
   title: string;
   stripeName: string;
@@ -24,6 +25,8 @@ export type CheckoutLineRow = {
   productId?: string;
   variantId?: string | null;
   variantName?: string | null;
+  wearProductId?: string;
+  wearProductVariantId?: string | null;
   experienceId?: string;
   slotId?: string;
   participantCount?: number;
@@ -40,6 +43,7 @@ export type CheckoutLineRow = {
   chargedLineCents: number;
   commissionCents: number;
   vendorCents: number;
+  shippingProfile?: "standard_product" | "wear";
 };
 
 export type BuildCheckoutLineOptions = {
@@ -181,6 +185,71 @@ export async function buildCheckoutLineRowsFromCart(
         chargedLineCents: lineCents,
         commissionCents: com,
         vendorCents: lineCents - com,
+      });
+      continue;
+    }
+
+    if (item.itemType === "wear") {
+      if (!item.wearProductId || !item.wearProduct) {
+        return { ok: false, error: "Invalid wearable cart item", status: 400 };
+      }
+      const p = item.wearProduct;
+      const variant = item.wearProductVariantId ? item.wearProductVariant ?? null : null;
+      if (!p.isActive || p.archivedAt) {
+        return { ok: false, error: `Wearable unavailable: ${p.name}`, status: 400 };
+      }
+      if (item.wearProductVariantId && !variant) {
+        return { ok: false, error: `Selected option no longer exists for "${p.name}"`, status: 409 };
+      }
+      if (variant?.stockQuantity != null && variant.stockQuantity < item.quantity) {
+        return {
+          ok: false,
+          error: `Not enough stock for "${p.name} — ${variant.label}" (available: ${Math.max(0, variant.stockQuantity)})`,
+          status: 400,
+        };
+      }
+      const wearConfig = await prisma.studioWearConfig.findUnique({
+        where: { studioId },
+        select: { enabled: true, marginBps: true },
+      });
+      if (!wearConfig?.enabled) {
+        return { ok: false, error: `Wearables are no longer active for this studio`, status: 409 };
+      }
+      const globalPricing = await resolveWearGlobalPricing();
+      const effectiveMarginBps = resolveStudioMarginBps(wearConfig.marginBps, globalPricing);
+      const baseUnit = variant?.priceCents ?? p.priceCents;
+      const currentUnit = calculateWearPrice(baseUnit, effectiveMarginBps);
+      if (currentUnit !== item.priceSnapshotCents) {
+        return {
+          ok: false,
+          error: `Price changed for "${variant ? `${p.name} — ${variant.label}` : p.name}". Refresh your cart and try again.`,
+          status: 409,
+          priceChanged: true,
+        };
+      }
+      const lineCents = currentUnit * item.quantity;
+      const unitMarginCents = calculateWearMarginCents(baseUnit, currentUnit);
+      const studioMarginCents = unitMarginCents * item.quantity;
+      const platformRevenueCents = Math.max(0, lineCents - studioMarginCents);
+      subtotal += lineCents;
+      commissionTotal += platformRevenueCents;
+      lineRows.push({
+        cartItemId: item.id,
+        itemType: "wear",
+        title: variant ? `${p.name} — ${variant.label}` : p.name,
+        stripeName: variant ? `${p.name} — ${variant.label}` : p.name,
+        quantity: item.quantity,
+        stripeQuantity: item.quantity,
+        stripeUnitCents: currentUnit,
+        wearProductId: p.id,
+        wearProductVariantId: variant?.id ?? null,
+        variantName: variant?.label ?? null,
+        fullLineCents: lineCents,
+        originalChargedLineCents: lineCents,
+        chargedLineCents: lineCents,
+        commissionCents: platformRevenueCents,
+        vendorCents: studioMarginCents,
+        shippingProfile: "wear",
       });
       continue;
     }
@@ -365,6 +434,7 @@ export async function buildCheckoutLineRowsFromCart(
       chargedLineCents: charged,
       commissionCents: com,
       vendorCents: charged - com,
+      shippingProfile: "standard_product",
     });
   }
 

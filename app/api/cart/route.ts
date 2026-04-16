@@ -9,6 +9,7 @@ import { normalizeBookingPaymentPreference } from "@/lib/bookings/deposit";
 import { getEligiblePackagePurchase } from "@/lib/packages/credits";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logApiError } from "@/lib/monitoring";
+import { calculateWearPrice, resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
 
 async function loadCart(cartId: string) {
   return prisma.cart.findUnique({
@@ -43,6 +44,9 @@ export async function POST(req: Request) {
   let body: {
     productId?: string;
     variantId?: string | null;
+    wearProductId?: string;
+    wearProductVariantId?: string | null;
+    studioId?: string;
     quantity?: number;
     slotId?: string;
     participantCount?: number;
@@ -61,12 +65,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const productId = typeof body.productId === "string" ? body.productId : "";
+  const wearProductId = typeof body.wearProductId === "string" ? body.wearProductId.trim() : "";
   const variantId =
     body.variantId === null
       ? null
       : typeof body.variantId === "string"
         ? body.variantId.trim() || null
         : undefined;
+  const wearProductVariantId =
+    body.wearProductVariantId === null
+      ? null
+      : typeof body.wearProductVariantId === "string"
+        ? body.wearProductVariantId.trim() || null
+        : undefined;
+  const studioId = typeof body.studioId === "string" ? body.studioId.trim() : "";
   const slotId = typeof body.slotId === "string" ? body.slotId : "";
   const quantity = typeof body.quantity === "number" && body.quantity > 0 ? Math.floor(body.quantity) : 1;
   const participantCount =
@@ -95,16 +107,113 @@ export async function POST(req: Request) {
       : typeof body.instructorId === "string"
         ? body.instructorId.trim() || null
         : undefined;
-  if (!productId && !slotId) {
-    return NextResponse.json({ error: "productId or slotId required" }, { status: 400 });
+  if (!productId && !slotId && !wearProductId) {
+    return NextResponse.json({ error: "productId, wearProductId or slotId required" }, { status: 400 });
   }
 
   const existingItems = await prisma.cartItem.findMany({
     where: { cartId },
-    include: { product: { include: { variants: true } }, variant: true, slot: true, experience: true },
+    include: {
+      product: { include: { variants: true } },
+      variant: true,
+      wearProduct: { include: { variants: true } },
+      wearProductVariant: true,
+      slot: true,
+      experience: true,
+    },
   });
 
-  if (productId) {
+  if (wearProductId) {
+    if (!studioId) {
+      return NextResponse.json({ error: "studioId is required for studio wearables" }, { status: 400 });
+    }
+
+    const [studio, wearConfig, wearProduct, globalPricing] = await Promise.all([
+      prisma.studio.findFirst({
+        where: { id: studioId, status: "approved" },
+        select: { id: true },
+      }),
+      prisma.studioWearConfig.findUnique({
+        where: { studioId },
+        select: { enabled: true, marginBps: true },
+      }),
+      prisma.wearProduct.findFirst({
+        where: {
+          id: wearProductId,
+          isActive: true,
+          archivedAt: null,
+          studioWearProducts: { some: { studioId } },
+        },
+        include: {
+          variants: {
+            where: { isActive: true },
+            orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+          },
+        },
+      }),
+      resolveWearGlobalPricing(),
+    ]);
+
+    if (!studio || !wearConfig?.enabled) {
+      return NextResponse.json({ error: "Studio wearables are not available" }, { status: 400 });
+    }
+    if (!wearProduct) {
+      return NextResponse.json({ error: "Wearable not available" }, { status: 400 });
+    }
+
+    const hasVariants = wearProduct.variants.length > 0;
+    if (hasVariants && !wearProductVariantId) {
+      return NextResponse.json({ error: "Please choose a wearable option" }, { status: 400 });
+    }
+    if (!hasVariants && wearProductVariantId) {
+      return NextResponse.json({ error: "This wearable has no options" }, { status: 400 });
+    }
+    const selectedVariant = wearProductVariantId
+      ? wearProduct.variants.find((row) => row.id === wearProductVariantId) ?? null
+      : null;
+    if (wearProductVariantId && !selectedVariant) {
+      return NextResponse.json({ error: "Selected wearable option is not available" }, { status: 400 });
+    }
+
+    const effectiveMarginBps = resolveStudioMarginBps(wearConfig.marginBps, globalPricing);
+    const baseUnit = selectedVariant?.priceCents ?? wearProduct.priceCents;
+    const unit = calculateWearPrice(baseUnit, effectiveMarginBps);
+    const same = existingItems.find(
+      (i) =>
+        i.itemType === "wear" &&
+        i.wearProductId === wearProductId &&
+        (i.wearProductVariantId ?? null) === (selectedVariant?.id ?? null) &&
+        i.vendorId === studioId,
+    );
+    const nextQuantity = (same?.quantity ?? 0) + quantity;
+    if (selectedVariant?.stockQuantity != null && selectedVariant.stockQuantity < nextQuantity) {
+      return NextResponse.json(
+        {
+          error: `Not enough stock for "${selectedVariant.label}" (available: ${Math.max(0, selectedVariant.stockQuantity)})`,
+        },
+        { status: 400 },
+      );
+    }
+
+    if (same) {
+      await prisma.cartItem.update({
+        where: { id: same.id },
+        data: { quantity: same.quantity + quantity, priceSnapshotCents: unit, vendorId: studioId },
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          cartId,
+          itemType: "wear",
+          wearProductId,
+          wearProductVariantId: selectedVariant?.id ?? null,
+          vendorId: studioId,
+          quantity,
+          priceSnapshotCents: unit,
+        },
+      });
+    }
+  } else if (productId) {
     const product = await prisma.product.findFirst({
       where: {
         id: productId,

@@ -2316,6 +2316,40 @@ Execute in this order. If a fix already exists, re-validate and lock with regres
 
 ---
 
+## 4A) WEAR / POD HARDENING ADDENDUM
+
+Use this addendum only if wear remains part of the product after the kill-list decision.  
+Rule: no new visible wear feature ships before the control layer below is green.
+
+| ID | Problem | Exact fix | Priority | File / system map | Acceptance criteria |
+|----|---------|-----------|----------|-------------------|---------------------|
+| EXEC-025 | Supplier still too close to storefront truth | Make PotteryMania DB the source of truth for wear catalog, pricing visibility, studio availability, and publish status. Treat supplier sync as upstream input only. | P1 | `lib/wear-spreadconnect-catalog-sync.ts`, `app/wear/shop/page.tsx`, `app/api/admin/wear-products/route.ts`, `app/api/studios/[studioId]/wear/route.ts` | Wear PDP/shop pages render fully from local DB with no live supplier dependency in customer flows |
+| EXEC-026 | Staging/live fulfillment leak risk | Enforce strict live vs staging separation for Spreadconnect credentials, submission guards, and operator visibility. Add explicit non-production blocks for live supplier submission. | P0 | `lib/spreadconnect-config.ts`, `lib/wear-order-spreadconnect.ts`, `lib/runtime-feature-flags.ts`, `app/admin/system/page.tsx` | Non-production cannot submit live orders; admin can clearly see current supplier environment and guard state |
+| EXEC-027 | Heavy sync/publish flows are fragile | Move wear publication/sync into background jobs with batch control, retry states, and failure capture. Avoid long blocking admin requests. | P1 | `lib/wear-spreadconnect-catalog-sync.ts`, `app/api/admin/wear-products/route.ts`, `app/api/admin/wear-product-variants/route.ts`, background job layer | Large sync/publish runs are resumable, batched, and observable without request timeouts |
+| EXEC-028 | Wear order ops are too opaque | Add a real internal wear submission state machine, failure log, retry tooling, and needs-action queue. PotteryMania ops should not depend on supplier dashboards for normal support. | P1 | `lib/wear-order-lifecycle.ts`, `lib/wear-order-spreadconnect.ts`, `app/admin/wear-orders/page.tsx`, `app/api/admin/wear-orders/[orderId]/route.ts`, `app/api/webhooks/stripe/route.ts` | Failed/stuck wear orders can be diagnosed and re-submitted from PotteryMania admin with reason history preserved |
+| EXEC-029 | Asset/image failures can silently poison publish reliability | Add asset preflight checks, predictable controlled asset hosting, and admin fallbacks for broken or blocked print assets. | P2 | `lib/wear-product-json.ts`, `lib/wear-spreadconnect-catalog-sync.ts`, `app/api/admin/wear-products/route.ts`, media storage config | Publish flow flags invalid assets before release and exposes clear remediation steps in admin |
+| EXEC-030 | Reseller economics are not yet premium-grade | Strengthen studio wear control plane: per-studio enable/disable, allowed products, margin overrides, earnings visibility, refund-linked reversals, and suspicious activity review. | P1 | `app/api/studios/[studioId]/wear/route.ts`, `app/api/studios/[studioId]/wear/earnings/route.ts`, `app/api/checkout/route.ts`, finance/revenue dashboards | Studio wear earnings reconcile cleanly, refund reversals are visible, and product access is controllable per studio |
+
+### Wear Rule Of Priority
+
+If wear stays in scope, execute `EXEC-025` through `EXEC-030` **before** adding:
+
+- studio-side design customization
+- supplier-driven product pages
+- more catalog breadth for its own sake
+- more mixed-checkout complexity without ops visibility
+- admin surfaces that depend on manual supplier dashboard checks
+
+### Wear Done State
+
+- Wear catalog is locally controlled and supplier-agnostic at render time
+- Supplier submission is environment-safe, replayable, and observable
+- Failed orders do not require mystery debugging
+- Studio earnings and reversals reconcile cleanly
+- Support can resolve common wear failures without leaving PotteryMania admin
+
+---
+
 ## 5) EXECUTION ORDER (NO DEVIATION)
 
 1. Run KILL LIST decisions (hide/remove unsafe or fake-good surfaces)
@@ -2324,6 +2358,7 @@ Execute in this order. If a fix already exists, re-validate and lock with regres
 4. Simplify operator product shape (`EXEC-009`, `010`, `011`)
 5. Strengthen booking core (`EXEC-012`, `013`, `014`, `015`)
 6. Raise commerce to serious baseline (`EXEC-016`, `017`, `018`)
+6A. If wear remains in scope, harden wear control layer (`EXEC-025`, `026`, `027`, `028`, `029`, `030`)
 7. Improve mobile-first completion path (`EXEC-019`)
 8. Harden platform architecture (`EXEC-020`, `021`, `022`)
 9. Apply premium layer (`EXEC-023` + branded trust/UI polish)

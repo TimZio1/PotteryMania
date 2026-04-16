@@ -73,6 +73,28 @@ export const cartItemInclude = {
       sortOrder: true,
     },
   },
+  wearProduct: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      subtitle: true,
+      priceCents: true,
+      currency: true,
+      images: true,
+      isActive: true,
+      archivedAt: true,
+    },
+  },
+  wearProductVariant: {
+    select: {
+      id: true,
+      label: true,
+      priceCents: true,
+      stockQuantity: true,
+      isActive: true,
+    },
+  },
   experience: {
     include: {
       studio: { select: { id: true, displayName: true, status: true } },
