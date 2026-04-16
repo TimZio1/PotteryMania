@@ -60,15 +60,15 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}`);
 
     const routes = [
-      { path: `/dashboard/${studioId}`, label: "Today" },
-      { path: `/dashboard/${studioId}/bookings`, label: "Bookings" },
-      { path: `/dashboard/${studioId}/classes`, label: "Classes" },
-      { path: `/dashboard/${studioId}/calendar`, label: "Calendar" },
-      { path: `/dashboard/${studioId}/shop`, label: "Catalog" },
+      { path: `/dashboard/${studioId}`, label: "Home" },
+      { path: `/dashboard/${studioId}/schedule/sessions`, label: "Sessions" },
+      { path: `/dashboard/${studioId}/programs`, label: "Programs" },
+      { path: `/dashboard/${studioId}/schedule/calendar`, label: "Calendar" },
+      { path: `/dashboard/${studioId}/commerce/catalog`, label: "Catalog" },
       { path: `/dashboard/${studioId}/settings`, label: "Settings" },
-      { path: `/dashboard/${studioId}/analytics`, label: "Reports" },
+      { path: `/dashboard/${studioId}/money/reports`, label: "Reports" },
       { path: `/dashboard/${studioId}/features`, label: "Features" },
-      { path: `/dashboard/experiences/${studioId}`, label: "Class planner" },
+      { path: `/dashboard/${studioId}/programs/planner`, label: "Class planner" },
     ];
 
     for (const { path, label } of routes) {
@@ -89,8 +89,8 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     const studioId = await discoverStudioId(page, creds!);
     test.skip(!studioId, "Could not discover studio ID");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/classes`);
-    await expect(page.getByRole("heading", { name: /Classes/i })).toBeVisible({ timeout: 15_000 });
+    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/programs`);
+    await expect(page.getByRole("heading", { name: /All programs/i })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("link", { name: /New class/i })).toBeVisible();
   });
 
@@ -100,7 +100,7 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     const studioId = await discoverStudioId(page, creds!);
     test.skip(!studioId, "Could not discover studio ID");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/experiences/${studioId}`);
+    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/programs/planner`);
     await expect(page.getByRole("heading", { name: /Class planner/i })).toBeVisible({ timeout: 15_000 });
 
     const body = await page.textContent("body");
@@ -113,7 +113,7 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     const studioId = await discoverStudioId(page, creds!);
     test.skip(!studioId, "Could not discover studio ID");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/waitlist/${studioId}`);
+    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/schedule/waitlist`);
     await expect(page.getByRole("heading", { name: /waitlist/i })).toBeVisible({ timeout: 15_000 });
   });
 

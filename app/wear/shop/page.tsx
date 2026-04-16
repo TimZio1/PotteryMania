@@ -13,6 +13,7 @@ import {
 } from "@/lib/wear-categories";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   let dbUnavailable = false;
   try {
     products = await prisma.wearProduct.findMany({
-      where: { isActive: true, archivedAt: null },
+      where: wearPublicProductWhere(),
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
     });
   } catch {

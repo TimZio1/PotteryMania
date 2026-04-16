@@ -242,7 +242,7 @@ export default function StudioStudentsClient({
                 required
                 value={addForm.email}
                 onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="student@example.com"
+                placeholder="guest@example.com"
               />
             </label>
             <label>
@@ -358,7 +358,7 @@ export default function StudioStudentsClient({
               <dd>{selected.attendedCount}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt>Participants (sum)</dt>
+              <dt>Guest seats (sum)</dt>
               <dd>{selected.participantsTotal}</dd>
             </div>
           </dl>

@@ -844,7 +844,7 @@ export function GuidedApp({
                 <Link href={`/studios/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`} target="_blank" rel="noreferrer">
                   Preview my page
                 </Link>
-                <Link href={`/dashboard/experiences/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
+                <Link href={`/dashboard/${studioId}/programs/planner`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
                   Open full class planner
                 </Link>
                 <button type="button" onClick={startClassFlow} className={`${ui.buttonSecondary} w-full`}>
@@ -869,7 +869,7 @@ export function GuidedApp({
                 <button type="button" onClick={openPaidFlow} className={`${ui.buttonSecondary} w-full`}>
                   Set up payments & payouts
                 </button>
-                <Link href={`/dashboard/experiences/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
+                <Link href={`/dashboard/${studioId}/programs/planner`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
                   Open full class planner
                 </Link>
                 <button type="button" onClick={goHub} className="w-full text-sm font-medium text-stone-500 underline">
@@ -917,13 +917,13 @@ export function GuidedApp({
           </div>
         ) : (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">Payments &amp; payouts</h2>
+            <h2 className="font-serif text-xl text-(--brand-ink)">Money</h2>
             <p className="text-sm leading-relaxed text-stone-600">
               We use a secure partner to send money to your bank. You’ll fill in a few details — name, bank, ID — the usual
               once-only setup.
             </p>
             <ul className="list-disc space-y-2 pl-5 text-sm text-stone-600">
-              <li>Participants and buyers pay your studio through your page.</li>
+              <li>Guests and buyers pay your studio through your page.</li>
               <li>Money moves to your bank account.</li>
               <li>You can pause anytime.</li>
             </ul>

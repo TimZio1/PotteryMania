@@ -109,7 +109,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
             <a href={values.shopUrl || `/studios/${studioId}#studio-shop`} target="_blank" rel="noreferrer" className={ui.buttonPrimary}>
               Open shop page
             </a>
-            <Link href={`/dashboard/${studioId}/shop`} className={ui.buttonSecondary}>
+            <Link href={`/dashboard/${studioId}/commerce/catalog`} className={ui.buttonSecondary}>
               Manage catalog
             </Link>
           </div>
@@ -125,7 +125,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
             <a href={values.bookingsUrl || `/studios/${studioId}#upcoming-sessions`} target="_blank" rel="noreferrer" className={ui.buttonPrimary}>
               Open bookings page
             </a>
-            <Link href={`/dashboard/${studioId}/bookings`} className={ui.buttonSecondary}>
+            <Link href={`/dashboard/${studioId}/schedule/sessions`} className={ui.buttonSecondary}>
               Manage bookings
             </Link>
           </div>

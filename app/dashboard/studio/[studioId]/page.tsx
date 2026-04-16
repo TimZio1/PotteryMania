@@ -208,19 +208,19 @@ export default function EditStudioPage() {
         {activated ? (
           <>
             <Link
-              href={`/dashboard/experiences/${studioId}`}
+              href={`/dashboard/${studioId}/programs/planner`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
               Class planner
             </Link>
             <Link
-              href={`/dashboard/bookings/${studioId}`}
+              href={`/dashboard/${studioId}/schedule/sessions`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
-              Session calendar
+              Sessions
             </Link>
             <Link
-              href={`/dashboard/waitlist/${studioId}`}
+              href={`/dashboard/${studioId}/schedule/waitlist`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
               Session waitlist

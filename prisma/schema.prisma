@@ -57,6 +57,7 @@ model User {
   bookSoonSent         BookSoonSent[]
   classPackagePurchases ClassPackagePurchase[]
   membershipPurchases  MembershipPurchase[]
+  wearBuilderJobsCreated WearBuilderJob[]
   loyaltyBalances      LoyaltyBalance[]
   clientFieldResponses StudioClientFieldResponse[]
   loyaltyAdjustments   LoyaltyTransaction[] @relation("LoyaltyAdminUser")
@@ -509,6 +510,19 @@ enum WearAssetHealthStatus {
   invalid
 }
 
+/// Background queue for Level 2 Spreadconnect “catalog builder” (draft-first); worker execution added incrementally.
+enum WearBuilderJobState {
+  queued
+  validating
+  uploading_design
+  creating_article
+  syncing
+  draft_ready
+  failed
+  published
+  cancelled
+}
+
 model WearProduct {
   id                    String   @id @default(uuid()) @db.Uuid
   slug                  String   @unique
@@ -548,6 +562,7 @@ model WearProduct {
   checkoutOrderItems OrderItem[]
   orderItems         WearOrderItem[]
   studioWearProducts StudioWearProduct[]
+  wearBuilderJobs    WearBuilderJob[]
 
   @@index([isActive, sortOrder])
   @@index([archivedAt])
@@ -684,6 +699,28 @@ model WearFulfillmentJob {
   @@index([status, runAfter])
   @@index([wearOrderId, createdAt])
   @@map("wear_fulfillment_jobs")
+}
+
+model WearBuilderJob {
+  id                     String              @id @default(uuid()) @db.Uuid
+  state                  WearBuilderJobState @default(queued)
+  /// Public https URL for Spreadconnect to download (multipart `url` on /designs/upload).
+  designImageUrl         String?             @map("design_image_url") @db.Text
+  /// OpenAPI ArticleCreation JSON (draft; processed by future worker).
+  articleCreationPayload Json?             @map("article_creation_payload")
+  spreadconnectDesignId  String?           @map("spreadconnect_design_id")
+  spreadconnectArticleId Int?              @map("spreadconnect_article_id")
+  wearProductId          String?           @map("wear_product_id") @db.Uuid
+  errorMessage           String?           @map("error_message") @db.Text
+  createdByUserId        String?           @map("created_by_user_id") @db.Uuid
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+
+  createdBy   User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  wearProduct WearProduct? @relation(fields: [wearProductId], references: [id], onDelete: SetNull)
+
+  @@index([state, createdAt])
+  @@map("wear_builder_jobs")
 }
 
 /// Funnel events for native wear (DB + optional GA4 mirror from client).

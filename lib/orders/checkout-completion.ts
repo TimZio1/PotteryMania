@@ -15,6 +15,7 @@ import { enrichCustomerEmailWithCalendar } from "@/lib/calendar/booking-email-ca
 import { removeGoogleCalendarEventForBooking, syncBookingToGoogleCalendar } from "@/lib/calendar/google-sync";
 import { consumePackageCreditForBooking } from "@/lib/packages/credits";
 import { executeAdminStripeOrderRefund } from "@/lib/orders/admin-stripe-order-refund";
+import { WEAR_EVENT_KINDS } from "@/lib/wear-event-kinds";
 
 export type SettledCheckoutOrder = {
   skip: boolean;
@@ -73,6 +74,11 @@ export async function settleCheckoutOrderPayment(
       stockFailureCancelled: false,
     };
   }
+
+  const pendingWearOrder = await tx.wearOrder.findFirst({
+    where: { orderId: input.orderId, status: "pending" },
+    include: { items: true },
+  });
 
   await tx.order.update({
     where: { id: input.orderId },
@@ -242,6 +248,58 @@ export async function settleCheckoutOrderPayment(
         stockFailureCancelled = true;
         break;
       }
+    }
+  }
+
+  if (!stockFailureCancelled && pendingWearOrder) {
+    let wearStockFailed = false;
+    for (const item of pendingWearOrder.items) {
+      if (!item.wearProductVariantId) continue;
+      const stock = await tx.wearProductVariant.updateMany({
+        where: {
+          id: item.wearProductVariantId,
+          OR: [{ stockQuantity: null }, { stockQuantity: { gte: item.quantity } }],
+        },
+        data: { stockQuantity: { decrement: item.quantity } },
+      });
+      if (stock.count === 0) {
+        await tx.order.update({
+          where: { id: input.orderId },
+          data: {
+            orderStatus: "cancelled",
+            fulfillmentStatus: "cancelled",
+          },
+        });
+        stockFailureCancelled = true;
+        wearStockFailed = true;
+        break;
+      }
+    }
+    if (!wearStockFailed) {
+      await tx.wearOrder.update({
+        where: { id: pendingWearOrder.id },
+        data: {
+          status: "paid",
+          paidAt,
+          ...(input.stripeCheckoutSessionId ? { stripeCheckoutSessionId: input.stripeCheckoutSessionId } : {}),
+          ...(input.stripePaymentId ? { stripePaymentIntentId: input.stripePaymentId } : {}),
+          ...(typeof input.stripeTotalCents === "number"
+            ? { amountTotalCents: Math.max(0, input.stripeTotalCents) }
+            : {}),
+        },
+      });
+      await tx.wearAnalyticsEvent.create({
+        data: {
+          kind: WEAR_EVENT_KINDS.purchaseSuccess,
+          orderId: pendingWearOrder.id,
+          payload: {
+            stripeCheckoutSessionId: input.stripeCheckoutSessionId ?? null,
+            amountTotalCents: input.stripeTotalCents ?? null,
+            currency: input.currency,
+            source: "mixed_checkout_settlement",
+          },
+        },
+      });
     }
   }
 

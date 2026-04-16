@@ -12,7 +12,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Today", "", "Studio control panel home for sessions, revenue, and quick actions.");
+  return dashboardStudioMeta(studioId, "Home", "", "Studio control panel home for sessions, revenue, and quick actions.");
 }
 
 export default async function StudioPanelHomePage({ params }: Props) {
@@ -124,6 +124,14 @@ export default async function StudioPanelHomePage({ params }: Props) {
       ? "No sessions in the next week and several open slots — consider sharing your page or adding new times."
       : null;
 
+  const needsAttentionItems: string[] = [];
+  if (emptySlots > 0) {
+    needsAttentionItems.push(
+      `${emptySlots} open slot${emptySlots === 1 ? "" : "s"} in the next 7 days still have no bookings.`,
+    );
+  }
+  if (lowActivity) needsAttentionItems.push(lowActivity);
+
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       {!studio?.businessTemplateSlug ? (
@@ -133,7 +141,7 @@ export default async function StudioPanelHomePage({ params }: Props) {
             Pick a template to organize experiences, sessions, payments, and day-to-day studio workflows. Takes under a minute.
           </p>
           <Link
-            href={`/dashboard/${studioId}/template`}
+            href={`/dashboard/${studioId}/site/page`}
             className={`${ui.buttonPrimary} mt-5 inline-flex w-full justify-center sm:w-auto`}
           >
             Choose workspace template
@@ -142,136 +150,31 @@ export default async function StudioPanelHomePage({ params }: Props) {
       ) : null}
 
       <div>
-        <p className={ui.overline}>Today at your studio</p>
+        <p className={ui.overline}>Home</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">{studio?.displayName}</h1>
         <p className="mt-2 max-w-2xl text-sm text-stone-600">
-          Review upcoming sessions, keep your studio page current, and stay on top of direct bookings and sales.
+          Operational snapshot: what needs attention first, then today&apos;s sessions, money, and shortcuts.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Direct revenue (30d est.)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">€{revenue30dEur.toFixed(2)}</p>
-          <p className="mt-2 text-xs text-stone-500">{revenueEstimateNote}</p>
-        </div>
-        <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Active contacts (90d)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{distinctStudents.length}</p>
-          <p className="mt-2 text-xs text-stone-500">Distinct booking email addresses in the last 90 days.</p>
-        </div>
-        <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Session fill (7d)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{occPct !== null ? `${occPct}%` : "—"}</p>
-          <p className="mt-2 text-xs text-stone-500">Average reserved vs capacity on open slots.</p>
-        </div>
-        <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Upcoming sessions (7d)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{upcomingSlots.length}</p>
-          <p className="mt-2 text-xs text-stone-500">Confirmed or approved reservations scheduled in the next week.</p>
-        </div>
-        <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Platform fee rates</p>
-          <p className="mt-2 text-base font-semibold text-amber-950">
-            Products {(productCommissionBps / 100).toFixed(2)}% · Bookings {(bookingCommissionBps / 100).toFixed(2)}%
-            {wearMarginLabel ? ` · Wearables ${wearMarginLabel} margin` : null}
-          </p>
-          <p className="mt-2 text-xs text-stone-500">
-            Applied automatically to each paid line item during checkout settlement.
-            {wearMarginLabel ? " Wearable margins are added on top of base prices." : null}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Quick actions</h2>
-          <p className="mt-2 text-sm text-stone-600">Jump straight into the work that keeps your studio moving.</p>
-          <div className="mt-4 flex flex-col gap-2">
-            <Link href={`/dashboard/${studioId}/bookings`} className={ui.buttonPrimary}>
-              Open session calendar
-            </Link>
-            <Link href={`/dashboard/${studioId}/guided`} className={ui.buttonSecondary}>
-              Continue guided setup
-            </Link>
-          </div>
-        </div>
-
-        <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Your studio page</h2>
-          <p className="mt-2 text-sm text-stone-600">
-            Preview the public page your guests see, update the presentation, and connect your own storefront domain when ready.
-          </p>
-          {activeDomain ? (
-            <p className="mt-2 text-xs text-emerald-700">
-              Custom storefront domain live: <span className="font-medium">{activeDomain.domainName}</span>
-            </p>
-          ) : (
-            <p className="mt-2 text-xs text-stone-500">No custom storefront domain linked yet.</p>
-          )}
-          <div className="mt-4 flex flex-col gap-2">
-            <Link href={`/studios/${studioId}`} className={ui.buttonPrimary}>
-              View public page
-            </Link>
-            <Link href={`/dashboard/${studioId}/template`} className={ui.buttonSecondary}>
-              Edit page design
-            </Link>
-            <Link href={`/dashboard/${studioId}/settings`} className={ui.buttonSecondary}>
-              Connect domain
-            </Link>
-          </div>
-        </div>
-
-        <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Create experience</h2>
-          <p className="mt-2 text-sm text-stone-600">Add a new class or workshop, then schedule times guests can reserve directly.</p>
-          <div className="mt-4 flex flex-col gap-2">
-            <Link href={`/dashboard/${studioId}/classes`} className={ui.buttonPrimary}>
-              Add experience
-            </Link>
-            <Link href={`/dashboard/${studioId}/calendar`} className={ui.buttonSecondary}>
-              Open schedule
-            </Link>
-          </div>
-        </div>
-
-        <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Payments &amp; links</h2>
-          <p className="mt-2 text-sm text-stone-600">
-            {studio?.activationPaidAt
-              ? "Your studio is live for direct payments. Review recent payout activity and linked setup details."
-              : "Finish payout setup when you are ready to take direct bookings and product payments."}
-          </p>
-          <div className="mt-4 flex flex-col gap-2">
-            <Link href={`/dashboard/${studioId}/payments`} className={ui.buttonPrimary}>
-              Open payments
-            </Link>
-            <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
-              Studio details &amp; payouts
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {(lowActivity || emptySlots > 0) && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 sm:p-5">
-          <p className="text-sm font-semibold text-amber-950">Alerts</p>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-amber-900">
-            {emptySlots > 0 ? (
-              <li>
-                {emptySlots} open slot{emptySlots === 1 ? "" : "s"} in the next 7 days still have no bookings.
-              </li>
-            ) : null}
-            {lowActivity ? <li>{lowActivity}</li> : null}
+      <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
+        <h2 className="text-lg font-semibold text-amber-950">Needs attention</h2>
+        {needsAttentionItems.length === 0 ? (
+          <p className="mt-2 text-sm text-stone-600">Nothing urgent right now.</p>
+        ) : (
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-stone-800">
+            {needsAttentionItems.map((t, i) => (
+              <li key={i}>{t}</li>
+            ))}
           </ul>
-        </div>
-      )}
+        )}
+      </section>
 
-      <div>
+      <section>
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold text-amber-950">Upcoming sessions</h2>
-          <Link href={`/dashboard/${studioId}/bookings`} className={`${ui.buttonGhost} text-sm text-amber-900`}>
-            Open session calendar
+          <h2 className="text-lg font-semibold text-amber-950">Today&apos;s sessions</h2>
+          <Link href={`/dashboard/${studioId}/schedule/sessions`} className={`${ui.buttonGhost} text-sm text-amber-900`}>
+            Open sessions
           </Link>
         </div>
         <div className="mt-3 space-y-2">
@@ -292,6 +195,126 @@ export default async function StudioPanelHomePage({ params }: Props) {
               </div>
             ))
           )}
+        </div>
+      </section>
+
+      <section className={`${ui.card} space-y-4`}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Money</p>
+            <p className="mt-1 text-2xl font-semibold text-amber-950">€{revenue30dEur.toFixed(2)}</p>
+            <p className="mt-1 text-xs text-stone-500">Direct revenue (30d est.) — {revenueEstimateNote}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/dashboard/${studioId}/money/overview`} className={ui.buttonPrimary}>
+              Money overview
+            </Link>
+            <Link href={`/dashboard/${studioId}/money/activity`} className={ui.buttonSecondary}>
+              Activity
+            </Link>
+            <Link href={`/dashboard/${studioId}/money/reports`} className={ui.buttonSecondary}>
+              Reports
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={ui.card}>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Guest contacts (90d)</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-950">{distinctStudents.length}</p>
+          <p className="mt-2 text-xs text-stone-500">Distinct booking email addresses.</p>
+        </div>
+        <div className={ui.card}>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Session fill (7d)</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-950">{occPct !== null ? `${occPct}%` : "—"}</p>
+          <p className="mt-2 text-xs text-stone-500">Average reserved vs capacity on open slots.</p>
+        </div>
+        <div className={ui.card}>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Upcoming sessions (7d)</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-950">{upcomingSlots.length}</p>
+          <p className="mt-2 text-xs text-stone-500">Confirmed or approved reservations this week.</p>
+        </div>
+        <div className={ui.card}>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Platform fee rates</p>
+          <p className="mt-2 text-base font-semibold text-amber-950">
+            Products {(productCommissionBps / 100).toFixed(2)}% · Bookings {(bookingCommissionBps / 100).toFixed(2)}%
+            {wearMarginLabel ? ` · Wearables ${wearMarginLabel} margin` : null}
+          </p>
+          <p className="mt-2 text-xs text-stone-500">
+            Applied at checkout settlement.
+            {wearMarginLabel ? " Wearable margins are added on top of base prices." : null}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Quick actions</h2>
+          <p className="mt-2 text-sm text-stone-600">Jump straight into the work that keeps your studio moving.</p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/dashboard/${studioId}/schedule/sessions`} className={ui.buttonPrimary}>
+              Open sessions
+            </Link>
+            <Link href={`/dashboard/${studioId}/guided`} className={ui.buttonSecondary}>
+              Continue guided setup
+            </Link>
+          </div>
+        </div>
+
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Public page</h2>
+          <p className="mt-2 text-sm text-stone-600">
+            Preview the page your guests see, update presentation, and connect a storefront domain when ready.
+          </p>
+          {activeDomain ? (
+            <p className="mt-2 text-xs text-emerald-700">
+              Custom domain live: <span className="font-medium">{activeDomain.domainName}</span>
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-stone-500">No custom storefront domain linked yet.</p>
+          )}
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/studios/${studioId}`} className={ui.buttonPrimary}>
+              View public page
+            </Link>
+            <Link href={`/dashboard/${studioId}/site/page`} className={ui.buttonSecondary}>
+              Edit page design
+            </Link>
+            <Link href={`/dashboard/${studioId}/settings`} className={ui.buttonSecondary}>
+              Connect domain
+            </Link>
+          </div>
+        </div>
+
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Programs</h2>
+          <p className="mt-2 text-sm text-stone-600">Add a class or workshop, then schedule bookable times.</p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/dashboard/${studioId}/programs`} className={ui.buttonPrimary}>
+              Add experience
+            </Link>
+            <Link href={`/dashboard/${studioId}/schedule/calendar`} className={ui.buttonSecondary}>
+              Open schedule
+            </Link>
+          </div>
+        </div>
+
+        <div className={ui.card}>
+          <h2 className="text-lg font-semibold text-amber-950">Money &amp; payouts</h2>
+          <p className="mt-2 text-sm text-stone-600">
+            {studio?.activationPaidAt
+              ? "Your studio is live for direct payments. Review payout activity and Stripe setup."
+              : "Finish payout setup when you are ready for direct bookings and sales."}
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link href={`/dashboard/${studioId}/money/overview`} className={ui.buttonPrimary}>
+              Money overview
+            </Link>
+            <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
+              Legal profile &amp; Stripe
+            </Link>
+          </div>
         </div>
       </div>
     </div>

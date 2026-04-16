@@ -10,6 +10,8 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
+import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
+import { ensureSpreadconnectSubmitDeferred } from "@/lib/wear-fulfillment-defer";
 import { escalateWearOrderSpreadconnectFailure } from "@/lib/wear-order-escalate";
 
 /**
@@ -295,6 +297,27 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
   if (!orderRow || orderRow.status !== "paid") return;
 
   if (orderRow.externalFulfillmentRef?.startsWith("sc:")) return;
+
+  const fulfillmentEnabled = await isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.wearFulfillmentEnabled, true);
+  if (!fulfillmentEnabled) {
+    await ensureSpreadconnectSubmitDeferred({
+      wearOrderId: opts.wearOrderId,
+      reason: "fulfillment_disabled",
+      detail:
+        "Wear fulfillment is disabled (runtime flag wear_fulfillment_enabled). Order will submit when re-enabled.",
+    });
+    return;
+  }
+
+  if (!cfg.liveSubmissionAllowed) {
+    await ensureSpreadconnectSubmitDeferred({
+      wearOrderId: opts.wearOrderId,
+      reason: "live_submission_disabled",
+      detail: `Spreadconnect live submission is off (supplierEnvironment=${cfg.supplierEnvironment}). Pending job will retry when allowed.`,
+      payload: { supplierEnvironment: cfg.supplierEnvironment },
+    });
+    return;
+  }
 
   const recordFailure = async (reasonCode: string, payload: Record<string, unknown>) => {
     await prisma.wearAnalyticsEvent.create({

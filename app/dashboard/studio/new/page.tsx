@@ -271,7 +271,7 @@ export default function NewStudioPage() {
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
-          Classes & bookings
+          Programs &amp; sessions
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=shop${fullForm ? "&full=1" : ""}`}

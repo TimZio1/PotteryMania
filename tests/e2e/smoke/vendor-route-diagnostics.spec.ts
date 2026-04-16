@@ -19,12 +19,12 @@ for (const pathSuffix of [
   "",
   "/guided",
   "/settings",
-  "/template",
-  "/calendar",
-  "/analytics",
+  "/site/page",
+  "/schedule/calendar",
+  "/money/reports",
   "/features",
-  "/payments",
-  "/shop",
+  "/money/overview",
+  "/commerce/catalog",
 ]) {
   test(`diagnose vendor route ${pathSuffix || "/home"}`, async ({ page }) => {
     const consoleErrors: string[] = [];

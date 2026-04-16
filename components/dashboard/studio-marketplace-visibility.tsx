@@ -135,10 +135,10 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
         <Link href={`/dashboard/${studioId}/settings`} className={ui.buttonSecondary}>
           Studio settings
         </Link>
-        <Link href={`/dashboard/${studioId}/classes`} className={ui.buttonGhost}>
-          Classes
+        <Link href={`/dashboard/${studioId}/programs`} className={ui.buttonGhost}>
+          Programs
         </Link>
-        <Link href={`/dashboard/${studioId}/shop`} className={ui.buttonGhost}>
+        <Link href={`/dashboard/${studioId}/commerce/catalog`} className={ui.buttonGhost}>
           Catalog
         </Link>
         <Link href={`/studios/${studioId}`} className={ui.buttonGhost} target="_blank" rel="noreferrer">

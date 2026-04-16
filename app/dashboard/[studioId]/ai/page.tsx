@@ -1,85 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
-import { hasStudioFeature } from "@/lib/studio-features";
-import { ui } from "@/lib/ui-styles";
-import StudioAiAdvisorClient from "@/components/dashboard/studio-ai-advisor-client";
-import StudioMonetizedInsightsPanel from "@/components/dashboard/studio-monetized-insights-panel";
-import { listStudioInsightsPayload } from "@/lib/ai/ensure-studio-insights";
+import { redirect } from "next/navigation";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
-
-export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
 
-export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
   return dashboardStudioMeta(studioId, "AI advisor", "ai", "Studio AI assistant.");
 }
 
-export default async function StudioAiPage({ params }: Props) {
-  const user = await getSessionUser();
-  if (!user) redirect("/login?callbackUrl=/dashboard");
+/** @deprecated Use `/dashboard/[studioId]/studio-tools/ai` */
+export default async function LegacyAiAlias({ params }: Props) {
   const { studioId } = await params;
-  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) notFound();
-
-  const entitled = await hasStudioFeature(studioId, "ai_advisor");
-  const openAiConfigured = Boolean(process.env.OPENAI_API_KEY?.trim());
-  const monetizedInsights = await listStudioInsightsPayload(prisma, studioId, { take: 12 });
-
-  return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <div>
-        <p className={ui.overline}>Intelligence</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">AI Advisor</h1>
-        <p className="mt-2 text-sm text-stone-600">
-          Pay-per-insight cards use your real booking and listing data (rule-based analysis). The chat below is separate
-          — it requires the AI Advisor add-on and OpenAI.
-        </p>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold text-amber-950">Data insights</h2>
-        <p className="mt-1 text-sm text-stone-600">
-          Preview the signal for free; unlock the full diagnosis, benchmark, and recommendations with a one-time
-          payment.
-        </p>
-        <div className="mt-4">
-          <StudioMonetizedInsightsPanel studioId={studioId} initialInsights={monetizedInsights} variant="full" />
-        </div>
-      </div>
-
-      <StudioAiAdvisorClient studioId={studioId} entitled={entitled} openAiConfigured={openAiConfigured} />
-
-      {entitled ? (
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
-          <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-amber-950">Pricing & positioning</p>
-            <p className="mt-2 text-xs text-stone-600">Compare your mix of classes and products to what tends to work for small studios.</p>
-          </div>
-          <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-amber-950">Fill quiet slots</p>
-            <p className="mt-2 text-xs text-stone-600">Brainstorm promos, bundles, or schedule tweaks using your booking pipeline counts.</p>
-          </div>
-          <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-amber-950">Retention ideas</p>
-            <p className="mt-2 text-xs text-stone-600">Turn completed-class volume into concrete follow-up habits.</p>
-          </div>
-        </div>
-      ) : null}
-
-      <p className="text-xs text-stone-500">
-        <Link href={`/dashboard/${studioId}`} className="text-amber-900 underline">
-          Back to dashboard
-        </Link>
-        {" · "}
-        <Link href={`/dashboard/${studioId}/features`} className="text-amber-900 underline">
-          Packs & add-ons
-        </Link>
-      </p>
-    </div>
-  );
+  redirect(`/dashboard/${studioId}/studio-tools/ai`);
 }

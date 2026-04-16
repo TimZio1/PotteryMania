@@ -50,13 +50,16 @@ export default function StudioShopClient({
   studioId,
   products: initialProducts,
   orders: initialOrders,
+  initialTab = "products",
 }: {
   studioId: string;
   products: StudioShopProductRow[];
   orders: StudioShopOrderRow[];
+  /** When set from route (e.g. Commerce → Orders), open that tab first. */
+  initialTab?: Tab;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("products");
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [products, setProducts] = useState(initialProducts);
   const [orders, setOrders] = useState(initialOrders);
   const [q, setQ] = useState("");
@@ -111,6 +114,10 @@ export default function StudioShopClient({
   const [createImages, setCreateImages] = useState<EditableProductImage[]>([]);
   const [orderBusy, setOrderBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     setProducts(initialProducts);
@@ -422,11 +429,11 @@ export default function StudioShopClient({
         <div className="relative grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="space-y-4">
             <p className="text-sm text-stone-600">
-              Low-stock highlight when quantity is between 1 and {DEFAULT_LOW_STOCK_THRESHOLD}. Open the{" "}
-              <Link href={`/dashboard/products/${studioId}`} className="font-medium text-amber-900 underline">
-                product workspace
-              </Link>
-              {" "}for full product controls.
+              Low-stock highlight when quantity is between 1 and {DEFAULT_LOW_STOCK_THRESHOLD}. Open{" "}
+              <Link href={`/dashboard/${studioId}/commerce/catalog`} className="font-medium text-amber-900 underline">
+                Commerce → Catalog
+              </Link>{" "}
+              for full product controls.
             </p>
 
             <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-xl border border-stone-200 bg-stone-50/95 p-4 backdrop-blur sm:flex-row sm:flex-wrap sm:items-end">

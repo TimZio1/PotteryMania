@@ -207,7 +207,7 @@ export default function StudioClassesClient({
     <div className="relative grid gap-6 lg:grid-cols-[1fr_380px]">
       <div className="space-y-4">
         <div className="flex flex-wrap gap-3">
-          <Link href={`/dashboard/experiences/${studioId}`} className={ui.buttonPrimary}>
+          <Link href={`/dashboard/${studioId}/programs/planner`} className={ui.buttonPrimary}>
             Class planner &amp; schedules
           </Link>
         </div>
@@ -671,7 +671,7 @@ export default function StudioClassesClient({
 
           <p className="border-t border-stone-100 pt-3 text-xs text-stone-500">
             Images, long description, location, deposits, and slot generation live in{" "}
-            <Link href={`/dashboard/experiences/${studioId}`} className="font-medium text-amber-900 underline">
+            <Link href={`/dashboard/${studioId}/programs/planner`} className="font-medium text-amber-900 underline">
               class builder
             </Link>
             .

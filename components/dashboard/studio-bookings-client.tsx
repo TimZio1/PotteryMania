@@ -379,7 +379,7 @@ export default function StudioBookingsClient({
               </div>
             ) : null}
             <div>
-              <dt className={ui.label}>Participants</dt>
+              <dt className={ui.label}>Guests</dt>
               <dd>{selected.participantCount}</dd>
             </div>
             {selected.seatType ? (

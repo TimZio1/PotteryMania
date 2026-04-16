@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { WearPreviewItem } from "@/lib/wear-config";
 import { wearImagesFromJson } from "@/lib/wear-product-json";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 const PLACEHOLDER_IMG =
   "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80";
@@ -15,7 +16,7 @@ function firstImageUrl(images: unknown): string | null {
 export async function getWearPreviewItemsFromDb(): Promise<WearPreviewItem[]> {
   try {
     const rows = await prisma.wearProduct.findMany({
-      where: { isActive: true, archivedAt: null },
+      where: wearPublicProductWhere(),
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
       take: 4,
       select: {

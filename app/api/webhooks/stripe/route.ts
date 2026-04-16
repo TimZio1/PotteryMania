@@ -671,37 +671,12 @@ export async function POST(req: Request) {
     });
 
     if (session.metadata?.mixedCheckout === "true") {
-      const wearOrder = await prisma.wearOrder.findUnique({
-        where: { orderId },
-        select: { id: true, status: true },
+      const wearOrder = await prisma.wearOrder.findFirst({
+        where: { orderId, status: "paid" },
+        select: { id: true },
       });
-      if (wearOrder && wearOrder.status === "pending") {
-        await prisma.$transaction(async (tx) => {
-          const updated = await tx.wearOrder.update({
-            where: { id: wearOrder.id },
-            data: {
-              status: "paid",
-              paidAt: new Date(),
-              stripeCheckoutSessionId: session.id,
-              stripePaymentIntentId: piId,
-              amountTotalCents: session.amount_total ?? undefined,
-            },
-            include: { items: true },
-          });
-          for (const item of updated.items) {
-            if (!item.wearProductVariantId) continue;
-            const stock = await tx.wearProductVariant.updateMany({
-              where: {
-                id: item.wearProductVariantId,
-                OR: [{ stockQuantity: null }, { stockQuantity: { gte: item.quantity } }],
-              },
-              data: { stockQuantity: { decrement: item.quantity } },
-            });
-            if (stock.count === 0) {
-              throw new Error(`WEAR_STOCK_RACE:${item.wearProductVariantId}`);
-            }
-          }
-        });
+      if (wearOrder) {
+        scheduleWearOrderNotification("order_confirmed", wearOrder.id);
         await runStripeWebhookSideEffect(event.id, `mixed_wear_spreadconnect:${wearOrder.id}`, async () => {
           const fullSession = await getStripe().checkout.sessions.retrieve(session.id, {
             expand: ["shipping_cost.shipping_rate"],

@@ -2348,6 +2348,82 @@ If wear stays in scope, execute `EXEC-025` through `EXEC-030` **before** adding:
 - Studio earnings and reversals reconcile cleanly
 - Support can resolve common wear failures without leaving PotteryMania admin
 
+### Wear Next Sprint Build Order
+
+Goal: harden the invisible wear machinery before adding any new customer-facing wear feature.
+
+#### Sprint Sequence
+
+1. **Sprint step 1: lock environment safety (`EXEC-026`)**
+   - Add explicit live/staging supplier config separation
+   - Add hard non-production block for live order submission
+   - Surface current supplier mode clearly in admin/system
+   - Stop/go gate: no code path in non-production can submit a live supplier order
+
+2. **Sprint step 2: finalize PotteryMania as wear source of truth (`EXEC-025`)**
+   - Ensure storefront and studio wear availability render from local DB only
+   - Add explicit local publish/visibility status per wear item
+   - Remove any hidden assumption that supplier state is frontend truth
+   - Stop/go gate: wear shop and PDP render without live supplier reads
+
+3. **Sprint step 3: create wear ops event trail (`EXEC-028`, part 1)**
+   - Add internal submission log / event history for supplier attempts
+   - Record submission requested, submitted, failed, retried, escalated
+   - Attach failure reason and external reference to internal order context
+   - Stop/go gate: every supplier submission attempt is visible from PotteryMania admin
+
+4. **Sprint step 4: add retryable background submission flow (`EXEC-027` + `EXEC-028`, part 2)**
+   - Move publish/submission work out of blocking admin requests
+   - Add retry states like `pending`, `submitted`, `failed`, `needs_action`
+   - Add manual retry / re-submit action from admin
+   - Stop/go gate: failed supplier interactions can be replayed without code intervention
+
+5. **Sprint step 5: harden reseller finance controls (`EXEC-030`)**
+   - Add per-studio product allowlist visibility and enable/disable controls
+   - Expose studio margin, reversals, and payout-facing earnings views
+   - Link refunds to margin reversals and operator review
+   - Stop/go gate: studio earnings reconcile against paid, refunded, and reversed wear orders
+
+6. **Sprint step 6: add asset reliability checks (`EXEC-029`)**
+   - Preflight image/asset validity before publish
+   - Flag broken or blocked asset sources in admin
+   - Add fallback/replace flow for invalid assets
+   - Stop/go gate: no wear publish path proceeds with invalid print assets silently
+
+#### Exact Build Order By File / System
+
+1. `lib/spreadconnect-config.ts`, `lib/wear-order-spreadconnect.ts`, `app/admin/system/page.tsx`
+   - implement environment safety first
+
+2. `lib/wear-spreadconnect-catalog-sync.ts`, `app/api/admin/wear-products/route.ts`, `app/wear/shop/page.tsx`, `app/api/studios/[studioId]/wear/route.ts`
+   - enforce local source-of-truth behavior
+
+3. `lib/wear-order-lifecycle.ts`, `app/api/webhooks/stripe/route.ts`, `app/admin/wear-orders/page.tsx`, `app/api/admin/wear-orders/[orderId]/route.ts`
+   - add internal order-state and submission observability
+
+4. background job layer + wear submission runner
+   - move sync/submission/retry off request lifecycle
+
+5. `app/api/studios/[studioId]/wear/earnings/route.ts`, finance dashboards, refund accounting paths
+   - finish reseller finance controls
+
+6. `lib/wear-product-json.ts`, media validation layer, admin wear product APIs
+   - add asset resilience last in this sprint
+
+#### Explicit Non-Goals For This Sprint
+
+- no new public design customizer
+- no expansion of supplier-driven catalog breadth just to look bigger
+- no new mixed-checkout UX polish unless ops observability remains green
+- no dependence on manual supplier-dashboard actions as a normal support workflow
+
+#### Sprint Exit Criteria
+
+- one failed supplier submission can be diagnosed and retried from PotteryMania admin
+- one refund on a studio wear order visibly affects reseller earnings correctly
+- one staging submission proves live supplier submission is impossible outside production
+- one full paid wear order can be traced from checkout to supplier reference without leaving PotteryMania
+
 ---
 
 ## 5) EXECUTION ORDER (NO DEVIATION)

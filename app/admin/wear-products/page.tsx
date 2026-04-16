@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { getWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
 import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
+import WearSpreadconnectDevTools from "@/components/admin/wear-spreadconnect-dev-tools";
 
 import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
@@ -70,6 +71,28 @@ export default async function AdminWearProductsPage({
 
   const health = await getWearCatalogHealthSnapshot();
 
+  const recentBuilderJobs = await prisma.wearBuilderJob.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      state: true,
+      designImageUrl: true,
+      errorMessage: true,
+      wearProductId: true,
+      createdAt: true,
+    },
+  });
+
+  const initialBuilderJobs = recentBuilderJobs.map((j) => ({
+    id: j.id,
+    state: j.state,
+    designImageUrl: j.designImageUrl,
+    errorMessage: j.errorMessage,
+    wearProductId: j.wearProductId,
+    createdAt: j.createdAt.toISOString(),
+  }));
+
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
@@ -78,6 +101,21 @@ export default async function AdminWearProductsPage({
         Catalog for the PotteryMania-native wear storefront. Archive removes pieces from the public shop without deleting
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
+
+      {process.env.SPREADCONNECT_PROBE_ENABLED === "true" ? (
+        <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50/80 px-4 py-3 text-xs text-violet-950">
+          <p className="font-semibold">Spreadconnect API probes (enabled)</p>
+          <p className="mt-1 text-violet-900">
+            <span className="font-mono">GET /api/admin/wear-spreadconnect/probe</span> — metadata.{" "}
+            <span className="font-mono">POST</span> with <span className="font-mono">action</span>:{" "}
+            <span className="font-mono">authentication</span>, <span className="font-mono">design_from_url</span> +{" "}
+            <span className="font-mono">imageUrl</span>, or <span className="font-mono">create_article</span> +{" "}
+            <span className="font-mono">article</span> (OpenAPI ArticleCreation). Use staging first; 60 req/min.
+          </p>
+        </div>
+      ) : null}
+
+      <WearSpreadconnectDevTools initialJobs={initialBuilderJobs} />
 
       {health.spreadconnectWarning ? (
         <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-100/80 px-4 py-3 text-sm text-amber-950">
@@ -92,6 +130,71 @@ export default async function AdminWearProductsPage({
           <p className="mt-1 text-sky-900">{health.catalogImportHint}</p>
         </div>
       ) : null}
+
+      <div
+        className={`mt-6 rounded-2xl border px-4 py-4 text-sm ${
+          health.catalogTrustState === "VERIFIED"
+            ? "border-emerald-300 bg-emerald-50/80 text-emerald-950"
+            : health.catalogTrustState === "DEGRADED"
+              ? "border-amber-300 bg-amber-50/85 text-amber-950"
+              : health.catalogTrustState === "FAILED"
+                ? "border-red-300 bg-red-50/90 text-red-950"
+                : "border-sky-300 bg-sky-50/85 text-sky-950"
+        }`}
+      >
+        <p className="font-semibold">Merch operations — catalog trust</p>
+        <p className="mt-1 flex flex-wrap items-baseline gap-3">
+          <span className="font-mono text-lg tracking-tight">{health.catalogTrustState}</span>
+          {typeof health.internalHealthScore === "number" ? (
+            <span className="text-xs font-normal text-stone-600">
+              Internal health score:{" "}
+              <span className="font-mono font-semibold text-stone-800">{health.internalHealthScore}</span>
+              /100 (operator-only)
+            </span>
+          ) : null}
+        </p>
+        <ul className="mt-2 list-inside list-disc text-xs text-stone-800">
+          {health.catalogTrustReasons.map((r, i) => (
+            <li key={i}>{r}</li>
+          ))}
+        </ul>
+        <div className="mt-3 grid gap-1 text-xs text-stone-700 sm:grid-cols-2">
+          <p>
+            Last sync:{" "}
+            <span className="font-mono">{health.lastSyncAt ?? "—"}</span> ({health.lastSyncMode ?? "—"})
+          </p>
+          <p>
+            Last full discovery: <span className="font-mono">{health.lastFullSyncAt ?? "—"}</span>
+          </p>
+          <p>
+            Last partial sync: <span className="font-mono">{health.lastPartialSyncAt ?? "—"}</span>
+          </p>
+          <p>
+            Last skip ratio:{" "}
+            <span className="font-mono">
+              {health.lastSyncSkipRatio != null ? `${(health.lastSyncSkipRatio * 100).toFixed(1)}%` : "—"}
+            </span>
+          </p>
+          <p>
+            Duplicate SKU groups: <span className="font-mono">{health.duplicateSkuGroupCount}</span>
+          </p>
+          <p>
+            Published+ready but not public-eligible:{" "}
+            <span className="font-mono">{health.publishedReadyButNotPublicEligibleCount}</span> (fix price/SKU/publish
+            rules)
+          </p>
+          <p>
+            SC failures (24h): <span className="font-mono">{health.spreadconnectFailuresLast24h}</span>
+          </p>
+        </div>
+        {health.lastSyncError ? (
+          <p className="mt-2 text-xs font-medium text-red-900">Sync error flag: {health.lastSyncError}</p>
+        ) : null}
+        <p className="mt-3 text-xs text-stone-600">
+          Schedule: partial cron often; <strong>full discovery</strong> daily (or use the sync checkbox below once).
+          Trust requires a fresh <strong>full</strong> sync within ~36h, no duplicate SKUs, and skip ratio under 85%.
+        </p>
+      </div>
 
       <div
         className={`mt-6 rounded-2xl border px-4 py-4 text-sm ${

@@ -11,5 +11,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LegacyBookingsRedirect({ params }: Props) {
   const { studioId } = await params;
-  redirect(`/dashboard/${studioId}/bookings`);
+  redirect(`/dashboard/${studioId}/schedule/sessions`);
 }

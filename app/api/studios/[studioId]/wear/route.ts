@@ -7,6 +7,7 @@ import {
   calculateWearPrice,
 } from "@/lib/wear-commission";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -19,7 +20,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     prisma.studioWearConfig.findUnique({ where: { studioId } }),
     resolveWearGlobalPricing(),
     prisma.wearProduct.findMany({
-      where: { isActive: true, archivedAt: null },
+      where: wearPublicProductWhere(),
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
       select: { id: true, name: true, priceCents: true, images: true, slug: true },
     }),
@@ -97,7 +98,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       await tx.studioWearProduct.deleteMany({ where: { studioId } });
       if (validIds.length > 0) {
         const existing = await tx.wearProduct.findMany({
-          where: { id: { in: validIds }, isActive: true, archivedAt: null },
+          where: { id: { in: validIds }, ...wearPublicProductWhere() },
           select: { id: true },
         });
         const existingSet = new Set(existing.map((p) => p.id));

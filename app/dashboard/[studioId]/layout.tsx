@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import StudioPanelShell from "@/components/dashboard/studio-panel-shell";
-import { getStudioPanelNavForStudio } from "@/lib/studio-panel-nav";
+import { getStudioPanelNavGroups } from "@/lib/studio-panel-nav";
 import { getBusinessTemplateBySlug } from "@/lib/business-templates";
 
 export const dynamic = "force-dynamic";
@@ -28,14 +28,14 @@ export default async function StudioPanelLayout({ children, params }: Props) {
     });
   }
 
-  const navItems = await getStudioPanelNavForStudio(studio.id);
+  const navGroups = getStudioPanelNavGroups(studio.id);
   const activeBusinessTemplate = await getBusinessTemplateBySlug(studio.businessTemplateSlug);
 
   return (
     <StudioPanelShell
       studioId={studio.id}
       studioName={studio.displayName}
-      navItems={navItems}
+      navGroups={navGroups}
       activeBusinessTemplateName={activeBusinessTemplate?.name ?? null}
     >
       {children}

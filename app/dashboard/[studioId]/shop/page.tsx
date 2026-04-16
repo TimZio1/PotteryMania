@@ -1,55 +1,16 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
-import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
-import { ui } from "@/lib/ui-styles";
-import { loadStudioShopPageData } from "@/lib/studio-shop-page-data";
-import StudioShopClient from "@/components/dashboard/studio-shop-client";
+import { redirect } from "next/navigation";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
-
-export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
 
-export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
   return dashboardStudioMeta(studioId, "Catalog", "shop", "Products, fulfillment, and direct studio sales.");
 }
 
-export default async function StudioShopPage({ params }: Props) {
-  const user = await getSessionUser();
-  if (!user) redirect("/login?callbackUrl=/dashboard");
+/** @deprecated Use `/dashboard/[studioId]/commerce/catalog` */
+export default async function LegacyShopAlias({ params }: Props) {
   const { studioId } = await params;
-  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) notFound();
-
-  const { products, orders, unavailable } = await loadStudioShopPageData(prisma, studioId);
-
-  return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <p className={ui.overline}>Catalog</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Catalog &amp; fulfillment</h1>
-        <p className="mt-2 text-sm text-stone-600">
-          Inventory quick edits, low-stock cues, and fulfillment in one place. Deep editing stays in the product workspace.
-        </p>
-      </div>
-
-      {unavailable ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Catalog data is temporarily unavailable while product schema updates finish deploying. Existing configuration is safe;
-          try again after the deployment completes.
-          {" "}
-          <Link href={`/dashboard/products/${studioId}`} className="font-medium underline underline-offset-2">
-            Open the product workspace
-          </Link>
-          {" "}
-          if you need to review listings meanwhile.
-        </div>
-      ) : null}
-
-      <StudioShopClient studioId={studioId} products={products} orders={orders} />
-    </div>
-  );
+  redirect(`/dashboard/${studioId}/commerce/catalog`);
 }

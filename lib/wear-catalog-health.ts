@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/db";
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+import { findDuplicateWearVariantSkus } from "@/lib/wear-sku-integrity";
+import { computeCatalogTrustState } from "@/lib/wear-catalog-trust";
+import { getWearSyncTimestamps } from "@/lib/wear-catalog-sync-state";
+import { computeInternalCatalogHealthScore } from "@/lib/wear-internal-health-score";
 
 const SC_FAIL = "wear_spreadconnect_failed";
 const SC_OK = "wear_spreadconnect_submitted";
@@ -46,15 +51,17 @@ export async function getWearCatalogHealthSnapshot() {
     visibleSample,
     spreadconnectFailures24h,
     spreadconnectSuccess24h,
+    duplicateSkuGroups,
+    publishedReadyCount,
   ] = await Promise.all([
-    prisma.wearProduct.count({ where: { isActive: true, archivedAt: null } }),
+    prisma.wearProduct.count({ where: wearPublicProductWhere() }),
     prisma.wearProduct.count({
       where: {
-        isActive: true,
-        archivedAt: null,
-        OR: [
-          { externalFulfillmentId: { not: null } },
-          { variants: { some: { isActive: true, sku: { not: null } } } },
+        AND: [
+          wearPublicProductWhere(),
+          {
+            OR: [{ spreadconnectArticleId: { not: null } }, { externalFulfillmentId: { not: null } }],
+          },
         ],
       },
     }),
@@ -62,7 +69,7 @@ export async function getWearCatalogHealthSnapshot() {
     prisma.wearProduct.count({ where: { archivedAt: { not: null } } }),
     prisma.wearProduct.count({ where: { isActive: false } }),
     prisma.wearProduct.findMany({
-      where: { isActive: true, archivedAt: null },
+      where: wearPublicProductWhere(),
       select: { slug: true, name: true, isFeatured: true },
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
       take: 24,
@@ -79,7 +86,23 @@ export async function getWearCatalogHealthSnapshot() {
         createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
       },
     }),
+    findDuplicateWearVariantSkus(),
+    prisma.wearProduct.count({
+      where: {
+        publishStatus: "published",
+        assetHealthStatus: "ready",
+        isActive: true,
+        archivedAt: null,
+      },
+    }),
   ]);
+
+  const [catalogTrust, syncTimestamps] = await Promise.all([
+    computeCatalogTrustState({ duplicateSkuGroups }),
+    getWearSyncTimestamps(),
+  ]);
+
+  const publishedReadyButNotPublicEligibleCount = Math.max(0, publishedReadyCount - shopVisibleCount);
 
   const rawKey = process.env.SPREADCONNECT_API_KEY?.trim() ?? "";
   const spreadconnectPendingPlaceholder = rawKey === "__PENDING__";
@@ -113,7 +136,7 @@ export async function getWearCatalogHealthSnapshot() {
   }
 
   const productsWithImages = await prisma.wearProduct.findMany({
-    where: { isActive: true, archivedAt: null },
+    where: wearPublicProductWhere(),
     select: { id: true, images: true },
     take: 40,
   });
@@ -139,9 +162,28 @@ export async function getWearCatalogHealthSnapshot() {
     }
   }
 
+  const internalHealthScore = computeInternalCatalogHealthScore({
+    catalogTrustState: catalogTrust.catalogTrustState,
+    duplicateSkuGroupCount: duplicateSkuGroups.length,
+    publishedReadyButNotPublicEligibleCount,
+    spreadconnectFailures24h: spreadconnectFailures24h,
+    brokenImageSampleCount: brokenImages.length,
+  });
+
   return {
     shopVisibleCount,
     syncedShopVisibleCount,
+    publishedReadyCount,
+    publishedReadyButNotPublicEligibleCount,
+    catalogTrustState: catalogTrust.catalogTrustState,
+    catalogTrustReasons: catalogTrust.catalogTrustReasons,
+    lastSyncAt: syncTimestamps.lastSyncAt?.toISOString() ?? null,
+    lastFullSyncAt: syncTimestamps.lastFullSyncAt?.toISOString() ?? null,
+    lastPartialSyncAt: syncTimestamps.lastPartialSyncAt?.toISOString() ?? null,
+    lastSyncMode: syncTimestamps.lastSyncMode,
+    lastSyncSkipRatio: syncTimestamps.lastResultSummary?.skipRatio ?? null,
+    lastSyncError: syncTimestamps.lastError,
+    internalHealthScore,
     totalProducts,
     archivedCount,
     inactiveCount,
@@ -152,11 +194,13 @@ export async function getWearCatalogHealthSnapshot() {
     catalogImportHint,
     spreadconnectFailuresLast24h: spreadconnectFailures24h,
     spreadconnectSubmissionsLast24h: spreadconnectSuccess24h,
+    duplicateSkuGroupCount: duplicateSkuGroups.length,
+    duplicateSkuSamples: duplicateSkuGroups.slice(0, 12).map((d) => d.sku),
     unknownImageHosts: [...unknownImageHosts].sort(),
     brokenImages,
     emptyDiagnosis,
     checklist: {
-      sameQueryAsPublicShop: true,
+      sameQueryAsPublicShop: true /** matches `wearPublicProductWhere()` used by /wear/shop and APIs */,
       migrateCommand: "npx prisma migrate deploy",
       catalogMigrationId: "20260423100000_wear_catalog_seed_data",
       imageHostsNote:

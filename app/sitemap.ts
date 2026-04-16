@@ -4,6 +4,7 @@ import { isPreregistrationOnly } from "@/lib/preregistration";
 import { captureError } from "@/lib/monitoring";
 import { siteMetadata } from "@/lib/seo";
 import { listSitemapBlogPosts } from "@/lib/blog";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 const SITEMAP_LIMIT = 1000;
 
@@ -74,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         take: SITEMAP_LIMIT,
       }),
       prisma.wearProduct.findMany({
-        where: { isActive: true, archivedAt: null },
+        where: wearPublicProductWhere(),
         select: { slug: true, updatedAt: true },
         take: SITEMAP_LIMIT,
       }),

@@ -6,6 +6,7 @@ import {
   isWearTopSubcategory,
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
   const topSubFilter = isWearTopSubcategory(subParam) ? subParam : null;
 
   const rows = await prisma.wearProduct.findMany({
-    where: { isActive: true, archivedAt: null },
+    where: wearPublicProductWhere(),
     orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
     include: {
       variants: {

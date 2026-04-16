@@ -58,9 +58,9 @@ test.describe("UX journeys — studio-admin top 10", () => {
       `/dashboard/orders/${studioId}`,
       `/dashboard/${studioId}`,
       `/dashboard/${studioId}/settings`,
-      `/dashboard/${studioId}/template`,
-      `/dashboard/${studioId}/calendar`,
-      `/dashboard/${studioId}/ai`,
+      `/dashboard/${studioId}/site/page`,
+      `/dashboard/${studioId}/schedule/calendar`,
+      `/dashboard/${studioId}/studio-tools/ai`,
     ];
 
     await loginWithCredentials(page, creds.email, creds.password, routes[0]);

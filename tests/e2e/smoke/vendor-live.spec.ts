@@ -67,12 +67,12 @@ test.describe.serial("Vendor live production smoke via admin impersonation", () 
       `/dashboard/${studioId}`,
       `/dashboard/${studioId}/guided`,
       `/dashboard/${studioId}/settings`,
-      `/dashboard/${studioId}/template`,
-      `/dashboard/${studioId}/calendar`,
-      `/dashboard/${studioId}/analytics`,
+      `/dashboard/${studioId}/site/page`,
+      `/dashboard/${studioId}/schedule/calendar`,
+      `/dashboard/${studioId}/money/reports`,
       `/dashboard/${studioId}/features`,
-      `/dashboard/${studioId}/payments`,
-      `/dashboard/${studioId}/shop`,
+      `/dashboard/${studioId}/money/overview`,
+      `/dashboard/${studioId}/commerce/catalog`,
       `/dashboard/studio/${studioId}`,
       `/dashboard/studio/${studioId}/appearance`,
     ];
@@ -87,10 +87,10 @@ test.describe.serial("Vendor live production smoke via admin impersonation", () 
 
     await test.step("legacy shortcuts redirect into canonical vendor surface", async () => {
       const redirects: Array<[string, RegExp]> = [
-        [`/dashboard/products/${studioId}`, new RegExp(`/dashboard/${studioId}/shop`)],
-        [`/dashboard/experiences/${studioId}`, new RegExp(`/dashboard/experiences/${studioId}`)],
-        [`/dashboard/bookings/${studioId}`, new RegExp(`/dashboard/${studioId}/bookings`)],
-        [`/dashboard/analytics/${studioId}`, new RegExp(`/dashboard/${studioId}/analytics`)],
+        [`/dashboard/products/${studioId}`, new RegExp(`/dashboard/${studioId}/commerce/catalog`)],
+        [`/dashboard/experiences/${studioId}`, new RegExp(`/dashboard/${studioId}/programs/planner`)],
+        [`/dashboard/bookings/${studioId}`, new RegExp(`/dashboard/${studioId}/schedule/sessions`)],
+        [`/dashboard/analytics/${studioId}`, new RegExp(`/dashboard/${studioId}/money/reports`)],
       ];
       for (const [from, to] of redirects) {
         await page.goto(from, { waitUntil: "domcontentloaded", timeout: 45_000 });

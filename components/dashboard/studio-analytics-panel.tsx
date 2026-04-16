@@ -48,14 +48,14 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
       }
       if (!res.ok) {
         setMetrics(null);
-        setErr(json?.error || "Could not load analytics");
+        setErr(json?.error || "Could not load reports");
         return;
       }
       setErr("");
       setMetrics(json?.metrics ?? null);
     } catch {
       setMetrics(null);
-      setErr("Could not load analytics");
+      setErr("Could not load reports");
     }
   }, [studioId, days]);
 
@@ -73,7 +73,7 @@ export default function StudioAnalyticsPanel({ studioId }: { studioId: string })
   if (err) return <p className={ui.errorText}>{err}</p>;
   if (!metrics) {
     return (
-      <div className="space-y-6" role="status" aria-busy="true" aria-label="Loading analytics">
+      <div className="space-y-6" role="status" aria-busy="true" aria-label="Loading reports">
         <div className="flex flex-wrap justify-between gap-3">
           <Skeleton className="h-4 w-48" />
           <div className="flex gap-1">

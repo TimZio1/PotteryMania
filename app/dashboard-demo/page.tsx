@@ -16,18 +16,18 @@ const demoNav = [
   {
     section: "Overview",
     items: [
-      { label: "Today", href: "#demo-today" },
+      { label: "Home", href: "#demo-today" },
       { label: "Guided setup", href: "#demo-actions" },
       { label: "Reports", href: "#demo-metrics" },
     ],
   },
   {
-    section: "Operations",
+    section: "Schedule & programs",
     items: [
-      { label: "Session calendar", href: "#demo-sessions" },
-      { label: "Classes", href: "#demo-sessions" },
+      { label: "Sessions", href: "#demo-sessions" },
+      { label: "Programs", href: "#demo-sessions" },
       { label: "Instructors", href: "#demo-actions" },
-      { label: "Participants", href: "#demo-metrics" },
+      { label: "Guests", href: "#demo-metrics" },
     ],
   },
   {
@@ -35,16 +35,16 @@ const demoNav = [
     items: [
       { label: "Catalog", href: "#demo-templates" },
       { label: "Gift cards", href: "#demo-templates" },
-      { label: "Payments & payouts", href: "#demo-actions" },
-      { label: "Web integrations", href: "#demo-actions" },
+      { label: "Money", href: "#demo-actions" },
+      { label: "Integrations", href: "#demo-actions" },
     ],
   },
   {
-    section: "Marketing",
+    section: "Site",
     items: [
-      { label: "Studio page", href: "#demo-appearance" },
+      { label: "Public page", href: "#demo-appearance" },
       { label: "View public page", href: "/demo" },
-      { label: "Reviews moderation", href: "#demo-sessions" },
+      { label: "Reviews", href: "#demo-sessions" },
     ],
   },
   {
@@ -207,7 +207,7 @@ export default function DashboardDemoPage() {
               </div>
 
               <div id="demo-today">
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Today at your studio</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Today&apos;s sessions</p>
                 <h2 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">
                   Clay &amp; Fire Studio
                 </h2>
@@ -275,7 +275,7 @@ export default function DashboardDemoPage() {
                 <div id="demo-templates" className={platformUi.card}>
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Studio page templates</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Public page templates</p>
                       <h3 className="mt-1 text-lg font-semibold text-amber-950">Choose how your studio grows</h3>
                     </div>
                     <Link href="/dashboard/studio/new" className={platformUi.buttonSecondary}>

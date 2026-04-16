@@ -80,14 +80,14 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
         <h2 className="text-lg font-semibold text-stone-900">Settings hub</h2>
         <p className="mt-2 text-sm text-stone-600">Central access to profile, storefront, scheduling, and billing setup.</p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          <Link href={`/dashboard/${studioId}/template`} className={ui.buttonSecondary}>
-            Studio page design
+          <Link href={`/dashboard/${studioId}/site/page`} className={ui.buttonSecondary}>
+            Public page
           </Link>
-          <Link href={`/dashboard/${studioId}/calendar`} className={ui.buttonSecondary}>
+          <Link href={`/dashboard/${studioId}/schedule/calendar`} className={ui.buttonSecondary}>
             Schedule settings
           </Link>
-          <Link href={`/dashboard/${studioId}/payments`} className={ui.buttonSecondary}>
-            Payments and payouts
+          <Link href={`/dashboard/${studioId}/money/overview`} className={ui.buttonSecondary}>
+            Money overview
           </Link>
           <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
             Legal profile and Stripe
@@ -99,7 +99,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
             Less-frequent controls moved out of primary navigation to keep the dashboard focused.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <Link href={`/dashboard/${studioId}/integrations`} className={ui.buttonGhost}>
+            <Link href={`/dashboard/${studioId}/site/integrations`} className={ui.buttonGhost}>
               Web integrations
             </Link>
             <Link href={`/dashboard/${studioId}/packages`} className={ui.buttonGhost}>
@@ -195,7 +195,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
         <p className="text-sm text-stone-600">
           Block specific days when your studio is closed (holidays, maintenance, etc.).
         </p>
-        <Link href={`/dashboard/experiences/${studioId}`} className={`${ui.buttonSecondary} mt-3 inline-flex`}>
+        <Link href={`/dashboard/${studioId}/programs/planner`} className={`${ui.buttonSecondary} mt-3 inline-flex`}>
           Open class planner &amp; closed days
         </Link>
       </div>

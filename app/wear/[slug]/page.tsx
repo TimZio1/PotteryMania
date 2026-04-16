@@ -9,6 +9,7 @@ import {
 import { wearImagesFromJson } from "@/lib/wear-product-json";
 import { WearProductGallery } from "@/components/wear/wear-product-gallery";
 import { breadcrumbJsonLd, productJsonLd, toJsonLdScript } from "@/lib/structured-data";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const p = await prisma.wearProduct.findFirst({
-    where: { slug, isActive: true, archivedAt: null },
+    where: { ...wearPublicProductWhere(), slug },
     select: { name: true, subtitle: true, description: true },
   });
   if (!p) {
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function WearProductPage({ params }: Props) {
   const { slug } = await params;
   const p = await prisma.wearProduct.findFirst({
-    where: { slug, isActive: true, archivedAt: null },
+    where: { ...wearPublicProductWhere(), slug },
     include: {
       variants: {
         where: { isActive: true },

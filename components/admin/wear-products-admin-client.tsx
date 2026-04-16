@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
@@ -25,6 +25,7 @@ function eur(cents: number) {
 }
 
 export default function WearProductsAdminClient({ initial }: { initial: WearProductAdminRow[] }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const includeArchived = searchParams.get("archived") === "1";
   const [rows, setRows] = useState(initial);
@@ -111,13 +112,19 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
         refreshedByArticleId?: number;
         discoveryListPages?: number;
         fullCatalogScanCompleted?: boolean;
+        syncMode?: string;
+        skipRatio?: number;
       };
+      const ratioPct =
+        typeof result.skipRatio === "number" ? ` · skip ratio ${(result.skipRatio * 100).toFixed(1)}%` : "";
+      const modeNote = result.syncMode ? ` · mode ${result.syncMode}` : "";
       setMsg(
         `Spreadconnect sync complete: ${result.syncedProducts ?? 0} checked · ${result.createdProducts ?? 0} created · ${result.updatedProducts ?? 0} updated · ${result.skippedUnchangedProducts ?? 0} unchanged · ${result.archivedProducts ?? 0} archived · ${result.skippedArticles ?? 0} skipped (API) · ${result.refreshedByArticleId ?? 0} refreshed by id · ${result.discoveryListPages ?? 0} list page(s)${
           result.fullCatalogScanCompleted ? " (list end reached)" : ""
-        }`,
+        }${modeNote}${ratioPct}`,
       );
       await refresh();
+      router.refresh();
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") {
         setErr(`Spreadconnect sync timed out after ${timeoutMs / 1000}s. Try again or check server logs.`);

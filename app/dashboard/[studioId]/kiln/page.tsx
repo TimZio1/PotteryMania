@@ -1,40 +1,16 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth-session";
-import { hasStudioFeature } from "@/lib/studio-features";
-import { ui } from "@/lib/ui-styles";
-import KilnManager from "@/components/dashboard/kiln-manager";
+import { redirect } from "next/navigation";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
-
-export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ studioId: string }> };
 
-export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
   return dashboardStudioMeta(studioId, "Kiln", "kiln", "Kiln firings and production queue.");
 }
 
-export default async function StudioKilnPage({ params }: Props) {
-  const user = await getSessionUser();
-  if (!user) redirect("/login?callbackUrl=/dashboard");
+/** @deprecated Use `/dashboard/[studioId]/studio-tools/kiln` */
+export default async function LegacyKilnAlias({ params }: Props) {
   const { studioId } = await params;
-  const studio = await prisma.studio.findUnique({ where: { id: studioId } });
-  if (!studio || studio.ownerUserId !== user.id) notFound();
-
-  if (!(await hasStudioFeature(studioId, "kiln_tracking"))) {
-    redirect(`/dashboard/${studioId}/features`);
-  }
-
-  return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div>
-        <p className={ui.overline}>Production</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Kiln / Production</h1>
-        <p className="mt-2 text-sm text-stone-600">Track firings and pieces. Status is for your studio operations only.</p>
-      </div>
-      <KilnManager studioId={studioId} />
-    </div>
-  );
+  redirect(`/dashboard/${studioId}/studio-tools/kiln`);
 }

@@ -11,5 +11,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LegacyProductsRedirect({ params }: Props) {
   const { studioId } = await params;
-  redirect(`/dashboard/${studioId}/shop`);
+  redirect(`/dashboard/${studioId}/commerce/catalog`);
 }

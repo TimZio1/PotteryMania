@@ -18,13 +18,13 @@ const RESERVED = new Set([
 ]);
 
 const LISTING_LABELS: Record<string, string> = {
-  products: "Products",
-  experiences: "Experiences",
-  bookings: "Session queue",
-  orders: "Sales",
+  products: "Catalog",
+  experiences: "Planner",
+  bookings: "Sessions",
+  orders: "Orders",
   analytics: "Reports",
   referrals: "Referrals",
-  waitlist: "Session waitlist",
+  waitlist: "Waitlist",
 };
 
 /**

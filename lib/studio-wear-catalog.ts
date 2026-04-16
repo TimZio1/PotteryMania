@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { calculateWearPrice, resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
 import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 export type StudioWearItem = {
   id: string;
@@ -34,8 +35,7 @@ export async function getStudioWearProducts(studioId: string): Promise<StudioWea
   const products = await prisma.wearProduct.findMany({
     where: {
       id: { in: selections.map((s) => s.wearProductId) },
-      isActive: true,
-      archivedAt: null,
+      ...wearPublicProductWhere(),
     },
     orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
     select: {

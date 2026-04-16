@@ -8,11 +8,14 @@
  * - `SPREADCONNECT_REQUEST_GAP_MS` — pause between GET /articles/{id} calls (default 250).
  * - `SPREADCONNECT_PAGE_GAP_MS` — pause between list pages (default 400).
  * - `SPREADCONNECT_SYNC_FULL_DISCOVERY=1` — cron/admin default: paginate entire catalog (heavy).
+ * - `SPREADCONNECT_PROBE_ENABLED=true` — allow hyperadmin `POST /api/admin/wear-spreadconnect/probe` (staging / controlled use).
  */
 export type SpreadconnectConfig = {
   apiKey: string;
   baseUrl: string;
   orderTimeoutMs: number;
+  supplierEnvironment: "staging" | "production";
+  liveSubmissionAllowed: boolean;
 };
 
 function clampInt(value: string | undefined, fallback: number, min: number, max: number): number {
@@ -34,6 +37,12 @@ export function getSpreadconnectConfig(): SpreadconnectConfig | null {
   ).replace(/\/$/, "");
 
   const orderTimeoutMs = clampInt(process.env.SPREADCONNECT_ORDER_TIMEOUT_MS, 20_000, 5_000, 120_000);
+  const supplierEnvironment = process.env.SPREADCONNECT_ENV?.trim().toLowerCase() === "production" ? "production" : "staging";
+  const appIsProduction = process.env.NODE_ENV === "production";
+  const liveSubmissionAllowed =
+    supplierEnvironment === "production" &&
+    appIsProduction &&
+    process.env.SPREADCONNECT_ALLOW_LIVE_SUBMISSION === "true";
 
-  return { apiKey, baseUrl, orderTimeoutMs };
+  return { apiKey, baseUrl, orderTimeoutMs, supplierEnvironment, liveSubmissionAllowed };
 }

@@ -262,7 +262,7 @@ export function buildInsightForTemplate(
               ? "If demand holds, modest price alignment often recovers single-digit % revenue on the same volume — not guaranteed."
               : "Premium positioning can work with strong differentiation; watch booking lead times after changes.",
           confidenceNote: `Based on ${ctx.peerStudioCount} comparable studios in your country and your active listings.`,
-          actions: [{ label: "Edit classes", href: `/dashboard/${ctx.studioId}/classes` }],
+          actions: [{ label: "Edit programs", href: `/dashboard/${ctx.studioId}/programs` }],
         },
       };
     }
@@ -297,8 +297,8 @@ export function buildInsightForTemplate(
           projection: "If one underused slot converts closer to your studio’s weekday average, revenue impact is usually small but compounding.",
           confidenceNote: `Based on ${ctx.bookingsLast30d} qualifying bookings in the last 30 days.`,
           actions: [
-            { label: "Open calendar", href: `/dashboard/${ctx.studioId}/calendar` },
-            { label: "Edit experiences", href: `/dashboard/${ctx.studioId}/classes` },
+            { label: "Open calendar", href: `/dashboard/${ctx.studioId}/schedule/calendar` },
+            { label: "Edit programs", href: `/dashboard/${ctx.studioId}/programs` },
           ],
         },
       };
@@ -327,7 +327,7 @@ export function buildInsightForTemplate(
           ],
           projection: "Shifting even a small share of demand to an underused class improves utilization without new acquisition.",
           confidenceNote: `Based on participant counts across ${ctx.experienceBookingCounts.size} experiences.`,
-          actions: [{ label: "Manage classes", href: `/dashboard/${ctx.studioId}/classes` }],
+          actions: [{ label: "Manage programs", href: `/dashboard/${ctx.studioId}/programs` }],
         },
       };
     }
@@ -354,7 +354,7 @@ export function buildInsightForTemplate(
           ],
           projection: "A few extra repeat bookings per month typically beat discounting for new traffic.",
           confidenceNote: `Based on ${ctx.bookingsLast90d} qualifying bookings in the last 90 days.`,
-          actions: [{ label: "View students", href: `/dashboard/${ctx.studioId}/students` }],
+          actions: [{ label: "View guests", href: `/dashboard/${ctx.studioId}/guests` }],
         },
       };
     }
@@ -380,7 +380,7 @@ export function buildInsightForTemplate(
           projection: "Reducing preventable cancels often returns more than marginal price tweaks.",
           confidenceNote: `Based on ${ctx.cancellations30d} cancelled bookings in the last 30 days.`,
           actions: [
-            { label: "Bookings", href: `/dashboard/${ctx.studioId}/bookings` },
+            { label: "Sessions", href: `/dashboard/${ctx.studioId}/schedule/sessions` },
             { label: "Settings", href: `/dashboard/${ctx.studioId}/settings` },
           ],
         },
@@ -409,7 +409,7 @@ export function buildInsightForTemplate(
           ],
           projection: "Moving utilization from low thirties toward ~50% on the same capacity usually lifts class revenue without new slots.",
           confidenceNote: "Based on open booking slots in the next 14 days.",
-          actions: [{ label: "Calendar", href: `/dashboard/${ctx.studioId}/calendar` }],
+          actions: [{ label: "Calendar", href: `/dashboard/${ctx.studioId}/schedule/calendar` }],
         },
       };
     }
@@ -423,11 +423,11 @@ export function buildInsightForTemplate(
       ];
       if (ctx.bookingsLast30d >= 6) {
         recs.push("Waitlist add-on: you have steady booking volume — capture overflow when slots fill.");
-        actions.push({ label: "Classes", href: `/dashboard/${ctx.studioId}/classes` });
+        actions.push({ label: "Programs", href: `/dashboard/${ctx.studioId}/programs` });
       }
       if (hasShop) {
         recs.push("Online shop module: you already show product revenue — ensure listings stay in sync with kiln/production.");
-        actions.push({ label: "Shop", href: `/dashboard/${ctx.studioId}/shop` });
+        actions.push({ label: "Catalog", href: `/dashboard/${ctx.studioId}/commerce/catalog` });
       }
       if (recs.length === 0) {
         recs.push("Advanced analytics: track week-over-week when you start scaling past a handful of classes per month.");

@@ -81,6 +81,10 @@ export type SpreadconnectCatalogSyncResult = {
   fullCatalogScanCompleted: boolean;
   /** Image hostnames not in Next.js `remotePatterns` — add to `next.config.ts` if legitimate. */
   unknownImageHosts: string[];
+  /** `full` when full discovery scan is enabled (option or env); otherwise incremental/partial. */
+  syncMode: "full" | "partial";
+  /** skippedArticles / fetchedArticles (remote rows processed). */
+  skipRatio: number;
 };
 
 function asString(v: unknown): string {
@@ -695,8 +699,12 @@ export async function syncSpreadconnectCatalogToWearProducts(
 
   const syncedProducts = createdProducts + updatedProducts + skippedUnchangedProducts;
 
+  const fetchedArticles = articlesToProcess.length;
+  const syncMode: "full" | "partial" = fullDiscovery ? "full" : "partial";
+  const skipRatio = fetchedArticles > 0 ? skippedArticles / fetchedArticles : 0;
+
   return {
-    fetchedArticles: articlesToProcess.length,
+    fetchedArticles,
     syncedProducts,
     createdProducts,
     updatedProducts,
@@ -708,5 +716,7 @@ export async function syncSpreadconnectCatalogToWearProducts(
     discoveryListPages,
     fullCatalogScanCompleted,
     unknownImageHosts,
+    syncMode,
+    skipRatio,
   };
 }

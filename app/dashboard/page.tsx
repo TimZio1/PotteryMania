@@ -44,7 +44,7 @@ export default async function DashboardPage() {
               Workspace billing
             </Link>
             <Link href="/my-bookings" className={`${platformUi.buttonGhost} justify-center`}>
-              Session calendar
+              My bookings &amp; sessions
             </Link>
           </div>
         </div>
@@ -172,22 +172,22 @@ export default async function DashboardPage() {
                 </div>
                 {activated ? (
                   <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-stone-200/80 pt-4 text-sm">
-                    <Link href={`/dashboard/${s.id}/bookings`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
-                      Session calendar
+                    <Link href={`/dashboard/${s.id}/schedule/sessions`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                      Sessions
                     </Link>
-                    <Link href={`/dashboard/${s.id}/classes`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
-                      Experiences
+                    <Link href={`/dashboard/${s.id}/programs`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                      Programs
                     </Link>
-                    <Link href={`/dashboard/${s.id}/shop`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/commerce/catalog`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
                       Catalog
                     </Link>
-                    <Link href={`/dashboard/${s.id}/payments`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
-                      Payments
+                    <Link href={`/dashboard/${s.id}/money/overview`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                      Money
                     </Link>
-                    <Link href={`/dashboard/${s.id}/students`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
-                      Participants
+                    <Link href={`/dashboard/${s.id}/guests`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                      Guests
                     </Link>
-                    <Link href={`/dashboard/${s.id}/analytics`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/money/reports`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
                       Reports
                     </Link>
                     <Link href={`/dashboard/${s.id}/features`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">

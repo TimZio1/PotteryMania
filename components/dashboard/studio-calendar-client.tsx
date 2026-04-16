@@ -59,7 +59,7 @@ export default function StudioCalendarClient({
     return all;
   }, [byDay]);
 
-  const scheduleHref = `/dashboard/experiences/${studioId}`;
+  const scheduleHref = `/dashboard/${studioId}/programs/planner`;
 
   function SlotCard({ sl }: { sl: CalendarSlotPayload }) {
     const fill = sl.capacityTotal > 0 ? Math.round((sl.capacityReserved / sl.capacityTotal) * 100) : 0;
@@ -138,7 +138,7 @@ export default function StudioCalendarClient({
       <p className="text-xs text-stone-500">
         Week starting <span className="font-mono">{weekStartIso}</span>. Red outline = overlapping times that day. Edit
         slots from{" "}
-        <Link href={`/dashboard/experiences/${studioId}`} className="font-medium text-amber-900 underline">
+        <Link href={`/dashboard/${studioId}/programs/planner`} className="font-medium text-amber-900 underline">
           Class planner
         </Link>
         .

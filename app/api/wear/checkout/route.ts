@@ -11,6 +11,7 @@ import {
   resolveStudioMarginBps,
   resolveWearGlobalPricing,
 } from "@/lib/wear-commission";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -81,9 +82,8 @@ export async function POST(req: Request) {
 
   const products = await prisma.wearProduct.findMany({
     where: {
+      ...wearPublicProductWhere(),
       id: { in: productIds },
-      isActive: true,
-      archivedAt: null,
     },
     include: {
       variants: { where: { isActive: true } },

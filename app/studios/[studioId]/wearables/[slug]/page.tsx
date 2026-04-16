@@ -10,6 +10,7 @@ import { buildMetadata } from "@/lib/seo";
 import { resolveWearGlobalPricing, resolveStudioMarginBps, calculateWearPrice } from "@/lib/wear-commission";
 import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ export default async function StudioWearPdpPage({ params }: Props) {
   if (!config?.enabled) notFound();
 
   const product = await prisma.wearProduct.findFirst({
-    where: { slug, isActive: true, archivedAt: null },
+    where: { ...wearPublicProductWhere(), slug },
     include: { variants: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } },
   });
   if (!product) notFound();
