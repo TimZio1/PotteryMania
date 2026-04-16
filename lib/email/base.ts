@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { BRAND_LOGO_PUBLIC_PATH } from "@/lib/brand";
 import { EmailTransportError } from "@/lib/email/email-transport-error";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 type EmailMessage = {
   to: string;
@@ -60,8 +61,7 @@ export async function sendEmailMessages(messages: EmailMessage[]) {
 }
 
 function publicSiteOrigin() {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
-  return raw.replace(/\/+$/, "") || raw;
+  return resolvePublicSiteUrl();
 }
 
 function brandLogoAbsoluteUrl() {

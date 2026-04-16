@@ -1,9 +1,25 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { MyLoyaltyClient } from "./my-loyalty-client";
+import { buildMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = buildMetadata({
+  title: "My loyalty",
+  description: "Private loyalty dashboard for your PotteryMania account.",
+  path: "/my-loyalty",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+});
 
 export default async function MyLoyaltyPage() {
   const session = await auth();

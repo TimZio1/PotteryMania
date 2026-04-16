@@ -1,0 +1,38 @@
+PotteryMania
+
+PotteryMania is pottery studio software for ceramic artists, potters, teachers, and studios.
+It helps creators sell handmade ceramics online, accept class bookings, publish studio pages, and grow revenue from one platform.
+
+Best for:
+- solo ceramic artists
+- pottery studios
+- teachers running workshops or recurring classes
+- makers who want an online storefront and booking system
+
+Core public areas:
+- Home: /
+- Pricing: /pricing
+- Marketplace: /marketplace
+- Classes: /classes
+- Studios: /studios
+- Wear shop: /wear/shop
+
+Core features:
+- product storefronts for handmade ceramics
+- pottery class and workshop booking pages
+- public studio profile pages
+- wearable merchandise storefronts
+- studio news and content publishing
+- marketplace discovery across studios
+
+Pricing summary:
+- PotteryMania offers studio plans with monthly pricing shown at /pricing
+- pricing and commission information should be treated as dynamic and sourced from the live pricing page
+
+How to get started:
+- visit /pricing to compare plans
+- visit /register to create an account
+- create a studio, add products or classes, and publish public pages
+
+Canonical website:
+- https://potterymania.com

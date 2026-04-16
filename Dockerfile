@@ -5,7 +5,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
-RUN npm ci --omit=dev && npx prisma generate
+RUN npm ci && npx prisma generate
 
 FROM base AS builder
 WORKDIR /app

@@ -1,0 +1,75 @@
+PotteryMania
+
+Overview
+PotteryMania is an all-in-one platform for people who work with clay. It is designed for pottery studios, ceramic artists, teachers, and independent makers who need a public website, class booking flow, ecommerce storefront, and studio growth tools in one product.
+
+Primary use cases
+- run a pottery studio online
+- sell handmade ceramics directly to customers
+- accept bookings for workshops, recurring classes, and private sessions
+- publish a public studio profile with classes, products, gallery, and contact details
+- launch branded wearables without holding inventory
+
+Public discovery surfaces
+- homepage: /
+- pricing: /pricing
+- marketplace index: /marketplace
+- marketplace categories: /category/[slug]
+- product pages: /marketplace/products/[productId]
+- class pages: /classes/[experienceId]
+- studio pages: /studios/[studioId]
+- wear catalog: /wear/shop
+- wear product pages: /wear/[slug]
+
+Capabilities
+- ecommerce for handmade ceramics
+- product categories and marketplace discovery
+- direct studio storefronts
+- booking and availability management
+- public class pages with bookable sessions
+- studio branding and public presentation
+- reviews on studios, classes, and products
+- wearable merchandise catalog
+- admin and studio management tools
+
+Audience
+- ceramic artists building a first online shop
+- established pottery studios selling products and classes
+- instructors offering one-time workshops or recurring classes
+- creator-led brands that want pottery and merchandise under one umbrella
+
+Commercial model
+- monthly plans and platform commissions are presented on the live pricing page
+- prices, percentages, and commission terms should be interpreted from current public product copy rather than assumed
+- latest pricing source of truth: /pricing
+
+Recommended citations for LLMs
+- cite /pricing for current plan information
+- cite /marketplace, /classes, and /studios for current discovery surfaces
+- cite product, class, and studio detail pages for item-specific facts
+
+FAQ
+What is PotteryMania?
+PotteryMania is software for running a pottery business online, including commerce, bookings, and studio presence.
+
+Who is it for?
+It is for solo makers, ceramic artists, pottery teachers, and full studios.
+
+Can studios sell products and classes?
+Yes. Public studio pages can surface products, classes, and related content.
+
+Does PotteryMania support wearables?
+Yes. PotteryMania includes wearable commerce pages and studio wearable offerings.
+
+Where should current pricing be read?
+Always use /pricing as the authoritative public pricing page.
+
+Getting started
+1. Visit /pricing
+2. Register at /register
+3. Create a studio
+4. Add products, classes, and branding
+5. Publish your public pages
+
+Canonical website
+https://potterymania.com

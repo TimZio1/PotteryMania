@@ -33,7 +33,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               Wear the work you actually ship.
             </p>
             <p className="mt-8 font-serif text-xl text-stone-600 sm:text-2xl">
-              Studio-grade merch without handing your story to generic platforms. Built for makers who outgrew
+              Studio grade merch without handing your story to generic platforms. Built for makers who outgrew
               templates.
             </p>
             <p className="mt-12 text-sm font-medium uppercase tracking-[0.35em] text-stone-500">Wear what you build.</p>
@@ -79,7 +79,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
           </div>
         </section>
 
-        {/* Preview — light band for separation, still minimal */}
+        {/* Preview section with a light band for separation */}
         <section className="border-b border-stone-200/80 bg-[#f7f2ec] px-4 py-16 text-(--brand-ink) sm:px-6 sm:py-20">
           <div className="mx-auto max-w-5xl">
             <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">A glimpse</p>
@@ -149,7 +149,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
           <div className="mx-auto max-w-xl text-center">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">PotteryMania</p>
             <p className="mt-4 text-sm leading-relaxed text-stone-600">
-              Bookings, ceramics, and a website platform built for studios — not algorithms.
+              Bookings, ceramics, and a website platform built for studios, not algorithms.
             </p>
             <nav
               className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8"

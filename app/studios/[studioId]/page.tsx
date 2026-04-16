@@ -17,8 +17,23 @@ import { buildMetadata } from "@/lib/seo";
 import { parsePublicServiceModes } from "@/lib/studio-public-service-modes";
 import { getStudioWearProducts } from "@/lib/studio-wear-catalog";
 import { StudioWearSection } from "@/components/studio-public/studio-wear-section";
+import { breadcrumbJsonLd, localBusinessJsonLd, toJsonLdScript } from "@/lib/structured-data";
 
 export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  try {
+    const studios = await prisma.studio.findMany({
+      where: { status: "approved" },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true },
+      take: 100,
+    });
+    return studios.map((studio) => ({ studioId: studio.id }));
+  } catch {
+    return [];
+  }
+}
 
 type Props = { params: Promise<{ studioId: string }> };
 
@@ -172,6 +187,27 @@ export default async function StudioPage({ params }: Props) {
       ]}
     />
   );
+  const jsonLd = toJsonLdScript([
+    localBusinessJsonLd({
+      id: studio.id,
+      name: studio.displayName,
+      description: studio.shortDescription || studio.longDescription,
+      image: studio.coverImageUrl || studio.logoUrl,
+      city: studio.city,
+      country: studio.country,
+      addressLine1: studio.addressLine1,
+      postalCode: studio.postalCode,
+      phone: studio.whatsappNumber,
+      email: studio.email,
+      websiteUrl: studio.websiteUrl,
+      aggregateRating: reviews.length ? { ratingValue: avgRating, reviewCount: reviews.length } : undefined,
+    }),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Studios", path: "/studios" },
+      { name: studio.displayName, path: `/studios/${studio.id}` },
+    ]),
+  ]);
 
   const resolvedTheme = resolveStudioPublicTheme(studio);
   const svc = parsePublicServiceModes(studio.publicServiceModes);
@@ -553,6 +589,7 @@ export default async function StudioPage({ params }: Props) {
           />
         </StudioThemeRoot>
       </main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
     </MarketingLayout>
   );
 }

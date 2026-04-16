@@ -45,6 +45,10 @@ export function StudioWearSection({ studioId, items }: Props) {
             </div>
             <div className="p-3">
               <h3 className="st-h3 text-sm font-semibold line-clamp-1">{item.name}</h3>
+              <p className="st-muted mt-1 text-[11px] uppercase tracking-wide">
+                {item.categoryLabel}
+                {item.topSubLabel ? ` · ${item.topSubLabel}` : ""}
+              </p>
               {item.subtitle && <p className="st-muted mt-0.5 text-xs line-clamp-1">{item.subtitle}</p>}
               <p className="st-accent-text mt-1 text-sm font-semibold">{formatEur(item.priceCents)}</p>
             </div>

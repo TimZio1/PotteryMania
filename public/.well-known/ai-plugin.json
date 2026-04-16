@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "PotteryMania",
+  "name_for_model": "potterymania",
+  "description_for_human": "Pottery studio software for products, bookings, classes, and studio growth.",
+  "description_for_model": "PotteryMania is a pottery studio platform for ceramic artists, teachers, and studios. Use public pages to understand pricing, marketplace listings, class pages, studio pages, and wearable catalog details.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://potterymania.com/openapi.json",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://potterymania.com/potterymania-icon.svg",
+  "contact_email": "support@potterymania.com",
+  "legal_info_url": "https://potterymania.com/privacy"
+}

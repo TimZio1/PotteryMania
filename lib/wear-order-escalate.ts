@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { escapeHtml, renderEmailShell, sendEmailMessages } from "@/lib/email/base";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 export function wearOpsAlertInbox(): string | null {
   const a = process.env.WEAR_OPS_ALERT_EMAIL?.trim();
@@ -44,9 +45,7 @@ export async function escalateWearOrderSpreadconnectFailure(opts: {
   if (!didEscalate) return;
 
   const admin = wearOpsAlertInbox();
-  const site =
-    process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "https://potterymania.com";
-  const adminUrl = `${site.replace(/\/+$/, "")}/admin/wear-orders/${opts.wearOrderId}`;
+  const adminUrl = `${resolvePublicSiteUrl()}/admin/wear-orders/${opts.wearOrderId}`;
   const detailStr = opts.detail
     ? escapeHtml(JSON.stringify(opts.detail, null, 2).slice(0, 2000))
     : "";

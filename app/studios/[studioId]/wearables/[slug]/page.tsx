@@ -8,6 +8,7 @@ import { StudioThemeRoot } from "@/components/studio-public/studio-theme-root";
 import { resolveStudioPublicTheme } from "@/lib/studio-theme/resolve";
 import { buildMetadata } from "@/lib/seo";
 import { resolveWearGlobalPricing, resolveStudioMarginBps, calculateWearPrice } from "@/lib/wear-commission";
+import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   if (!product || !studio) return buildMetadata({ title: "Not found", description: "Product not found.", path: `/studios/${studioId}/wearables/${slug}` });
   return buildMetadata({
-    title: `${product.name} — ${studio.displayName}`,
+    title: `${product.name} ${studio.displayName}`,
     description: product.subtitle || `${product.name} from ${studio.displayName}`,
     path: `/studios/${studioId}/wearables/${slug}`,
   });
@@ -67,6 +68,14 @@ export default async function StudioWearPdpPage({ params }: Props) {
   const priceCents = calculateWearPrice(product.priceCents, marginBps);
   const images = wearImageUrlsFromJson(product.images);
   const theme = resolveStudioPublicTheme(studio);
+  const category = resolveWearCatalogCategory({
+    slug: product.slug,
+    name: product.name,
+    subtitle: product.subtitle,
+    description: product.description,
+    spreadconnectProductTypeName: product.spreadconnectProductTypeName,
+    spreadconnectCategoryData: product.spreadconnectCategoryData,
+  });
 
   return (
     <MarketingLayout>
@@ -108,6 +117,10 @@ export default async function StudioWearPdpPage({ params }: Props) {
 
               <div className="flex flex-col">
                 <h1 className="st-h1 text-2xl font-semibold sm:text-3xl">{product.name}</h1>
+                <p className="st-muted mt-2 text-[11px] font-medium uppercase tracking-wide">
+                  Category: {category.categoryLabel}
+                  {category.topSub ? ` · ${wearTopSubcategoryLabel(category.topSub)}` : ""}
+                </p>
                 {product.subtitle && <p className="st-muted mt-1 text-sm">{product.subtitle}</p>}
                 <p className="st-accent-text mt-4 text-2xl font-bold">{formatEur(priceCents)}</p>
 
@@ -137,9 +150,7 @@ export default async function StudioWearPdpPage({ params }: Props) {
                   >
                     Add to cart
                   </Link>
-                  <p className="text-center text-xs text-stone-400">
-                    Handled for you — ships directly to customer.
-                  </p>
+                  <p className="text-center text-xs text-stone-400">Handled for you. Ships directly to customer.</p>
                 </div>
 
                 <div className="mt-auto pt-8">

@@ -49,6 +49,21 @@ export function MarketingLayout({ children, toolbar }: Props) {
               </div>
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Resources</p>
+                <Link href="/blog" className="block transition hover:text-[var(--foreground)]">
+                  Blog
+                </Link>
+                <Link href="/marketplace" className="block transition hover:text-[var(--foreground)]">
+                  Marketplace
+                </Link>
+                <Link href="/classes" className="block transition hover:text-[var(--foreground)]">
+                  Classes
+                </Link>
+                <Link href="/studios" className="block transition hover:text-[var(--foreground)]">
+                  Studios
+                </Link>
+                <Link href="/wear/shop" className="block transition hover:text-[var(--foreground)]">
+                  Wear shop
+                </Link>
                 <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
                   See a demo
                 </Link>
@@ -73,13 +88,20 @@ export function MarketingLayout({ children, toolbar }: Props) {
               </div>
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Contact</p>
+                <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
+                  Book a demo
+                </Link>
+                <Link href="/early-access" className="block transition hover:text-[var(--foreground)]">
+                  Join early access
+                </Link>
                 {!isPreregistrationOnly() ? (
                   <Link href="/login" className="block transition hover:text-[var(--foreground)]">
                     Sign in
                   </Link>
                 ) : null}
-                <span className="block text-[var(--muted)]">Support details are available inside the app during early access.</span>
-                <span className="block text-[var(--muted)]">Social links will be published here before launch.</span>
+                <Link href="/pricing#faq" className="block transition hover:text-[var(--foreground)]">
+                  Pricing questions
+                </Link>
               </div>
             </div>
           </div>

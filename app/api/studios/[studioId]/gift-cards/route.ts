@@ -4,6 +4,7 @@ import { requireStudioOwner } from "@/lib/studio-api-auth";
 import { allocateGiftCardCode } from "@/lib/gift-cards/code";
 import { giftCardEmailCopy, sendGiftCardEmail } from "@/lib/gift-cards/email";
 import { logApiError } from "@/lib/monitoring";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -113,7 +114,7 @@ export async function POST(req: Request, ctx: Ctx) {
   if (sendEmail && giftCard.recipientEmail) {
     try {
       const sentAt = new Date();
-      const origin = (process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+      const origin = resolvePublicSiteUrl();
       const html = giftCardEmailCopy({
         recipientName: giftCard.recipientName,
         purchaserName: giftCard.purchaserName,

@@ -122,7 +122,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                 </Link>
               ) : null}
               {!isVendorRole(role) && !isAdminRole(role) ? (
-                <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
+                <Link href={createStudioHref} className={linkClass(createStudioActiveHref)}>
                   Create your studio
                 </Link>
               ) : null}

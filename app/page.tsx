@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { MobileLandingHero } from "@/components/marketing/mobile-landing-hero";
 import { buildMetadata } from "@/lib/seo";
+import { organizationJsonLd, toJsonLdScript, websiteJsonLd } from "@/lib/structured-data";
 import { ui } from "@/lib/ui-styles";
 
 const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
@@ -75,7 +76,7 @@ const landingPanels: LandingPanel[] = [
     subtitle: "Turn your craft into something people can wear.",
     points: ["Sell branded apparel", "No inventory required", "Print-on-demand fulfillment", "Expand your identity beyond clay"],
     cta: "Explore Wearables",
-    href: "/demo#demo-shop",
+    href: "/wear/shop",
     image:
       "https://images.unsplash.com/photo-1503341338985-db53aad2eeaa?auto=format&fit=crop&w=1600&q=80",
     alt: "Minimal black and white apparel styled in editorial lighting",
@@ -83,6 +84,7 @@ const landingPanels: LandingPanel[] = [
 ];
 
 export default function Home() {
+  const jsonLd = toJsonLdScript([websiteJsonLd(), organizationJsonLd()]);
   return (
     <MarketingLayout>
       <main className="bg-[#f6f1e8] text-[#1f1a17]">
@@ -122,6 +124,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
     </MarketingLayout>
   );
 }
@@ -129,7 +132,15 @@ export default function Home() {
 function LandingHeroPanel({ panel, compact = false }: { panel: LandingPanel; compact?: boolean }) {
   return (
     <article className={`relative isolate h-full overflow-hidden rounded-(--radius-card) border border-stone-300 bg-[#ebe3d8]`}>
-      <Image src={panel.image} alt={panel.alt} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
+      <Image
+        src={panel.image}
+        alt={panel.alt}
+        fill
+        priority={!compact && panel.key === "shop"}
+        fetchPriority={!compact && panel.key === "shop" ? "high" : undefined}
+        sizes="(min-width: 768px) 33vw, 100vw"
+        className="object-cover"
+      />
       <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/55 to-black/75" aria-hidden />
       <div className={`relative z-10 flex h-full flex-col ${compact ? "p-4" : "p-6 lg:p-7"}`}>
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-200">

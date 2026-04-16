@@ -49,6 +49,7 @@ if (!configuredAuthSecret && process.env.NODE_ENV === "production" && !isProduct
 const authSecret =
   configuredAuthSecret ||
   (isProductionBuildPhase() ? "__potterymania_build_time_auth_secret__" : "dev-only-auth-secret-change-me");
+const trustHost = process.env.AUTH_TRUST_HOST === "true" || process.env.NODE_ENV !== "production";
 
 const googleId = process.env.AUTH_GOOGLE_ID?.trim();
 const googleSecret = process.env.AUTH_GOOGLE_SECRET?.trim();
@@ -105,7 +106,7 @@ const providers = [
 ];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  trustHost: true,
+  trustHost,
   secret: authSecret,
   providers,
   callbacks: {

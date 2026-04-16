@@ -15,8 +15,23 @@ import { billingIntervalLabel } from "@/lib/offering-pricing";
 import SubscribeButton from "@/components/offerings/subscribe-button";
 import { resolveRequestShippingRegion } from "@/lib/request-region";
 import { resolveShippingZoneForDestination, zonePriceCents, type ShippingZone } from "@/lib/shipping-zones";
+import { breadcrumbJsonLd, productJsonLd, toJsonLdScript } from "@/lib/structured-data";
 
 export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  try {
+    const products = await prisma.product.findMany({
+      where: { status: "active", studio: { status: "approved" } },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true },
+      take: 100,
+    });
+    return products.map((product) => ({ productId: product.id }));
+  } catch {
+    return [];
+  }
+}
 
 type Props = { params: Promise<{ productId: string }> };
 
@@ -88,6 +103,38 @@ export default async function ProductPage({ params }: Props) {
       ]}
     />
   );
+  const jsonLd = toJsonLdScript([
+    productJsonLd({
+      path: `/marketplace/products/${product.id}`,
+      name: product.title,
+      description:
+        product.shortDescription ||
+        product.fullDescription ||
+        `Buy ${product.title} directly from ${product.studio.displayName} on PotteryMania.`,
+      imageUrls: product.images.map((image) => image.imageUrl),
+      brandName: product.studio.displayName,
+      category: ceramicCategoryMetaByValue(product.category).title,
+      price: recurring ? ((product.recurringPriceCents as number) / 100) : price,
+      currency: product.currency,
+      availability:
+        hasVariants
+          ? totalVariantStock > 0
+            ? "InStock"
+            : "OutOfStock"
+          : product.stockQuantity > 0
+            ? "InStock"
+            : product.stockStatus === "backorder"
+              ? "PreOrder"
+              : "OutOfStock",
+      aggregateRating: reviewData.length ? { ratingValue: avgRating, reviewCount: reviewData.length } : undefined,
+    }),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Marketplace", path: "/marketplace" },
+      { name: product.studio.displayName, path: `/studios/${product.studio.id}` },
+      { name: product.title, path: `/marketplace/products/${product.id}` },
+    ]),
+  ]);
 
   return (
     <MarketingLayout toolbar={toolbar}>
@@ -268,6 +315,7 @@ export default async function ProductPage({ params }: Props) {
 
         <ReviewSummary title="Reviews" avgRating={avgRating} count={reviewData.length} reviews={reviewData} />
       </main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
     </MarketingLayout>
   );
 }

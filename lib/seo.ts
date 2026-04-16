@@ -1,27 +1,66 @@
 import type { Metadata } from "next";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
+const siteUrl = resolvePublicSiteUrl();
 
 export const siteMetadata = {
   name: "PotteryMania",
   description:
-    "Creator platform to run your business online — sell products, take bookings, and manage your studio in one place.",
+    "Pottery studio software for makers, ceramic artists, and studios to sell products, take bookings, and grow one calm business online.",
   url: siteUrl,
   ogImage: "/og-default.png",
+  keywords: [
+    "pottery studio software",
+    "ceramic studio software",
+    "pottery class booking software",
+    "sell ceramics online",
+    "pottery website builder",
+    "pottery studio management",
+    "ceramic artist ecommerce",
+  ],
 };
+
+export function buildAbsoluteUrl(path = "/") {
+  return new URL(path, siteMetadata.url).toString();
+}
+
+function envVerification() {
+  const google = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+  const bing = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION?.trim();
+  const yandex = process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION?.trim();
+  if (!google && !bing && !yandex) return undefined;
+  return {
+    ...(google ? { google } : {}),
+    ...(bing ? { other: { "msvalidate.01": bing } } : {}),
+    ...(yandex ? { yandex } : {}),
+  };
+}
 
 export function buildMetadata(input: {
   title: string;
   description: string;
   path?: string;
   image?: string;
+  keywords?: string[];
+  robots?: Metadata["robots"];
+  alternates?: Metadata["alternates"];
 }): Metadata {
-  const url = new URL(input.path || "/", siteMetadata.url).toString();
+  const url = buildAbsoluteUrl(input.path || "/");
   const image = input.image || siteMetadata.ogImage;
   return {
     title: input.title,
     description: input.description,
-    alternates: { canonical: url },
+    keywords: [...siteMetadata.keywords, ...(input.keywords ?? [])],
+    robots: input.robots,
+    verification: envVerification(),
+    alternates: {
+      canonical: url,
+      languages: {
+        "x-default": url,
+        en: url,
+      },
+      ...(input.alternates ?? {}),
+    },
     openGraph: {
       title: input.title,
       description: input.description,

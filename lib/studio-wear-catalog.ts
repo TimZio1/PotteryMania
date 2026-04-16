@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { calculateWearPrice, resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
+import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 
 export type StudioWearItem = {
@@ -9,6 +10,8 @@ export type StudioWearItem = {
   subtitle: string | null;
   priceCents: number;
   image: string | null;
+  categoryLabel: string;
+  topSubLabel: string | null;
 };
 
 export async function getStudioWearProducts(studioId: string): Promise<StudioWearItem[] | null> {
@@ -42,15 +45,30 @@ export async function getStudioWearProducts(studioId: string): Promise<StudioWea
       subtitle: true,
       priceCents: true,
       images: true,
+      description: true,
+      spreadconnectProductTypeName: true,
+      spreadconnectCategoryData: true,
     },
   });
 
-  return products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    subtitle: p.subtitle,
-    priceCents: calculateWearPrice(p.priceCents, effectiveMarginBps),
-    image: wearImageUrlsFromJson(p.images)[0] ?? null,
-  }));
+  return products.map((p) => {
+    const category = resolveWearCatalogCategory({
+      slug: p.slug,
+      name: p.name,
+      subtitle: p.subtitle,
+      description: p.description,
+      spreadconnectProductTypeName: p.spreadconnectProductTypeName,
+      spreadconnectCategoryData: p.spreadconnectCategoryData,
+    });
+    return {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      subtitle: p.subtitle,
+      priceCents: calculateWearPrice(p.priceCents, effectiveMarginBps),
+      image: wearImageUrlsFromJson(p.images)[0] ?? null,
+      categoryLabel: category.categoryLabel,
+      topSubLabel: category.topSub ? wearTopSubcategoryLabel(category.topSub) : null,
+    };
+  });
 }

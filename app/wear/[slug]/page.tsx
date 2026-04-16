@@ -8,6 +8,7 @@ import {
 } from "@/lib/wear-categories";
 import { wearImagesFromJson } from "@/lib/wear-product-json";
 import { WearProductGallery } from "@/components/wear/wear-product-gallery";
+import { breadcrumbJsonLd, productJsonLd, toJsonLdScript } from "@/lib/structured-data";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       path: `/wear/${slug}`,
     });
   }
-  const desc = p.subtitle ?? p.description ?? `${p.name} — PotteryMania wear.`;
+  const desc = p.subtitle ?? p.description ?? `${p.name}. PotteryMania wear.`;
   return buildMetadata({
-    title: `${p.name} — Wear`,
+    title: `${p.name} Wear`,
     description: desc.slice(0, 160),
     path: `/wear/${slug}`,
   });
@@ -67,6 +68,25 @@ export default async function WearProductPage({ params }: Props) {
     priceCents: v.priceCents,
     stockQuantity: v.stockQuantity,
   }));
+  const inStockVariant = p.variants.find((variant) => (variant.stockQuantity ?? 0) > 0);
+  const jsonLd = toJsonLdScript([
+    productJsonLd({
+      path: `/wear/${p.slug}`,
+      name: p.name,
+      description: p.subtitle ?? p.description ?? `${p.name} from PotteryMania wear.`,
+      imageUrls: images.map((image) => image.url),
+      brandName: "PotteryMania",
+      category: category.categoryLabel,
+      price: (inStockVariant?.priceCents ?? p.priceCents) / 100,
+      currency: p.currency,
+      availability: p.variants.some((variant) => (variant.stockQuantity ?? 0) > 0) ? "InStock" : "OutOfStock",
+    }),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Wear", path: "/wear/shop" },
+      { name: p.name, path: `/wear/${p.slug}` },
+    ]),
+  ]);
 
   return (
     <main className="bg-[#f7f2ec] px-4 py-12 text-(--brand-ink) sm:px-6 sm:py-16">
@@ -87,6 +107,7 @@ export default async function WearProductPage({ params }: Props) {
           description={p.description}
         />
       </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
     </main>
   );
 }

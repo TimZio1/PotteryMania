@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { buildMetadata } from "@/lib/seo";
+import { softwareApplicationJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { ui } from "@/lib/ui-styles";
 import type { StudioPlan } from "@/lib/studio-plan-pricing";
 import { annualEquivalentLabel, buildStudioPlans, monthlyLabel } from "@/lib/studio-plan-pricing";
@@ -10,9 +11,9 @@ import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Plans & pricing — studio shop + bookings",
+  title: "Plans and pricing for studio shop and bookings",
   description:
-    "Free until 1 May 2026. No payment required. One system replaces scattered tools — sell products, book classes, and run your studio from €19/month after launch.",
+    "Free until 1 May 2026. No payment required. One system replaces scattered tools to sell products, book classes, and run your studio from EUR 19 per month after launch.",
   path: "/pricing",
 });
 
@@ -43,6 +44,18 @@ export default async function PricingPage() {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
   const STUDIO_PLANS = buildStudioPlans(commissionLabel);
   const COMPARISON_ROWS = buildComparisonRows(commissionLabel);
+  const pricingJsonLd = toJsonLdScript(
+    softwareApplicationJsonLd({
+      name: "PotteryMania",
+      description:
+        "Pottery studio software to sell ceramics online, accept bookings, and run classes and storefronts from one platform.",
+      path: "/pricing",
+      offers: STUDIO_PLANS.map((plan) => ({
+        name: plan.name,
+        price: plan.monthlyCents / 100,
+      })),
+    }),
+  );
 
   return (
     <MarketingLayout>
@@ -182,13 +195,14 @@ export default async function PricingPage() {
             </div>
           </dl>
           <Link
-            href="/dashboard/studio/new?setup=both"
+            href="/demo"
             className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--accent)] px-8 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)]"
           >
             Create your studio
           </Link>
         </div>
       </main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: pricingJsonLd }} />
     </MarketingLayout>
   );
 }

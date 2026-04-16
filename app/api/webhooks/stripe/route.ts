@@ -27,6 +27,7 @@ import { releaseGiftCardRedemptionsForSession } from "@/lib/gift-cards/checkout"
 import { runCheckoutCompletionSideEffects, settleCheckoutOrderPayment } from "@/lib/orders/checkout-completion";
 import { settleBookingRemainderPayment } from "@/lib/bookings/remainder";
 import { orderPaymentFailedCopy, sendOrderEmails } from "@/lib/email/order-notify";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -136,7 +137,7 @@ export async function POST(req: Request) {
           });
 
           if (activated?.recipientEmail) {
-            const origin = (process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+            const origin = resolvePublicSiteUrl();
             const emailHtml = giftCardEmailCopy({
               recipientName: activated.recipientName,
               purchaserName: activated.purchaserName,

@@ -96,6 +96,8 @@ export function MobileLandingHero({ panels }: Props) {
                 src={panel.image}
                 alt={panel.alt}
                 fill
+                priority={panel.key === "shop"}
+                fetchPriority={panel.key === "shop" ? "high" : undefined}
                 sizes="100vw"
                 className="object-cover"
               />

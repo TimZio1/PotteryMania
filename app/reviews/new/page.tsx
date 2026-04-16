@@ -1,15 +1,31 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { ReviewForm } from "@/components/reviews/review-form";
+import { buildMetadata } from "@/lib/seo";
 
 type PageProps = {
   searchParams: Promise<{ booking?: string }>;
 };
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Write a review",
+  description: "Private review submission page for a completed PotteryMania booking.",
+  path: "/reviews/new",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+});
 
 export default async function NewReviewPage({ searchParams }: PageProps) {
   const sp = await searchParams;

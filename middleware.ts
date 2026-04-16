@@ -33,6 +33,7 @@ const BASE_PUBLIC_CORE = [
   "/pricing",
   "/demo",
   "/early-access",
+  "/blog",
   "/login",
   "/forgot-password",
   "/reset-password",
@@ -44,7 +45,16 @@ const BASE_PUBLIC_CORE = [
 ];
 
 function publicAllowlist(): string[] {
-  return [...BASE_PUBLIC_CORE, "/register", "/classes", "/studios", "/gift-cards"];
+  return [
+    ...BASE_PUBLIC_CORE,
+    "/register",
+    "/classes",
+    "/studios",
+    "/gift-cards",
+    "/category",
+    "/marketplace",
+    "/wear",
+  ];
 }
 
 export default auth(async (req) => {
@@ -57,23 +67,6 @@ export default auth(async (req) => {
 
   const path = req.nextUrl.pathname;
   const isApiPath = path.startsWith("/api/");
-
-  if (path.startsWith("/category/")) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  if (path === "/wear" || path === "/wear/" || path === "/wear/shop" || path.startsWith("/wear/shop/")) {
-    return NextResponse.redirect(new URL("/marketplace", req.url));
-  }
-  if (path === "/wear/cart" || path.startsWith("/wear/cart/")) {
-    return NextResponse.redirect(new URL("/cart", req.url));
-  }
-  if (path === "/wear/success" || path.startsWith("/wear/success/")) {
-    return NextResponse.redirect(new URL("/checkout/success", req.url));
-  }
-  if (path.startsWith("/wear/")) {
-    return NextResponse.redirect(new URL("/marketplace", req.url));
-  }
 
   if (isApiPath) {
     if (isStateChangingMethod(req.method) && !isCsrfExemptPath(path)) {

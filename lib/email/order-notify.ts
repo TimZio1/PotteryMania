@@ -1,4 +1,7 @@
 import { escapeHtml, renderBulletList, renderEmailShell, sendEmailMessages } from "./base";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
+
+const siteUrl = resolvePublicSiteUrl();
 
 type SendOpts = {
   customerEmail?: string;
@@ -37,7 +40,7 @@ export function orderConfirmationCopy(input: {
       intro: `Hi ${input.customerName}, your PotteryMania order from ${input.studioName} is confirmed.`,
       bodyHtml: `${list}<p style="margin:16px 0 8px;">Total: €${escapeHtml(input.totalEur)}</p>${shipping}${tracking}`,
       ctaLabel: "View PotteryMania",
-      ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+      ctaUrl: siteUrl,
     }),
     vendor: renderEmailShell({
       eyebrow: "New order",
@@ -45,13 +48,13 @@ export function orderConfirmationCopy(input: {
       intro: `A new PotteryMania order has been placed for ${input.studioName}.`,
       bodyHtml: `${list}<p style="margin:16px 0 0;">Total charged: €${escapeHtml(input.totalEur)}</p>`,
       ctaLabel: "Open dashboard",
-      ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000"}/dashboard`,
+      ctaUrl: `${siteUrl}/dashboard`,
     }),
   };
 }
 
 export function abandonedCartCopy(input: { recoveryUrl: string; itemCount: number }) {
-  const site = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "https://potterymania.com";
+  const site = siteUrl;
   return renderEmailShell({
     eyebrow: "Cart reminder",
     title: "Your cart is still waiting",

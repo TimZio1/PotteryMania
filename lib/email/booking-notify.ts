@@ -1,4 +1,7 @@
 import { escapeHtml, renderEmailShell, sendEmailMessages } from "./base";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
+
+const siteUrl = resolvePublicSiteUrl();
 
 export async function sendBookingEmails(opts: {
   customerEmail: string;
@@ -113,7 +116,7 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
       intro: `Your place for ${p.experienceTitle} is now confirmed.`,
       bodyHtml: block,
       ctaLabel: "View PotteryMania",
-      ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+      ctaUrl: siteUrl,
     }),
     studio: renderEmailShell({
       eyebrow: "New confirmed booking",
@@ -121,7 +124,7 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
       intro: `You have a confirmed booking for ${p.experienceTitle}.`,
       bodyHtml: block,
       ctaLabel: "Open dashboard",
-      ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000"}/dashboard`,
+      ctaUrl: `${siteUrl}/dashboard`,
     }),
   };
 }
@@ -153,7 +156,7 @@ export function bookingPendingStudioConfirmationCopy(p: BookingEmailFields): { c
       intro: "Your payment was received and the studio has been notified.",
       bodyHtml: block,
       ctaLabel: "View PotteryMania",
-      ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+      ctaUrl: siteUrl,
     }),
     studio: renderEmailShell({
       eyebrow: "Confirmation needed",
@@ -161,7 +164,7 @@ export function bookingPendingStudioConfirmationCopy(p: BookingEmailFields): { c
       intro: `Please confirm or decline the booking for ${p.experienceTitle}.`,
       bodyHtml: `${block}<p style="margin:16px 0 0;">Please confirm or decline in your PotteryMania dashboard.</p>`,
       ctaLabel: "Open dashboard",
-      ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000"}/dashboard`,
+      ctaUrl: `${siteUrl}/dashboard`,
     }),
   };
 }
@@ -177,7 +180,7 @@ export function bookingRejectedCopy(p: BookingEmailFields & { reason?: string | 
     intro: `Your booking for ${p.experienceTitle} at ${p.studioName} could not be confirmed.`,
     bodyHtml: `${ticket}${reason}<p style="margin:16px 0 0;">If you were charged, contact the studio for a refund.</p>`,
     ctaLabel: "View PotteryMania",
-    ctaUrl: process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000",
+    ctaUrl: siteUrl,
   });
 }
 

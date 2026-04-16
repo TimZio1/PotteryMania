@@ -67,6 +67,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://image.spreadshirtmedia.net" />
+        <link rel="preconnect" href="https://productionproductimage.spreadshirtmedia.net" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} font-sans text-[var(--foreground)] antialiased`}
       >

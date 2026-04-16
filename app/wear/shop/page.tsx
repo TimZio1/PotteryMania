@@ -18,8 +18,8 @@ import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Wear — Shop",
-  description: "PotteryMania wear — shop the drop in our own storefront.",
+  title: "Wear Shop",
+  description: "PotteryMania wear. Shop the drop in our own storefront.",
   path: "/wear/shop",
 });
 
@@ -142,7 +142,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Shop</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-600">
-          Checkout on PotteryMania — same studio story, shipped by our fulfilment partner when you order.
+          Checkout on PotteryMania. Same studio story, shipped by our fulfilment partner when you order.
         </p>
         <div className="mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-2">
           <Link
@@ -207,15 +207,15 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 ? activeTopSub
                   ? `No items currently in ${wearTopSubcategoryLabel(activeTopSub)}.`
                   : `No items currently in this category.`
-                : "We're between drops or restocking the shelf. Check back soon — new pieces always land here first."}
+                : "We are between drops or restocking the shelf. Check back soon. New pieces always land here first."}
             </p>
             <p className="mt-6 text-sm text-stone-500">
               <Link href="/wear" className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline">
                 Identity
               </Link>
-              <span className="mx-2 text-stone-600">·</span>
+              <span className="mx-2 text-stone-600">/</span>
               <Link
-                href="/early-access"
+                href="/demo"
                 className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline"
               >
                 Create your studio
@@ -285,6 +285,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                       </span>
                                     ) : null}
                                   </div>
+                                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                                    {block.heading}
+                                    {sub.label ? ` · ${sub.label}` : ""}
+                                  </p>
                                   {p.subtitle ? <p className="mt-1 text-sm text-stone-500">{p.subtitle}</p> : null}
                                   <p className="mt-2 text-sm text-stone-700">
                                     {formatWearMoney(p.priceCents, p.currency)}
@@ -340,6 +344,9 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                 </span>
                               ) : null}
                             </div>
+                            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                              {block.heading}
+                            </p>
                             {p.subtitle ? <p className="mt-1 text-sm text-stone-500">{p.subtitle}</p> : null}
                             <p className="mt-2 text-sm text-stone-700">{formatWearMoney(p.priceCents, p.currency)}</p>
                           </Link>

@@ -5,9 +5,10 @@ import { logCronRun } from "@/lib/cron-audit";
 import { sendEmailMessages } from "@/lib/email/base";
 import { bookSoonCopy } from "@/lib/email/booking-notify";
 import { renderTemplateVariables, resolveNotificationTemplate } from "@/lib/email/notification-template";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 function siteOrigin() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+  return resolvePublicSiteUrl();
 }
 
 export async function GET(req: Request) {

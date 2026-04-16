@@ -13,8 +13,25 @@ import {
   syncLockedCeramicCategories,
 } from "@/lib/ceramic-categories";
 import { resolveRequestShippingRegion } from "@/lib/request-region";
+import { breadcrumbJsonLd, toJsonLdScript } from "@/lib/structured-data";
+import { buildAbsoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  try {
+    await syncLockedCeramicCategories(prisma);
+    const categories = await prisma.productCategory.findMany({
+      where: { isActive: true },
+      orderBy: { updatedAt: "desc" },
+      select: { slug: true },
+      take: 100,
+    });
+    return categories.map((category) => ({ slug: category.slug }));
+  } catch {
+    return allCeramicCategories().slice(0, 100).map((category) => ({ slug: category.slug }));
+  }
+}
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -182,10 +199,15 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     itemListElement: listingProducts.map((product, index) => ({
       "@type": "ListItem",
       position: index + 1 + (listing.page - 1) * listing.pageSize,
-      url: `https://potterymania.com/marketplace/products/${product.id}`,
+      url: buildAbsoluteUrl(`/marketplace/products/${product.id}`),
       name: product.title,
     })),
   };
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Marketplace", path: "/marketplace" },
+    { name: categoryData.title, path: `/category/${slug}` },
+  ]);
 
   return (
     <MarketingLayout>
@@ -349,7 +371,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </div>
       </main>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLdScript([jsonLd, breadcrumbs]) }} />
     </MarketingLayout>
   );
 }

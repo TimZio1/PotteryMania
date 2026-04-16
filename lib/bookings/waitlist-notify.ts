@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { renderEmailShell, escapeHtml, sendEmailMessages } from "@/lib/email/base";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 /**
  * After a cancellation frees capacity on a slot, notify active waitlist entries
@@ -24,7 +25,7 @@ export async function notifyWaitlistOnCapacityRelease(slotId: string): Promise<n
   });
   if (entries.length === 0) return 0;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
+  const siteUrl = resolvePublicSiteUrl();
   const classUrl = `${siteUrl}/classes/${slot.experienceId}`;
   const dateStr = slot.slotDate.toISOString().slice(0, 10);
   const timeStr = slot.startTime || "";

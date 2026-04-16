@@ -3,6 +3,18 @@ import { prisma } from "@/lib/db";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { captureError } from "@/lib/monitoring";
 import { siteMetadata } from "@/lib/seo";
+import { listSitemapBlogPosts } from "@/lib/blog";
+
+const SITEMAP_LIMIT = 1000;
+
+function entry(path: string, lastModified: Date, priority?: number, changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"]) {
+  return {
+    url: new URL(path, siteMetadata.url).toString(),
+    lastModified,
+    ...(priority != null ? { priority } : {}),
+    ...(changeFrequency ? { changeFrequency } : {}),
+  };
+}
 
 /** Lets `next build` succeed when no DB is reachable (CI, fresh clone). */
 function staticSitemapFallback(): MetadataRoute.Sitemap {
@@ -13,8 +25,12 @@ function staticSitemapFallback(): MetadataRoute.Sitemap {
         "/",
         "/pricing",
         "/demo",
+        "/blog",
+        "/marketplace",
         "/classes",
         "/studios",
+        "/wear",
+        "/wear/shop",
         "/gift-cards",
         "/login",
         "/register",
@@ -22,61 +38,74 @@ function staticSitemapFallback(): MetadataRoute.Sitemap {
         "/privacy",
         "/vendor-terms",
       ];
-  return paths.map((path) => ({
-    url: new URL(path, siteMetadata.url).toString(),
-    lastModified: now,
-  }));
+  return paths.map((path) => entry(path, now, path === "/" ? 1 : 0.6, path === "/" ? "daily" : "weekly"));
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    const base = siteMetadata.url.replace(/\/$/, "");
     const now = new Date();
 
     if (isPreregistrationOnly()) {
       return [
-        { url: `${base}/`, lastModified: now },
-        { url: `${base}/pricing`, lastModified: now },
-        { url: `${base}/terms`, lastModified: now },
-        { url: `${base}/privacy`, lastModified: now },
-        { url: `${base}/vendor-terms`, lastModified: now },
+        entry("/", now, 1, "daily"),
+        entry("/pricing", now, 0.8, "weekly"),
+        entry("/terms", now, 0.2, "monthly"),
+        entry("/privacy", now, 0.2, "monthly"),
+        entry("/vendor-terms", now, 0.2, "monthly"),
       ];
     }
 
-    const [products, experiences, studios] = await Promise.all([
-      prisma.product.findMany({ where: { status: "active" }, select: { id: true, updatedAt: true }, take: 500 }),
+    const [products, experiences, studios, categories, wearProducts, blogPosts] = await Promise.all([
+      prisma.product.findMany({ where: { status: "active" }, select: { id: true, updatedAt: true }, take: SITEMAP_LIMIT }),
       prisma.experience.findMany({
         where: { status: "active", visibility: "public" },
         select: { id: true, updatedAt: true },
-        take: 500,
+        take: SITEMAP_LIMIT,
       }),
-      prisma.studio.findMany({ where: { status: "approved" }, select: { id: true, updatedAt: true }, take: 500 }),
+      prisma.studio.findMany({
+        where: { status: "approved" },
+        select: { id: true, updatedAt: true },
+        take: SITEMAP_LIMIT,
+      }),
+      prisma.productCategory.findMany({
+        where: { isActive: true },
+        select: { slug: true, updatedAt: true },
+        take: SITEMAP_LIMIT,
+      }),
+      prisma.wearProduct.findMany({
+        where: { isActive: true, archivedAt: null },
+        select: { slug: true, updatedAt: true },
+        take: SITEMAP_LIMIT,
+      }),
+      listSitemapBlogPosts(),
     ]);
 
     return [
-      { url: `${base}/`, lastModified: now },
-      { url: `${base}/pricing`, lastModified: now },
-      { url: `${base}/demo`, lastModified: now },
-      { url: `${base}/classes`, lastModified: now },
-      { url: `${base}/studios`, lastModified: now },
-      { url: `${base}/gift-cards`, lastModified: now },
-      { url: `${base}/login`, lastModified: now },
-      { url: `${base}/register`, lastModified: now },
-      { url: `${base}/terms`, lastModified: now },
-      { url: `${base}/privacy`, lastModified: now },
-      { url: `${base}/vendor-terms`, lastModified: now },
-      ...products.map((product) => ({
-        url: `${base}/marketplace/products/${product.id}`,
-        lastModified: product.updatedAt,
-      })),
-      ...experiences.map((experience) => ({
-        url: `${base}/classes/${experience.id}`,
-        lastModified: experience.updatedAt,
-      })),
-      ...studios.map((studio) => ({
-        url: `${base}/studios/${studio.id}`,
-        lastModified: studio.updatedAt,
-      })),
+      entry("/", now, 1, "daily"),
+      entry("/pricing", now, 0.9, "weekly"),
+      entry("/demo", now, 0.7, "weekly"),
+      entry("/blog", now, 0.8, "weekly"),
+      entry("/marketplace", now, 0.8, "daily"),
+      entry("/classes", now, 0.9, "daily"),
+      entry("/studios", now, 0.9, "daily"),
+      entry("/wear", now, 0.7, "weekly"),
+      entry("/wear/shop", now, 0.8, "daily"),
+      entry("/gift-cards", now, 0.5, "weekly"),
+      entry("/login", now, 0.3, "monthly"),
+      entry("/register", now, 0.4, "monthly"),
+      entry("/terms", now, 0.2, "monthly"),
+      entry("/privacy", now, 0.2, "monthly"),
+      entry("/vendor-terms", now, 0.2, "monthly"),
+      ...categories.map((category) => entry(`/category/${category.slug}`, category.updatedAt, 0.7, "weekly")),
+      ...products.map((product) => entry(`/marketplace/products/${product.id}`, product.updatedAt, 0.8, "weekly")),
+      ...experiences.map((experience) => entry(`/classes/${experience.id}`, experience.updatedAt, 0.8, "weekly")),
+      ...studios.flatMap((studio) => [
+        entry(`/studios/${studio.id}`, studio.updatedAt, 0.8, "weekly"),
+        entry(`/studios/${studio.id}/gallery`, studio.updatedAt, 0.6, "weekly"),
+        entry(`/studios/${studio.id}/news`, studio.updatedAt, 0.6, "weekly"),
+      ]),
+      ...wearProducts.map((product) => entry(`/wear/${product.slug}`, product.updatedAt, 0.7, "weekly")),
+      ...blogPosts.map((post) => entry(`/blog/${post.slug}`, post.updatedAt, 0.8, "weekly")),
     ];
   } catch (e) {
     captureError(e, { tag: "sitemap_db_fallback" });

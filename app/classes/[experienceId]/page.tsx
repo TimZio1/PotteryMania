@@ -12,8 +12,23 @@ import { billingIntervalLabel } from "@/lib/offering-pricing";
 import { describeCancellationPolicySnapshot } from "@/lib/bookings/cancellation-policy";
 import SubscribeButton from "@/components/offerings/subscribe-button";
 import { ReviewSummary } from "@/components/review-summary";
+import { breadcrumbJsonLd, eventJsonLd, toJsonLdScript } from "@/lib/structured-data";
 
 export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  try {
+    const experiences = await prisma.experience.findMany({
+      where: { status: "active", visibility: "public", studio: { status: "approved" } },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true },
+      take: 100,
+    });
+    return experiences.map((experience) => ({ experienceId: experience.id }));
+  } catch {
+    return [];
+  }
+}
 
 type PageProps = {
   params: Promise<{ experienceId: string }>;
@@ -169,6 +184,34 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
       ]}
     />
   );
+  const firstUpcomingSlot = slots[0];
+  const jsonLd = toJsonLdScript([
+    eventJsonLd({
+      id: experience.id,
+      name: experience.title,
+      description:
+        experience.shortDescription ||
+        experience.fullDescription ||
+        `Book ${experience.title} with ${experience.studio.displayName} on PotteryMania.`,
+      image: primary?.imageUrl,
+      startDate: firstUpcomingSlot ? `${firstUpcomingSlot.slotDate.slice(0, 10)}T${firstUpcomingSlot.startTime}:00` : undefined,
+      locationName: experience.venueName || experience.studio.displayName,
+      addressLine1: experience.addressLine1,
+      city: experience.city || experience.studio.city,
+      country: experience.country || experience.studio.country,
+      price: recurring ? ((experience.recurringPriceCents as number) / 100) : price,
+      currency: experience.currency,
+      organizerName: experience.studio.displayName,
+      organizerPath: `/studios/${experience.studio.id}`,
+      aggregateRating: reviews.length ? { ratingValue: avgRating, reviewCount: reviews.length } : undefined,
+    }),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Classes", path: "/classes" },
+      { name: experience.studio.displayName, path: `/studios/${experience.studio.id}` },
+      { name: experience.title, path: `/classes/${experience.id}` },
+    ]),
+  ]);
 
   return (
     <MarketingLayout toolbar={toolbar}>
@@ -267,6 +310,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         </div>
         <ReviewSummary title="Class reviews" avgRating={avgRating} count={reviews.length} reviews={reviews} />
       </main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
     </MarketingLayout>
   );
 }
