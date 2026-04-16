@@ -103,6 +103,6 @@ describe("API contract: /api/cart", () => {
     const json = (await res.json()) as Record<string, unknown>;
 
     expect(res.status).toBe(400);
-    expect(json.error).toBe("productId or slotId required");
+    expect(json.error).toBe("productId, wearProductId or slotId required");
   });
 });

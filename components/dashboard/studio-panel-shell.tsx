@@ -66,7 +66,7 @@ export default function StudioPanelShell({
       });
     }
     return items;
-  }, [pathname, studioId, studioName, flatNav, studioBase]);
+  }, [pathname, studioName, flatNav, studioBase]);
 
   useEffect(() => {
     setMobileOpen(false);

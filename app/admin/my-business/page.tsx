@@ -47,7 +47,6 @@ export default async function MyBusinessPage() {
   if (!user) redirect("/unauthorized-admin");
 
   const now = new Date();
-  const today = startOfDay(now);
   const month = monthStart(now);
   const prevMonth = prevMonthStart(now);
   const last30 = startOfDay(new Date(now.getTime() - 29 * DAY_MS));
