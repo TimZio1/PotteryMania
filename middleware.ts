@@ -32,6 +32,7 @@ const BASE_PUBLIC_CORE = [
   "/",
   "/pricing",
   "/demo",
+  "/dashboard-demo",
   "/early-access",
   "/blog",
   "/login",

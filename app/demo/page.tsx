@@ -144,6 +144,9 @@ export default function DemoPage() {
                 <a href="#demo-shop" className="st-btn-secondary">
                   Visit shop
                 </a>
+                <Link href="/dashboard-demo" className="st-btn-secondary">
+                  Studio dashboard demo
+                </Link>
                 <a href="#demo-about" className="st-btn-secondary">
                   About the studio
                 </a>
@@ -301,6 +304,9 @@ export default function DemoPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link href="/dashboard-demo" className="st-btn-secondary">
+                    Open dashboard demo
+                  </Link>
                   <Link href="/pricing" className="st-btn-secondary">
                     See plans
                   </Link>

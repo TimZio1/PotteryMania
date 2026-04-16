@@ -217,14 +217,31 @@ async function postSpreadconnectOrder(
   cfg: NonNullable<ReturnType<typeof getSpreadconnectConfig>>,
   body: CreateOrderPayload,
 ): Promise<{ ok: true; orderReference: number; rawId: number } | { ok: false; status: number; message: string }> {
-  const res = await fetch(`${cfg.baseUrl}/orders`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-SPOD-ACCESS-TOKEN": cfg.apiKey,
-    },
-    body: JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${cfg.baseUrl}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-SPOD-ACCESS-TOKEN": cfg.apiKey,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(cfg.orderTimeoutMs),
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      return {
+        ok: false,
+        status: 504,
+        message: `Spreadconnect timed out after ${cfg.orderTimeoutMs}ms`,
+      };
+    }
+    return {
+      ok: false,
+      status: 503,
+      message: error instanceof Error ? error.message : "Spreadconnect request failed",
+    };
+  }
 
   const text = await res.text();
   let json: { id?: number; orderReference?: number; message?: string; errors?: unknown } = {};
@@ -392,8 +409,9 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
 
   const result = await postSpreadconnectOrder(cfg, body);
   if (!result.ok) {
-    await recordFailure("api_error", {
-      reason: "api_error",
+    const reasonCode = result.status === 504 ? "api_timeout" : "api_error";
+    await recordFailure(reasonCode, {
+      reason: reasonCode,
       status: result.status,
       message: result.message,
     });

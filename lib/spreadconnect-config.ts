@@ -12,7 +12,14 @@
 export type SpreadconnectConfig = {
   apiKey: string;
   baseUrl: string;
+  orderTimeoutMs: number;
 };
+
+function clampInt(value: string | undefined, fallback: number, min: number, max: number): number {
+  const parsed = Number.parseInt(value || "", 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
 
 export function getSpreadconnectConfig(): SpreadconnectConfig | null {
   const apiKey = process.env.SPREADCONNECT_API_KEY?.trim() ?? "";
@@ -26,5 +33,7 @@ export function getSpreadconnectConfig(): SpreadconnectConfig | null {
     process.env.SPREADCONNECT_API_BASE_URL?.trim() || "https://api.spreadconnect.app"
   ).replace(/\/$/, "");
 
-  return { apiKey, baseUrl };
+  const orderTimeoutMs = clampInt(process.env.SPREADCONNECT_ORDER_TIMEOUT_MS, 20_000, 5_000, 120_000);
+
+  return { apiKey, baseUrl, orderTimeoutMs };
 }
