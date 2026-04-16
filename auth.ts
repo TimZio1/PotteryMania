@@ -49,7 +49,14 @@ if (!configuredAuthSecret && process.env.NODE_ENV === "production" && !isProduct
 const authSecret =
   configuredAuthSecret ||
   (isProductionBuildPhase() ? "__potterymania_build_time_auth_secret__" : "dev-only-auth-secret-change-me");
-const trustHost = process.env.AUTH_TRUST_HOST === "true" || process.env.NODE_ENV !== "production";
+const hasConfiguredPublicOrigin = Boolean(
+  process.env.AUTH_URL?.trim() ||
+    process.env.NEXTAUTH_URL?.trim() ||
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    process.env.RAILWAY_PUBLIC_DOMAIN?.trim(),
+);
+const trustHost =
+  process.env.AUTH_TRUST_HOST === "true" || process.env.NODE_ENV !== "production" || hasConfiguredPublicOrigin;
 
 const googleId = process.env.AUTH_GOOGLE_ID?.trim();
 const googleSecret = process.env.AUTH_GOOGLE_SECRET?.trim();

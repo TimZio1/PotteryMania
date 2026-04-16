@@ -142,7 +142,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Shop</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-600">
-          Checkout on PotteryMania. Same studio story, shipped by our fulfilment partner when you order.
+          Buy directly inside PotteryMania. Branded studio experience, platform-managed checkout, and fulfilment partner shipping after purchase.
         </p>
         <div className="mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-2">
           <Link

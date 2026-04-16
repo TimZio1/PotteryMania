@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SOCIAL_PROOF_BASE } from "@/lib/brand";
 import {
   getWearSpreadshopUrl,
   WEAR_PREVIEW_ITEMS,
@@ -18,9 +19,24 @@ const sectionCtaClass =
 const bridgeLinkClass =
   "text-sm font-medium text-stone-500 underline decoration-stone-400/60 underline-offset-4 transition hover:text-amber-950 hover:decoration-amber-700/60";
 
-export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] }) {
+function formatEur(amount: number) {
+  return `EUR ${amount.toFixed(2)}`;
+}
+
+export function WearPage({
+  previewItems,
+  resellerStats,
+}: {
+  previewItems?: WearPreviewItem[];
+  resellerStats: {
+    activeCreators: number;
+    marginPct: string;
+    estimatedEarningPerSale: number;
+  };
+}) {
   const spreadshopUrl = getWearSpreadshopUrl();
   const tiles = previewItems?.length ? previewItems : WEAR_PREVIEW_ITEMS;
+  const displayedCreators = resellerStats.activeCreators + SOCIAL_PROOF_BASE;
 
   return (
     <>
@@ -35,6 +51,13 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
             <p className="mt-8 font-serif text-xl text-stone-600 sm:text-2xl">
               Studio grade merch without handing your story to generic platforms. Built for makers who outgrew
               templates.
+            </p>
+            <p className="mt-6 text-sm font-medium text-amber-900">
+              Join the reseller program and earn {resellerStats.marginPct} on every sale, roughly{" "}
+              {formatEur(resellerStats.estimatedEarningPerSale)} per item.
+            </p>
+            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-stone-500">
+              {displayedCreators.toLocaleString()} creators already selling wearables
             </p>
             <p className="mt-12 text-sm font-medium uppercase tracking-[0.35em] text-stone-500">Wear what you build.</p>
             <div className="mt-10 flex flex-col items-center gap-4">
@@ -141,6 +164,58 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
             <p className="mt-6">You don’t follow trends.</p>
             <p className="mt-6">You build your own space.</p>
             <p className="mt-10 text-amber-900">Now you can wear it.</p>
+          </div>
+        </section>
+
+        {/* Reseller program */}
+        <section className="border-b border-stone-200/80 bg-[#fbf7f2] px-4 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-5xl">
+            <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">
+              Reseller program
+            </p>
+            <h2 className="mt-4 text-center font-serif text-3xl text-amber-950 sm:text-4xl">
+              Join and sell wearables from your studio brand
+            </h2>
+            <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-relaxed text-stone-600">
+              PotteryMania runs the storefront, checkout, fulfilment routing, and product sync. You choose the pieces,
+              publish them on your studio page, and keep your margin on every sale.
+            </p>
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">1. Join</p>
+                <p className="mt-3 text-lg font-semibold text-stone-900">Enable your reseller shop</p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                  Turn on wearables in your studio dashboard, choose your products, and set your active margin when it
+                  is not locked by the platform.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">2. Sell</p>
+                <p className="mt-3 text-lg font-semibold text-stone-900">Share your studio identity</p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                  Your wearables appear inside your PotteryMania studio story and reseller embeds, so customers buy
+                  from a branded flow instead of a random marketplace.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">3. Earn</p>
+                <p className="mt-3 text-lg font-semibold text-stone-900">
+                  {resellerStats.marginPct} margin, about {formatEur(resellerStats.estimatedEarningPerSale)} per sale
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                  Earnings are dynamic and depend on the live reseller margin configuration and the catalog base price.
+                  PotteryMania handles fulfilment partner routing after checkout.
+                </p>
+              </div>
+            </div>
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link href="/demo" className={sectionCtaClass}>
+                Join reseller program
+              </Link>
+              <Link href="/wear/shop" className={bridgeLinkClass}>
+                View the live wear shop
+              </Link>
+            </div>
           </div>
         </section>
 
