@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { apiError, apiSuccess } from "@/lib/api-response";
+import type { Prisma } from "@prisma/client";
+import type { StudioPlanKey } from "@/lib/studio-plan-pricing";
 
 export async function GET() {
   const user = await getSessionUser();
@@ -30,6 +32,8 @@ export async function POST(req: Request) {
     Array.isArray(body[k]) ? (body[k] as unknown[]).filter((v): v is string => typeof v === "string").map((v) => v.trim().toLowerCase()).filter(Boolean) : [];
   const listingOnly = body.listingOnly === true;
   const quickStart = body.quickStart === true;
+  const setupPathRaw = typeof body.setupPath === "string" ? body.setupPath.trim().toLowerCase() : "";
+  const planKey: StudioPlanKey = setupPathRaw === "bookings" || setupPathRaw === "shop" || setupPathRaw === "both" ? setupPathRaw : "both";
 
   const displayName = str("displayName");
   const supportedLanguages = arr("supportedLanguages");
@@ -87,35 +91,38 @@ export async function POST(req: Request) {
     }
   }
 
+  const studioCreateData: Prisma.StudioUncheckedCreateInput = {
+    ownerUserId: user.id,
+    displayName,
+    legalBusinessName,
+    vatNumber,
+    responsiblePersonName,
+    email,
+    phone: opt("phone"),
+    country,
+    city,
+    addressLine1,
+    addressLine2: opt("addressLine2"),
+    postalCode: opt("postalCode"),
+    latitude: num("latitude") ?? undefined,
+    longitude: num("longitude") ?? undefined,
+    shortDescription: opt("shortDescription"),
+    longDescription: opt("longDescription"),
+    logoUrl: listingOnly || quickStart ? null : opt("logoUrl"),
+    coverImageUrl: opt("coverImageUrl"),
+    instagramUrl: opt("instagramUrl"),
+    facebookUrl: opt("facebookUrl"),
+    websiteUrl: opt("websiteUrl"),
+    preferredLanguage: opt("preferredLanguage"),
+    preferredCurrency: opt("preferredCurrency"),
+    supportedLanguages: supportedLanguages.length > 0 ? supportedLanguages : ["en"],
+    planKey,
+    status: "pending_review",
+    approvedAt: null,
+  };
+
   const studio = await prisma.studio.create({
-    data: {
-      ownerUserId: user.id,
-      displayName,
-      legalBusinessName,
-      vatNumber,
-      responsiblePersonName,
-      email,
-      phone: opt("phone"),
-      country,
-      city,
-      addressLine1,
-      addressLine2: opt("addressLine2"),
-      postalCode: opt("postalCode"),
-      latitude: num("latitude") ?? undefined,
-      longitude: num("longitude") ?? undefined,
-      shortDescription: opt("shortDescription"),
-      longDescription: opt("longDescription"),
-      logoUrl: listingOnly || quickStart ? null : opt("logoUrl"),
-      coverImageUrl: opt("coverImageUrl"),
-      instagramUrl: opt("instagramUrl"),
-      facebookUrl: opt("facebookUrl"),
-      websiteUrl: opt("websiteUrl"),
-      preferredLanguage: opt("preferredLanguage"),
-      preferredCurrency: opt("preferredCurrency"),
-      supportedLanguages: supportedLanguages.length > 0 ? supportedLanguages : ["en"],
-      status: "pending_review",
-      approvedAt: null,
-    },
+    data: studioCreateData,
   });
 
   /** Studio panel layout requires `vendor`; first studio creation must promote from `customer`. */

@@ -10,6 +10,14 @@ export type StudioPlan = {
   recommended?: boolean;
 };
 
+export type StudioPlanPricingOverride = {
+  monthlyCents: number;
+  annualMonthlyEquivalentCents: number;
+};
+
+export type StudioPlanPricingConfig = Record<StudioPlanKey, StudioPlanPricingOverride>;
+export type StudioPlanCommissionLabels = Partial<Record<StudioPlanKey, string>>;
+
 export const STUDIO_PLAN_CURRENCY = "EUR";
 
 const BASE_PLANS: (Omit<StudioPlan, "includes"> &
@@ -49,15 +57,37 @@ const BASE_PLANS: (Omit<StudioPlan, "includes"> &
   },
 ];
 
+export const DEFAULT_STUDIO_PLAN_PRICING: StudioPlanPricingConfig = {
+  bookings: { monthlyCents: 1900, annualMonthlyEquivalentCents: 1600 },
+  shop: { monthlyCents: 1900, annualMonthlyEquivalentCents: 1600 },
+  both: { monthlyCents: 2900, annualMonthlyEquivalentCents: 2400 },
+  pro: { monthlyCents: 5900, annualMonthlyEquivalentCents: 4900 },
+};
+
 /** Build plans with the dynamic commission label injected. */
-export function buildStudioPlans(commissionLabel: string): StudioPlan[] {
+export function buildStudioPlans(
+  commissionLabel: string | StudioPlanCommissionLabels,
+  pricingOverrides?: Partial<StudioPlanPricingConfig>,
+): StudioPlan[] {
+  const commissionLabelsByPlan: StudioPlanCommissionLabels =
+    typeof commissionLabel === "string"
+      ? {
+          bookings: commissionLabel,
+          shop: commissionLabel,
+          both: commissionLabel,
+          pro: commissionLabel,
+        }
+      : commissionLabel;
+
   return BASE_PLANS.map((p) => ({
     key: p.key,
     name: p.name,
-    monthlyCents: p.monthlyCents,
-    annualMonthlyEquivalentCents: p.annualMonthlyEquivalentCents,
+    monthlyCents: pricingOverrides?.[p.key]?.monthlyCents ?? DEFAULT_STUDIO_PLAN_PRICING[p.key].monthlyCents,
+    annualMonthlyEquivalentCents:
+      pricingOverrides?.[p.key]?.annualMonthlyEquivalentCents ??
+      DEFAULT_STUDIO_PLAN_PRICING[p.key].annualMonthlyEquivalentCents,
     headline: p.headline,
-    includes: [...p.baseIncludes, `${commissionLabel} platform commission`],
+    includes: [...p.baseIncludes, `${commissionLabelsByPlan[p.key] ?? "0%"} platform commission`],
     ...(p.recommended ? { recommended: true } : {}),
   }));
 }
@@ -81,8 +111,9 @@ export function setupPathToPlanKey(setupPath: "bookings" | "shop" | "both"): Stu
   return setupPath;
 }
 
-export function studioPlanByKey(key: StudioPlanKey): StudioPlan {
-  const plan = STUDIO_PLANS.find((p) => p.key === key);
+export function studioPlanByKey(key: StudioPlanKey, pricingOverrides?: Partial<StudioPlanPricingConfig>): StudioPlan {
+  const source = pricingOverrides ? buildStudioPlans("0%", pricingOverrides) : STUDIO_PLANS;
+  const plan = source.find((p) => p.key === key);
   if (!plan) return STUDIO_PLANS[2];
   return plan;
 }

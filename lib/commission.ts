@@ -5,6 +5,10 @@ import {
   DEFAULT_PLATFORM_COMMISSION_PCT_LABEL,
   platformCommissionPercentLabel,
 } from "@/lib/commission-defaults";
+import {
+  resolveStudioPlanKeyByStudioId,
+  resolveTierCommissionMatrix,
+} from "@/lib/studio-plan-pricing-config";
 
 const ADMIN_CONFIG_PRODUCT_KEY = "default_product_commission_bps";
 const ADMIN_CONFIG_BOOKING_KEY = "default_booking_commission_bps";
@@ -67,6 +71,18 @@ export async function resolveCommissionBps(
   } catch {
     // Ignore and fall back to global/default below.
   }
+  try {
+    const planKey = await resolveStudioPlanKeyByStudioId(studioId);
+    if (planKey) {
+      const matrix = await resolveTierCommissionMatrix();
+      const byPlan = matrix[planKey];
+      if (byPlan) {
+        return itemType === "booking" ? byPlan.bookingBps : byPlan.productBps;
+      }
+    }
+  } catch {
+    // Ignore and fall back to global/default below.
+  }
   return resolveGlobalCommissionBps(itemType);
 }
 
@@ -80,8 +96,12 @@ export function commissionCentsFromLine(lineTotalCents: number, basisPoints: num
  */
 export async function getMarketingCheckoutCommissionPctLabel(): Promise<string> {
   try {
-    const bps = await resolveGlobalCommissionBps("product");
-    return platformCommissionPercentLabel(bps);
+    const matrix = await resolveTierCommissionMatrix();
+    const productValues = [matrix.bookings.productBps, matrix.shop.productBps, matrix.both.productBps, matrix.pro.productBps];
+    const minBps = Math.min(...productValues);
+    const maxBps = Math.max(...productValues);
+    if (minBps === maxBps) return platformCommissionPercentLabel(minBps);
+    return `from ${platformCommissionPercentLabel(minBps)}`;
   } catch {
     return DEFAULT_PLATFORM_COMMISSION_PCT_LABEL;
   }

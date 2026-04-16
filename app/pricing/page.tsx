@@ -7,6 +7,10 @@ import { ui } from "@/lib/ui-styles";
 import type { StudioPlan } from "@/lib/studio-plan-pricing";
 import { annualEquivalentLabel, buildStudioPlans, monthlyLabel } from "@/lib/studio-plan-pricing";
 import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
+import {
+  getStudioPlanCommissionLabelMap,
+  resolveStudioPlanPricingConfig,
+} from "@/lib/studio-plan-pricing-config";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +46,11 @@ function Cell({ value }: { value: string | boolean }) {
 
 export default async function PricingPage() {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
-  const STUDIO_PLANS = buildStudioPlans(commissionLabel);
+  const [pricingConfig, commissionLabelByPlan] = await Promise.all([
+    resolveStudioPlanPricingConfig(),
+    getStudioPlanCommissionLabelMap(),
+  ]);
+  const STUDIO_PLANS = buildStudioPlans(commissionLabelByPlan, pricingConfig);
   const COMPARISON_ROWS = buildComparisonRows(commissionLabel);
   const pricingJsonLd = toJsonLdScript(
     softwareApplicationJsonLd({

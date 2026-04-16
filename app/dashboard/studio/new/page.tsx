@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { monthlyLabel, setupPathToPlanKey, studioPlanByKey } from "@/lib/studio-plan-pricing";
+import {
+  monthlyLabel,
+  setupPathToPlanKey,
+  studioPlanByKey,
+  type StudioPlanPricingConfig,
+} from "@/lib/studio-plan-pricing";
 import { StudioBrandImageField } from "@/components/dashboard/studio-brand-image-field";
 import { studioCoverRequirementsText, studioLogoRequirementsText } from "@/lib/studio-brand-media";
 import { missingStudioFullFields, validateStudioQuickFields } from "@/lib/studio-registration-validation";
@@ -48,6 +53,7 @@ export default function NewStudioPage() {
   const [err, setErr] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [planPricing, setPlanPricing] = useState<Partial<StudioPlanPricingConfig> | null>(null);
 
   const [quick, setQuick] = useState({
     displayName: "",
@@ -89,8 +95,21 @@ export default function NewStudioPage() {
     setErr("");
   }, [fullForm]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch("/api/public/studio-plan-pricing", { cache: "no-store" });
+        if (!r.ok) return;
+        const j = (await r.json()) as { planPricing?: Partial<StudioPlanPricingConfig> };
+        if (j.planPricing) setPlanPricing(j.planPricing);
+      } catch {
+        // Leave defaults in place when pricing endpoint is unavailable.
+      }
+    })();
+  }, []);
+
   const pathCopy = setupCopy(setup);
-  const selectedPlan = studioPlanByKey(setupPathToPlanKey(setup));
+  const selectedPlan = studioPlanByKey(setupPathToPlanKey(setup), planPricing ?? undefined);
 
   function pushAfterCreate(studioId: string, profileIncomplete: boolean) {
     const q = profileIncomplete ? "welcome=1&profile=incomplete" : "welcome=1";
@@ -278,7 +297,7 @@ export default function NewStudioPage() {
       <p className="mt-3 text-sm font-medium text-amber-900">{pathCopy.title}</p>
       <p className="mt-1 text-sm text-stone-600">
         Workspace plan: <span className="font-medium text-stone-800">{selectedPlan.name}</span> ({monthlyLabel(selectedPlan)},
-        no PotteryMania transaction fee).
+        plus platform commission based on your tier).
       </p>
 
       {!fullForm ? (

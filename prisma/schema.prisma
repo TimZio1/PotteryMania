@@ -138,6 +138,13 @@ enum StudioStatus {
   suspended
 }
 
+enum StudioPlanKey {
+  bookings
+  shop
+  both
+  pro
+}
+
 /// Vendor gallery funnel — hyperadmin reporting, not billing.
 enum BusinessTemplateFunnelEventType {
   gallery_view
@@ -236,6 +243,7 @@ model Studio {
   preferredLanguage     String?      @map("preferred_language")
   preferredCurrency     String?      @map("preferred_currency")
   supportedLanguages    String[]     @default(["en"]) @map("supported_languages")
+  planKey               StudioPlanKey? @map("plan_key")
   status                StudioStatus
   rejectionReason       String?      @map("rejection_reason")
   approvedAt            DateTime?    @map("approved_at")
@@ -481,6 +489,26 @@ enum WearOrderStatus {
   refunded
 }
 
+enum WearFulfillmentJobStatus {
+  pending
+  processing
+  succeeded
+  failed
+  cancelled
+}
+
+enum WearCatalogPublishStatus {
+  draft
+  published
+  hidden
+}
+
+enum WearAssetHealthStatus {
+  pending
+  ready
+  invalid
+}
+
 model WearProduct {
   id                    String   @id @default(uuid()) @db.Uuid
   slug                  String   @unique
@@ -495,6 +523,9 @@ model WearProduct {
   sortOrder             Int      @default(0) @map("sort_order")
   isActive              Boolean  @default(true) @map("is_active")
   isFeatured            Boolean  @default(false) @map("is_featured")
+  publishStatus         WearCatalogPublishStatus @default(published) @map("publish_status")
+  assetHealthStatus     WearAssetHealthStatus @default(pending) @map("asset_health_status")
+  assetHealthMessage    String?  @map("asset_health_message") @db.Text
   /// Soft-archive: hidden from storefront and default admin list until restored.
   archivedAt            DateTime? @map("archived_at")
   /// When the product has no variants: Spreadconnect article variant SKU for auto-fulfilment. Otherwise use variant.sku.
@@ -579,12 +610,18 @@ model WearOrder {
   internalNotes           String?         @map("internal_notes") @db.Text
   /// External provider order / job id (distinct from catalog `WearProduct.externalFulfillmentId`).
   externalFulfillmentRef  String?         @map("external_fulfillment_ref")
+  fulfillmentStatusDetail String?         @map("fulfillment_status_detail")
+  fulfillmentLastError    String?         @map("fulfillment_last_error") @db.Text
+  fulfillmentLastAttemptAt DateTime?      @map("fulfillment_last_attempt_at")
+  fulfillmentSucceededAt  DateTime?       @map("fulfillment_succeeded_at")
   createdAt               DateTime        @default(now()) @map("created_at")
   updatedAt               DateTime        @updatedAt @map("updated_at")
 
   order  Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
   studio Studio? @relation(fields: [studioId], references: [id], onDelete: SetNull)
   items  WearOrderItem[]
+  fulfillmentJobs WearFulfillmentJob[]
+  events WearOrderEvent[]
 
   @@index([orderId])
   @@index([studioId, createdAt])
@@ -607,6 +644,46 @@ model WearOrderItem {
 
   @@index([orderId])
   @@map("wear_order_items")
+}
+
+model WearOrderEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId      String   @map("order_id") @db.Uuid
+  eventType    String   @map("event_type")
+  eventSource  String?  @map("event_source")
+  message      String?  @db.Text
+  payload      Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  order WearOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("wear_order_events")
+}
+
+model WearFulfillmentJob {
+  id            String                   @id @default(uuid()) @db.Uuid
+  wearOrderId    String                   @map("wear_order_id") @db.Uuid
+  jobKind        String                   @default("spreadconnect_submit") @map("job_kind")
+  status         WearFulfillmentJobStatus @default(pending)
+  runAfter       DateTime                 @default(now()) @map("run_after")
+  startedAt      DateTime?                @map("started_at")
+  finishedAt     DateTime?                @map("finished_at")
+  lastError      String?                  @map("last_error") @db.Text
+  attemptCount   Int                      @default(0) @map("attempt_count")
+  maxAttempts    Int                      @default(8) @map("max_attempts")
+  lockedBy       String?                  @map("locked_by")
+  lockedAt       DateTime?                @map("locked_at")
+  payload        Json?
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+
+  wearOrder WearOrder @relation(fields: [wearOrderId], references: [id], onDelete: Cascade)
+
+  @@index([status, runAfter])
+  @@index([wearOrderId, createdAt])
+  @@map("wear_fulfillment_jobs")
 }
 
 /// Funnel events for native wear (DB + optional GA4 mirror from client).
