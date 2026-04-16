@@ -21,6 +21,7 @@ export function studioPanelNav(studioId: string): StudioPanelNavItem[] {
     { href: b("/shop"), label: "Catalog", section: "commerce" },
     { href: b("/gift-cards"), label: "Gift cards", section: "commerce" },
     { href: b("/payments"), label: "Payments & payouts", section: "commerce" },
+    { href: b("/integrations"), label: "Web integrations", section: "commerce" },
 
     { href: b("/template"), label: "Studio page", section: "marketing" },
     { href: `/studios/${studioId}`, label: "View public page", section: "marketing" },

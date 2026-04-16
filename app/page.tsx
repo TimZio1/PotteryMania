@@ -51,8 +51,8 @@ const landingPanels: LandingPanel[] = [
     cta: "Create Your Shop",
     href: "/register?callbackUrl=%2Fdashboard%2Fstudio%2Fnew%3Fsetup%3Dshop",
     image:
-      "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1600&q=80",
-    alt: "Minimal ceramic product styling on neutral backdrop",
+      "https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?auto=format&fit=crop&w=1600&q=80",
+    alt: "Handmade ceramic tableware arranged for a studio shop collection",
   },
   {
     key: "bookings",
@@ -67,8 +67,8 @@ const landingPanels: LandingPanel[] = [
     cta: "Start Taking Bookings",
     href: "/register?callbackUrl=%2Fdashboard%2Fstudio%2Fnew%3Fsetup%3Dbookings",
     image:
-      "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=1600&q=80",
-    alt: "Pottery studio class with hands shaping clay",
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1600&q=80",
+    alt: "Pottery studio workshop with hands shaping clay during a class",
   },
   {
     key: "wearables",
@@ -78,8 +78,8 @@ const landingPanels: LandingPanel[] = [
     cta: "Explore Wearables",
     href: "/wear/shop",
     image:
-      "https://images.unsplash.com/photo-1503341338985-db53aad2eeaa?auto=format&fit=crop&w=1600&q=80",
-    alt: "Minimal black and white apparel styled in editorial lighting",
+      "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?auto=format&fit=crop&w=1600&q=80",
+    alt: "Pottery studio workspace that reflects maker identity and brand",
   },
 ];
 

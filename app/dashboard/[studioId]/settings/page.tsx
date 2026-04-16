@@ -99,6 +99,9 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
             Less-frequent controls moved out of primary navigation to keep the dashboard focused.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Link href={`/dashboard/${studioId}/integrations`} className={ui.buttonGhost}>
+              Web integrations
+            </Link>
             <Link href={`/dashboard/${studioId}/packages`} className={ui.buttonGhost}>
               Class packages
             </Link>
