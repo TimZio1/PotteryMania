@@ -67,8 +67,8 @@ const landingPanels: LandingPanel[] = [
     cta: "Start Taking Bookings",
     href: "/register?callbackUrl=%2Fdashboard%2Fstudio%2Fnew%3Fsetup%3Dbookings",
     image:
-      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1600&q=80",
-    alt: "Pottery studio workshop with hands shaping clay during a class",
+      "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1600&q=80",
+    alt: "Hands shaping clay during a pottery workshop session",
   },
   {
     key: "wearables",
@@ -78,8 +78,8 @@ const landingPanels: LandingPanel[] = [
     cta: "Explore Wearables",
     href: "/wear/shop",
     image:
-      "https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?auto=format&fit=crop&w=1600&q=80",
-    alt: "Pottery studio workspace that reflects maker identity and brand",
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1600&q=80",
+    alt: "Minimal studio apparel for a pottery brand collection",
   },
 ];
 
@@ -90,9 +90,9 @@ export default function Home() {
       <main className="bg-[#f6f1e8] text-[#1f1a17]">
         <section className="border-b border-stone-200 bg-[#f9f5ed]">
           <div className={`${ui.pageContainer} flex items-center justify-between py-3`}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-600">PotteryMania for people who make with clay</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-600">Built for ceramic makers</p>
             <Link href="/demo" className="inline-flex min-h-10 items-center text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-900 underline decoration-stone-400 underline-offset-4 hover:decoration-stone-700">
-              Start now
+              Open demo
             </Link>
           </div>
         </section>

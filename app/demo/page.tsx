@@ -35,10 +35,10 @@ const demoStudio = {
 } as const;
 
 const galleryImages = [
-  "https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1600&q=80",
 ] as const;
 
 const classes = [
@@ -67,25 +67,25 @@ const products = [
     title: "Sand-speckled breakfast bowl",
     price: "€36",
     image:
-      "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Stoneware pour-over set",
     price: "€58",
     image:
-      "https://images.unsplash.com/photo-1612196808214-b7e239e5fdb0?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Olive glaze serving plate",
     price: "€44",
     image:
-      "https://images.unsplash.com/photo-1615485925873-6b52e3c2ed29?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1506368249639-73a05d6f6488?auto=format&fit=crop&w=1200&q=80",
   },
   {
     title: "Carved matcha cup",
     price: "€29",
     image:
-      "https://images.unsplash.com/photo-1603204077779-bed963ea7dc2?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80",
   },
 ] as const;
 
@@ -175,8 +175,8 @@ export default function DemoPage() {
               </div>
               <div className="st-card overflow-hidden p-0">
                 <Image
-                  src="https://images.unsplash.com/photo-1576020799627-aeac74d58064?auto=format&fit=crop&w=1400&q=80"
-                  alt="Ceramic pieces displayed on a studio shelf"
+                  src="https://images.unsplash.com/photo-1612196808214-bf7ad7533198?auto=format&fit=crop&w=1400&q=80"
+                  alt="Handmade ceramic pieces displayed on a studio shelf"
                   width={1400}
                   height={1100}
                   className="h-full w-full object-cover"
@@ -252,7 +252,7 @@ export default function DemoPage() {
             <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
               <div className="st-card overflow-hidden p-0">
                 <Image
-                  src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=1400&q=80"
+                  src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1400&q=80"
                   alt="Hands shaping clay on a pottery wheel"
                   width={1400}
                   height={1100}

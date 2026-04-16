@@ -33,6 +33,7 @@ type WearShopProduct = Awaited<ReturnType<typeof prisma.wearProduct.findMany>>[n
   fallbackCategory: string;
   categorySource: "spreadconnect" | "fallback";
   topSub: WearTopSubcategory | null;
+  providerCategoryLabel: string | null;
 };
 
 export default async function WearShopPage({ searchParams }: WearShopProps) {
@@ -64,11 +65,21 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     const category = resolveWearCatalogCategory(catInput(p));
     return {
       ...p,
-      categorySlug: category.categorySlug,
-      categoryLabel: category.categoryLabel,
+      categorySlug: category.fallbackCategory,
+      categoryLabel:
+        category.fallbackCategory === "tops" && category.topSub
+          ? "Tops"
+          : category.fallbackCategory === "hoodies"
+            ? "Hoodies & Sweatshirts"
+            : category.fallbackCategory === "headwear"
+              ? "Headwear"
+              : category.fallbackCategory === "accessories"
+                ? "Accessories"
+                : "Other",
       fallbackCategory: category.fallbackCategory,
       categorySource: category.source,
       topSub: category.topSub,
+      providerCategoryLabel: category.providerCategory?.label ?? null,
     };
   });
 
@@ -144,57 +155,65 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-600">
           Buy directly inside PotteryMania. Branded studio experience, platform-managed checkout, and fulfilment partner shipping after purchase.
         </p>
-        <div className="mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-2">
-          <Link
-            href="/wear/shop"
-            className={`rounded-full border px-3 py-1.5 text-xs ${
-              activeCategory == null
-                ? "border-amber-300 bg-amber-100 text-amber-950"
-                : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
-            }`}
-          >
-            All
-          </Link>
-          {categoryNavItems.map((category) => (
-            <Link
-              key={category.slug}
-              href={`/wear/shop?category=${category.slug}`}
-              className={`rounded-full border px-3 py-1.5 text-xs ${
-                activeCategory === category.slug
-                  ? "border-amber-300 bg-amber-100 text-amber-950"
-                  : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
-              }`}
-            >
-              {category.label}
-            </Link>
-          ))}
-        </div>
-        {(activeCategory == null || visible.some((product) => product.fallbackCategory === "tops")) &&
-        topSubNavItems.length > 1 ? (
-          <div className="mx-auto mt-4 flex max-w-4xl flex-wrap items-center justify-center gap-2">
-            <Link
-              href={activeCategory ? `/wear/shop?category=${activeCategory}` : "/wear/shop"}
-              className={`rounded-full border px-3 py-1.5 text-xs ${
-                activeTopSub == null
-                  ? "border-amber-300 bg-amber-100 text-amber-950"
-                  : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
-              }`}
-            >
-              All tops
-            </Link>
-            {topSubNavItems.map((sub) => (
+        <div className="mx-auto mt-8 max-w-4xl">
+          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-max items-center gap-2 pb-1">
               <Link
-                key={sub}
-                href={`/wear/shop${activeCategory ? `?category=${activeCategory}&sub=${sub}` : `?sub=${sub}`}`}
-                className={`rounded-full border px-3 py-1.5 text-xs ${
-                  activeTopSub === sub
+                href="/wear/shop"
+                className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                  activeCategory == null
                     ? "border-amber-300 bg-amber-100 text-amber-950"
                     : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
                 }`}
               >
-                {wearTopSubcategoryLabel(sub)}
+                All
               </Link>
-            ))}
+              {categoryNavItems.map((category) => (
+                <Link
+                  key={category.slug}
+                  href={`/wear/shop?category=${category.slug}`}
+                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                    activeCategory === category.slug
+                      ? "border-amber-300 bg-amber-100 text-amber-950"
+                      : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                  }`}
+                >
+                  {category.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+        {(activeCategory == null || visible.some((product) => product.fallbackCategory === "tops")) &&
+        topSubNavItems.length > 1 ? (
+          <div className="mx-auto mt-4 max-w-4xl">
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-max items-center gap-2 pb-1">
+                <Link
+                  href={activeCategory ? `/wear/shop?category=${activeCategory}` : "/wear/shop"}
+                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                    activeTopSub == null
+                      ? "border-amber-300 bg-amber-100 text-amber-950"
+                      : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                  }`}
+                >
+                  All tops
+                </Link>
+                {topSubNavItems.map((sub) => (
+                  <Link
+                    key={sub}
+                    href={`/wear/shop${activeCategory ? `?category=${activeCategory}&sub=${sub}` : `?sub=${sub}`}`}
+                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                      activeTopSub === sub
+                        ? "border-amber-300 bg-amber-100 text-amber-950"
+                        : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                    }`}
+                  >
+                    {wearTopSubcategoryLabel(sub)}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         ) : null}
 
@@ -269,6 +288,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                         quality={68}
                                         loading="lazy"
                                         decoding="async"
+                                        unoptimized
                                       />
                                     ) : (
                                       <div className="flex h-full flex-col items-center justify-center bg-stone-100 px-6 text-center">
@@ -289,6 +309,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                     {block.heading}
                                     {sub.label ? ` · ${sub.label}` : ""}
                                   </p>
+                                  {p.providerCategoryLabel ? (
+                                    <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-stone-400">
+                                      {p.providerCategoryLabel}
+                                    </p>
+                                  ) : null}
                                   {p.subtitle ? <p className="mt-1 text-sm text-stone-500">{p.subtitle}</p> : null}
                                   <p className="mt-2 text-sm text-stone-700">
                                     {formatWearMoney(p.priceCents, p.currency)}
@@ -328,6 +353,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                   quality={68}
                                   loading="lazy"
                                   decoding="async"
+                                  unoptimized
                                 />
                               ) : (
                                 <div className="flex h-full flex-col items-center justify-center bg-stone-100 px-6 text-center">
@@ -347,6 +373,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                             <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
                               {block.heading}
                             </p>
+                            {p.providerCategoryLabel ? (
+                              <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-stone-400">
+                                {p.providerCategoryLabel}
+                              </p>
+                            ) : null}
                             {p.subtitle ? <p className="mt-1 text-sm text-stone-500">{p.subtitle}</p> : null}
                             <p className="mt-2 text-sm text-stone-700">{formatWearMoney(p.priceCents, p.currency)}</p>
                           </Link>
