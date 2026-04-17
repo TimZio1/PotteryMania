@@ -51,7 +51,7 @@ export function AdminOverview(props: Props) {
     <section className="mt-8 space-y-8">
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Executive overview</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Executive overview</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">
             Run platform operations from one screen.
           </h2>
@@ -59,7 +59,7 @@ export function AdminOverview(props: Props) {
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {props.kpis.map((kpi) => (
               <article key={kpi.label} className="rounded-2xl border border-stone-200/80 bg-stone-50/80 p-5">
-                <p className="text-sm text-stone-500">{kpi.label}</p>
+                <p className="text-sm text-stone-600">{kpi.label}</p>
                 <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{kpi.value}</p>
                 {kpi.delta ? (
                   <p
@@ -70,7 +70,7 @@ export function AdminOverview(props: Props) {
                           ? "text-amber-700"
                           : kpi.tone === "good"
                             ? "text-emerald-700"
-                            : "text-stone-500"
+                            : "text-stone-600"
                     }`}
                   >
                     {kpi.delta}
@@ -82,7 +82,7 @@ export function AdminOverview(props: Props) {
         </div>
 
         <div className="rounded-3xl border border-stone-200 bg-[linear-gradient(180deg,#fffaf5_0%,#f8f1e8_100%)] p-6 shadow-sm sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Financial command center</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Financial command center</p>
           <dl className="mt-6 space-y-5">
             <MetricRow label="Gross revenue this month" value={`€${props.grossRevenueMonthEur}`} />
             <MetricRow label="Platform commission this month" value={`€${props.platformCommissionMonthEur}`} />
@@ -102,7 +102,7 @@ export function AdminOverview(props: Props) {
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr_1fr]">
         <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">What needs attention now</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">What needs attention now</p>
           <div className="mt-5 space-y-3">
             {props.alerts.map((alert) => (
               <article key={alert.title} className={`rounded-2xl border p-4 ${severityClass[alert.severity]}`}>
@@ -114,7 +114,7 @@ export function AdminOverview(props: Props) {
         </section>
 
         <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Big opportunities</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Big opportunities</p>
           <div className="mt-5 grid gap-3">
             {props.opportunities.map((item) => (
               <article key={item.title} className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
@@ -142,7 +142,7 @@ export function AdminOverview(props: Props) {
 function MetricRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-stone-200/70 pb-4 last:border-b-0 last:pb-0">
-      <dt className="text-sm text-stone-500">{label}</dt>
+      <dt className="text-sm text-stone-600">{label}</dt>
       <dd className="text-lg font-semibold tracking-tight text-amber-950">{value}</dd>
     </div>
   );
@@ -164,13 +164,13 @@ function TrendCard({
   return (
     <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
       <p className="text-sm font-semibold text-amber-950">{title}</p>
-      <p className="mt-1 text-sm text-stone-500">{subtitle}</p>
+      <p className="mt-1 text-sm text-stone-600">{subtitle}</p>
       <div className="mt-6 flex h-48 items-end gap-2">
         {data.map((point) => {
           const height = Math.max(10, Math.round((point.value / max) * 100));
           return (
             <div key={point.label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-              <div className="text-[11px] font-medium text-stone-500">
+              <div className="text-[11px] font-medium text-stone-600">
                 {prefix}
                 {Math.round(point.value).toLocaleString("en")}
               </div>
@@ -180,7 +180,7 @@ function TrendCard({
                   aria-hidden
                 />
               </div>
-              <div className="text-[11px] text-stone-400">{point.label}</div>
+              <div className="text-[11px] text-stone-500">{point.label}</div>
             </div>
           );
         })}

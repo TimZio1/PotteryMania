@@ -53,7 +53,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <aside className="hidden border-r border-stone-200/80 bg-stone-50/80 text-stone-900 lg:block">
           <div className="sticky top-0 flex h-full flex-col">
             <div className="border-b border-stone-200/80 px-5 py-5">
-              <BrandLogo href="/" size="sm" />
+              <BrandLogo href="/" size="sm" className="!text-stone-900" />
               <div className="mt-4 flex items-center justify-between gap-3">
                 <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
                   Hyperadmin
@@ -85,10 +85,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <main className="min-w-0">
+        <main className="admin-main-canvas min-w-0">
           <div className="border-b border-stone-200/80 bg-white/90 px-4 py-4 backdrop-blur-md sm:px-6 lg:hidden">
             <div className="flex items-center justify-between gap-3">
-              <BrandLogo href="/" size="sm" />
+              <BrandLogo href="/" size="sm" className="!text-stone-900" />
               <div className="flex items-center gap-2">
                 <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
                   Hyperadmin

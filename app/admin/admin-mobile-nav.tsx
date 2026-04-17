@@ -84,7 +84,11 @@ export function AdminMobileNav() {
           <div className="absolute right-0 top-0 flex h-full w-[min(100%,18rem)] flex-col border-l border-stone-200 bg-[#fdfaf6] shadow-xl">
             <div className="flex h-14 items-center justify-between border-b border-stone-200 px-4">
               <span className="text-sm font-semibold text-stone-900">Hyperadmin</span>
-              <button type="button" className={cn(platformUi.buttonGhost, "min-h-10")} onClick={close}>
+              <button
+                type="button"
+                className={cn(platformUi.buttonGhost, "min-h-10 !text-stone-800 hover:!bg-stone-200/90 hover:!text-stone-950")}
+                onClick={close}
+              >
                 Close
               </button>
             </div>
@@ -96,7 +100,9 @@ export function AdminMobileNav() {
                   className={cn(
                     platformUi.buttonGhost,
                     "w-full justify-start px-3 py-2 text-sm",
-                    linkActive(link.href) ? "bg-amber-950 text-white hover:bg-amber-950 hover:text-white" : "",
+                    linkActive(link.href)
+                      ? "!bg-amber-950 !text-white hover:!bg-amber-950 hover:!text-white"
+                      : "!text-stone-800 hover:!bg-stone-200/90 hover:!text-stone-950",
                   )}
                 >
                   {link.label}
@@ -106,7 +112,10 @@ export function AdminMobileNav() {
             <div className="border-t border-stone-200 p-3">
               <Link
                 href="/dashboard"
-                className={cn(platformUi.buttonGhost, "w-full justify-start px-3 py-2 text-sm")}
+                className={cn(
+                  platformUi.buttonGhost,
+                  "w-full justify-start px-3 py-2 text-sm !text-stone-800 hover:!bg-stone-200/90 hover:!text-stone-950",
+                )}
               >
                 Studio view
               </Link>
