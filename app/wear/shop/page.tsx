@@ -154,11 +154,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   }
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 text-(--brand-ink) sm:px-6 sm:py-20">
+    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 text-stone-900 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-6xl">
-        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Shop</p>
+        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
-        <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-600">
+        <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-700">
           Buy directly inside PotteryMania. Branded studio experience, platform-managed checkout, and fulfilment partner shipping after purchase.
         </p>
         <div className="mx-auto mt-8 max-w-4xl">
@@ -168,10 +168,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 <>
                   <Link
                     href="/wear/shop?category=tops"
-                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
                       activeCategory === "tops" && activeTopSub == null
-                        ? "border-amber-300 bg-amber-100 text-amber-950"
-                        : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                        ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                        : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                     }`}
                   >
                     All tops
@@ -180,10 +180,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                     <Link
                       key={sub}
                       href={`/wear/shop?category=tops&sub=${sub}`}
-                      className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                      className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
                         activeCategory === "tops" && activeTopSub === sub
-                          ? "border-amber-300 bg-amber-100 text-amber-950"
-                          : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                          ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                          : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                       }`}
                     >
                       {wearTopSubcategoryLabel(sub)}
@@ -193,10 +193,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               ) : (
                 <Link
                   href="/wear/shop"
-                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
                     activeCategory == null
-                      ? "border-amber-300 bg-amber-100 text-amber-950"
-                      : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                      ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                      : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                   }`}
                 >
                   All
@@ -210,10 +210,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             <div className="flex min-w-max items-center gap-2 pb-1">
               <Link
                 href="/wear/shop"
-                className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
                   activeCategory == null
-                    ? "border-amber-300 bg-amber-100 text-amber-950"
-                    : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                    ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                    : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                 }`}
               >
                 All
@@ -222,10 +222,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 <Link
                   key={category.slug}
                   href={`/wear/shop?category=${category.slug}`}
-                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs ${
+                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
                     activeCategory === category.slug
-                      ? "border-amber-300 bg-amber-100 text-amber-950"
-                      : "border-stone-200 bg-white text-stone-700 hover:border-amber-300/60 hover:text-amber-950"
+                      ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                      : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                   }`}
                 >
                   {category.label}

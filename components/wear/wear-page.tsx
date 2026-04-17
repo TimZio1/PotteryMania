@@ -11,7 +11,7 @@ import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
 
 const heroCtaClass =
-  "inline-flex min-h-12 items-center justify-center border border-amber-200/40 bg-white px-8 text-sm font-medium tracking-wide text-(--brand-ink) transition hover:bg-amber-50/90";
+  "inline-flex min-h-12 items-center justify-center border border-amber-300/60 bg-white px-8 text-sm font-medium tracking-wide text-stone-900 transition hover:bg-amber-50/90";
 
 const sectionCtaClass =
   "inline-flex min-h-11 items-center justify-center border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900";
@@ -41,7 +41,7 @@ export function WearPage({
   return (
     <>
       <WearAnalytics />
-      <main className="bg-[#f7f2ec] text-(--brand-ink)">
+      <main className="bg-[#f7f2ec] text-stone-900">
         {/* Hero */}
         <section className="border-b border-stone-200/80 px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
           <div className="mx-auto max-w-4xl text-center">
@@ -103,7 +103,7 @@ export function WearPage({
         </section>
 
         {/* Preview section with a light band for separation */}
-        <section className="border-b border-stone-200/80 bg-[#f7f2ec] px-4 py-16 text-(--brand-ink) sm:px-6 sm:py-20">
+        <section className="border-b border-stone-200/80 bg-[#f7f2ec] px-4 py-16 text-stone-900 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-5xl">
             <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">A glimpse</p>
             <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">

@@ -16,7 +16,7 @@ export function WearSuccessClient() {
   }, [sessionId]);
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-20 text-(--brand-ink) sm:px-6 sm:py-28">
+    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-20 text-stone-900 sm:px-6 sm:py-28">
       <div className="mx-auto max-w-md text-center">
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Thank you</p>
         <h1 className="mt-6 font-serif text-3xl text-amber-950 sm:text-4xl">Order received</h1>

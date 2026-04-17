@@ -209,7 +209,7 @@ export function WearCartPageClient() {
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 text-(--brand-ink) sm:px-6 sm:py-20">
+    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 text-stone-900 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-lg">
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Cart</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-amber-950">Your selection</h1>
@@ -284,7 +284,7 @@ export function WearCartPageClient() {
                     <button
                       type="button"
                       onClick={() => removeLine(key)}
-                      className="min-h-11 px-2 text-xs uppercase tracking-wider text-stone-500 hover:text-red-700"
+                      className="min-h-11 px-2 text-xs font-medium uppercase tracking-wider text-stone-700 hover:text-red-700"
                     >
                       Remove
                     </button>
