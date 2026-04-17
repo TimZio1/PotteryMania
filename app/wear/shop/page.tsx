@@ -161,50 +161,37 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-700">
           Secure checkout and fulfilment-partner shipping after purchase. Pieces are curated for creators who ship real work.
         </p>
-        <div className="mx-auto mt-8 max-w-4xl">
-          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex min-w-max items-center gap-2 pb-1">
-              {hasTopsInCatalog ? (
-                <>
-                  <Link
-                    href="/wear/shop?category=tops"
-                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
-                      activeCategory === "tops" && activeTopSub == null
-                        ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
-                        : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
-                    }`}
-                  >
-                    All tops
-                  </Link>
-                  {topSubNavItems.map((sub) => (
-                    <Link
-                      key={sub}
-                      href={`/wear/shop?category=tops&sub=${sub}`}
-                      className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
-                        activeCategory === "tops" && activeTopSub === sub
-                          ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
-                          : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
-                      }`}
-                    >
-                      {wearTopSubcategoryLabel(sub)}
-                    </Link>
-                  ))}
-                </>
-              ) : (
+        {hasTopsInCatalog ? (
+          <div className="mx-auto mt-8 max-w-4xl">
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-max items-center gap-2 pb-1">
                 <Link
-                  href="/wear/shop"
+                  href="/wear/shop?category=tops"
                   className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
-                    activeCategory == null
+                    activeCategory === "tops" && activeTopSub == null
                       ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
                       : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                   }`}
                 >
-                  All
+                  All tops
                 </Link>
-              )}
+                {topSubNavItems.map((sub) => (
+                  <Link
+                    key={sub}
+                    href={`/wear/shop?category=tops&sub=${sub}`}
+                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
+                      activeCategory === "tops" && activeTopSub === sub
+                        ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                        : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
+                    }`}
+                  >
+                    {wearTopSubcategoryLabel(sub)}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
         <div className="mx-auto mt-4 max-w-4xl">
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex min-w-max items-center gap-2 pb-1">

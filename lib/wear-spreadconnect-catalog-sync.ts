@@ -456,6 +456,13 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
   const existing = await findExistingProduct(prepared);
   const fp = catalogFingerprint(prepared);
 
+  const hasImage = prepared.images.length > 0;
+  const hasVariantSku = prepared.variants.some((v) => typeof v.sku === "string" && v.sku.length > 0);
+  const eligibleForReady = hasImage && hasVariantSku;
+  const existingStatus = existing?.assetHealthStatus ?? null;
+  const shouldPromote = eligibleForReady && existingStatus !== "invalid";
+  const assetHealthData = shouldPromote ? { assetHealthStatus: "ready" as const } : {};
+
   if (
     existing &&
     prepared.articleId != null &&
@@ -463,6 +470,12 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
     existing.spreadconnectCatalogFingerprint != null &&
     existing.spreadconnectCatalogFingerprint === fp
   ) {
+    if (shouldPromote && existingStatus !== "ready") {
+      await prisma.wearProduct.update({
+        where: { id: existing.id },
+        data: { assetHealthStatus: "ready" },
+      });
+    }
     return {
       id: existing.id,
       created: false,
@@ -494,6 +507,7 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           spreadconnectCategoryData: nullableJsonInput(prepared.spreadconnectCategoryData),
           spreadconnectCatalogFingerprint: fp,
           ...articleIdData,
+          ...assetHealthData,
         },
       })
     : await prisma.wearProduct.create({
@@ -512,6 +526,7 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           spreadconnectCategoryData: nullableJsonInput(prepared.spreadconnectCategoryData),
           spreadconnectCatalogFingerprint: fp,
           ...articleIdData,
+          ...assetHealthData,
         },
       });
 
