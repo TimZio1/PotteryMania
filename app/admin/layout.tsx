@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="pm-visual-platform min-h-screen" data-pm-visual="platform">
       <div className="mx-auto grid min-h-screen max-w-[1480px] gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="hidden border-r border-stone-200/80 bg-stone-50/80 lg:block">
+        <aside className="hidden border-r border-stone-200/80 bg-stone-50/80 text-stone-900 lg:block">
           <div className="sticky top-0 flex h-full flex-col">
             <div className="border-b border-stone-200/80 px-5 py-5">
               <BrandLogo href="/" size="sm" />
@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
                   Hyperadmin
                 </span>
-                <Link href="/dashboard" className="text-xs font-medium text-stone-500 hover:text-amber-950">
+                <Link href="/dashboard" className="text-xs font-medium text-stone-700 hover:text-amber-950">
                   Studio view
                 </Link>
               </div>
@@ -69,7 +69,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={cn(platformUi.buttonGhost, "w-full justify-start px-4 text-sm font-medium")}
+                  className={cn(
+                    platformUi.buttonGhost,
+                    "w-full justify-start px-4 text-sm font-medium !text-stone-800 hover:!bg-stone-200/80 hover:!text-stone-950",
+                  )}
                 >
                   {link.label}
                 </Link>

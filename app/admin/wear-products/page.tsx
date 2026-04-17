@@ -20,6 +20,10 @@ export const metadata: Metadata = metaAdminPage(
 
 export const dynamic = "force-dynamic";
 
+function looksLikeMissingDbColumn(msg: string) {
+  return msg.includes("does not exist") && msg.includes("column");
+}
+
 function ListFallback() {
   return (
     <div className="mt-8 flex">
@@ -125,6 +129,10 @@ export default async function AdminWearProductsPage({
     console.error("[admin/wear-products] wearBuilderJob query failed", err);
   }
 
+  const dbErrorLines = [productListError, healthSnapshotError].filter((x): x is string => Boolean(x));
+  const dbErrorCombined = dbErrorLines.length > 0;
+  const likelyMissingMigration = dbErrorLines.some(looksLikeMissingDbColumn);
+
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
@@ -134,25 +142,42 @@ export default async function AdminWearProductsPage({
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
 
-      {productListError ? (
-        <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">
-          <p className="font-semibold">Could not load wear products from the database</p>
-          <p className="mt-1 break-all font-mono text-xs">{productListError}</p>
-          <p className="mt-2 text-xs text-red-900">
-            Confirm <span className="font-mono">DATABASE_URL</span>, connection limits, and that{" "}
-            <span className="font-mono">npx prisma migrate deploy</span> has been applied. Retry after the database is reachable.
+      {dbErrorCombined ? (
+        <div
+          className={`mt-6 rounded-2xl border px-4 py-3 text-sm ${
+            likelyMissingMigration
+              ? "border-amber-300 bg-amber-50/95 text-amber-950"
+              : "border-red-300 bg-red-50/90 text-red-950"
+          }`}
+        >
+          <p className="font-semibold">
+            {likelyMissingMigration
+              ? "Production database is missing columns this app version expects"
+              : "Could not load wear data from the database"}
           </p>
-        </div>
-      ) : null}
-
-      {healthSnapshotError ? (
-        <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">
-          <p className="font-semibold">Catalog health snapshot unavailable</p>
-          <p className="mt-1 break-all font-mono text-xs">{healthSnapshotError}</p>
-          <p className="mt-2 text-xs text-red-900">
-            The product list below may still load. If this persists, confirm <span className="font-mono">DATABASE_URL</span>{" "}
-            and run <span className="font-mono">npx prisma migrate deploy</span> on the host.
+          <p className={`mt-2 text-sm ${likelyMissingMigration ? "text-amber-950/95" : "text-red-900"}`}>
+            {likelyMissingMigration ? (
+              <>
+                The code was deployed, but the database was not updated yet. On the machine or CI that has your production{" "}
+                <code className="rounded bg-white/60 px-1 font-mono text-xs">DATABASE_URL</code>, run{" "}
+                <code className="rounded bg-white/60 px-1 font-mono text-xs">npx prisma migrate deploy</code>, then reload
+                this page.
+              </>
+            ) : (
+              <>
+                Check <code className="font-mono text-xs">DATABASE_URL</code> and connectivity. If the app was just deployed,
+                run <code className="font-mono text-xs">npx prisma migrate deploy</code> on the production database.
+              </>
+            )}
           </p>
+          <details className="mt-3">
+            <summary className="cursor-pointer text-xs font-medium opacity-90">Show technical message</summary>
+            {dbErrorLines.map((line, i) => (
+              <p key={i} className="mt-2 break-all font-mono text-[11px] leading-relaxed opacity-90">
+                {line}
+              </p>
+            ))}
+          </details>
         </div>
       ) : null}
 
