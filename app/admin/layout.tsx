@@ -86,8 +86,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </aside>
 
         <main className="admin-main-canvas min-w-0">
-          <div className="border-b border-stone-200/80 bg-white/90 px-4 py-4 backdrop-blur-md sm:px-6 lg:hidden">
-            <div className="flex items-center justify-between gap-3">
+          <div className="relative z-[60] flex h-14 shrink-0 items-center border-b border-stone-200/80 bg-white/95 px-4 backdrop-blur-md sm:px-6 lg:hidden">
+            <div className="flex w-full items-center justify-between gap-3">
               <BrandLogo href="/" size="sm" className="!text-stone-900" />
               <div className="flex items-center gap-2">
                 <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
