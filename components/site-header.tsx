@@ -86,7 +86,8 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
     );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/85 backdrop-blur-xl">
+    <>
+      <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-8 lg:px-12">
         <div className="flex min-w-0 items-center gap-3">
           <button
@@ -177,8 +178,15 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
 
         <div className="md:hidden" />
       </div>
+      </header>
 
-      {/* Mobile sheet */}
+      {/*
+       * Mobile sheet — rendered as a sibling of <header> (not a child) so the
+       * `fixed inset-0` positioning is relative to the viewport rather than the
+       * header's containing block. The header uses `backdrop-blur-xl`, which
+       * creates a CSS containing block for fixed descendants and would
+       * otherwise clip the drawer to a thin strip inside the header.
+       */}
       <div
         className={cn(
           "fixed inset-0 z-50 md:hidden transition-opacity",
@@ -275,6 +283,6 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           </nav>
         </div>
       </div>
-    </header>
+    </>
   );
 }

@@ -90,7 +90,8 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
     );
 
   return (
-    <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur-md">
+    <>
+      <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-(--pm-space-4) px-(--pm-space-4) sm:h-16 sm:px-(--pm-space-8)">
         <div className="flex min-w-0 items-center gap-3">
           <button
@@ -120,7 +121,15 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
           </button>
         </nav>
       </div>
+      </header>
 
+      {/*
+       * Mobile sheet — rendered as a sibling of <header> (not a child) so the
+       * `fixed inset-0` positioning is relative to the viewport rather than the
+       * header's containing block. The header uses `backdrop-blur-md`, which
+       * creates a CSS containing block for fixed descendants and would
+       * otherwise clip the drawer to a thin strip inside the header.
+       */}
       <div
         className={cn(
           "fixed inset-0 z-50 md:hidden transition-opacity",
@@ -169,6 +178,6 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
           </nav>
         </div>
       </div>
-    </header>
+    </>
   );
 }
