@@ -11,7 +11,7 @@ export async function WearLayoutShell({ children }: { children: ReactNode }) {
   return (
     <MarketingLayout>
       {/* Isolate from marketing shell `text-[var(--foreground)]` — wear uses light cream/white surfaces */}
-      <div className="isolate text-stone-900 antialiased [color-scheme:light]">
+      <div className="isolate !text-stone-900 antialiased [color-scheme:light]">
         <WearSubnav initialCount={initialCount} />
         {children}
       </div>

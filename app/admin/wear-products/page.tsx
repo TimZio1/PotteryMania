@@ -39,35 +39,56 @@ export default async function AdminWearProductsPage({
   const sp = await searchParams;
   const includeArchived = sp.archived === "1";
 
-  const rows = await prisma.wearProduct.findMany({
-    where: includeArchived ? {} : { archivedAt: null },
-    orderBy: [{ updatedAt: "desc" }],
-    include: { _count: { select: { variants: true } } },
-  });
+  let initial: {
+    category: string;
+    categoryLabel: string;
+    id: string;
+    slug: string;
+    name: string;
+    isActive: boolean;
+    isFeatured: boolean;
+    archivedAt: string | null;
+    priceCents: number;
+    currency: string;
+    variantCount: number;
+  }[] = [];
+  let productListError: string | null = null;
 
-  const initial = rows.map((r) => {
-    const category = resolveWearCatalogCategory({
-      slug: r.slug,
-      name: r.name,
-      subtitle: r.subtitle,
-      description: r.description,
-      spreadconnectProductTypeName: r.spreadconnectProductTypeName,
-      spreadconnectCategoryData: r.spreadconnectCategoryData,
+  try {
+    const rows = await prisma.wearProduct.findMany({
+      where: includeArchived ? {} : { archivedAt: null },
+      orderBy: [{ updatedAt: "desc" }],
+      include: { _count: { select: { variants: true } } },
     });
-    return {
-      category: category.categorySlug,
-      categoryLabel: category.categoryLabel,
-      id: r.id,
-      slug: r.slug,
-      name: r.name,
-      isActive: r.isActive,
-      isFeatured: r.isFeatured,
-      archivedAt: r.archivedAt?.toISOString() ?? null,
-      priceCents: r.priceCents,
-      currency: r.currency,
-      variantCount: r._count.variants,
-    };
-  });
+
+    initial = rows.map((r) => {
+      const category = resolveWearCatalogCategory({
+        slug: r.slug,
+        name: r.name,
+        subtitle: r.subtitle,
+        description: r.description,
+        spreadconnectProductTypeName: r.spreadconnectProductTypeName,
+        spreadconnectCategoryData: r.spreadconnectCategoryData,
+      });
+      return {
+        category: category.categorySlug,
+        categoryLabel: category.categoryLabel,
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        isActive: r.isActive,
+        isFeatured: r.isFeatured,
+        archivedAt: r.archivedAt?.toISOString() ?? null,
+        priceCents: r.priceCents,
+        currency: r.currency,
+        variantCount: r._count.variants,
+      };
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[admin/wear-products] product list query failed", err);
+    productListError = msg;
+  }
 
   const { snapshot: health, error: healthSnapshotError } = await loadWearCatalogHealthSnapshot();
 
@@ -112,6 +133,17 @@ export default async function AdminWearProductsPage({
         Catalog for the PotteryMania-native wear storefront. Archive removes pieces from the public shop without deleting
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
+
+      {productListError ? (
+        <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">
+          <p className="font-semibold">Could not load wear products from the database</p>
+          <p className="mt-1 break-all font-mono text-xs">{productListError}</p>
+          <p className="mt-2 text-xs text-red-900">
+            Confirm <span className="font-mono">DATABASE_URL</span>, connection limits, and that{" "}
+            <span className="font-mono">npx prisma migrate deploy</span> has been applied. Retry after the database is reachable.
+          </p>
+        </div>
+      ) : null}
 
       {healthSnapshotError ? (
         <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">

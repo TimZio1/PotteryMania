@@ -209,9 +209,9 @@ export function WearCartPageClient() {
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 text-stone-900 sm:px-6 sm:py-20">
+    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 !text-stone-900 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-lg">
-        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Cart</p>
+        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-700">Cart</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-amber-950">Your selection</h1>
 
         {cancelled ? (
@@ -243,7 +243,7 @@ export function WearCartPageClient() {
         ) : null}
 
         {lines.length === 0 ? (
-          <p className="mt-12 text-center text-sm text-stone-500">
+          <p className="mt-12 text-center text-sm text-stone-600">
             Nothing here yet.{" "}
             <Link href="/wear/shop" className="text-amber-950 underline underline-offset-4 hover:text-amber-800">
               Browse the shop
@@ -261,7 +261,7 @@ export function WearCartPageClient() {
                   <div>
                     <p className="font-medium text-amber-950">{r.title}</p>
                     {r.ok ? (
-                      <p className="mt-1 text-sm text-stone-500">
+                      <p className="mt-1 text-sm text-stone-600">
                         {formatWearMoney(r.unitCents, r.currency)} each · {formatWearMoney(lineCents, r.currency)} line
                       </p>
                     ) : (
@@ -298,16 +298,16 @@ export function WearCartPageClient() {
         {lines.length > 0 ? (
           <>
             <div className="mt-10 flex justify-between border-t border-stone-200/80 pt-8 text-sm">
-              <span className="text-stone-500">Subtotal</span>
+              <span className="font-medium text-stone-800">Subtotal</span>
               <span className="text-amber-950">{formatWearMoney(subtotalCents, currency)}</span>
             </div>
-            <p className="mt-2 text-xs text-stone-500">
+            <p className="mt-2 text-xs text-stone-600">
               Shipping is added at secure checkout (standard rate). Taxes may apply per Stripe.
             </p>
 
             <div className="mt-10 space-y-4">
               <div>
-                <label htmlFor="wear-cart-name" className="block text-xs font-medium uppercase tracking-wider text-stone-500">
+                <label htmlFor="wear-cart-name" className="block text-xs font-medium uppercase tracking-wider text-stone-700">
                   Full name
                 </label>
                 <input
@@ -323,7 +323,7 @@ export function WearCartPageClient() {
                 {nameError ? <p id="wear-cart-name-err" className="mt-1 text-xs text-red-700">{nameError}</p> : null}
               </div>
               <div>
-                <label htmlFor="wear-cart-email" className="block text-xs font-medium uppercase tracking-wider text-stone-500">
+                <label htmlFor="wear-cart-email" className="block text-xs font-medium uppercase tracking-wider text-stone-700">
                   Email
                 </label>
                 <input
@@ -351,7 +351,7 @@ export function WearCartPageClient() {
             >
               {checkoutBusy ? "Redirecting…" : "Pay securely"}
             </button>
-            <p className="mt-3 flex items-center justify-center gap-2 text-xs text-stone-500">
+            <p className="mt-3 flex items-center justify-center gap-2 text-xs text-stone-600">
               <span aria-hidden="true">🔒</span>
               Secure Stripe checkout
             </p>
@@ -362,7 +362,7 @@ export function WearCartPageClient() {
           <button
             type="button"
             onClick={() => router.push("/wear/shop")}
-            className="text-sm text-stone-500 underline underline-offset-4 hover:text-amber-800"
+            className="text-sm text-stone-700 underline underline-offset-4 hover:text-amber-800"
           >
             Continue shopping
           </button>

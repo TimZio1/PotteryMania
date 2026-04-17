@@ -24,7 +24,8 @@ export async function computeCatalogTrustState(opts?: {
   const dupes = opts?.duplicateSkuGroups ?? (await findDuplicateWearVariantSkus());
 
   if (sync.lastError) {
-    reasons.push(`Last sync error recorded: ${sync.lastError.slice(0, 200)}`);
+    const errText = String(sync.lastError).slice(0, 200);
+    reasons.push(`Last sync error recorded: ${errText}`);
     return { catalogTrustState: "FAILED", catalogTrustReasons: reasons };
   }
 
