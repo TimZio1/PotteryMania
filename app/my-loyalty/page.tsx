@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "My loyalty",
-  description: "Private loyalty dashboard for your PotteryMania account.",
+  description: "Private loyalty dashboard for perks from studios you've purchased from.",
   path: "/my-loyalty",
   robots: {
     index: false,

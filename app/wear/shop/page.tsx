@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Wear Shop",
-  description: "PotteryMania wear. Shop the drop in our own storefront.",
+  description: "Wear shop — limited drops and studio-aligned pieces.",
   path: "/wear/shop",
 });
 
@@ -159,7 +159,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-700">
-          Buy directly inside PotteryMania. Branded studio experience, platform-managed checkout, and fulfilment partner shipping after purchase.
+          Secure checkout and fulfilment-partner shipping after purchase. Pieces are curated for creators who ship real work.
         </p>
         <div className="mx-auto mt-8 max-w-4xl">
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

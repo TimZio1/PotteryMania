@@ -11,7 +11,7 @@ import { buildTicketQrDataUrl } from "@/lib/bookings/ticket-qr";
 export const metadata: Metadata = metaPublicPage(
   "Checkout complete",
   "/checkout/success",
-  "Your PotteryMania payment was received. View next steps and receipts.",
+  "Your payment was received. View next steps and receipts.",
 );
 
 export const dynamic = "force-dynamic";

@@ -191,11 +191,17 @@ export default async function PricingPage() {
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Which countries are supported?</dt>
-              <dd className="mt-1">PotteryMania works worldwide — any studio in a Stripe-supported country can accept payments from customers anywhere. Shipping, taxes, and local regulations remain the studio&apos;s responsibility.</dd>
+              <dd className="mt-1">
+                Studios worldwide — any studio in a Stripe-supported country can accept payments from customers anywhere.
+                Shipping, taxes, and local regulations remain the studio&apos;s responsibility.
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Can I use my own domain?</dt>
-              <dd className="mt-1">Yes. PotteryMania is built around a studio-owned public page and supports a path toward using your own domain as your studio grows.</dd>
+              <dd className="mt-1">
+                Yes. Your studio-owned public page is first-class here, with a path toward using your own domain as you
+                grow.
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">What payment methods do my customers see?</dt>

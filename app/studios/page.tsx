@@ -22,7 +22,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Studios",
-  description: "Discover pottery studios, classes, and makers on PotteryMania.",
+  description: "Discover pottery studios, classes, and makers near you.",
   path: "/studios",
 });
 

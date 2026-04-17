@@ -6,7 +6,7 @@ import { AccountClient } from "./account-client";
 
 export const metadata: Metadata = buildMetadata({
   title: "Account",
-  description: "Manage your PotteryMania profile, name, phone, and preferences.",
+  description: "Manage your profile, name, phone, and preferences.",
   path: "/account",
 });
 

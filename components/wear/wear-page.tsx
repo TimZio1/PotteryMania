@@ -177,7 +177,7 @@ export function WearPage({
               Join and sell wearables from your studio brand
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-relaxed text-stone-600">
-              PotteryMania runs the storefront, checkout, fulfilment routing, and product sync. You choose the pieces,
+              Storefront, checkout, fulfilment routing, and product sync run in one place. You choose the pieces,
               publish them on your studio page, and keep your margin on every sale.
             </p>
             <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -193,7 +193,7 @@ export function WearPage({
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">2. Sell</p>
                 <p className="mt-3 text-lg font-semibold text-stone-900">Share your studio identity</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  Your wearables appear inside your PotteryMania studio story and reseller embeds, so customers buy
+                  Your wearables appear inside your public studio story and reseller embeds, so customers buy
                   from a branded flow instead of a random marketplace.
                 </p>
               </div>
@@ -204,7 +204,7 @@ export function WearPage({
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">
                   Earnings are dynamic and depend on the live reseller margin configuration and the catalog base price.
-                  PotteryMania handles fulfilment partner routing after checkout.
+                  Fulfilment partner routing after checkout is handled for you.
                 </p>
               </div>
             </div>
@@ -222,13 +222,13 @@ export function WearPage({
         {/* Bridge */}
         <section className="bg-[#f3ece4] px-4 py-16 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">PotteryMania</p>
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Studio platform</p>
             <p className="mt-4 text-sm leading-relaxed text-stone-600">
-              Bookings, ceramics, and a website platform built for studios, not algorithms.
+              Bookings, ceramics, and a website built for studios — not algorithms.
             </p>
             <nav
               className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8"
-              aria-label="Continue on PotteryMania"
+              aria-label="Continue setting up your studio"
             >
               <Link href="/dashboard/studio/new?setup=bookings" className={bridgeLinkClass}>
                 Start bookings setup

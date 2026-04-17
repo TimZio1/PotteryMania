@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description:
       experience.shortDescription ||
       experience.fullDescription ||
-      `Book ${experience.title} with ${experience.studio.displayName} on PotteryMania.`,
+      `Book ${experience.title} with ${experience.studio.displayName}.`,
     path: `/classes/${experienceId}`,
     image: experience.images[0]?.imageUrl,
   });
@@ -192,7 +192,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
       description:
         experience.shortDescription ||
         experience.fullDescription ||
-        `Book ${experience.title} with ${experience.studio.displayName} on PotteryMania.`,
+        `Book ${experience.title} with ${experience.studio.displayName}.`,
       image: primary?.imageUrl,
       startDate: firstUpcomingSlot ? `${firstUpcomingSlot.slotDate.slice(0, 10)}T${firstUpcomingSlot.startTime}:00` : undefined,
       locationName: experience.venueName || experience.studio.displayName,

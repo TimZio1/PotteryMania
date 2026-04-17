@@ -8,7 +8,7 @@ import { platformUi } from "@/lib/ui-styles";
 export const metadata: Metadata = buildMetadata({
   title: "Dashboard demo | PotteryMania",
   description:
-    "Preview the PotteryMania studio control panel before you create your account: bookings, shop, templates, payments, and public page tools.",
+    "Preview the studio control panel before you create your account: bookings, shop, templates, payments, and public page tools.",
   path: "/dashboard-demo",
 });
 
@@ -86,7 +86,7 @@ export default function DashboardDemoPage() {
       toolbar={
         <Breadcrumbs
           items={[
-            { label: "PotteryMania", href: "/" },
+            { label: "Home", href: "/" },
             { label: "Demo studio", href: "/demo" },
             { label: "Dashboard demo" },
           ]}
@@ -325,7 +325,7 @@ export default function DashboardDemoPage() {
                   <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                     <p className="text-sm font-semibold text-amber-950">What this demo proves</p>
                     <p className="mt-2 text-sm text-amber-900">
-                      PotteryMania already has a real studio-owner structure for operations, commerce, marketing, and
+                      The product already has a real studio-owner structure for operations, commerce, marketing, and
                       settings. This demo simply exposes that experience before signup.
                     </p>
                   </div>

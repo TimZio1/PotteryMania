@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!studio) return buildMetadata({ title: "Memberships", description: "Studio memberships.", path: `/studios/${studioId}/memberships` });
   return buildMetadata({
     title: `${studio.displayName} — Memberships`,
-    description: `Browse membership plans from ${studio.displayName} on PotteryMania.`,
+    description: `Browse membership plans from ${studio.displayName}.`,
     path: `/studios/${studioId}/memberships`,
   });
 }

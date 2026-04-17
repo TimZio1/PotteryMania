@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       product.shortDescription ||
       product.fullDescription ||
-      `Buy ${product.title} directly from ${product.studio.displayName} — studio shop on PotteryMania.`,
+      `Buy ${product.title} directly from ${product.studio.displayName}.`,
     path: `/marketplace/products/${productId}`,
     image: product.images[0]?.imageUrl,
   });
@@ -110,7 +110,7 @@ export default async function ProductPage({ params }: Props) {
       description:
         product.shortDescription ||
         product.fullDescription ||
-        `Buy ${product.title} directly from ${product.studio.displayName} on PotteryMania.`,
+        `Buy ${product.title} directly from ${product.studio.displayName}.`,
       imageUrls: product.images.map((image) => image.imageUrl),
       brandName: product.studio.displayName,
       category: ceramicCategoryMetaByValue(product.category).title,

@@ -15,7 +15,7 @@ import { resolveShippingZoneForDestination, shipsToZone } from "@/lib/shipping-z
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
   title: "Shop products from studios",
-  description: "Browse products sold directly by creators — shop, book classes, and run your own studio on PotteryMania.",
+  description: "Browse products sold directly by studios — shop ceramics and book classes from makers near you.",
   path: "/marketplace",
 });
 

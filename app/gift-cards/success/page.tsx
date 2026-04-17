@@ -7,7 +7,7 @@ import { GiftCardSuccessClient } from "@/components/gift-cards/gift-card-success
 export const metadata: Metadata = metaPublicPage(
   "Gift card purchase complete",
   "/gift-cards/success",
-  "Your PotteryMania gift card purchase was completed successfully.",
+  "Your gift card purchase completed successfully.",
 );
 
 function SuccessFallback() {

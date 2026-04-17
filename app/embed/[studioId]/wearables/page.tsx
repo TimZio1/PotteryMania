@@ -117,7 +117,7 @@ export default async function EmbedWearablesPage({ params }: Props) {
           ))}
         </div>
         <p style={{ marginTop: 20, textAlign: "center", fontSize: 11, color: "#a8a29e" }}>
-          Powered by <a href={baseUrl} target="_top" style={{ color: "#78716c", textDecoration: "underline" }}>PotteryMania</a>
+          Prices and availability are set by the studio.
         </p>
       </body>
     </html>

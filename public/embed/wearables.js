@@ -86,7 +86,7 @@
       });
 
       html += "</div>";
-      html += '<p class="pm-wear-footer">Powered by <a href="' + ORIGIN + '" target="_blank" rel="noopener">PotteryMania</a></p>';
+      html += '<p class="pm-wear-footer">Prices and availability are set by the studio.</p>';
       container.innerHTML = html;
     })
     .catch(function () {

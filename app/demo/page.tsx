@@ -13,7 +13,7 @@ import { ui } from "@/lib/ui-styles";
 export const metadata: Metadata = buildMetadata({
   title: "Demo page | PotteryMania",
   description:
-    "See exactly what a PotteryMania creator page looks like before you sign up: products, classes, story, imagery, and booking flow.",
+    "See what a creator studio page looks like before you sign up: products, classes, story, imagery, and booking flow.",
   path: "/demo",
 });
 
@@ -114,7 +114,7 @@ export default function DemoPage() {
       toolbar={
         <Breadcrumbs
           items={[
-            { label: "PotteryMania", href: "/" },
+            { label: "Home", href: "/" },
             { label: "Demo studio" },
           ]}
         />
@@ -134,7 +134,7 @@ export default function DemoPage() {
                 <span className="st-pill">Demo page</span>
               </div>
               <p className="st-body mt-4 max-w-3xl text-base leading-relaxed">
-                This is the kind of public page a ceramic artist or studio can launch on PotteryMania: real imagery, a clear story,
+                This is the kind of public page a ceramic artist or studio can launch here: real imagery, a clear story,
                 class booking, product sales, and one consistent brand from first click to checkout.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
@@ -160,8 +160,8 @@ export default function DemoPage() {
                 <p className="st-muted text-sm uppercase tracking-wide">Why this page converts</p>
                 <h2 className="st-h2 mt-3 text-2xl font-semibold">Creators need proof before they commit.</h2>
                 <p className="st-body mt-4 text-base leading-relaxed">
-                  PotteryMania gives you one public page for your classes, products, and brand story, so customers
-                  understand what you offer and trust it quickly.
+                  You get one public page for your classes, products, and brand story, so customers understand what you
+                  offer and trust it quickly.
                 </p>
                 <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                   {[
@@ -267,7 +267,7 @@ export default function DemoPage() {
                 <h2 className="st-h2 mt-2 text-2xl font-semibold">A page that tells your story clearly</h2>
                 <p className="st-body mt-4 text-base leading-relaxed">
                   Clay &amp; Fire Studio teaches wheel throwing and glaze workshops while selling small-batch tableware.
-                  PotteryMania makes that story easy to understand without forcing visitors to jump between social DMs,
+                  One studio page keeps that story easy to understand without forcing visitors to jump between social DMs,
                   generic booking links, and disconnected storefronts.
                 </p>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">

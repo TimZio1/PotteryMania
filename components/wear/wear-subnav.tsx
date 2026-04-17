@@ -57,7 +57,7 @@ export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
           </Link>
         </nav>
         <p className="hidden text-center text-[11px] font-medium uppercase tracking-[0.25em] !text-stone-700 sm:block">
-          PotteryMania wear
+          Wear shop
         </p>
       </div>
     </div>

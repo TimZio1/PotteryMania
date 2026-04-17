@@ -94,7 +94,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
           One place for the three website integration paths you asked for: shop, bookings, and e shop reseller.
         </p>
         <p className="mt-2 max-w-3xl text-sm text-[var(--muted)]">
-          Shop and bookings currently integrate best through your hosted PotteryMania pages. E shop reseller supports both a JavaScript widget and an iframe embed.
+          Shop and bookings integrate best through your hosted studio pages on this site. The wear reseller supports both a JavaScript widget and an iframe embed.
         </p>
       </div>
 
@@ -153,7 +153,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
           <div>
             <h2 className="text-lg font-semibold text-stone-900">Website snippets</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Copy the version that fits your website builder. Keep it simple: button link for fast setup, iframe if you want the PotteryMania page inside your site, reseller widget for the full e shop integration.
+              Copy the version that fits your website builder. Keep it simple: button link for fast setup, iframe if you want the hosted studio page inside your site, reseller widget for the full wear integration.
             </p>
           </div>
         </div>

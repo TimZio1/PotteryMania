@@ -24,11 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!p) {
     return buildMetadata({
       title: "Wear",
-      description: "PotteryMania wear.",
+      description: "Wear product.",
       path: `/wear/${slug}`,
     });
   }
-  const desc = p.subtitle ?? p.description ?? `${p.name}. PotteryMania wear.`;
+  const desc = p.subtitle ?? p.description ?? `${p.name} — wear.`;
   return buildMetadata({
     title: `${p.name} Wear`,
     description: desc.slice(0, 160),
@@ -74,9 +74,9 @@ export default async function WearProductPage({ params }: Props) {
     productJsonLd({
       path: `/wear/${p.slug}`,
       name: p.name,
-      description: p.subtitle ?? p.description ?? `${p.name} from PotteryMania wear.`,
+      description: p.subtitle ?? p.description ?? `${p.name} — wear.`,
       imageUrls: images.map((image) => image.url),
-      brandName: "PotteryMania",
+      brandName: "Wear",
       category: category.categoryLabel,
       price: (inStockVariant?.priceCents ?? p.priceCents) / 100,
       currency: p.currency,

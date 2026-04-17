@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return metaDashboardPage(
     "Public appearance",
     `/dashboard/studio/${studioId}/appearance`,
-    "Curated theme and typography for your public studio page on PotteryMania.",
+    "Curated theme and typography for your public studio page.",
   );
 }
 

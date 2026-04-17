@@ -8,7 +8,7 @@ import { RegisterForm } from "./register-form";
 export const metadata: Metadata = metaPublicPage(
   "Create account",
   "/register",
-  "Create a PotteryMania account to sell your work, take bookings, and manage everything in one place.",
+  "Create an account to sell your work, take bookings, and manage everything in one place.",
 );
 
 export default function RegisterPage() {

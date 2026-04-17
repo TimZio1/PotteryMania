@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!studio) return buildMetadata({ title: "Gallery", description: "Studio gallery.", path: `/studios/${studioId}/gallery` });
   return buildMetadata({
     title: `${studio.displayName} — Gallery`,
-    description: `Browse the photo gallery for ${studio.displayName} on PotteryMania.`,
+    description: `Browse the photo gallery for ${studio.displayName}.`,
     path: `/studios/${studioId}/gallery`,
   });
 }

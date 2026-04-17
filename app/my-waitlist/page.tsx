@@ -7,7 +7,7 @@ import { MyWaitlistClient } from "./my-waitlist-client";
 export const metadata: Metadata = metaPublicPage(
   "My waitlist",
   "/my-waitlist",
-  "Waitlist entries for PotteryMania classes and workshops.",
+  "Classes and workshops you're on the waitlist for.",
 );
 
 export default function MyWaitlistPage() {

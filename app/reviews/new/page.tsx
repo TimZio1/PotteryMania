@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Write a review",
-  description: "Private review submission page for a completed PotteryMania booking.",
+  description: "Leave a review after your class or session.",
   path: "/reviews/new",
   robots: {
     index: false,

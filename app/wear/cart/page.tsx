@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Wear — Cart",
-  description: "Your PotteryMania wear cart.",
+  description: "Your wear cart.",
   path: "/wear/cart",
 });
 

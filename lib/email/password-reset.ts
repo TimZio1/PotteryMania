@@ -16,11 +16,11 @@ export async function sendPasswordResetEmail(opts: { to: string; resetToken: str
   const html = renderEmailShell({
     eyebrow: "Account security",
     title: "Reset your password",
-    intro: "We received a request to reset the password for your PotteryMania account.",
+    intro: "We received a request to reset the password for your account.",
     bodyHtml: `<p>If you made this request, use the button below. The link expires in one hour.</p><p style="margin-top:18px;font-size:14px;color:#5f5045;">If you didn&apos;t ask for this, you can ignore this email — your password will stay the same.</p><p style="margin-top:18px;font-size:13px;color:#8b7a6d;word-break:break-all;">Link (if the button doesn&apos;t work):<br/>${escapeHtml(url)}</p>`,
     ctaLabel: "Choose a new password",
     ctaUrl: url,
-    footerNote: "Never share this link. PotteryMania staff will never ask for it.",
+    footerNote: "Never share this link. Support will never ask for it.",
   });
-  await sendEmailMessages([{ to: opts.to, subject: "Reset your PotteryMania password", html }]);
+  await sendEmailMessages([{ to: opts.to, subject: "Reset your password", html }]);
 }

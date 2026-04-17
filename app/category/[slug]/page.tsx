@@ -84,7 +84,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return buildMetadata({
-    title: `Handmade ${fallback.title} | PotteryMania`,
+    title: `Handmade ${fallback.title}`,
     description: longDescription,
     path: `/category/${slug}`,
     image: fallback.imageUrl,
@@ -195,7 +195,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `${categoryData.title} on PotteryMania`,
+    name: `${categoryData.title} — handmade ceramics from studios`,
     itemListElement: listingProducts.map((product, index) => ({
       "@type": "ListItem",
       position: index + 1 + (listing.page - 1) * listing.pageSize,

@@ -10,7 +10,7 @@ import { ui } from "@/lib/ui-styles";
 export const metadata: Metadata = buildMetadata({
   title: "Pottery studio blog",
   description:
-    "Guides for pottery studios, ceramic artists, bookings, ecommerce, SEO, and revenue growth from the PotteryMania editorial team.",
+    "Guides for pottery studios, ceramic artists, bookings, ecommerce, SEO, and revenue growth from our editorial team.",
   path: "/blog",
   keywords: ["pottery studio blog", "ceramic business tips", "pottery ecommerce", "pottery seo"],
 });

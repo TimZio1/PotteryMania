@@ -5,7 +5,7 @@ import { metaPublicPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaPublicPage(
   "Reset password",
   "/reset-password",
-  "Set a new password for your PotteryMania account.",
+  "Set a new password for your account.",
 );
 import { AuthShell } from "@/components/auth-shell";
 import { Spinner } from "@/components/ui/spinner";

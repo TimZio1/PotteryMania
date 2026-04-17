@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) {
     return buildMetadata({
       title: "Blog article not found",
-      description: "This PotteryMania article could not be found.",
+      description: "This article could not be found.",
       path: `/blog/${slug}`,
     });
   }

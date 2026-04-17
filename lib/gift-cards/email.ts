@@ -28,7 +28,7 @@ export function giftCardEmailCopy(input: {
   return renderEmailShell({
     eyebrow: "Gift card",
     title: "You received a gift card",
-    intro: `Hi ${introName}, ${input.studioName} sent you a PotteryMania gift card.`,
+    intro: `Hi ${introName}, ${input.studioName} sent you a gift card for their studio.`,
     bodyHtml: `
       <p style="margin:0 0 8px;">Code: <strong>${escapeHtml(input.code)}</strong></p>
       <p style="margin:0 0 8px;">Value: <strong>${escapeHtml(money(input.valueCents))}</strong></p>

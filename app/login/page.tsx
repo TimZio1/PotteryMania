@@ -5,7 +5,7 @@ import { metaPublicPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaPublicPage(
   "Sign in",
   "/login",
-  "Sign in to your PotteryMania studio dashboard, bookings, or customer account.",
+  "Sign in to your studio dashboard or customer account.",
 );
 import { AuthShell } from "@/components/auth-shell";
 import { Spinner } from "@/components/ui/spinner";

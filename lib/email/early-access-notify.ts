@@ -47,7 +47,7 @@ export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
       ${renderBulletList(interests(input))}
       <p style="margin:16px 0 0;">Sell your work, book your classes, and manage everything in one system.</p>
     `,
-    ctaLabel: "Open PotteryMania",
+    ctaLabel: "Open the site",
     ctaUrl: siteUrl(),
     footerNote: "You can start setup any time from your dashboard.",
   });
@@ -76,7 +76,7 @@ export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
   const messages = [
     {
       to: input.email,
-      subject: "PotteryMania — we received your details",
+      subject: "We received your details",
       html: customerHtml,
     },
   ];

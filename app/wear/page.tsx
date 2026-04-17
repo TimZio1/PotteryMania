@@ -11,8 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Wear",
-  description:
-    "PotteryMania wear — for creators who build their own space. Not another shop. A signal.",
+  description: "Wear for creators who build their own space — not another generic shop.",
   path: "/wear",
 });
 

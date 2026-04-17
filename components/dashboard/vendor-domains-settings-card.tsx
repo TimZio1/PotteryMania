@@ -105,7 +105,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
   }
 
   async function removeDomain(id: string) {
-    if (!window.confirm("Remove this domain from PotteryMania? DNS can stay; routing will stop immediately.")) return;
+    if (!window.confirm("Remove this domain from routing? DNS records can stay; storefront routing will stop immediately.")) return;
     setBusyId(id);
     setError(null);
     try {
@@ -127,15 +127,15 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
       <div>
         <h2 className="text-lg font-semibold text-stone-900">Custom storefront domain</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Link your own domain to the storefront PotteryMania creates for your studio. Your custom host loads your studio page on{" "}
-          <code className="rounded bg-stone-100 px-1">/</code>; booking, checkout, and account flows stay on the main PotteryMania origin for now.
+          Link your own domain to the storefront this site hosts for your studio. Your custom host loads your studio page on{" "}
+          <code className="rounded bg-stone-100 px-1">/</code>; booking, checkout, and account flows currently stay on the primary site hostname.
         </p>
       </div>
 
       {setup && !setup.setupReady ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           Custom-domain routing is not fully configured in this environment yet. Add your domain now if needed, but final live routing will not work
-          until the primary PotteryMania origin is configured.
+          until the primary site origin is configured.
         </div>
       ) : null}
 
@@ -143,14 +143,14 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
         <p className="font-medium text-stone-900">Domain setup checklist</p>
         <ol className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
           <li>1. Pick one hostname to use publicly first: either <code className="rounded bg-white px-1 py-0.5">www.yourstudio.com</code> or the apex domain.</li>
-          <li>2. Add that exact hostname below so PotteryMania can generate the verification records for it.</li>
+          <li>2. Add that exact hostname below so we can generate the verification records for it.</li>
           <li>3. Create the TXT record shown for ownership proof.</li>
           <li>
             4. Point the same hostname to{" "}
             {setup?.connectTargetHostname ? (
               <code className="rounded bg-white px-1 py-0.5">{setup.connectTargetHostname}</code>
             ) : (
-              "your PotteryMania primary origin target"
+              "your primary site routing target"
             )}{" "}
             using your DNS provider’s CNAME/ALIAS instructions.
           </li>
@@ -161,7 +161,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
         </p>
         {setup?.canonicalOrigin ? (
           <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
-            Main PotteryMania origin for bookings, cart, checkout, and account:{" "}
+            Primary site origin for bookings, cart, checkout, and account:{" "}
             <code className="rounded bg-white px-1 py-0.5 break-all">{setup.canonicalOrigin}</code>
           </p>
         ) : null}
@@ -234,12 +234,12 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
                       {setup?.connectTargetHostname ? (
                         <code className="break-all rounded bg-stone-100 px-1 py-0.5">{setup.connectTargetHostname}</code>
                       ) : (
-                        "Use your PotteryMania primary host target"
+                        "Use your primary site host target"
                       )}
                     </p>
                     <p className="mt-1">
                       <span className="font-medium text-[var(--foreground)]">What loads on this host:</span> your studio storefront home. Cart, booking, and checkout
-                      stay on the main PotteryMania origin.
+                      stay on the primary site origin.
                     </p>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">

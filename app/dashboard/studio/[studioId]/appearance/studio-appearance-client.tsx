@@ -96,8 +96,8 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
       <p className={`${platformUi.overline} mt-6`}>Public page</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Appearance</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Curated looks for your public studio page only. No custom hex or fonts — presets stay readable and on-brand for
-        PotteryMania.
+        Curated looks for your public studio page only. No custom hex or fonts — presets stay readable and on-brand across
+        devices.
         {tier === "starter" ? " After activation, every preset unlocks." : ""}
       </p>
 

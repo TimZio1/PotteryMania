@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       studio.shortDescription ||
       studio.longDescription ||
-      `Explore ${studio.displayName} in ${studio.city}, ${studio.country} on PotteryMania.`,
+      `Explore ${studio.displayName} in ${studio.city}, ${studio.country}.`,
     path: `/studios/${studioId}`,
     image: studio.coverImageUrl || undefined,
   });
