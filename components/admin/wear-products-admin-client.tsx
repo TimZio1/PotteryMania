@@ -33,6 +33,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [promoting, setPromoting] = useState(false);
   const [fullSpreadconnectDiscovery, setFullSpreadconnectDiscovery] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -138,6 +139,34 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     }
   }
 
+  async function backfillAssetHealth() {
+    setBusy(true);
+    setPromoting(true);
+    setErr("");
+    setMsg("");
+    try {
+      const r = await fetch("/api/admin/wear-products/backfill-asset-health", {
+        method: "POST",
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setErr((j as { error?: string }).error ?? "Asset-health backfill failed");
+        return;
+      }
+      const result = j as { promoted?: number; scanned?: number; stillIneligible?: number };
+      setMsg(
+        `Asset-health backfill: ${result.promoted ?? 0} promoted to ready · ${result.scanned ?? 0} scanned · ${result.stillIneligible ?? 0} still ineligible (missing price/SKU/external-id)`,
+      );
+      await refresh();
+      router.refresh();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Asset-health backfill failed");
+    } finally {
+      setBusy(false);
+      setPromoting(false);
+    }
+  }
+
   return (
     <div className="mt-8 space-y-6">
       {err ? <p className={ui.errorText}>{err}</p> : null}
@@ -170,6 +199,16 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
             </span>
           ) : (
             "Sync Spreadconnect catalog"
+          )}
+        </button>
+        <button type="button" disabled={busy} onClick={backfillAssetHealth} className={ui.buttonGhost}>
+          {promoting ? (
+            <span className="inline-flex items-center gap-2">
+              <Spinner size="sm" className="text-stone-600" />
+              Promoting…
+            </span>
+          ) : (
+            "Make eligible products visible"
           )}
         </button>
         <Link
