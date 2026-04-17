@@ -1,12 +1,14 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
-const WEAR_LISTING_INCLUDE = {
+/** Typed include so `findMany` results include `variants` (avoids `as const` breaking Prisma inference). */
+const WEAR_LISTING_INCLUDE: Prisma.WearProductInclude = {
   variants: {
     where: { isActive: true },
-    orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }],
+    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
   },
-} as const;
+};
 
 /** Public wear products for shop + `/api/wear/products` (same filter + shape as storefront). */
 export async function findWearPublicProductsWithVariants() {

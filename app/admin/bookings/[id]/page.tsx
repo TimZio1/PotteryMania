@@ -30,7 +30,7 @@ function JsonBlock({ value, label }: { value: unknown; label: string }) {
     return (
       <div>
         <p className={ui.label}>{label}</p>
-        <p className="mt-1 text-sm text-stone-500">—</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">—</p>
       </div>
     );
   }
@@ -60,14 +60,14 @@ export default async function AdminBookingDetailPage({ params }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce</p>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-amber-950">Booking</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)]">Booking</h1>
           {booking.ticketRef ? (
             <p className="mt-1 font-mono text-sm text-amber-900">{booking.ticketRef}</p>
           ) : null}
-          <p className="mt-1 font-mono text-xs text-stone-500">{booking.id}</p>
+          <p className="mt-1 font-mono text-xs text-[var(--muted)]">{booking.id}</p>
         </div>
         <Link href="/admin/bookings" className={ui.buttonSecondary}>
           ← All bookings
@@ -78,17 +78,17 @@ export default async function AdminBookingDetailPage({ params }: Props) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className={ui.label}>Session (UTC)</p>
-            <p className="mt-1 text-sm font-medium text-stone-800">
+            <p className="mt-1 text-sm font-medium text-[var(--foreground)]">
               {sessionDay} · {booking.slot.startTime}–{booking.slot.endTime}
             </p>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-[var(--muted)]">
               Slot <span className="font-mono">{booking.slot.id}</span>
             </p>
           </div>
           <div>
             <p className={ui.label}>Experience</p>
-            <p className="mt-1 text-sm font-medium text-stone-800">{booking.experience.title}</p>
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm font-medium text-[var(--foreground)]">{booking.experience.title}</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
               <Link href={`/studios/${booking.studio.id}`} className="text-amber-900 hover:underline">
                 {booking.studio.displayName}
               </Link>
@@ -111,17 +111,17 @@ export default async function AdminBookingDetailPage({ params }: Props) {
         <div className="grid gap-4 border-t border-stone-100 pt-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className={ui.label}>Line total</p>
-            <p className="mt-1 text-lg font-semibold tabular-nums text-amber-950">{eur(booking.totalAmountCents)}</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-[var(--foreground)]">{eur(booking.totalAmountCents)}</p>
           </div>
           <div>
             <p className={ui.label}>Deposit collected</p>
-            <p className="mt-1 text-sm font-medium tabular-nums text-stone-800">{eur(booking.depositAmountCents)}</p>
+            <p className="mt-1 text-sm font-medium tabular-nums text-[var(--foreground)]">{eur(booking.depositAmountCents)}</p>
           </div>
           <div>
             <p className={ui.label}>Remaining balance</p>
-            <p className="mt-1 text-sm tabular-nums text-stone-700">{eur(booking.remainingBalanceCents)}</p>
+            <p className="mt-1 text-sm tabular-nums text-[var(--foreground)]">{eur(booking.remainingBalanceCents)}</p>
             {booking.depositPaidAt ? (
-              <p className="mt-1 text-xs text-stone-500">
+              <p className="mt-1 text-xs text-[var(--muted)]">
                 Deposit paid {formatUtcDate(booking.depositPaidAt)} UTC
               </p>
             ) : null}
@@ -133,7 +133,7 @@ export default async function AdminBookingDetailPage({ params }: Props) {
           </div>
           <div>
             <p className={ui.label}>Commission / vendor</p>
-            <p className="mt-1 text-xs tabular-nums text-stone-600">
+            <p className="mt-1 text-xs tabular-nums text-[var(--muted)]">
               {eur(booking.commissionAmountCents)} / {eur(booking.vendorAmountCents)}
             </p>
           </div>
@@ -142,9 +142,9 @@ export default async function AdminBookingDetailPage({ params }: Props) {
         <div className="grid gap-4 border-t border-stone-100 pt-4 sm:grid-cols-2">
           <div>
             <p className={ui.label}>Customer</p>
-            <p className="mt-1 text-sm font-medium text-stone-800">{booking.customerName}</p>
-            <p className="text-sm text-stone-600">{booking.customerEmail}</p>
-            {booking.customerPhone ? <p className="text-sm text-stone-600">{booking.customerPhone}</p> : null}
+            <p className="mt-1 text-sm font-medium text-[var(--foreground)]">{booking.customerName}</p>
+            <p className="text-sm text-[var(--muted)]">{booking.customerEmail}</p>
+            {booking.customerPhone ? <p className="text-sm text-[var(--muted)]">{booking.customerPhone}</p> : null}
             {booking.customerUser ? (
               <p className="mt-2">
                 <Link
@@ -158,14 +158,14 @@ export default async function AdminBookingDetailPage({ params }: Props) {
           </div>
           <div>
             <p className={ui.label}>Participants</p>
-            <p className="mt-1 text-sm text-stone-800">{booking.participantCount}</p>
+            <p className="mt-1 text-sm text-[var(--foreground)]">{booking.participantCount}</p>
             {booking.seatType ? (
-              <p className="mt-1 text-xs text-stone-500">
+              <p className="mt-1 text-xs text-[var(--muted)]">
                 Seat type <code>{booking.seatType}</code>
               </p>
             ) : null}
             <p className={ui.label}>Created</p>
-            <p className="mt-1 text-sm text-stone-700">
+            <p className="mt-1 text-sm text-[var(--foreground)]">
               {booking.createdAt.toISOString().replace("T", " ").slice(0, 19)} UTC
             </p>
           </div>
@@ -174,14 +174,14 @@ export default async function AdminBookingDetailPage({ params }: Props) {
         {booking.notes ? (
           <div className="border-t border-stone-100 pt-4">
             <p className={ui.label}>Notes</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-stone-700">{booking.notes}</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--foreground)]">{booking.notes}</p>
           </div>
         ) : null}
 
         {booking.bookingAddOns.length > 0 ? (
           <div className="border-t border-stone-100 pt-4">
             <p className={ui.label}>Add-ons</p>
-            <ul className="mt-2 space-y-2 text-sm text-stone-700">
+            <ul className="mt-2 space-y-2 text-sm text-[var(--foreground)]">
               {booking.bookingAddOns.map((entry, index) => (
                 <li key={`${booking.id}-addon-${index}`}>
                   {entry.addOnName}
@@ -196,13 +196,13 @@ export default async function AdminBookingDetailPage({ params }: Props) {
         {booking.intakeResponses.length > 0 ? (
           <div className="border-t border-stone-100 pt-4">
             <p className={ui.label}>Booking answers</p>
-            <dl className="mt-2 space-y-3 text-sm text-stone-700">
+            <dl className="mt-2 space-y-3 text-sm text-[var(--foreground)]">
               {booking.intakeResponses.map((entry, index) => (
                 <div key={`${booking.id}-intake-${index}`}>
-                  <dt className="font-medium text-stone-800">{entry.labelSnapshot}</dt>
-                  <dd className="mt-1 whitespace-pre-wrap text-stone-600">{entry.value}</dd>
+                  <dt className="font-medium text-[var(--foreground)]">{entry.labelSnapshot}</dt>
+                  <dd className="mt-1 whitespace-pre-wrap text-[var(--muted)]">{entry.value}</dd>
                   {entry.includeInInvoiceSnapshot ? (
-                    <dd className="mt-1 text-xs text-stone-500">Included in invoice snapshot</dd>
+                    <dd className="mt-1 text-xs text-[var(--muted)]">Included in invoice snapshot</dd>
                   ) : null}
                 </div>
               ))}
@@ -213,7 +213,7 @@ export default async function AdminBookingDetailPage({ params }: Props) {
         <div className="border-t border-stone-100 pt-4">
           <p className={ui.label}>Linked orders</p>
           {orderLinks.length === 0 ? (
-            <p className="mt-1 text-sm text-stone-500">No order line items point to this booking.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">No order line items point to this booking.</p>
           ) : (
             <ul className="mt-2 space-y-2 text-sm">
               {orderLinks.map((o) => (
@@ -221,7 +221,7 @@ export default async function AdminBookingDetailPage({ params }: Props) {
                   <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs text-amber-900 hover:underline">
                     {o.id}
                   </Link>
-                  <span className="ml-2 text-xs text-stone-500">
+                  <span className="ml-2 text-xs text-[var(--muted)]">
                     <code>{o.orderStatus}</code> · <code>{o.paymentStatus}</code>
                   </span>
                 </li>
@@ -234,27 +234,27 @@ export default async function AdminBookingDetailPage({ params }: Props) {
           <JsonBlock value={booking.cancellationPolicySnapshot} label="Cancellation policy snapshot" />
           <div>
             <p className={ui.label}>Reminders</p>
-            <p className="mt-1 text-xs text-stone-600">Scheduled: {formatUtcDate(booking.reminderScheduledAt)}</p>
-            <p className="text-xs text-stone-600">Sent: {formatUtcDate(booking.reminderSentAt)}</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">Scheduled: {formatUtcDate(booking.reminderScheduledAt)}</p>
+            <p className="text-xs text-[var(--muted)]">Sent: {formatUtcDate(booking.reminderSentAt)}</p>
           </div>
         </div>
       </div>
 
       <div className={`${ui.card} mt-6`}>
-        <h2 className="text-lg font-semibold text-amber-950">Audit trail</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Audit trail</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Immutable log of payment capture, reschedules, cancellations, and Stripe refund attempts (from{" "}
           <code className="text-xs">booking_audit_log</code>).
         </p>
         {booking.auditLogs.length === 0 ? (
-          <p className="mt-4 text-sm text-stone-500">No audit entries yet.</p>
+          <p className="mt-4 text-sm text-[var(--muted)]">No audit entries yet.</p>
         ) : (
           <ul className="mt-4 space-y-3 text-sm">
             {booking.auditLogs.map((log) => (
               <li key={log.id} className="rounded-lg border border-stone-100 bg-stone-50/80 p-3">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs text-stone-500">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs text-[var(--muted)]">
                   <span className="whitespace-nowrap">{log.createdAt.toISOString().slice(0, 19)} UTC</span>
-                  <code className="text-amber-950">{log.actionType}</code>
+                  <code className="text-[var(--foreground)]">{log.actionType}</code>
                   {log.actorRole ? <code>{log.actorRole}</code> : null}
                   {log.actorUser ? (
                     <Link href={`/admin/users/${log.actorUser.id}`} className="text-amber-900 hover:underline">
@@ -277,8 +277,8 @@ export default async function AdminBookingDetailPage({ params }: Props) {
 
       {isReschedulable(booking.bookingStatus) ? (
         <div className={`${ui.card} mt-6`}>
-          <h2 className="text-lg font-semibold text-amber-950">Move session</h2>
-          <p className="mt-1 text-sm text-stone-600">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Move session</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Reassigns the booking to another open slot with enough capacity. Slot counts and reschedule history update
             automatically.
           </p>
@@ -294,17 +294,17 @@ export default async function AdminBookingDetailPage({ params }: Props) {
 
       {booking.cancellations.length > 0 ? (
         <div className={`${ui.card} mt-6`}>
-          <h2 className="text-lg font-semibold text-amber-950">Cancellations</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Cancellations</h2>
           <ul className="mt-3 space-y-3 text-sm">
             {booking.cancellations.map((c) => (
               <li key={c.id} className="rounded-lg border border-stone-100 bg-stone-50/80 p-3">
-                <div className="flex flex-wrap gap-2 text-xs text-stone-500">
+                <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
                   <span>{c.createdAt.toISOString().slice(0, 19)} UTC</span>
                   <code>{c.cancelledByRole}</code>
                   {c.refundOutcome ? <code>{c.refundOutcome}</code> : null}
                   {c.refundAmountCents ? <span>refund {eur(c.refundAmountCents)}</span> : null}
                 </div>
-                {c.cancellationReason ? <p className="mt-2 text-stone-700">{c.cancellationReason}</p> : null}
+                {c.cancellationReason ? <p className="mt-2 text-[var(--foreground)]">{c.cancellationReason}</p> : null}
               </li>
             ))}
           </ul>
@@ -313,23 +313,23 @@ export default async function AdminBookingDetailPage({ params }: Props) {
 
       {booking.reschedules.length > 0 ? (
         <div className={`${ui.card} mt-6`}>
-          <h2 className="text-lg font-semibold text-amber-950">Reschedules</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Reschedules</h2>
           <ul className="mt-3 space-y-3 text-sm">
             {booking.reschedules.map((r) => (
               <li key={r.id} className="rounded-lg border border-stone-100 bg-stone-50/80 p-3">
-                <div className="text-xs text-stone-500">{r.createdAt.toISOString().slice(0, 19)} UTC</div>
-                <p className="mt-2 text-stone-700">
+                <div className="text-xs text-[var(--muted)]">{r.createdAt.toISOString().slice(0, 19)} UTC</div>
+                <p className="mt-2 text-[var(--foreground)]">
                   <span className="font-medium">From</span>{" "}
                   {r.originalSlot.slotDate.toISOString().slice(0, 10)} {r.originalSlot.startTime}
                   <span className="mx-1 text-stone-400">→</span>
                   <span className="font-medium">To</span> {r.newSlot.slotDate.toISOString().slice(0, 10)}{" "}
                   {r.newSlot.startTime}
                 </p>
-                <p className="mt-1 text-xs text-stone-500">
+                <p className="mt-1 text-xs text-[var(--muted)]">
                   By <code>{r.rescheduledByRole}</code>
                   {r.changeFeeCents ? ` · fee ${eur(r.changeFeeCents)}` : ""}
                 </p>
-                {r.rescheduleReason ? <p className="mt-2 text-stone-600">{r.rescheduleReason}</p> : null}
+                {r.rescheduleReason ? <p className="mt-2 text-[var(--muted)]">{r.rescheduleReason}</p> : null}
               </li>
             ))}
           </ul>

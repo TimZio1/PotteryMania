@@ -54,7 +54,7 @@ export function AdminStudios({ initialStudios }: { initialStudios: S[] }) {
         {studios.map((s) => (
           <li key={s.id} className="rounded border border-stone-200 bg-white p-4">
             <p className="font-medium">{s.displayName}</p>
-            <p className="text-sm text-stone-500">{s.email}</p>
+            <p className="text-sm text-[var(--muted)]">{s.email}</p>
             <p className="text-xs text-stone-400">Owner: {s.owner.email}</p>
             <div className="mt-3 flex gap-2">
               <button type="button" className="min-h-11 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-800" onClick={() => act(s.id, "approved")}>
@@ -71,7 +71,7 @@ export function AdminStudios({ initialStudios }: { initialStudios: S[] }) {
           </li>
         ))}
       </ul>
-      {studios.length === 0 && <p className="mt-4 text-stone-500">No pending studios.</p>}
+      {studios.length === 0 && <p className="mt-4 text-[var(--muted)]">No pending studios.</p>}
     </div>
   );
 }

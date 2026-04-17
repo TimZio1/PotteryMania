@@ -27,8 +27,8 @@ export default async function StudioMoneyActivityPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-8">
       <div>
         <p className={ui.overline}>Money</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Activity</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Activity</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Raw ledger-style rows — every charge, share, and class payment line we can show. For headline totals and payout
           context, use{" "}
           <Link href={`/dashboard/${studioId}/money/overview`} className="font-medium text-amber-900 underline">

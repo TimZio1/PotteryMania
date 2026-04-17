@@ -144,7 +144,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
       {msg ? <p className={ui.successText}>{msg}</p> : null}
 
       <div className="flex flex-col gap-3">
-        <label className="flex max-w-xl cursor-pointer items-start gap-2 text-sm text-stone-700">
+        <label className="flex max-w-xl cursor-pointer items-start gap-2 text-sm text-stone-900">
           <input
             type="checkbox"
             className="mt-1"
@@ -153,7 +153,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
             onChange={(e) => setFullSpreadconnectDiscovery(e.target.checked)}
           />
           <span>
-            <span className="font-medium text-amber-950">Full catalog scan</span> — list every Spreadconnect page
+            <span className="font-medium text-stone-900">Full catalog scan</span> — list every Spreadconnect page
             (slow, heavy on their API). Leave off for routine updates: we refresh each known article by id, list only the
             first page to discover new ones, and skip database writes when nothing changed.
           </span>
@@ -201,18 +201,18 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
             {rows.map((p) => (
               <tr key={p.id} className="border-b border-stone-100 last:border-0">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-amber-950">{p.name}</div>
+                  <div className="font-medium text-stone-900">{p.name}</div>
                   {p.archivedAt ? (
                     <span className="mt-1 inline-block text-xs text-amber-800/80">Archived</span>
                   ) : null}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex rounded-full border border-stone-200 px-2 py-0.5 text-xs text-stone-700">
+                  <span className="inline-flex rounded-full border border-stone-200 px-2 py-0.5 text-xs text-stone-900">
                     {p.categoryLabel}
                   </span>
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-stone-600">{p.slug}</td>
-                <td className="px-4 py-3 text-stone-700">
+                <td className="px-4 py-3 text-stone-900">
                   {eur(p.priceCents)} {p.currency}
                 </td>
                 <td className="px-4 py-3 text-stone-600">{p.variantCount}</td>

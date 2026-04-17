@@ -76,9 +76,9 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Bookings</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Bookings</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Class and experience bookings across studios. Filter by studio, session date, status, or search name, email, and
         ticket reference.
       </p>
@@ -151,7 +151,7 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
         </div>
       </form>
 
-      <p className="mt-6 text-sm text-stone-500">
+      <p className="mt-6 text-sm text-[var(--muted)]">
         Showing up to {bookings.length} booking{bookings.length === 1 ? "" : "s"}
         {filterQs ? " (filtered)" : ""}.
       </p>
@@ -166,8 +166,8 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
               header: "Session (UTC)",
               cell: (b) => (
                 <div className="text-xs">
-                  <div className="font-medium text-stone-800">{slotDayLabel(b.slot.slotDate)}</div>
-                  <div className="text-stone-500">
+                  <div className="font-medium text-[var(--foreground)]">{slotDayLabel(b.slot.slotDate)}</div>
+                  <div className="text-[var(--muted)]">
                     {b.slot.startTime}–{b.slot.endTime}
                   </div>
                 </div>
@@ -178,8 +178,8 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
               header: "Experience",
               cell: (b) => (
                 <div>
-                  <div className="font-medium text-stone-800">{b.experience.title}</div>
-                  <div className="text-xs text-stone-500">{b.studio.displayName}</div>
+                  <div className="font-medium text-[var(--foreground)]">{b.experience.title}</div>
+                  <div className="text-xs text-[var(--muted)]">{b.studio.displayName}</div>
                 </div>
               ),
             },
@@ -188,8 +188,8 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
               header: "Customer",
               cell: (b) => (
                 <div>
-                  <div className="font-medium text-stone-800">{b.customerName}</div>
-                  <div className="text-xs text-stone-600">{b.customerEmail}</div>
+                  <div className="font-medium text-[var(--foreground)]">{b.customerName}</div>
+                  <div className="text-xs text-[var(--muted)]">{b.customerEmail}</div>
                   {b.ticketRef ? <code className="mt-1 block text-[11px] text-amber-900">{b.ticketRef}</code> : null}
                 </div>
               ),
@@ -205,8 +205,8 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
               header: "Total / paid",
               cell: (b) => (
                 <div className="text-xs tabular-nums">
-                  <div className="font-medium text-stone-800">{eur(b.totalAmountCents)}</div>
-                  <div className="text-stone-500">dep {eur(b.depositAmountCents)}</div>
+                  <div className="font-medium text-[var(--foreground)]">{eur(b.totalAmountCents)}</div>
+                  <div className="text-[var(--muted)]">dep {eur(b.depositAmountCents)}</div>
                 </div>
               ),
             },
@@ -224,7 +224,7 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
               key: "created",
               header: "Created",
               cell: (b) => (
-                <span className="whitespace-nowrap text-xs text-stone-500">
+                <span className="whitespace-nowrap text-xs text-[var(--muted)]">
                   {b.createdAt.toISOString().slice(0, 16).replace("T", " ")}
                 </span>
               ),

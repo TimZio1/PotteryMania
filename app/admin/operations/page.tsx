@@ -138,9 +138,9 @@ export default async function AdminOperationsPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Operations</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Queues & recovery</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Operations</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Queues & recovery</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Review velocity, refund risk, and live booking traffic. Cron jobs cover reminders and abandoned carts;
         this view is for human intervention. <strong>Legacy studio lead captures</strong> from{" "}
         <code className="text-xs">/early-access</code> are listed near the top (below the stat cards), not under Users.
@@ -182,8 +182,8 @@ export default async function AdminOperationsPage() {
       </div>
 
       <section id="manual-refund-queue" className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Manual refund queue</h2>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Manual refund queue</h2>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Cancellations where Stripe automation could not finish the refund. Complete in Stripe Dashboard, then update
           records or leave notes in{" "}
           <Link href="/admin/audit" className="font-medium text-amber-900 underline-offset-2 hover:underline">
@@ -200,7 +200,7 @@ export default async function AdminOperationsPage() {
                 key: "when",
                 header: "Flagged (UTC)",
                 cell: (r) => (
-                  <span className="whitespace-nowrap text-xs text-stone-500">
+                  <span className="whitespace-nowrap text-xs text-[var(--muted)]">
                     {r.createdAt.toISOString().slice(0, 19)}
                   </span>
                 ),
@@ -222,8 +222,8 @@ export default async function AdminOperationsPage() {
                 header: "Guest",
                 cell: (r) => (
                   <div>
-                    <div className="text-sm text-stone-800">{r.booking.customerName}</div>
-                    <div className="text-xs text-stone-500">{r.booking.customerEmail}</div>
+                    <div className="text-sm text-[var(--foreground)]">{r.booking.customerName}</div>
+                    <div className="text-xs text-[var(--muted)]">{r.booking.customerEmail}</div>
                   </div>
                 ),
               },
@@ -231,8 +231,8 @@ export default async function AdminOperationsPage() {
                 key: "class",
                 header: "Experience / studio",
                 cell: (r) => (
-                  <div className="text-xs text-stone-600">
-                    <div className="font-medium text-stone-800">{r.booking.experience.title}</div>
+                  <div className="text-xs text-[var(--muted)]">
+                    <div className="font-medium text-[var(--foreground)]">{r.booking.experience.title}</div>
                     <div>{r.booking.studio.displayName}</div>
                   </div>
                 ),
@@ -260,20 +260,20 @@ export default async function AdminOperationsPage() {
       </section>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-amber-950">Scheduled jobs</h2>
-        <p className="mt-2 text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Scheduled jobs</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           HTTP GET endpoints (secure with <code className="text-xs">CRON_SECRET</code>). Each successful run writes to the
           audit log as <code className="text-xs">cron.run</code>.
         </p>
-        <ul className="mt-4 space-y-2 text-sm text-stone-700">
+        <ul className="mt-4 space-y-2 text-sm text-[var(--foreground)]">
           {cronEndpoints.map((j) => (
             <li key={j.name}>
               <span className="font-mono text-xs text-amber-900">{j.path}</span>
-              <span className="ml-2 text-xs text-stone-500">{j.name}</span>
+              <span className="ml-2 text-xs text-[var(--muted)]">{j.name}</span>
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-stone-500">
+        <p className="mt-4 text-xs text-[var(--muted)]">
           See also{" "}
           <Link href="/admin/audit" className="font-medium text-amber-900 underline-offset-2 hover:underline">
             Audit
@@ -287,7 +287,7 @@ export default async function AdminOperationsPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Recent cron runs</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Recent cron runs</h2>
         <div className="mt-4">
           <DataTable
             rows={cronRuns}
@@ -306,7 +306,7 @@ export default async function AdminOperationsPage() {
               {
                 key: "sum",
                 header: "Summary",
-                cell: (r) => <span className="text-xs text-stone-600">{cronSummary(r.afterJson)}</span>,
+                cell: (r) => <span className="text-xs text-[var(--muted)]">{cronSummary(r.afterJson)}</span>,
               },
             ]}
           />
@@ -317,8 +317,8 @@ export default async function AdminOperationsPage() {
         <AdminStudios initialStudios={pending} />
       </div>
       <section id="booking-queue" className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-amber-950">Bookings</h2>
-        <p className="mt-2 text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Bookings</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Search, filter by studio and session date, and open full booking detail (orders, cancellations, reschedules) on
           the dedicated console.
         </p>

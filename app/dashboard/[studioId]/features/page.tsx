@@ -28,8 +28,8 @@ export default async function StudioFeaturesPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className={ui.overline}>Packs & add-ons</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Packs, subscriptions & add-ons</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Packs, subscriptions & add-ons</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Upgrade your studio with packs, subscriptions, or individual add-ons. Bundles unlock grouped capabilities at a discount.
         </p>
       </div>

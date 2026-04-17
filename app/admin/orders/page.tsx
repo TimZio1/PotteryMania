@@ -46,9 +46,9 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Orders</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Orders</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Recent checkout orders across all studios. Filter by studio ID or order status; open a row for line items,
         payments, and addresses.
       </p>
@@ -84,7 +84,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         ) : null}
       </form>
 
-      <p className="mt-6 text-sm text-stone-500">
+      <p className="mt-6 text-sm text-[var(--muted)]">
         Showing up to {orders.length} order{orders.length === 1 ? "" : "s"}
         {filterQs ? " (filtered)" : ""}.
       </p>
@@ -98,7 +98,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               key: "when",
               header: "Placed",
               cell: (o) => (
-                <span className="text-xs text-stone-500">{o.createdAt.toISOString().slice(0, 16).replace("T", " ")}</span>
+                <span className="text-xs text-[var(--muted)]">{o.createdAt.toISOString().slice(0, 16).replace("T", " ")}</span>
               ),
             },
             {
@@ -106,7 +106,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               header: "Customer",
               cell: (o) => (
                 <div>
-                  <div className="font-medium text-stone-800">{o.customerEmail}</div>
+                  <div className="font-medium text-[var(--foreground)]">{o.customerEmail}</div>
                   {o.customerUserId ? (
                     <Link
                       href={`/admin/users/${o.customerUserId}`}
@@ -125,7 +125,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               header: "Studios",
               cell: (o) => {
                 const names = [...new Map(o.items.map((i) => [i.vendorId, i.vendor.displayName])).values()];
-                return <span className="text-xs text-stone-600">{names.join(" · ") || "—"}</span>;
+                return <span className="text-xs text-[var(--muted)]">{names.join(" · ") || "—"}</span>;
               },
             },
             {

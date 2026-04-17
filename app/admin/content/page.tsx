@@ -43,9 +43,9 @@ export default async function AdminContentPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Content</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Catalog & studios</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">Supply-side inventory health across products, classes, and studio records.</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Content</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Catalog & studios</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">Supply-side inventory health across products, classes, and studio records.</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Active products" value={String(productsActive)} hint={`${productsDraft} draft`} />
@@ -54,7 +54,7 @@ export default async function AdminContentPage() {
       </div>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Recently updated products</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Recently updated products</h2>
         <div className="mt-4">
           <DataTable
             rows={recentProducts}

@@ -182,7 +182,7 @@ export default function VendorBookingActions({
         Calendar (.ics)
       </a>
       {showCalStudio ? (
-        <div className="text-xs text-stone-600">
+        <div className="text-xs text-[var(--muted)]">
           {calendarSync ? (
             <>
               <span>
@@ -333,7 +333,7 @@ export default function VendorBookingActions({
               )}
             </button>
           )}
-          {showBlock && msg ? <span className="block text-xs text-stone-600">{msg}</span> : null}
+          {showBlock && msg ? <span className="block text-xs text-[var(--muted)]">{msg}</span> : null}
           {showReschedule ? (
             <RescheduleBookingPanel
               bookingId={bookingId}

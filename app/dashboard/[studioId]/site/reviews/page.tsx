@@ -45,8 +45,8 @@ export default async function StudioReviewsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Site</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Reviews</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Reviews</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Review incoming feedback, hide low-quality entries when needed, and feature the best testimonials.
         </p>
       </div>

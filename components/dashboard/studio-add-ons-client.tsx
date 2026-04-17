@@ -238,8 +238,8 @@ export default function StudioAddOnsClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>Catalog</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Add-ons</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Add-ons</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Optional booking extras like premium clay, glazing, gift wrap, or firing upgrades.
             </p>
           </div>
@@ -270,7 +270,7 @@ export default function StudioAddOnsClient({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-medium text-stone-900">{item.name}</p>
-                      <p className="mt-1 text-xs text-stone-500">
+                      <p className="mt-1 text-xs text-[var(--muted)]">
                         {item.isActive ? "Active" : "Hidden"} · +€{(item.priceCents / 100).toFixed(2)}
                       </p>
                     </div>
@@ -289,10 +289,10 @@ export default function StudioAddOnsClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>{selected ? "Edit" : "Create"}</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
               {selected ? selected.name : "New class add-on"}
             </h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Assign add-ons to one or more classes. Customers see them during booking and the selection is saved on the
               reservation.
             </p>
@@ -382,7 +382,7 @@ export default function StudioAddOnsClient({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.isActive}
@@ -390,7 +390,7 @@ export default function StudioAddOnsClient({
             />
             Active and bookable
           </label>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.isSelectedByDefault}
@@ -417,7 +417,7 @@ export default function StudioAddOnsClient({
 
         <div>
           <p className={ui.label}>Visible on these classes</p>
-          <p className="mt-1 text-xs text-stone-500">
+          <p className="mt-1 text-xs text-[var(--muted)]">
             If you leave this empty, the add-on is saved but will not appear in public booking yet.
           </p>
           {experiences.length === 0 ? (

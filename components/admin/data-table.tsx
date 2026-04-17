@@ -24,7 +24,7 @@ export function DataTable<T>({ columns, rows, empty }: Props<T>) {
         <thead className="sticky top-0 bg-stone-50/95 backdrop-blur">
           <tr className="border-b border-stone-200">
             {columns.map((column) => (
-              <th key={column.key} className={`px-4 py-3 font-semibold text-stone-700 ${column.className ?? ""}`}>
+              <th key={column.key} className={`px-4 py-3 font-semibold text-stone-900 ${column.className ?? ""}`}>
                 {column.header}
               </th>
             ))}
@@ -34,7 +34,7 @@ export function DataTable<T>({ columns, rows, empty }: Props<T>) {
           {rows.map((row, idx) => (
             <tr key={idx} className="border-b border-stone-100 last:border-b-0">
               {columns.map((column) => (
-                <td key={column.key} className={`px-4 py-3 align-top text-stone-600 ${column.className ?? ""}`}>
+                <td key={column.key} className={`px-4 py-3 align-top text-stone-700 ${column.className ?? ""}`}>
                   {column.cell(row)}
                 </td>
               ))}

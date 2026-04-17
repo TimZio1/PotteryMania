@@ -111,7 +111,7 @@ export default function StudioWearablesPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <p className="text-sm text-stone-500">Loading wearables settings...</p>
+        <p className="text-sm text-[var(--muted)]">Loading wearables settings...</p>
       </div>
     );
   }
@@ -129,11 +129,11 @@ export default function StudioWearablesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 p-6">
       <div>
-        <Link href={`/dashboard/${studioId}/settings`} className="text-sm text-amber-900 hover:text-amber-950">
+        <Link href={`/dashboard/${studioId}/settings`} className="text-sm text-amber-900 hover:text-[var(--foreground)]">
           ← Back to settings
         </Link>
         <h1 className="mt-3 font-serif text-2xl font-semibold text-stone-900">Wearables</h1>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Sell curated pottery-inspired apparel directly from your shop — no stock, no shipping, no hassle.
         </p>
         {activeCreators != null && (
@@ -151,7 +151,7 @@ export default function StudioWearablesPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium text-stone-900">Enable Wearables Shop</p>
-            <p className="mt-0.5 text-xs text-stone-500">Products appear on your public page when enabled.</p>
+            <p className="mt-0.5 text-xs text-[var(--muted)]">Products appear on your public page when enabled.</p>
           </div>
           <button
             type="button"
@@ -175,13 +175,13 @@ export default function StudioWearablesPage() {
                 : 2500;
               const exampleEarning = (avgBase * marginBps) / 10000 / 100;
               return config.marginLocked ? (
-                <p className="mt-2 text-sm text-stone-500">
+                <p className="mt-2 text-sm text-[var(--muted)]">
                   Your margin is set to <strong>{marginPct}%</strong> and locked by the platform.
                   {" "}You earn ~<strong>{formatEur(Math.round(avgBase * marginBps / 10000))}</strong> per sale.
                 </p>
               ) : (
                 <>
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     You earn {marginPct}% on every sale — roughly <strong>€{exampleEarning.toFixed(2)}</strong> per item.
                   </p>
                   <input
@@ -207,7 +207,7 @@ export default function StudioWearablesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-stone-900">Select Products</p>
-                <p className="mt-0.5 text-xs text-stone-500">
+                <p className="mt-0.5 text-xs text-[var(--muted)]">
                   {selected.size} of {config.catalog.length} selected
                 </p>
               </div>
@@ -215,7 +215,7 @@ export default function StudioWearablesPage() {
                 <button type="button" onClick={selectAll} className="text-xs font-medium text-amber-900 hover:underline">
                   Select all
                 </button>
-                <button type="button" onClick={deselectAll} className="text-xs font-medium text-stone-500 hover:underline">
+                <button type="button" onClick={deselectAll} className="text-xs font-medium text-[var(--muted)] hover:underline">
                   Clear
                 </button>
               </div>
@@ -248,7 +248,7 @@ export default function StudioWearablesPage() {
                     </div>
                     <div className="p-2.5">
                       <p className="text-sm font-medium text-stone-900 line-clamp-1">{p.name}</p>
-                      <p className="mt-0.5 text-xs text-stone-500">
+                      <p className="mt-0.5 text-xs text-[var(--muted)]">
                         Customer pays {formatEur(p.finalPriceCents)}
                       </p>
                     </div>
@@ -260,13 +260,13 @@ export default function StudioWearablesPage() {
 
           <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
             <p className="font-medium text-stone-900">Embed on your website</p>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-[var(--muted)]">
               Paste one of these code snippets into your WordPress, Squarespace, Wix, or any HTML page to display your wearables shop.
             </p>
 
             <div className="mt-4 space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Option A — JavaScript widget (recommended)</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Option A — JavaScript widget (recommended)</p>
                 <p className="mt-1 text-xs text-stone-400">Works everywhere. Renders inline, matches your page. Light or dark theme.</p>
                 <div className="relative mt-2">
                   <pre className="overflow-x-auto rounded-lg bg-stone-50 p-3 text-xs leading-relaxed text-stone-700 select-all">
@@ -287,7 +287,7 @@ export default function StudioWearablesPage() {
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Option B — Iframe embed</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Option B — Iframe embed</p>
                 <p className="mt-1 text-xs text-stone-400">Simplest integration. Drop this into any HTML or page builder block.</p>
                 <div className="relative mt-2">
                   <pre className="overflow-x-auto rounded-lg bg-stone-50 p-3 text-xs leading-relaxed text-stone-700 select-all">
@@ -313,7 +313,7 @@ export default function StudioWearablesPage() {
             </div>
 
             <div className="mt-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Live preview</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Live preview</p>
               <div className="mt-2 overflow-hidden rounded-lg border border-stone-200">
                 <iframe
                   src={typeof window !== "undefined" ? `${window.location.origin}/embed/${studioId}/wearables` : ""}

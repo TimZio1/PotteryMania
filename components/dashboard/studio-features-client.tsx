@@ -219,7 +219,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
 
   if (!rows.length) {
     return (
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-[var(--muted)]">
         No add-ons are available for your studio yet. New packs and features are being added regularly — check back soon.
       </p>
     );
@@ -236,8 +236,8 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
 
       {bundles.length > 0 ? (
         <section>
-          <h2 className="text-lg font-semibold text-amber-950">Bundles</h2>
-          <p className="mt-1 text-sm text-stone-600">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Bundles</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Save compared to turning add-ons on one by one. Cancelling any included add-on that shares a bundle
             subscription ends billing for the whole bundle.
           </p>
@@ -252,12 +252,12 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
                 <div key={b.id} className={`${ui.card} border-amber-200/80 bg-amber-50/30`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-amber-950">{b.name}</p>
-                      <p className="mt-2 text-sm text-stone-600">{b.description}</p>
-                      <p className="mt-3 text-sm font-medium text-stone-800">
+                      <p className="font-semibold text-[var(--foreground)]">{b.name}</p>
+                      <p className="mt-2 text-sm text-[var(--muted)]">{b.description}</p>
+                      <p className="mt-3 text-sm font-medium text-[var(--foreground)]">
                         {money(b.priceCents, b.currency)}/mo
                         {b.listSumCents > 0 ? (
-                          <span className="ml-2 text-xs font-normal text-stone-500">
+                          <span className="ml-2 text-xs font-normal text-[var(--muted)]">
                             vs {money(b.listSumCents, b.currency)} à la carte
                             {savingsPct > 0 ? (
                               <span className="ml-1 font-medium text-emerald-800">(~{savingsPct}%)</span>
@@ -266,11 +266,11 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
                         ) : null}
                       </p>
                       {b.requiresBundleStripe ? (
-                        <p className="mt-2 text-xs text-stone-600">
+                        <p className="mt-2 text-xs text-[var(--muted)]">
                           Billed as one Stripe subscription for the bundle.
                         </p>
                       ) : null}
-                      <ul className="mt-2 list-inside list-disc text-xs text-stone-600">
+                      <ul className="mt-2 list-inside list-disc text-xs text-[var(--muted)]">
                         {b.featureNames.map((n, i) => (
                           <li key={`${b.id}-f-${i}`}>{n}</li>
                         ))}
@@ -285,7 +285,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
                       onClick={() => void applyBundle(b)}
                       className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
                         b.allEntitled
-                          ? "cursor-not-allowed bg-stone-200 text-stone-500"
+                          ? "cursor-not-allowed bg-stone-200 text-[var(--muted)]"
                           : "bg-amber-800 text-white hover:bg-amber-900"
                       }`}
                     >
@@ -300,8 +300,8 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
       ) : null}
 
       <section>
-        <h2 className="text-lg font-semibold text-amber-950">Individual add-ons</h2>
-        <p className="mt-1 text-sm text-stone-600">Enable or disable each capability separately.</p>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Individual add-ons</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">Enable or disable each capability separately.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {rows.map((f) => {
             const on = f.preferenceOn;
@@ -310,16 +310,16 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
               <div key={f.slug} className={ui.card}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-amber-950">{f.name}</p>
-                    <p className="mt-2 text-sm text-stone-600">{f.description}</p>
-                    <p className="mt-3 text-sm font-medium text-stone-800">
+                    <p className="font-semibold text-[var(--foreground)]">{f.name}</p>
+                    <p className="mt-2 text-sm text-[var(--muted)]">{f.description}</p>
+                    <p className="mt-3 text-sm font-medium text-[var(--foreground)]">
                       From {f.currency} {price}/mo{" "}
-                      <span className="text-xs font-normal text-stone-500">
+                      <span className="text-xs font-normal text-[var(--muted)]">
                         {f.requiresPaidSubscription ? "(Stripe)" : "(indicative)"}
                       </span>
                     </p>
                     {f.requiresPaidSubscription ? (
-                      <p className="mt-2 text-xs text-stone-600">
+                      <p className="mt-2 text-xs text-[var(--muted)]">
                         This add-on is billed monthly via Stripe when enabled (platform catalog is not grant-all).
                       </p>
                     ) : null}
@@ -327,7 +327,7 @@ export default function StudioFeaturesClient({ studioId }: { studioId: string })
                       <p className="mt-2 text-xs font-medium text-amber-900">Temporarily unavailable on the platform.</p>
                     ) : null}
                     {f.includedForAll ? (
-                      <p className="mt-2 text-xs text-stone-600">
+                      <p className="mt-2 text-xs text-[var(--muted)]">
                         Included for all studios today — you already have access. The toggle records your preference for when
                         billing goes live.
                       </p>

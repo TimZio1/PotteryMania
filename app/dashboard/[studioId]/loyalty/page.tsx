@@ -50,8 +50,8 @@ export default async function StudioLoyaltyPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Engagement</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Loyalty points</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Loyalty points</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Reward repeat customers automatically after completed classes and redeem points into gift cards.
         </p>
       </div>

@@ -48,8 +48,8 @@ export default async function StudioScheduleWaitlistPage({ params }: Props) {
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <div>
         <p className={ui.overline}>Schedule</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Waitlist</h1>
-        <p className="mt-2 max-w-xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Waitlist</h1>
+        <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
           People waiting for a spot when your classes are full. Reach out directly when a seat opens up.
         </p>
       </div>

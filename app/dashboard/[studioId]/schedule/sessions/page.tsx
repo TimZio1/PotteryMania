@@ -96,8 +96,8 @@ export default async function StudioScheduleSessionsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Schedule</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Sessions</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Sessions</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Filter by status, experience, and session date. Open a row for approvals, reschedules, participant details, and calendar exports.
         </p>
       </div>

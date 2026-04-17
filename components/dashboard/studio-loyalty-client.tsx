@@ -120,8 +120,8 @@ export default function StudioLoyaltyClient({
   return (
     <div className="space-y-6">
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">Program configuration</h2>
-        <label className="mt-4 inline-flex items-center gap-2 text-sm text-stone-700">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Program configuration</h2>
+        <label className="mt-4 inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
           <input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} />
           Enable loyalty points
         </label>
@@ -152,29 +152,29 @@ export default function StudioLoyaltyClient({
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">Snapshot</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Snapshot</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-4">
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">Customers</p>
+            <p className="text-xs text-[var(--muted)]">Customers</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">{balances.length}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">Active balance</p>
+            <p className="text-xs text-[var(--muted)]">Active balance</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">{totals.balance}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">Total earned</p>
+            <p className="text-xs text-[var(--muted)]">Total earned</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">{totals.earned}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">Total spent</p>
+            <p className="text-xs text-[var(--muted)]">Total spent</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">{totals.spent}</p>
           </div>
         </div>
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">Manual adjustments</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Manual adjustments</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <label className="block text-sm">
             <span className={ui.label}>Customer</span>
@@ -202,14 +202,14 @@ export default function StudioLoyaltyClient({
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">Customer balances</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Customer balances</h2>
         {balances.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-600">No loyalty balances yet.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">No loyalty balances yet.</p>
         ) : (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[620px] text-left text-sm">
               <thead>
-                <tr className="text-stone-500">
+                <tr className="text-[var(--muted)]">
                   <th className="pb-2 font-medium">Customer</th>
                   <th className="pb-2 font-medium">Email</th>
                   <th className="pb-2 font-medium">Balance</th>
@@ -221,10 +221,10 @@ export default function StudioLoyaltyClient({
                 {balances.map((row) => (
                   <tr key={row.userId} className="border-t border-stone-200">
                     <td className="py-2 text-stone-900">{row.fullName || "Customer"}</td>
-                    <td className="py-2 text-stone-600">{row.email}</td>
+                    <td className="py-2 text-[var(--muted)]">{row.email}</td>
                     <td className="py-2 font-medium text-stone-900">{row.pointsBalance}</td>
-                    <td className="py-2 text-stone-600">{row.totalEarned}</td>
-                    <td className="py-2 text-stone-600">{row.totalSpent}</td>
+                    <td className="py-2 text-[var(--muted)]">{row.totalEarned}</td>
+                    <td className="py-2 text-[var(--muted)]">{row.totalSpent}</td>
                   </tr>
                 ))}
               </tbody>

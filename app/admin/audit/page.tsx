@@ -73,9 +73,9 @@ export default async function AdminAuditPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Audit</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Admin action log</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Audit</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Admin action log</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Every sensitive mutation should appear here with before/after JSON. Filter, inspect diffs, or export CSV.
       </p>
       <div className="mt-8">

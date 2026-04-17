@@ -87,7 +87,7 @@ export default function CouponsAdminClient({ initial }: { initial: CouponRow[] }
       {err ? <p className={ui.errorText}>{err}</p> : null}
 
       <section>
-        <h2 className="text-lg font-semibold text-amber-950">Existing codes</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Existing codes</h2>
         <p className="mt-1 text-sm text-stone-600">
           Codes are case-insensitive at checkout. Redemption counts increment when Stripe confirms payment.
         </p>
@@ -106,7 +106,7 @@ export default function CouponsAdminClient({ initial }: { initial: CouponRow[] }
               {rows.map((c) => (
                 <tr key={c.id} className="border-b border-stone-100 last:border-0">
                   <td className="px-4 py-3 font-mono text-xs">{c.code}</td>
-                  <td className="px-4 py-3 text-stone-700">
+                  <td className="px-4 py-3 text-stone-900">
                     {c.percentOff != null ? `${c.percentOff}%` : null}
                     {c.amountOffCents != null ? `€${(c.amountOffCents / 100).toFixed(2)} off` : null}
                   </td>
@@ -114,7 +114,7 @@ export default function CouponsAdminClient({ initial }: { initial: CouponRow[] }
                     {c.redeemedCount}
                     {c.maxRedemptions != null ? ` / ${c.maxRedemptions}` : ""}
                   </td>
-                  <td className="px-4 py-3 text-xs text-stone-500">
+                  <td className="px-4 py-3 text-xs text-stone-600">
                     {c.validUntil ? `until ${c.validUntil.slice(0, 10)}` : "—"}
                   </td>
                   <td className="px-4 py-3">
@@ -131,12 +131,12 @@ export default function CouponsAdminClient({ initial }: { initial: CouponRow[] }
               ))}
             </tbody>
           </table>
-          {rows.length === 0 ? <p className="p-4 text-sm text-stone-500">No coupons yet.</p> : null}
+          {rows.length === 0 ? <p className="p-4 text-sm text-stone-600">No coupons yet.</p> : null}
         </div>
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-amber-950">Create coupon</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Create coupon</h2>
         <form onSubmit={createCoupon} className="mt-4 max-w-md space-y-4">
           <div>
             <label className={ui.label} htmlFor="new-code">

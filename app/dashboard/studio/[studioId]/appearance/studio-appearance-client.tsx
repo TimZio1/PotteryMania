@@ -94,8 +94,8 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
         ← Studio profile
       </Link>
       <p className={`${platformUi.overline} mt-6`}>Public page</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Appearance</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Appearance</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Curated looks for your public studio page only. No custom hex or fonts — presets stay readable and on-brand for
         PotteryMania.
         {tier === "starter" ? " After activation, every preset unlocks." : ""}
@@ -243,7 +243,7 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
             </select>
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={draft.showSerifHeadings}
@@ -252,7 +252,7 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
             Serif headings
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={draft.useUppercaseLabels}

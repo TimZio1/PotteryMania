@@ -77,7 +77,7 @@ export function FeatureHubCatalogPriceCell({
           aria-label="Catalog list price"
         />
       </div>
-      {hint ? <span className="text-[10px] text-stone-500">{hint}</span> : null}
+      {hint ? <span className="text-[10px] text-[var(--muted)]">{hint}</span> : null}
     </div>
   );
 }

@@ -59,8 +59,8 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
         <p className={ui.overline}>Configuration</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Settings</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Settings</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Update how your studio appears to guests. Payout setup and legal profile details stay in the studio workspace.
         </p>
       </div>
@@ -78,7 +78,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
 
       <section className={ui.card}>
         <h2 className="text-lg font-semibold text-stone-900">Settings hub</h2>
-        <p className="mt-2 text-sm text-stone-600">Central access to profile, storefront, scheduling, and billing setup.</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">Central access to profile, storefront, scheduling, and billing setup.</p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <Link href={`/dashboard/${studioId}/site/page`} className={ui.buttonSecondary}>
             Public page
@@ -94,8 +94,8 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
           </Link>
         </div>
         <div className="mt-5 border-t border-stone-200 pt-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Advanced tools</p>
-          <p className="mt-1 text-xs text-stone-600">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Advanced tools</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
             Less-frequent controls moved out of primary navigation to keep the dashboard focused.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -171,7 +171,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
 
       <div className={`${ui.card} space-y-4`}>
         <h2 className="text-lg font-semibold text-stone-900">Studio workspace</h2>
-        <p className="text-sm text-stone-600">Legal entity, photos, and Stripe onboarding.</p>
+        <p className="text-sm text-[var(--muted)]">Legal entity, photos, and Stripe onboarding.</p>
         <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
           Open full studio workspace
         </Link>
@@ -179,9 +179,9 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
 
       <div className={ui.card}>
         <h2 className="text-lg font-semibold text-stone-900">Cancellation policies</h2>
-        <p className="mt-2 text-sm text-stone-600">Create and attach policies from the class builder or API; list below is read-only.</p>
-        <ul className="mt-4 space-y-2 text-sm text-stone-700">
-          {policies.length === 0 ? <li className="text-stone-500">No studio-specific policies yet.</li> : null}
+        <p className="mt-2 text-sm text-[var(--muted)]">Create and attach policies from the class builder or API; list below is read-only.</p>
+        <ul className="mt-4 space-y-2 text-sm text-[var(--foreground)]">
+          {policies.length === 0 ? <li className="text-[var(--muted)]">No studio-specific policies yet.</li> : null}
           {policies.map((p) => (
             <li key={p.id} className="rounded-lg bg-stone-50 px-3 py-2">
               <span className="font-medium">{p.name}</span> · {p.policyType}
@@ -192,7 +192,7 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
 
       <div className={ui.card}>
         <h2 className="text-lg font-semibold text-stone-900">Blocked dates</h2>
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-[var(--muted)]">
           Block specific days when your studio is closed (holidays, maintenance, etc.).
         </p>
         <Link href={`/dashboard/${studioId}/programs/planner`} className={`${ui.buttonSecondary} mt-3 inline-flex`}>

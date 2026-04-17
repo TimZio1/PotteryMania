@@ -85,9 +85,9 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
 
     return (
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Monetization</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Feature control hub</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Monetization</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Feature control hub</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Analytics tab: activation status mix per SKU, Stripe-backed rows, and studios that moved to{" "}
           <strong>inactive</strong> in the last {inactiveWindowDays} days (directional churn / preference signal — not a
           full cohort model).
@@ -200,8 +200,8 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
         </div>
 
         <section className="mt-10">
-          <h2 className="text-lg font-semibold text-amber-950">By feature — analytics</h2>
-          <p className="mt-1 text-xs text-stone-500">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">By feature — analytics</h2>
+          <p className="mt-1 text-xs text-[var(--muted)]">
             Billable = active + trialing + pending_cancel. Est. MRR uses override or list price (same as hub). Adoption %
             is billable ÷ live studios.
           </p>
@@ -215,8 +215,8 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                   header: "Feature",
                   cell: (r) => (
                     <div>
-                      <span className="font-medium text-stone-800">{r.name}</span>
-                      <p className="font-mono text-[11px] text-stone-500">{r.slug}</p>
+                      <span className="font-medium text-[var(--foreground)]">{r.name}</span>
+                      <p className="font-mono text-[11px] text-[var(--muted)]">{r.slug}</p>
                     </div>
                   ),
                 },
@@ -264,7 +264,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                   key: "st",
                   header: "Active / trial / pend",
                   cell: (r) => (
-                    <span className="font-mono text-[11px] text-stone-700">
+                    <span className="font-mono text-[11px] text-[var(--foreground)]">
                       {r.active}/{r.trialing}/{r.pendingCancel}
                     </span>
                   ),
@@ -272,7 +272,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 {
                   key: "in",
                   header: "Inactive",
-                  cell: (r) => <span className="tabular-nums text-sm text-stone-700">{r.inactive}</span>,
+                  cell: (r) => <span className="tabular-nums text-sm text-[var(--foreground)]">{r.inactive}</span>,
                 },
                 {
                   key: "off",
@@ -289,13 +289,13 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 {
                   key: "bill",
                   header: "Billable",
-                  cell: (r) => <span className="tabular-nums font-medium text-stone-800">{r.billableActivations}</span>,
+                  cell: (r) => <span className="tabular-nums font-medium text-[var(--foreground)]">{r.billableActivations}</span>,
                 },
                 {
                   key: "pct",
                   header: "Adoption",
                   cell: (r) => (
-                    <span className="tabular-nums text-stone-700">
+                    <span className="tabular-nums text-[var(--foreground)]">
                       {approvedStudioCount ? `${r.activationRatePct}%` : "—"}
                     </span>
                   ),
@@ -303,7 +303,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
               {
                 key: "mrr",
                 header: "Est. MRR",
-                cell: (r) => <span className="tabular-nums font-medium text-amber-950">{eur(r.estimatedMrrCents)}</span>,
+                cell: (r) => <span className="tabular-nums font-medium text-[var(--foreground)]">{eur(r.estimatedMrrCents)}</span>,
               },
               {
                 key: "sku",
@@ -352,9 +352,9 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Monetization</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Feature control hub</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Monetization</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Feature control hub</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Cross-catalog view of platform add-ons: billable activations (active / trialing / pending_cancel), estimated
         monthly recurring from catalog or override prices, and adoption vs live studios. Drill into a feature to see
         every studio row and open admin detail for grants and price overrides.
@@ -378,8 +378,8 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
       </div>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">By feature</h2>
-        <p className="mt-1 text-xs text-stone-500">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">By feature</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Inactive catalog rows still listed so you can see zero-adoption SKUs. Use <strong>Studios</strong> to open the
           per-studio directory for that SKU.
         </p>
@@ -393,12 +393,12 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
                 header: "Feature",
                 cell: (r) => (
                   <div>
-                    <span className="font-medium text-stone-800">{r.name}</span>
-                    <p className="font-mono text-[11px] text-stone-500">{r.slug}</p>
+                    <span className="font-medium text-[var(--foreground)]">{r.name}</span>
+                    <p className="font-mono text-[11px] text-[var(--muted)]">{r.slug}</p>
                   </div>
                 ),
               },
-              { key: "cat", header: "Category", cell: (r) => <span className="text-sm text-stone-700">{r.category}</span> },
+              { key: "cat", header: "Category", cell: (r) => <span className="text-sm text-[var(--foreground)]">{r.category}</span> },
               {
                 key: "sort",
                 header: "Sort",
@@ -433,13 +433,13 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
               {
                 key: "act",
                 header: "Billable",
-                cell: (r) => <span className="tabular-nums text-stone-800">{r.billableActivations}</span>,
+                cell: (r) => <span className="tabular-nums text-[var(--foreground)]">{r.billableActivations}</span>,
               },
               {
                 key: "pct",
                 header: "Adoption",
                 cell: (r) => (
-                  <span className="tabular-nums text-stone-700">
+                  <span className="tabular-nums text-[var(--foreground)]">
                     {approvedStudioCount ? `${r.activationRatePct}%` : "—"}
                   </span>
                 ),
@@ -447,7 +447,7 @@ export default async function AdminFeaturesHubPage({ searchParams }: Props) {
               {
                 key: "mrr",
                 header: "Est. MRR",
-                cell: (r) => <span className="tabular-nums font-medium text-amber-950">{eur(r.estimatedMrrCents)}</span>,
+                cell: (r) => <span className="tabular-nums font-medium text-[var(--foreground)]">{eur(r.estimatedMrrCents)}</span>,
               },
               {
                 key: "sku",
@@ -538,7 +538,7 @@ function InactiveWindowPills({ current, featureId }: { current: number; featureI
   const opts = [7, 30, 90] as const;
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2 border-b border-stone-200 pb-4">
-      <span className="text-xs font-medium text-stone-600">Recent inactive window:</span>
+      <span className="text-xs font-medium text-[var(--muted)]">Recent inactive window:</span>
       {opts.map((d) => {
         const p = new URLSearchParams({ tab: "analytics", inactiveDays: String(d) });
         if (featureId) p.set("featureId", featureId);
@@ -666,9 +666,9 @@ function DirectorySection({
   if (!directoryResult?.ok) return null;
   return (
     <section className="mt-8 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-amber-950">Studios — {directoryResult.feature.name}</h2>
-      <p className="mt-1 font-mono text-xs text-stone-500">{directoryResult.feature.slug}</p>
-      <p className="mt-2 text-xs text-stone-500">
+      <h2 className="text-lg font-semibold text-[var(--foreground)]">Studios — {directoryResult.feature.name}</h2>
+      <p className="mt-1 font-mono text-xs text-[var(--muted)]">{directoryResult.feature.slug}</p>
+      <p className="mt-2 text-xs text-[var(--muted)]">
         List price {eur(directoryResult.feature.priceCents)}. All activation statuses; use studio admin to grant, revoke,
         or override price.
       </p>
@@ -688,7 +688,7 @@ function DirectorySection({
                   >
                     {r.displayName}
                   </Link>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-[var(--muted)]">
                     {r.city}, {r.country} · <code className="text-[11px]">{r.studioStatus}</code>
                   </p>
                 </div>
@@ -713,7 +713,7 @@ function DirectorySection({
               key: "eff",
               header: "Effective / mo",
               cell: (r) => (
-                <span className="tabular-nums text-sm font-medium text-stone-800">{eur(r.effectivePriceCents)}</span>
+                <span className="tabular-nums text-sm font-medium text-[var(--foreground)]">{eur(r.effectivePriceCents)}</span>
               ),
             },
             {
@@ -721,7 +721,7 @@ function DirectorySection({
               header: "Stripe sub",
               cell: (r) =>
                 r.stripeSubscriptionId ? (
-                  <span className="font-mono text-[11px] text-stone-600">{r.stripeSubscriptionId}</span>
+                  <span className="font-mono text-[11px] text-[var(--muted)]">{r.stripeSubscriptionId}</span>
                 ) : (
                   <span className="text-stone-400">—</span>
                 ),
@@ -730,7 +730,7 @@ function DirectorySection({
               key: "up",
               header: "Updated",
               cell: (r) => (
-                <span className="text-xs text-stone-500">
+                <span className="text-xs text-[var(--muted)]">
                   {r.updatedAt.toISOString().replace("T", " ").slice(0, 16)} UTC
                 </span>
               ),

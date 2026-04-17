@@ -254,7 +254,7 @@ export default function PackagesManager({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>Catalog</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Packages</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Packages</h2>
           </div>
           <button type="button" className={ui.buttonPrimary} onClick={openNew}>
             + New
@@ -279,7 +279,7 @@ export default function PackagesManager({
                   }`}
                 >
                   <p className="font-medium text-stone-900">{pkg.name}</p>
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     {pkg.isActive ? "Active" : "Inactive"} · €{(pkg.priceCents / 100).toFixed(2)} · {packageTotalCredits(pkg)} credits
                   </p>
                 </button>
@@ -293,7 +293,7 @@ export default function PackagesManager({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>{selected ? "Edit" : "Create"}</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">{selected ? selected.name : "New class package"}</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">{selected ? selected.name : "New class package"}</h2>
           </div>
           {selected ? (
             <button type="button" className={ui.buttonGhost} onClick={removeSelected} disabled={busy}>
@@ -345,12 +345,12 @@ export default function PackagesManager({
               const checked = form.experienceIds.includes(experience.id);
               return (
                 <div key={experience.id} className="rounded-xl border border-stone-200 bg-white p-3">
-                  <label className="inline-flex items-center gap-2 text-sm text-stone-700">
+                  <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
                     <input type="checkbox" checked={checked} onChange={() => toggleExperience(experience.id)} />
                     <span>{experience.title}</span>
                   </label>
                   {checked ? (
-                    <label className="mt-2 block text-xs text-stone-500">
+                    <label className="mt-2 block text-xs text-[var(--muted)]">
                       Credits used
                       <input
                         type="number"
@@ -367,7 +367,7 @@ export default function PackagesManager({
           </div>
         </div>
 
-        <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-3">
+        <div className="grid gap-2 text-sm text-[var(--foreground)] sm:grid-cols-3">
           <label className="inline-flex items-center gap-2">
             <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((c) => ({ ...c, isActive: e.target.checked }))} />
             Active

@@ -47,9 +47,9 @@ export default function TicketCheckInPanel({ studioId }: { studioId: string }) {
   return (
     <div className={cn(ui.card, "space-y-3")}>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Fast check-in</p>
-        <h2 className="mt-1 text-lg font-semibold text-amber-950">Scan or enter ticket reference</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Fast check-in</p>
+        <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Scan or enter ticket reference</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Works with manual entry or QR scanner devices that type into the input field.
         </p>
       </div>

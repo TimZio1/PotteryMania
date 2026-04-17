@@ -74,14 +74,14 @@ export function StudioClosedDaysSection({ studioId }: { studioId: string }) {
 
   return (
     <section className="mb-10 rounded-lg border border-amber-200/60 bg-amber-50/30 p-4">
-      <h2 className="text-sm font-semibold text-amber-950">Studio closed days</h2>
-      <p className="mt-1 text-xs text-stone-600">
+      <h2 className="text-sm font-semibold text-[var(--foreground)]">Studio closed days</h2>
+      <p className="mt-1 text-xs text-[var(--muted)]">
         Block the whole studio on a calendar day. Open slots on that day are marked blocked; new slot generation skips
         these dates.
       </p>
       {err ? <p className="mt-2 text-xs text-red-600">{err}</p> : null}
       <form onSubmit={addBlock} className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-        <label className="text-xs font-medium text-stone-700">
+        <label className="text-xs font-medium text-[var(--foreground)]">
           Date
           <input
             type="date"
@@ -91,7 +91,7 @@ export function StudioClosedDaysSection({ studioId }: { studioId: string }) {
             disabled={busy}
           />
         </label>
-        <label className="min-w-[160px] flex-1 text-xs font-medium text-stone-700">
+        <label className="min-w-[160px] flex-1 text-xs font-medium text-[var(--foreground)]">
           Note (optional)
           <input
             className="mt-1 w-full rounded border border-stone-300 bg-white px-2 py-2 text-sm"
@@ -111,13 +111,13 @@ export function StudioClosedDaysSection({ studioId }: { studioId: string }) {
       </form>
       <ul className="mt-3 space-y-1 text-xs">
         {blocks.length === 0 ? (
-          <li className="text-stone-500">No blocked days.</li>
+          <li className="text-[var(--muted)]">No blocked days.</li>
         ) : (
           blocks.map((b) => (
             <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded bg-white/80 px-2 py-1">
               <span>
                 <strong>{b.blockDate}</strong>
-                {b.note ? <span className="text-stone-600"> — {b.note}</span> : null}
+                {b.note ? <span className="text-[var(--muted)]"> — {b.note}</span> : null}
               </span>
               <button type="button" className="text-amber-900 underline" onClick={() => removeBlock(b.blockDate)}>
                 Remove

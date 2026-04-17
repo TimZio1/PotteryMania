@@ -45,8 +45,8 @@ export function StudioBrandImageField({ kind, label, requirements, value, onChan
 
   return (
     <div className="block space-y-1 text-sm">
-      <span className="text-stone-600">{label}</span>
-      <p className="text-xs leading-relaxed text-stone-500">{requirements}</p>
+      <span className="text-[var(--muted)]">{label}</span>
+      <p className="text-xs leading-relaxed text-[var(--muted)]">{requirements}</p>
       <input
         className="mt-1 w-full rounded border px-3 py-2"
         type="url"

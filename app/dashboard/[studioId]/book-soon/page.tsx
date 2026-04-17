@@ -47,8 +47,8 @@ export default async function StudioBookSoonPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Engagement</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Book soon reminders</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Book soon reminders</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Send follow-up reminders a few days after class completion to encourage repeat bookings.
         </p>
       </div>

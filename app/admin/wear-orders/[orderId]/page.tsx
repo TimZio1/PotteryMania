@@ -55,8 +55,8 @@ export default async function AdminWearOrderDetailPage({ params }: OrderPagePara
         <Link href="/admin/wear-orders" className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline">
           ← Wear orders
         </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Order unavailable</h1>
+        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Order unavailable</h1>
         <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">
           <p className="font-semibold">This order could not be loaded</p>
           <p className="mt-1 break-all font-mono text-xs">{msg}</p>
@@ -120,8 +120,8 @@ export default async function AdminWearOrderDetailPage({ params }: OrderPagePara
       <Link href="/admin/wear-orders" className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline">
         ← Wear orders
       </Link>
-      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Order {o.id.slice(0, 8)}…</h1>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Order {o.id.slice(0, 8)}…</h1>
       <WearOrderDetailClient initial={payload} />
     </div>
   );

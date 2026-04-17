@@ -50,8 +50,8 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-lg font-semibold text-amber-950">Stripe payment records</h2>
-        <p className="mt-1 text-sm text-stone-600">Latest Stripe captures and refunds touching your direct product sales.</p>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Stripe payment records</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">Latest Stripe captures and refunds touching your direct product sales.</p>
         <div className="mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-500">
@@ -66,7 +66,7 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
             <tbody>
               {stripePayments.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-stone-500">
+                  <td colSpan={5} className="px-3 py-6 text-center text-[var(--muted)]">
                     No Stripe payment rows yet for this studio&apos;s direct sales.
                   </td>
                 </tr>
@@ -80,13 +80,13 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
                       : "Order";
                   return (
                     <tr key={p.id} className="border-b border-stone-100">
-                      <td className="px-3 py-2 text-stone-600">{p.createdAt.toISOString().slice(0, 10)}</td>
+                      <td className="px-3 py-2 text-[var(--muted)]">{p.createdAt.toISOString().slice(0, 10)}</td>
                       <td className="px-3 py-2">
                         {p.order.customerName}
                         <br />
-                        <span className="text-xs text-stone-500">{p.order.customerEmail}</span>
+                        <span className="text-xs text-[var(--muted)]">{p.order.customerEmail}</span>
                       </td>
-                      <td className="px-3 py-2 text-stone-600">{typeLabel}</td>
+                      <td className="px-3 py-2 text-[var(--muted)]">{typeLabel}</td>
                       <td className="px-3 py-2">€{(p.amountCents / 100).toFixed(2)}</td>
                       <td className="px-3 py-2">{p.paymentStatus}</td>
                     </tr>
@@ -99,7 +99,7 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-amber-950">Recent product sales</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Recent product sales</h2>
         <div className="mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-500">
@@ -113,7 +113,7 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
             <tbody>
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-3 py-6 text-center text-stone-500">
+                  <td colSpan={4} className="px-3 py-6 text-center text-[var(--muted)]">
                     No paid product orders yet.
                   </td>
                 </tr>
@@ -122,7 +122,7 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
                   const share = o.items.reduce((t, i) => t + i.vendorAmountSnapshotCents * i.quantity, 0);
                   return (
                     <tr key={o.id} className="border-b border-stone-100">
-                      <td className="px-3 py-2 text-stone-600">{o.createdAt.toISOString().slice(0, 10)}</td>
+                      <td className="px-3 py-2 text-[var(--muted)]">{o.createdAt.toISOString().slice(0, 10)}</td>
                       <td className="px-3 py-2">{o.customerEmail}</td>
                       <td className="px-3 py-2">€{(share / 100).toFixed(2)}</td>
                       <td className="px-3 py-2">{o.paymentStatus}</td>
@@ -136,7 +136,7 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-amber-950">Recent experience payments</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Recent experience payments</h2>
         <div className="mt-3 overflow-x-auto rounded-xl border border-stone-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-500">
@@ -150,14 +150,14 @@ export default async function StudioMoneyLedger({ studioId }: { studioId: string
             <tbody>
               {bookings.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-3 py-6 text-center text-stone-500">
+                  <td colSpan={4} className="px-3 py-6 text-center text-[var(--muted)]">
                     No qualifying class payments yet.
                   </td>
                 </tr>
               ) : (
                 bookings.map((b) => (
                   <tr key={b.id} className="border-b border-stone-100">
-                    <td className="px-3 py-2 text-stone-600">{b.createdAt.toISOString().slice(0, 10)}</td>
+                    <td className="px-3 py-2 text-[var(--muted)]">{b.createdAt.toISOString().slice(0, 10)}</td>
                     <td className="px-3 py-2">{b.experience.title}</td>
                     <td className="px-3 py-2">{b.customerEmail}</td>
                     <td className="px-3 py-2">€{((b.totalAmountCents - b.remainingBalanceCents) / 100).toFixed(2)}</td>

@@ -66,34 +66,34 @@ export default async function AdminAiInsightsPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Monetization</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">AI insights</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Monetization</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">AI insights</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Rule-based insight templates, studio-generated cards, and one-time Stripe unlocks. Edit list price and catalog
         active flag inline; force-unlock recent rows for support.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase text-stone-500">Lifetime purchases</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{revenue._count}</p>
+          <p className="text-xs font-medium uppercase text-[var(--muted)]">Lifetime purchases</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{revenue._count}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase text-stone-500">Unlocked insight rows</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{purchasedInsights}</p>
+          <p className="text-xs font-medium uppercase text-[var(--muted)]">Unlocked insight rows</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{purchasedInsights}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase text-stone-500">Unlock rate</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{unlockRatePct.toFixed(1)}%</p>
-          <p className="mt-1 text-xs text-stone-500">Purchased ÷ generated rows ({totalGeneratedInsights})</p>
+          <p className="text-xs font-medium uppercase text-[var(--muted)]">Unlock rate</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{unlockRatePct.toFixed(1)}%</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Purchased ÷ generated rows ({totalGeneratedInsights})</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase text-stone-500">Gross (platform)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">€{totalEur.toFixed(2)}</p>
+          <p className="text-xs font-medium uppercase text-[var(--muted)]">Gross (platform)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{totalEur.toFixed(2)}</p>
         </div>
       </div>
 
-      <h2 className="mt-10 text-lg font-semibold text-amber-950">Templates</h2>
+      <h2 className="mt-10 text-lg font-semibold text-[var(--foreground)]">Templates</h2>
       <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 bg-white">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-600">
@@ -125,8 +125,8 @@ export default async function AdminAiInsightsPage() {
         </table>
       </div>
 
-      <h2 className="mt-10 text-lg font-semibold text-amber-950">Not yet purchased (force unlock)</h2>
-      <p className="mt-1 max-w-2xl text-sm text-stone-600">
+      <h2 className="mt-10 text-lg font-semibold text-[var(--foreground)]">Not yet purchased (force unlock)</h2>
+      <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">
         Grants full analysis view without Stripe. Creates a zero-amount purchase row and audit entry. Optional prompt for
         audit note.
       </p>
@@ -145,14 +145,14 @@ export default async function AdminAiInsightsPage() {
           <tbody>
             {lockableInsights.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-stone-500" colSpan={6}>
+                <td className="px-4 py-6 text-[var(--muted)]" colSpan={6}>
                   No lockable insights in view.
                 </td>
               </tr>
             ) : (
               lockableInsights.map((row) => (
                 <tr key={row.id} className="border-b border-stone-100">
-                  <td className="px-4 py-3 whitespace-nowrap text-stone-600">
+                  <td className="px-4 py-3 whitespace-nowrap text-[var(--muted)]">
                     {row.generatedAt.toISOString().slice(0, 19).replace("T", " ")}
                   </td>
                   <td className="px-4 py-3">
@@ -161,7 +161,7 @@ export default async function AdminAiInsightsPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs">{row.template.slug}</td>
-                  <td className="px-4 py-3 text-stone-800">{row.previewTitle}</td>
+                  <td className="px-4 py-3 text-[var(--foreground)]">{row.previewTitle}</td>
                   <td className="px-4 py-3">{row.status}</td>
                   <td className="px-4 py-3">
                     <AdminInsightForceUnlockButton insightId={row.id} />
@@ -173,7 +173,7 @@ export default async function AdminAiInsightsPage() {
         </table>
       </div>
 
-      <h2 className="mt-10 text-lg font-semibold text-amber-950">Recent purchases</h2>
+      <h2 className="mt-10 text-lg font-semibold text-[var(--foreground)]">Recent purchases</h2>
       <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 bg-white">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-600">
@@ -188,14 +188,14 @@ export default async function AdminAiInsightsPage() {
           <tbody>
             {recentPurchases.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-stone-500" colSpan={5}>
+                <td className="px-4 py-6 text-[var(--muted)]" colSpan={5}>
                   No purchases yet.
                 </td>
               </tr>
             ) : (
               recentPurchases.map((p) => (
                 <tr key={p.id} className="border-b border-stone-100">
-                  <td className="px-4 py-3 whitespace-nowrap text-stone-600">
+                  <td className="px-4 py-3 whitespace-nowrap text-[var(--muted)]">
                     {p.createdAt.toISOString().slice(0, 19).replace("T", " ")}
                   </td>
                   <td className="px-4 py-3">
@@ -203,10 +203,10 @@ export default async function AdminAiInsightsPage() {
                       {p.studio.displayName}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-stone-700">{p.user.email}</td>
+                  <td className="px-4 py-3 text-[var(--foreground)]">{p.user.email}</td>
                   <td className="px-4 py-3">
-                    <span className="text-stone-800">{p.insight.previewTitle}</span>
-                    <span className="ml-2 font-mono text-xs text-stone-500">{p.insight.template.slug}</span>
+                    <span className="text-[var(--foreground)]">{p.insight.previewTitle}</span>
+                    <span className="ml-2 font-mono text-xs text-[var(--muted)]">{p.insight.template.slug}</span>
                   </td>
                   <td className="px-4 py-3">€{(p.amountCents / 100).toFixed(2)}</td>
                 </tr>

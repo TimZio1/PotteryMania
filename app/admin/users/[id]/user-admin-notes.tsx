@@ -36,7 +36,7 @@ export function UserAdminNotesForm({ userId }: Props) {
 
   return (
     <form onSubmit={submit} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-semibold text-amber-950">Internal note</p>
+      <p className="text-sm font-semibold text-[var(--foreground)]">Internal note</p>
       {msg ? <p className={`${ui.errorText} mt-2`}>{msg}</p> : null}
       <textarea
         className={`${ui.input} mt-3 min-h-[100px] py-2`}

@@ -45,8 +45,8 @@ export default async function DashboardBillingPage() {
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-10">
       <div>
         <p className={ui.overline}>Billing</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Billing</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Billing</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           View your studio plans, purchase packs and add-ons, and manage your subscription — all from one place.
         </p>
       </div>
@@ -55,7 +55,7 @@ export default async function DashboardBillingPage() {
         <div className={`${ui.card} space-y-4`}>
           <div>
             <h2 className="text-lg font-semibold text-stone-900">Buy packs, subscriptions & add-ons</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Purchases happen per studio. Open the studio you want to upgrade and continue to its packs and add-ons page.
             </p>
           </div>
@@ -67,7 +67,7 @@ export default async function DashboardBillingPage() {
               >
                 <div>
                   <p className="font-medium text-stone-900">{studio.displayName}</p>
-                  <p className="mt-1 text-sm text-stone-600">Open this studio to buy packs, start subscriptions, or add features.</p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">Open this studio to buy packs, start subscriptions, or add features.</p>
                 </div>
                 <Link href={`/dashboard/${studio.id}/features`} className={ui.buttonPrimary}>
                   Open packs & add-ons
@@ -80,13 +80,13 @@ export default async function DashboardBillingPage() {
 
       <div className={`${ui.card} space-y-3`}>
         <h2 className="text-lg font-semibold text-stone-900">Studio plans</h2>
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-[var(--muted)]">
           Plans are based on studio usage: experiences-only, catalog-only, both, or pro. PotteryMania transaction fees stay at {commissionLabel}.
         </p>
-        <p className="mt-3 text-sm font-medium text-amber-950">
+        <p className="mt-3 text-sm font-medium text-[var(--foreground)]">
           This replaces multiple tools you may otherwise juggle — public page, reservations, catalog, and the glue between them.
         </p>
-        <p className="mt-2 text-sm text-stone-600">
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Start free. Activate advanced features when you&apos;re ready. Public comparison:{" "}
           <Link href="/pricing" className="font-semibold text-amber-900 underline underline-offset-2">
             Pricing page
@@ -96,7 +96,7 @@ export default async function DashboardBillingPage() {
         <ul className="mt-4 divide-y divide-stone-100 text-sm">
           {STUDIO_PLANS.map((plan) => (
             <li key={plan.key} className="py-3">
-              <span className="font-medium text-stone-800">
+              <span className="font-medium text-[var(--foreground)]">
                 {plan.name}
                 {plan.recommended ? (
                   <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
@@ -104,11 +104,11 @@ export default async function DashboardBillingPage() {
                   </span>
                 ) : null}
               </span>{" "}
-              <span className="text-stone-500">
+              <span className="text-[var(--muted)]">
                 · {monthlyLabel(plan)} · {annualEquivalentLabel(plan)}
               </span>
-              <p className="mt-1 text-stone-600">{plan.headline}</p>
-              <p className="mt-1 text-stone-500">{plan.includes.join(" · ")}</p>
+              <p className="mt-1 text-[var(--muted)]">{plan.headline}</p>
+              <p className="mt-1 text-[var(--muted)]">{plan.includes.join(" · ")}</p>
             </li>
           ))}
         </ul>
@@ -116,32 +116,32 @@ export default async function DashboardBillingPage() {
           <table className="w-full min-w-[520px] text-left">
             <thead className="bg-stone-50">
               <tr>
-                <th className="px-3 py-2 font-semibold text-stone-800">Plan</th>
-                <th className="px-3 py-2 font-semibold text-stone-800">Best for</th>
-                <th className="px-3 py-2 font-semibold text-stone-800">Monthly</th>
+                <th className="px-3 py-2 font-semibold text-[var(--foreground)]">Plan</th>
+                <th className="px-3 py-2 font-semibold text-[var(--foreground)]">Best for</th>
+                <th className="px-3 py-2 font-semibold text-[var(--foreground)]">Monthly</th>
               </tr>
             </thead>
             <tbody>
               {STUDIO_PLANS.map((plan) => (
                 <tr key={plan.key} className="border-t border-stone-100">
-                  <td className="px-3 py-2 font-medium text-stone-800">{plan.name}</td>
-                  <td className="px-3 py-2 text-stone-600">{plan.headline}</td>
-                  <td className="px-3 py-2 text-stone-700">{monthlyLabel(plan)}</td>
+                  <td className="px-3 py-2 font-medium text-[var(--foreground)]">{plan.name}</td>
+                  <td className="px-3 py-2 text-[var(--muted)]">{plan.headline}</td>
+                  <td className="px-3 py-2 text-[var(--foreground)]">{monthlyLabel(plan)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-[var(--muted)]">
           Advanced features are purchased per studio from the Packs &amp; add-ons page.
         </p>
       </div>
       <div className={`${ui.card} space-y-3`}>
         <h2 className="text-lg font-semibold text-stone-900">High-impact add-ons</h2>
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-[var(--muted)]">
           Keep your base plan simple, then add optional capabilities when your studio is ready for them.
         </p>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-stone-700">
+        <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--foreground)]">
           <li>Automation and reminder packs</li>
           <li>Advanced analytics and reporting</li>
           <li>Priority support</li>

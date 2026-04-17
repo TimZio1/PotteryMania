@@ -66,7 +66,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ products });
   } catch (e) {
-    console.error("[GET /api/wear/products]", e);
+    console.warn("[GET /api/wear/products]", e);
     return NextResponse.json(
       { products: [], error: "wear_catalog_unavailable" },
       { status: 503 },

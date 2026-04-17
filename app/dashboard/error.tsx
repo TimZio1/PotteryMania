@@ -11,8 +11,8 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
 
   return (
     <main className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-16 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight text-amber-950">Dashboard error</h1>
-      <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
+      <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Dashboard error</h1>
+      <p className="mt-3 max-w-sm text-sm leading-6 text-[var(--muted)]">
         Something went wrong loading your dashboard. Please try again.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">

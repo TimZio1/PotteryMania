@@ -30,8 +30,8 @@ export default async function StudioCommerceCatalogPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Commerce</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Catalog</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Catalog</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Inventory quick edits, low-stock cues, and fulfillment in one place. Deep editing stays in the product workspace.
         </p>
       </div>

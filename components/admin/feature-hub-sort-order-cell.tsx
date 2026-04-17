@@ -66,7 +66,7 @@ export function FeatureHubSortOrderCell({
         aria-label="Catalog sort order"
         title="Lower sorts first in studio catalog lists"
       />
-      {hint ? <span className="text-[10px] text-stone-500">{hint}</span> : null}
+      {hint ? <span className="text-[10px] text-[var(--muted)]">{hint}</span> : null}
     </div>
   );
 }

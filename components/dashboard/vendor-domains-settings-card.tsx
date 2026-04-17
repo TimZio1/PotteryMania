@@ -126,7 +126,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
     <div className={`${ui.card} space-y-4`}>
       <div>
         <h2 className="text-lg font-semibold text-stone-900">Custom storefront domain</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Link your own domain to the storefront PotteryMania creates for your studio. Your custom host loads your studio page on{" "}
           <code className="rounded bg-stone-100 px-1">/</code>; booking, checkout, and account flows stay on the main PotteryMania origin for now.
         </p>
@@ -141,7 +141,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
 
       <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-4 text-sm text-stone-700">
         <p className="font-medium text-stone-900">Domain setup checklist</p>
-        <ol className="mt-3 space-y-2 text-sm text-stone-700">
+        <ol className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
           <li>1. Pick one hostname to use publicly first: either <code className="rounded bg-white px-1 py-0.5">www.yourstudio.com</code> or the apex domain.</li>
           <li>2. Add that exact hostname below so PotteryMania can generate the verification records for it.</li>
           <li>3. Create the TXT record shown for ownership proof.</li>
@@ -156,11 +156,11 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
           </li>
           <li>5. Wait for DNS propagation, then click <strong>Verify DNS</strong>.</li>
         </ol>
-        <p className="mt-3 text-xs leading-5 text-stone-500">
+        <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
           Important: <code className="rounded bg-white px-1 py-0.5">www</code> and apex hosts are treated as different domains. If you want both, add and verify both.
         </p>
         {setup?.canonicalOrigin ? (
-          <p className="mt-2 text-xs leading-5 text-stone-500">
+          <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
             Main PotteryMania origin for bookings, cart, checkout, and account:{" "}
             <code className="rounded bg-white px-1 py-0.5 break-all">{setup.canonicalOrigin}</code>
           </p>
@@ -193,7 +193,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
             </button>
           </div>
 
-          <p className="text-xs leading-5 text-stone-500">
+          <p className="text-xs leading-5 text-[var(--muted)]">
             Start with the host you actually want customers to type or click. In most cases that is{" "}
             <code className="rounded bg-stone-100 px-1 py-0.5">www.yourstudio.com</code>.
           </p>
@@ -205,32 +205,32 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
               <Spinner />
             </div>
           ) : domains.length === 0 ? (
-            <p className="text-sm text-stone-500">No domains yet.</p>
+            <p className="text-sm text-[var(--muted)]">No domains yet.</p>
           ) : (
             <ul className="space-y-4">
               {domains.map((d) => (
                 <li key={d.id} className="rounded-lg border border-stone-100 bg-stone-50/80 p-3 text-sm text-stone-800">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium text-stone-900">{d.domainName}</span>
-                    <span className="text-stone-600">
+                    <span className="text-[var(--muted)]">
                       {d.verificationStatus === "verified" ? (d.isActive ? "Live on storefront" : "Verified") : "Awaiting verification"}
                     </span>
                   </div>
                   {d.txtHostname && d.txtValue ? (
-                    <div className="mt-2 space-y-1 text-xs text-stone-600">
+                    <div className="mt-2 space-y-1 text-xs text-[var(--muted)]">
                       <p>
-                        <span className="font-medium text-stone-700">TXT</span> name:{" "}
+                        <span className="font-medium text-[var(--foreground)]">TXT</span> name:{" "}
                         <code className="break-all rounded bg-white px-1 py-0.5">{d.txtHostname}</code>
                       </p>
                       <p>
-                        <span className="font-medium text-stone-700">TXT</span> value:{" "}
+                        <span className="font-medium text-[var(--foreground)]">TXT</span> value:{" "}
                         <code className="break-all rounded bg-white px-1 py-0.5">{d.txtValue}</code>
                       </p>
                     </div>
                   ) : null}
                   <div className="mt-2 rounded-md bg-white px-3 py-2 text-xs leading-5 text-stone-600">
                     <p>
-                      <span className="font-medium text-stone-700">Routing target:</span>{" "}
+                      <span className="font-medium text-[var(--foreground)]">Routing target:</span>{" "}
                       {setup?.connectTargetHostname ? (
                         <code className="break-all rounded bg-stone-100 px-1 py-0.5">{setup.connectTargetHostname}</code>
                       ) : (
@@ -238,7 +238,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
                       )}
                     </p>
                     <p className="mt-1">
-                      <span className="font-medium text-stone-700">What loads on this host:</span> your studio storefront home. Cart, booking, and checkout
+                      <span className="font-medium text-[var(--foreground)]">What loads on this host:</span> your studio storefront home. Cart, booking, and checkout
                       stay on the main PotteryMania origin.
                     </p>
                   </div>

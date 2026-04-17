@@ -33,9 +33,9 @@ export default async function AdminMarketplaceRankingPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Ranking (internal)</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Studio discovery weights</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Ranking (internal)</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Studio discovery weights</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Adjust <strong>sort weight</strong> per approved studio for internal ordering. This does not change today’s
         studio-first public navigation while public discovery stays off.
       </p>
@@ -44,7 +44,7 @@ export default async function AdminMarketplaceRankingPage() {
         {studios.length ? (
           <MarketplaceRankAdmin initial={studios} />
         ) : (
-          <p className="text-sm text-stone-600">No live studios yet.</p>
+          <p className="text-sm text-[var(--muted)]">No live studios yet.</p>
         )}
       </div>
     </div>

@@ -55,8 +55,8 @@ export default async function StudioPackagesPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Revenue</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Class packages</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Class packages</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Create prepaid bundles so regular students can book classes from their credit balance.
         </p>
       </div>

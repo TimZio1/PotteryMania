@@ -31,9 +31,9 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Shop taxonomy</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Ceramic categories</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Shop taxonomy</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Ceramic categories</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Locked 10-category system for studio-owned shop pages. Edit hero image and SEO descriptions here.
       </p>
       {unavailable ? (

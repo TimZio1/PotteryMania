@@ -115,7 +115,7 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
       </FilterBar>
 
       <div className="rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Quick filters</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Quick filters</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <button
             type="button"
@@ -211,7 +211,7 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
         >
           Download CSV
         </a>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-[var(--muted)]">
           Page {page} of {totalPages} · {total} rows
         </p>
       </div>
@@ -223,10 +223,10 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
           {
             key: "when",
             header: "When",
-            cell: (r) => <span className="whitespace-nowrap text-xs text-stone-500">{r.createdAt.slice(0, 19)}Z</span>,
+            cell: (r) => <span className="whitespace-nowrap text-xs text-[var(--muted)]">{r.createdAt.slice(0, 19)}Z</span>,
           },
           { key: "actor", header: "Actor", cell: (r) => r.actorEmail ?? "—" },
-          { key: "action", header: "Action", cell: (r) => <span className="font-medium text-stone-800">{r.action}</span> },
+          { key: "action", header: "Action", cell: (r) => <span className="font-medium text-[var(--foreground)]">{r.action}</span> },
           {
             key: "target",
             header: "Target",
@@ -236,7 +236,7 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
                 {r.entityId ? (
                   <>
                     <br />
-                    <code className="text-[11px] text-stone-500">{r.entityId}</code>
+                    <code className="text-[11px] text-[var(--muted)]">{r.entityId}</code>
                   </>
                 ) : null}
               </span>
@@ -266,7 +266,7 @@ export function AuditLogClient({ initialRows, page, total, pageSize }: Props) {
             if (!row) return null;
             return (
               <div className="space-y-3">
-                {row.reason ? <p className="text-sm text-stone-600">Reason: {row.reason}</p> : null}
+                {row.reason ? <p className="text-sm text-[var(--muted)]">Reason: {row.reason}</p> : null}
                 <AuditDiffViewer
                   before={row.beforeJson as Record<string, unknown> | null}
                   after={row.afterJson as Record<string, unknown> | null}

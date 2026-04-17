@@ -51,7 +51,7 @@ export function InsightTemplatePriceCell({ templateId, basePriceCents }: { templ
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1">
-        <span className="text-stone-500">€</span>
+        <span className="text-stone-600">€</span>
         <input
           className={cn(ui.input, "max-w-[6.5rem] py-1.5 text-sm")}
           value={draft}
@@ -86,7 +86,7 @@ export function InsightTemplateActiveCell({ templateId, isActive }: { templateId
   return (
     <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
       <input type="checkbox" checked={isActive} disabled={pending} onChange={() => void toggle()} />
-      <span className="text-stone-700">{isActive ? "On" : "Off"}</span>
+      <span className="text-stone-900">{isActive ? "On" : "Off"}</span>
     </label>
   );
 }

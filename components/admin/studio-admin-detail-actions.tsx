@@ -74,8 +74,8 @@ export function StudioAdminDetailActions({ studioId, displayName, status, market
       </label>
 
       <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-amber-950">Discovery rank weight</h3>
-        <p className="mt-1 text-xs text-stone-500">
+        <h3 className="text-sm font-semibold text-stone-900">Discovery rank weight</h3>
+        <p className="mt-1 text-xs text-stone-600">
           Higher values sort earlier on /studios (recommended ordering). Range roughly −10 000 … 10 000.
         </p>
         <div className="mt-3 flex flex-wrap items-end gap-2">
@@ -98,8 +98,8 @@ export function StudioAdminDetailActions({ studioId, displayName, status, market
       </div>
 
       <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-amber-950">Status</h3>
-        <p className="mt-1 text-xs text-stone-500">Current: {status}</p>
+        <h3 className="text-sm font-semibold text-stone-900">Status</h3>
+        <p className="mt-1 text-xs text-stone-600">Current: {status}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {status === "pending_review" ? (
             <>
@@ -147,8 +147,8 @@ export function StudioAdminDetailActions({ studioId, displayName, status, market
             </button>
           ) : null}
         </div>
-        <p className="mt-3 text-xs text-stone-500">
-          Studio: <span className="font-medium text-stone-700">{displayName}</span>
+        <p className="mt-3 text-xs text-stone-600">
+          Studio: <span className="font-medium text-stone-900">{displayName}</span>
         </p>
       </div>
     </div>

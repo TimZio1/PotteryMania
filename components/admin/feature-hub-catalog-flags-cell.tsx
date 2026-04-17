@@ -58,7 +58,7 @@ export function FeatureHubCatalogFlagsCell({
 
   return (
     <div className="flex min-w-[6.5rem] flex-col gap-1.5">
-      <label className="flex cursor-pointer items-center gap-2 text-xs text-stone-700">
+      <label className="flex cursor-pointer items-center gap-2 text-xs text-stone-900">
         <input
           type="checkbox"
           checked={active}
@@ -106,7 +106,7 @@ export function FeatureHubCatalogFlagsCell({
         />
         <span>Grant by default</span>
       </label>
-      {hint ? <span className="text-[10px] text-stone-500">{hint}</span> : null}
+      {hint ? <span className="text-[10px] text-stone-600">{hint}</span> : null}
     </div>
   );
 }

@@ -212,7 +212,7 @@ export default function StudioBookingsClient({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 border-t border-stone-200 pt-3">
-            <span className="text-xs font-medium text-stone-600">Batch (confirmed only)</span>
+            <span className="text-xs font-medium text-[var(--muted)]">Batch (confirmed only)</span>
             <button type="button" className={ui.buttonGhost} onClick={selectAllConfirmed} disabled={selectableConfirmed.length === 0}>
               Select all in view
             </button>
@@ -227,7 +227,7 @@ export default function StudioBookingsClient({
             >
               {batchBusy ? "Working…" : `Mark ${selectedIds.size || "…"} attended`}
             </button>
-            {batchMsg ? <span className="text-xs text-stone-600">{batchMsg}</span> : null}
+            {batchMsg ? <span className="text-xs text-[var(--muted)]">{batchMsg}</span> : null}
           </div>
         </div>
 
@@ -246,7 +246,7 @@ export default function StudioBookingsClient({
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted)]">
                     No reservations match these filters.
                   </td>
                 </tr>
@@ -294,17 +294,17 @@ export default function StudioBookingsClient({
                           {booking.experience.title}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-stone-600">
+                      <td className="px-4 py-3 text-[var(--muted)]">
                         {slotDateKey(booking.slot.slotDate)}
                         <br />
                         {booking.slot.startTime}–{booking.slot.endTime}
                       </td>
-                      <td className="px-4 py-3 text-stone-600">
+                      <td className="px-4 py-3 text-[var(--muted)]">
                         {booking.customerName}
                         <br />
                         <span className="text-xs">{booking.customerEmail}</span>
                       </td>
-                      <td className="px-4 py-3 text-stone-600">
+                      <td className="px-4 py-3 text-[var(--muted)]">
                         <div className="flex flex-col gap-1">
                           <span
                             className={cn(
@@ -324,7 +324,7 @@ export default function StudioBookingsClient({
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-stone-600">€{(booking.totalAmountCents / 100).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-[var(--muted)]">€{(booking.totalAmountCents / 100).toFixed(2)}</td>
                     </tr>
                   );
                 })
@@ -343,15 +343,15 @@ export default function StudioBookingsClient({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold uppercase text-stone-500">Reservation</p>
-              <p className="mt-1 text-sm font-medium text-amber-950">{selected.experience.title}</p>
+              <p className="text-xs font-semibold uppercase text-[var(--muted)]">Reservation</p>
+              <p className="mt-1 text-sm font-medium text-[var(--foreground)]">{selected.experience.title}</p>
             </div>
             <button type="button" className={ui.buttonGhost} onClick={() => setSelected(null)}>
               Close
             </button>
           </div>
 
-          <dl className="space-y-2 text-sm text-stone-600">
+          <dl className="space-y-2 text-sm text-[var(--muted)]">
             <div>
               <dt className={ui.label}>When</dt>
               <dd>
@@ -442,7 +442,7 @@ export default function StudioBookingsClient({
                   <dl className="space-y-2">
                     {selected.intakeResponses.map((entry, index) => (
                       <div key={`${selected.id}-intake-${index}`}>
-                        <dt className="font-medium text-stone-700">{entry.label}</dt>
+                        <dt className="font-medium text-[var(--foreground)]">{entry.label}</dt>
                         <dd className="whitespace-pre-wrap">{entry.value}</dd>
                       </div>
                     ))}
@@ -463,7 +463,7 @@ export default function StudioBookingsClient({
               </div>
             ) : null}
             {selected.depositPaidAt ? (
-              <div className="text-xs text-stone-500">
+              <div className="text-xs text-[var(--muted)]">
                 Deposit paid {new Date(selected.depositPaidAt).toLocaleDateString()}
               </div>
             ) : null}

@@ -31,8 +31,8 @@ export default async function StudioKilnPage({ params }: Props) {
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <p className={ui.overline}>Studio tools</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Kiln / Production</h1>
-        <p className="mt-2 text-sm text-stone-600">Track firings and pieces. Status is for your studio operations only.</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Kiln / Production</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">Track firings and pieces. Status is for your studio operations only.</p>
       </div>
       <KilnManager studioId={studioId} />
     </div>

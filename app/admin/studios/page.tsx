@@ -91,9 +91,9 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Directory</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Studios</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Directory</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Studios</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Search and open any studio record: shop counts, Stripe Connect, activation, internal rank weight, and status
         actions live on the detail page.
       </p>
@@ -136,10 +136,10 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-stone-600">
-        <span className="font-medium text-stone-800">{total}</span> studio{total === 1 ? "" : "s"}
+      <p className="mt-6 text-sm text-[var(--muted)]">
+        <span className="font-medium text-[var(--foreground)]">{total}</span> studio{total === 1 ? "" : "s"}
         {totalPages > 1 ? (
-          <span className="text-stone-500">
+          <span className="text-[var(--muted)]">
             {" "}
             · page {page} of {totalPages}
           </span>
@@ -164,7 +164,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
               key: "loc",
               header: "Location",
               cell: (r) => (
-                <span className="text-stone-600">
+                <span className="text-[var(--muted)]">
                   {r.city}, {r.country}
                 </span>
               ),
@@ -172,7 +172,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
             {
               key: "st",
               header: "Status",
-              cell: (r) => <code className="text-xs text-stone-700">{r.status}</code>,
+              cell: (r) => <code className="text-xs text-[var(--foreground)]">{r.status}</code>,
             },
             {
               key: "own",
@@ -187,7 +187,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
               key: "cat",
               header: "Catalog",
               cell: (r) => (
-                <span className="text-xs text-stone-600">
+                <span className="text-xs text-[var(--muted)]">
                   {r._count.experiences} classes · {r._count.products} products · {r._count.bookings} bookings
                 </span>
               ),
@@ -211,7 +211,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
                 r.activationPaidAt ? (
                   <span className="text-xs text-emerald-800">Paid</span>
                 ) : (
-                  <span className="text-xs text-stone-500">No</span>
+                  <span className="text-xs text-[var(--muted)]">No</span>
                 ),
             },
             {

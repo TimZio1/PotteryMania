@@ -47,7 +47,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
   } catch {
     return (
       <section className={cnCard()}>
-        <p className="text-sm text-stone-600">Studio health data is temporarily unavailable. Please try refreshing the page.</p>
+        <p className="text-sm text-[var(--muted)]">Studio health data is temporarily unavailable. Please try refreshing the page.</p>
       </section>
     );
   }
@@ -94,8 +94,8 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className={ui.overline}>Studio health</p>
-          <h2 className="mt-1 text-lg font-semibold text-amber-950">Public page readiness</h2>
-          <p className="mt-2 max-w-2xl text-sm text-stone-600">
+          <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Public page readiness</h2>
+          <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
             These internal signals help you keep your studio page complete, easy to trust, and ready for direct bookings.
           </p>
         </div>
@@ -105,26 +105,26 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
       </div>
 
       {!rs ? (
-        <p className="mt-4 text-sm text-stone-600">
+        <p className="mt-4 text-sm text-[var(--muted)]">
           A score appears after the health job runs. It is internal-only today.
         </p>
       ) : (
-        <div className="mt-4 space-y-3 text-sm text-stone-700">
+        <div className="mt-4 space-y-3 text-sm text-[var(--foreground)]">
           {pct != null ? (
             <p>
-              <span className="font-medium text-amber-950">Health percentile (higher is better):</span> {pct}
+              <span className="font-medium text-[var(--foreground)]">Health percentile (higher is better):</span> {pct}
               {band ? ` — ${band.hint}` : null}
             </p>
           ) : null}
           {updated ? (
-            <p className="text-xs text-stone-500">Last recalculated: {updated}</p>
+            <p className="text-xs text-[var(--muted)]">Last recalculated: {updated}</p>
           ) : null}
         </div>
       )}
 
       <div className="mt-6">
-        <p className="text-sm font-semibold text-amber-950">Ways to improve</p>
-        <ul className="mt-2 list-inside list-disc space-y-1.5 text-sm text-stone-700">
+        <p className="text-sm font-semibold text-[var(--foreground)]">Ways to improve</p>
+        <ul className="mt-2 list-inside list-disc space-y-1.5 text-sm text-[var(--foreground)]">
           {tips.slice(0, 5).map((t, i) => (
             <li key={i}>{t}</li>
           ))}

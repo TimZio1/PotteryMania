@@ -162,7 +162,7 @@ export default function WearSpreadconnectDevTools({
     <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-50/60 px-4 py-4 text-sm text-stone-800">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-semibold text-amber-950">Spreadconnect — dev tools</p>
+          <p className="font-semibold text-stone-900">Spreadconnect — dev tools</p>
           <p className="mt-1 text-xs text-stone-600">
             JSON runs the same routes as{" "}
             <span className="font-mono">/api/admin/wear-spreadconnect/probe</span>. Enqueue persists a{" "}
@@ -197,7 +197,7 @@ export default function WearSpreadconnectDevTools({
           ) : null}
         </p>
       ) : (
-        <p className="mt-2 text-xs text-stone-500">
+        <p className="mt-2 text-xs text-stone-600">
           Load once:{" "}
           <button type="button" className="underline" onClick={() => void refreshMeta()}>
             fetch metadata
@@ -209,7 +209,7 @@ export default function WearSpreadconnectDevTools({
 
       <div className="mt-4 grid gap-6 lg:grid-cols-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">POST probe</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-600">POST probe</p>
           <textarea
             className="mt-2 h-40 w-full rounded-lg border border-stone-300 bg-white p-3 font-mono text-xs leading-relaxed text-stone-900"
             value={probeJson}
@@ -228,7 +228,7 @@ export default function WearSpreadconnectDevTools({
               POST probe
             </button>
             {!probeMeta?.probeEnabled ? (
-              <span className="text-xs text-stone-500">
+              <span className="text-xs text-stone-600">
                 Enable <span className="font-mono">SPREADCONNECT_PROBE_ENABLED=true</span> for POST.
               </span>
             ) : null}
@@ -241,7 +241,7 @@ export default function WearSpreadconnectDevTools({
         </div>
 
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Enqueue wear builder job</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-600">Enqueue wear builder job</p>
           <label className="mt-2 block text-xs text-stone-600">Design image URL (https, optional)</label>
           <input
             type="url"
@@ -279,9 +279,9 @@ export default function WearSpreadconnectDevTools({
       </div>
 
       <div className="mt-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Recent jobs</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-stone-600">Recent jobs</p>
         {jobs.length === 0 ? (
-          <p className="mt-2 text-xs text-stone-500">No jobs yet.</p>
+          <p className="mt-2 text-xs text-stone-600">No jobs yet.</p>
         ) : (
           <ul className="mt-2 max-h-64 space-y-2 overflow-auto text-xs">
             {jobs.map((j) => (
@@ -289,11 +289,11 @@ export default function WearSpreadconnectDevTools({
                 key={j.id}
                 className="flex flex-wrap items-baseline gap-2 rounded-lg border border-stone-200/80 bg-white/80 px-2 py-1.5"
               >
-                <span className="font-mono text-stone-700">{j.state}</span>
+                <span className="font-mono text-stone-900">{j.state}</span>
                 <span className="text-stone-400">·</span>
-                <span className="font-mono text-[10px] text-stone-500">{j.id}</span>
+                <span className="font-mono text-[10px] text-stone-600">{j.id}</span>
                 <span className="text-stone-400">·</span>
-                <time className="text-stone-500">{j.createdAt}</time>
+                <time className="text-stone-600">{j.createdAt}</time>
                 {j.designImageUrl ? (
                   <span className="ml-2 max-w-[200px] truncate text-stone-600" title={j.designImageUrl}>
                     {j.designImageUrl}

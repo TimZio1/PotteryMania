@@ -70,8 +70,8 @@ export default async function ClassPlannerPage({ params }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className={ui.overline}>Scheduling</p>
-          <h1 className="mt-1 text-2xl font-semibold text-amber-950">Class planner</h1>
-          <p className="mt-2 max-w-xl text-sm text-stone-600">
+          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Class planner</h1>
+          <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
             Add schedule rules to your classes, generate bookable time slots, and manage studio-wide closed days.
           </p>
         </div>
@@ -84,7 +84,7 @@ export default async function ClassPlannerPage({ params }: Props) {
 
       {serialized.length === 0 ? (
         <div className="rounded-2xl border border-stone-200 bg-white px-5 py-8 text-center">
-          <p className="text-sm text-stone-600">No classes yet. Create one first, then come back to set up schedules.</p>
+          <p className="text-sm text-[var(--muted)]">No classes yet. Create one first, then come back to set up schedules.</p>
           <Link href={`/dashboard/${studioId}/guided?flow=class&step=1`} className={`${ui.buttonPrimary} mt-4 inline-flex`}>
             Create your first class
           </Link>

@@ -67,33 +67,33 @@ export default async function StudioTaxReportPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className={ui.overline}>Finance</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Tax report (last 30 days)</h1>
-        <p className="mt-2 text-sm text-stone-600">{studio.displayName} tax snapshot for bookings and catalog sales.</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Tax report (last 30 days)</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">{studio.displayName} tax snapshot for bookings and catalog sales.</p>
       </div>
 
       <section className={ui.card}>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">Gross revenue</p>
+            <p className="text-xs text-[var(--muted)]">Gross revenue</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">€{(gross / 100).toFixed(2)}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">Tax collected</p>
+            <p className="text-xs text-[var(--muted)]">Tax collected</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">€{(tax / 100).toFixed(2)}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">Net revenue</p>
+            <p className="text-xs text-[var(--muted)]">Net revenue</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">€{((gross - tax) / 100).toFixed(2)}</p>
           </div>
         </div>
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">Experience tax rates</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Experience tax rates</h2>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
             <thead>
-              <tr className="text-stone-500">
+              <tr className="text-[var(--muted)]">
                 <th className="pb-2 font-medium">Class</th>
                 <th className="pb-2 font-medium">Tax rate</th>
               </tr>
@@ -102,7 +102,7 @@ export default async function StudioTaxReportPage({ params }: Props) {
               {experiences.map((exp) => (
                 <tr key={exp.id} className="border-t border-stone-200">
                   <td className="py-2 text-stone-900">{exp.title}</td>
-                  <td className="py-2 text-stone-700">{(exp.taxRateBps / 100).toFixed(2)}%</td>
+                  <td className="py-2 text-[var(--foreground)]">{(exp.taxRateBps / 100).toFixed(2)}%</td>
                 </tr>
               ))}
             </tbody>

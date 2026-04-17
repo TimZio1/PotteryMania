@@ -21,9 +21,9 @@ export default async function AdminFinancePage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Profit intelligence</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Financial command center</h1>
-      <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Profit intelligence</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Financial command center</h1>
+      <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--muted)]">
         Ledger-backed revenue, costs, stream profitability, alerts, and recommendations. Data fills after migration deploy and{" "}
         <code className="rounded bg-stone-200/60 px-1">/api/cron/finance-reconcile</code>.
       </p>

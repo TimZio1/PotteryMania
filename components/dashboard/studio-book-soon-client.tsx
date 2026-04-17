@@ -175,7 +175,7 @@ export default function StudioBookSoonClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>Rules</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Follow-up campaigns</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Follow-up campaigns</h2>
           </div>
           <button type="button" className={ui.buttonPrimary} onClick={openNew}>
             + New
@@ -194,18 +194,18 @@ export default function StudioBookSoonClient({
                 }`}
               >
                 <p className="font-medium text-stone-900">{rule.name}</p>
-                <p className="mt-1 text-xs text-stone-500">
+                <p className="mt-1 text-xs text-[var(--muted)]">
                   {rule.daysAfterVisit} day delay · {rule.isActive ? "active" : "inactive"}
                 </p>
               </button>
             );
           })}
-          {items.length === 0 ? <p className="text-sm text-stone-600">No rules yet.</p> : null}
+          {items.length === 0 ? <p className="text-sm text-[var(--muted)]">No rules yet.</p> : null}
         </div>
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">{selected ? `Edit: ${selected.name}` : "New reminder rule"}</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">{selected ? `Edit: ${selected.name}` : "New reminder rule"}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block text-sm">
             <span className={ui.label}>Rule name</span>
@@ -235,7 +235,7 @@ export default function StudioBookSoonClient({
             onChange={(e) => setForm((c) => ({ ...c, emailBody: e.target.value }))}
           />
         </label>
-        <div className="mt-2 text-xs text-stone-500">
+        <div className="mt-2 text-xs text-[var(--muted)]">
           Supported variables: <code>{"{{customerName}}"}</code>, <code>{"{{studioName}}"}</code>, <code>{"{{className}}"}</code>, <code>{"{{lastVisitDate}}"}</code>
         </div>
         <div className="mt-4">
@@ -253,7 +253,7 @@ export default function StudioBookSoonClient({
             ))}
           </div>
         </div>
-        <label className="mt-4 inline-flex items-center gap-2 text-sm text-stone-700">
+        <label className="mt-4 inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
           <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((c) => ({ ...c, isActive: e.target.checked }))} />
           Rule is active
         </label>

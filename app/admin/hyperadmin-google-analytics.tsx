@@ -24,8 +24,8 @@ export function HyperadminGoogleAnalytics() {
   if (!measurementId) {
     return (
       <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-6 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Google Analytics 4</p>
-        <p className="mt-2 text-sm leading-6 text-stone-700">
+        <p className="text-sm font-semibold text-[var(--foreground)]">Google Analytics 4</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">
           Set <code className="rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs">NEXT_PUBLIC_GA_ID</code> in your
           deployment environment (e.g. <code className="font-mono text-xs">G-J3SSPW322R</code>) so the site tag and
           this panel can reference your measurement ID.
@@ -58,8 +58,8 @@ export function HyperadminGoogleAnalytics() {
     <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-amber-950">Google Analytics 4</p>
-          <p className="mt-1 text-sm text-stone-600">
+          <p className="text-sm font-semibold text-[var(--foreground)]">Google Analytics 4</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Live site traffic uses the gtag snippet in the root layout. Open GA4 for full reports and exploration.
           </p>
         </div>
@@ -71,8 +71,8 @@ export function HyperadminGoogleAnalytics() {
           >
             {copied ? "Copied" : "Copy measurement ID"}
           </button>
-          <p className="font-mono text-xs text-stone-600">{measurementId}</p>
-          {streamLabel ? <p className="text-xs text-stone-500">{streamLabel}</p> : null}
+          <p className="font-mono text-xs text-[var(--muted)]">{measurementId}</p>
+          {streamLabel ? <p className="text-xs text-[var(--muted)]">{streamLabel}</p> : null}
         </div>
       </div>
 
@@ -100,7 +100,7 @@ export function HyperadminGoogleAnalytics() {
                   ↗
                 </span>
               </span>
-              {item.note ? <span className="mt-1 text-xs font-normal text-stone-500">{item.note}</span> : null}
+              {item.note ? <span className="mt-1 text-xs font-normal text-[var(--muted)]">{item.note}</span> : null}
             </a>
           </li>
         ))}

@@ -48,7 +48,7 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
   return (
     <div className="space-y-4">
       {message ? <p className="text-sm text-stone-600">{message}</p> : null}
-      <label className="block max-w-xl text-sm text-stone-700">
+      <label className="block max-w-xl text-sm text-stone-900">
         Audit reason (required for weight saves)
         <textarea
           className={cn(ui.input, "mt-1 min-h-[72px] w-full resize-y")}
@@ -73,8 +73,8 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
               return (
                 <tr key={s.id} className="align-top">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-amber-950">{s.displayName}</p>
-                    <p className="text-xs text-stone-500">
+                    <p className="font-medium text-stone-900">{s.displayName}</p>
+                    <p className="text-xs text-stone-600">
                       {s.city}, {s.country}
                     </p>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
@@ -103,7 +103,7 @@ export default function MarketplaceRankAdmin({ initial }: { initial: Marketplace
                         void save(s.id, rounded);
                       }}
                     />
-                    <p className="mt-1 max-w-[200px] text-[11px] text-stone-500">
+                    <p className="mt-1 max-w-[200px] text-[11px] text-stone-600">
                       Higher appears first in recommended studio discovery and directory ordering.
                       Range ±10&nbsp;000.
                     </p>

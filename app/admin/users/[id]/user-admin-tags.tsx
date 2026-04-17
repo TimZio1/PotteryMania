@@ -58,15 +58,15 @@ export function UserAdminTagsPanel({ userId, initialTags }: Props) {
 
   return (
     <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-semibold text-amber-950">Admin flags</p>
-      <p className="mt-1 text-xs text-stone-500">
+      <p className="text-sm font-semibold text-[var(--foreground)]">Admin flags</p>
+      <p className="mt-1 text-xs text-[var(--muted)]">
         Internal labels only (lowercase, letters, numbers, hyphens). Shown in the users list; customers never see them.
       </p>
       {msg ? <p className={`${ui.errorText} mt-2`}>{msg}</p> : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
         {tags.length === 0 ? (
-          <span className="text-sm text-stone-500">No tags</span>
+          <span className="text-sm text-[var(--muted)]">No tags</span>
         ) : (
           tags.map((t) => (
             <button

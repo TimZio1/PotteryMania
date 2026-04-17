@@ -210,7 +210,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
   return (
     <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50/80 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-stone-800">Schedule &amp; slots — {experienceTitle}</h3>
+        <h3 className="text-sm font-semibold text-[var(--foreground)]">Schedule &amp; slots — {experienceTitle}</h3>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -219,7 +219,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
           {open ? "Close" : "Add rule"}
         </button>
       </div>
-      <p className="mt-1 text-xs text-stone-600">
+      <p className="mt-1 text-xs text-[var(--muted)]">
         Rules describe when this class can run. Then generate booking slots for a date range. Studio-wide closed days
         are managed above (whole studio).
       </p>
@@ -227,7 +227,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
 
       {open ? (
         <form onSubmit={addRule} className="mt-4 space-y-3 border-t border-stone-200 pt-4">
-          <label className="block text-xs font-medium text-stone-700">
+          <label className="block text-xs font-medium text-[var(--foreground)]">
             Pattern
             <select
               className="mt-1 w-full rounded border border-stone-300 bg-white px-2 py-2 text-sm"
@@ -243,7 +243,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
             </select>
           </label>
           <div className="grid gap-2 sm:grid-cols-2">
-            <label className="block text-xs font-medium text-stone-700">
+            <label className="block text-xs font-medium text-[var(--foreground)]">
               Start time
               <input
                 type="time"
@@ -253,7 +253,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
                 disabled={busy}
               />
             </label>
-            <label className="block text-xs font-medium text-stone-700">
+            <label className="block text-xs font-medium text-[var(--foreground)]">
               End time
               <input
                 type="time"
@@ -265,7 +265,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
             </label>
           </div>
           {scheduleType === "one_time" ? (
-            <label className="block text-xs font-medium text-stone-700">
+            <label className="block text-xs font-medium text-[var(--foreground)]">
               Date
               <input
                 type="date"
@@ -277,8 +277,8 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
             </label>
           ) : scheduleType === "manually_added_dates" ? (
             <div>
-              <p className="text-xs font-medium text-stone-700">Dates</p>
-              <p className="mt-0.5 text-xs text-stone-500">One session per listed day, same start/end time.</p>
+              <p className="text-xs font-medium text-[var(--foreground)]">Dates</p>
+              <p className="mt-0.5 text-xs text-[var(--muted)]">One session per listed day, same start/end time.</p>
               <ul className="mt-2 space-y-2">
                 {manualDates.map((md, i) => (
                   <li key={i} className="flex flex-wrap items-center gap-2">
@@ -316,7 +316,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
             </div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
-              <label className="block text-xs font-medium text-stone-700">
+              <label className="block text-xs font-medium text-[var(--foreground)]">
                 From
                 <input
                   type="date"
@@ -326,7 +326,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
                   disabled={busy}
                 />
               </label>
-              <label className="block text-xs font-medium text-stone-700">
+              <label className="block text-xs font-medium text-[var(--foreground)]">
                 To
                 <input
                   type="date"
@@ -340,7 +340,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
           )}
           {scheduleType === "recurring_weekly" || scheduleType === "recurring_custom_days" ? (
             <div>
-              <p className="text-xs font-medium text-stone-700">Weekdays</p>
+              <p className="text-xs font-medium text-[var(--foreground)]">Weekdays</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {WEEKDAYS.map(({ key, label }) => (
                   <label key={key} className="flex cursor-pointer items-center gap-1 text-xs">
@@ -357,12 +357,12 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
             </div>
           ) : null}
           {scheduleType === "flexible_window" ? (
-            <p className="text-xs text-stone-600">
+            <p className="text-xs text-[var(--muted)]">
               Creates one slot on <strong>every calendar day</strong> from &quot;From&quot; through &quot;To&quot;
               (inclusive), at the times above — useful for open-studio windows.
             </p>
           ) : null}
-          <label className="block text-xs font-medium text-stone-700">
+          <label className="block text-xs font-medium text-[var(--foreground)]">
             Capacity override (optional)
             <input
               type="number"
@@ -386,7 +386,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
 
       <ul className="mt-4 space-y-2 border-t border-stone-200 pt-3">
         {rules.length === 0 ? (
-          <li className="text-xs text-stone-500">No rules yet — add one to generate slots.</li>
+          <li className="text-xs text-[var(--muted)]">No rules yet — add one to generate slots.</li>
         ) : (
           rules.map((rule) => (
             <li
@@ -394,31 +394,31 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
               className="flex flex-col gap-2 rounded border border-stone-200 bg-white px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <span className="font-medium text-stone-800">{rule.scheduleType.replace(/_/g, " ")}</span>
-                <span className="text-stone-600">
+                <span className="font-medium text-[var(--foreground)]">{rule.scheduleType.replace(/_/g, " ")}</span>
+                <span className="text-[var(--muted)]">
                   {" "}
                   · {rule.startTime ?? "?"}–{rule.endTime ?? "?"}
                 </span>
                 {rule.scheduleType === "one_time" ? (
-                  <span className="block text-stone-500">{isoDateOnly(rule.recurrenceStartDate)}</span>
+                  <span className="block text-[var(--muted)]">{isoDateOnly(rule.recurrenceStartDate)}</span>
                 ) : rule.scheduleType === "manually_added_dates" ? (
-                  <span className="block text-stone-500">Dates: {rule.weekdays?.length ? rule.weekdays.join(", ") : "—"}</span>
+                  <span className="block text-[var(--muted)]">Dates: {rule.weekdays?.length ? rule.weekdays.join(", ") : "—"}</span>
                 ) : rule.scheduleType === "flexible_window" ? (
-                  <span className="block text-stone-500">
+                  <span className="block text-[var(--muted)]">
                     {isoDateOnly(rule.recurrenceStartDate)} → {isoDateOnly(rule.recurrenceEndDate) || "…"} · every day
                   </span>
                 ) : (
-                  <span className="block text-stone-500">
+                  <span className="block text-[var(--muted)]">
                     {isoDateOnly(rule.recurrenceStartDate)} → {isoDateOnly(rule.recurrenceEndDate) || "…"}
                     {rule.weekdays?.length ? ` · ${rule.weekdays.join(", ")}` : ""}
                   </span>
                 )}
                 {rule.capacityPerSlot != null ? (
-                  <span className="block text-stone-500">Cap {rule.capacityPerSlot}/session</span>
+                  <span className="block text-[var(--muted)]">Cap {rule.capacityPerSlot}/session</span>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <label className="flex items-center gap-1 text-stone-700">
+                <label className="flex items-center gap-1 text-[var(--foreground)]">
                   <input
                     type="checkbox"
                     checked={rule.isActive}
@@ -436,13 +436,13 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
       </ul>
 
       <form onSubmit={generateSlots} className="mt-4 space-y-2 border-t border-stone-200 pt-4">
-        <p className="text-xs font-semibold text-stone-800">Generate open slots</p>
-        <p className="text-xs text-stone-600">
+        <p className="text-xs font-semibold text-[var(--foreground)]">Generate open slots</p>
+        <p className="text-xs text-[var(--muted)]">
           Uses <strong>active</strong> rules only. Does not remove existing slots; adds missing ones. Respects studio
           closed days.
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
-          <label className="block text-xs font-medium text-stone-700">
+          <label className="block text-xs font-medium text-[var(--foreground)]">
             From
             <input
               type="date"
@@ -452,7 +452,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
               disabled={busy}
             />
           </label>
-          <label className="block text-xs font-medium text-stone-700">
+          <label className="block text-xs font-medium text-[var(--foreground)]">
             To
             <input
               type="date"

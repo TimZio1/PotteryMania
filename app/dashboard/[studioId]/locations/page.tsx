@@ -30,8 +30,8 @@ export default async function StudioLocationsPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className={ui.overline}>Business setup</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Locations</h1>
-        <p className="mt-2 text-sm text-stone-600">Multiple branches for one studio account.</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Locations</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">Multiple branches for one studio account.</p>
       </div>
       <section className={ui.card}>
         <StudioLocationsClient studioId={studioId} initialItems={items} />

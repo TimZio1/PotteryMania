@@ -238,14 +238,14 @@ export default async function AdminPage() {
     <div>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Platform operator console</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Hyperadmin control center</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600 sm:text-base">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Platform operator console</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Hyperadmin control center</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--muted)] sm:text-base">
             Executive visibility, financial control, risk detection, operational queues, and growth intelligence in one place.
           </p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm shadow-sm">
-          <p className="font-medium text-amber-950">Current window</p>
+        <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800 shadow-sm">
+          <p className="font-medium text-stone-900">Current window</p>
           <p className="mt-1 text-stone-600">Last 30 days with live month, today, and risk overlays.</p>
         </div>
       </div>
@@ -348,9 +348,9 @@ export default async function AdminPage() {
       />
 
       <section className="mt-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Modules</p>
-        <h2 className="mt-2 text-xl font-semibold tracking-tight text-amber-950">Drill into the operating system</h2>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Modules</p>
+        <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">Drill into the operating system</h2>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Deep panels live on dedicated routes. Use the sidebar or jump from here.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -363,8 +363,8 @@ export default async function AdminPage() {
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-900",
               )}
             >
-              <p className="font-semibold text-amber-950">{card.title}</p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">{card.desc}</p>
+              <p className="font-semibold text-[var(--foreground)]">{card.title}</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{card.desc}</p>
               <p className="mt-4 text-xs font-medium text-amber-800">Open →</p>
             </Link>
           ))}

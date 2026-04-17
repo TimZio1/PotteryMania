@@ -38,9 +38,9 @@ export default async function AdminCouponsPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Promo codes</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Promo codes</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Percent or fixed discounts apply to the cart subtotal (products and class deposits). Shipping and estimated tax
         are recalculated on the discounted subtotal. Checkout uses Stripe line items that match platform commission.
       </p>

@@ -87,7 +87,7 @@ export default function StudioSettingsClient({
   return (
     <form onSubmit={(e) => void save(e)} className={cn(ui.card, "space-y-4")}>
       <h2 className="text-lg font-semibold text-stone-900">Studio profile</h2>
-      <p className="text-sm text-stone-600">Basics you can change without leaving the panel. Stripe and activation stay in the full workspace.</p>
+      <p className="text-sm text-[var(--muted)]">Basics you can change without leaving the panel. Stripe and activation stay in the full workspace.</p>
       {msg ? <p className={cn("text-sm", msg === "Saved." ? "text-emerald-800" : "text-rose-700")}>{msg}</p> : null}
 
       <label>
@@ -129,7 +129,7 @@ export default function StudioSettingsClient({
           placeholder="Europe/Paris"
           spellCheck={false}
         />
-        <p className="mt-1 text-xs text-stone-500">
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Used for Google Calendar sync and add-to-calendar links so class times match your local wall clock. Leave blank to default to Europe/Paris.
         </p>
       </label>
@@ -167,7 +167,7 @@ export default function StudioSettingsClient({
           onChange={(e) => setForm((f) => ({ ...f, whatsappNumber: e.target.value }))}
           placeholder="+306940821618"
         />
-        <p className="mt-1 text-xs text-stone-500">E.164 format. Shows a WhatsApp button on your public studio page.</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">E.164 format. Shows a WhatsApp button on your public studio page.</p>
       </label>
 
       <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
@@ -196,8 +196,8 @@ export default function StudioSettingsClient({
           <div className="mt-3 space-y-2">
             {form.openingHours.map((h, idx) => (
               <div key={h.day} className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="w-20 font-medium text-stone-700">{h.day}</span>
-                <label className="inline-flex items-center gap-1 text-stone-600">
+                <span className="w-20 font-medium text-[var(--foreground)]">{h.day}</span>
+                <label className="inline-flex items-center gap-1 text-[var(--muted)]">
                   <input
                     type="checkbox"
                     checked={h.closed}
@@ -256,7 +256,7 @@ export default function StudioSettingsClient({
           }
           placeholder="en, fr, de"
         />
-        <p className="mt-1 text-xs text-stone-500">Comma-separated ISO language codes. English fallback is automatic.</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">Comma-separated ISO language codes. English fallback is automatic.</p>
       </label>
       <button type="submit" disabled={saving} className={ui.buttonPrimary}>
         {saving ? "Saving…" : "Save profile"}

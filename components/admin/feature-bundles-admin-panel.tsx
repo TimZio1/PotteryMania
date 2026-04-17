@@ -84,7 +84,7 @@ function FeatureOrderPicker({
       <p className="text-xs text-stone-600">Features in bundle (order = checkout / display order).</p>
       <ol className="space-y-1.5 rounded-lg border border-stone-200 bg-stone-50/80 p-3">
         {selectedIds.length === 0 ? (
-          <li className="text-xs text-stone-500">None — add from the dropdown below.</li>
+          <li className="text-xs text-stone-600">None — add from the dropdown below.</li>
         ) : (
           selectedIds.map((fid, i) => {
             const f = byId.get(fid);
@@ -94,8 +94,8 @@ function FeatureOrderPicker({
                 className="flex flex-wrap items-center gap-2 rounded-md border border-stone-100 bg-white px-2 py-1.5 text-sm"
               >
                 <span className="min-w-0 flex-1">
-                  <span className="font-medium text-stone-800">{f?.name ?? fid}</span>
-                  <span className="ml-2 font-mono text-[11px] text-stone-500">{f?.slug}</span>
+                  <span className="font-medium text-stone-900">{f?.name ?? fid}</span>
+                  <span className="ml-2 font-mono text-[11px] text-stone-600">{f?.slug}</span>
                   {f ? (
                     <span className="ml-2 tabular-nums text-xs text-stone-600">{eurFmt(f.priceCents)}/mo</span>
                   ) : null}
@@ -272,7 +272,7 @@ export default function FeatureBundlesAdminPanel({
         onSubmit={createBundle}
         className="rounded-2xl border border-dashed border-amber-300/80 bg-amber-50/40 p-4 shadow-sm"
       >
-        <h2 className="text-sm font-semibold text-amber-950">New bundle</h2>
+        <h2 className="text-sm font-semibold text-stone-900">New bundle</h2>
         <p className="mt-1 text-xs text-stone-600">
           Package price can be below the sum of list prices (shown as savings). Set a <strong>Stripe Price id</strong> (
           <code className="font-mono">price_…</code>) so studios get one subscription for the whole bundle; leave empty to
@@ -376,7 +376,7 @@ export default function FeatureBundlesAdminPanel({
       </form>
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-amber-950">Existing bundles</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Existing bundles</h2>
         {sorted.length === 0 ? (
           <p className="text-sm text-stone-600">No bundles yet. Create one above.</p>
         ) : (
@@ -430,7 +430,7 @@ function BundleEditorCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold text-stone-900">{b.name}</h3>
-          <p className="font-mono text-xs text-stone-500">{b.slug}</p>
+          <p className="font-mono text-xs text-stone-600">{b.slug}</p>
           <p className="mt-1 text-xs text-stone-600">
             À la carte sum <span className="font-medium">{eurFmt(b.listSumCents)}</span>
             {b.listSumCents > 0 ? (
@@ -512,7 +512,7 @@ function BundleEditorCard({
             className={cn(ui.input, "mt-1 min-h-9 w-full text-sm")}
           />
         </label>
-        <label className="mt-6 flex items-center gap-2 text-sm text-stone-700 sm:col-span-2 lg:col-span-1">
+        <label className="mt-6 flex items-center gap-2 text-sm text-stone-900 sm:col-span-2 lg:col-span-1">
           <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} disabled={busy} />
           Active (shown on vendor Features page when dates allow)
         </label>

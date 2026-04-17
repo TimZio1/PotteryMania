@@ -34,16 +34,16 @@ export default async function StudioAiPage({ params }: Props) {
     <div className="mx-auto max-w-4xl space-y-8">
       <div>
         <p className={ui.overline}>Intelligence</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">AI Advisor</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">AI Advisor</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Pay-per-insight cards use your real booking and listing data (rule-based analysis). The chat below is separate
           — it requires the AI Advisor add-on and OpenAI.
         </p>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-amber-950">Data insights</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Data insights</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Preview the signal for free; unlock the full diagnosis, benchmark, and recommendations with a one-time
           payment.
         </p>
@@ -57,21 +57,21 @@ export default async function StudioAiPage({ params }: Props) {
       {entitled ? (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
           <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-amber-950">Pricing & positioning</p>
-            <p className="mt-2 text-xs text-stone-600">Compare your mix of classes and products to what tends to work for small studios.</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Pricing & positioning</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">Compare your mix of classes and products to what tends to work for small studios.</p>
           </div>
           <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-amber-950">Fill quiet slots</p>
-            <p className="mt-2 text-xs text-stone-600">Brainstorm promos, bundles, or schedule tweaks using your booking pipeline counts.</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Fill quiet slots</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">Brainstorm promos, bundles, or schedule tweaks using your booking pipeline counts.</p>
           </div>
           <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-amber-950">Retention ideas</p>
-            <p className="mt-2 text-xs text-stone-600">Turn completed-class volume into concrete follow-up habits.</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Retention ideas</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">Turn completed-class volume into concrete follow-up habits.</p>
           </div>
         </div>
       ) : null}
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-[var(--muted)]">
         <Link href={`/dashboard/${studioId}`} className="text-amber-900 underline">
           Back to dashboard
         </Link>

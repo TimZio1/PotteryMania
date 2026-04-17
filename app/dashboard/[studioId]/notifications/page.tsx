@@ -56,8 +56,8 @@ export default async function StudioNotificationsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Communication</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Notifications</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Notifications</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Customize lifecycle templates per class and configure SMS/WhatsApp channels.
         </p>
       </div>

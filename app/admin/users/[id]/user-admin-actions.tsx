@@ -126,10 +126,10 @@ export function UserAdminActions({
       {msg ? <p className={ui.errorText}>{msg}</p> : null}
 
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Role</p>
-        <p className="mt-1 text-xs text-stone-500">Current: {role}</p>
+        <p className="text-sm font-semibold text-[var(--foreground)]">Role</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">Current: {role}</p>
         {!canChangeRole ? (
-          <p className="mt-3 text-sm text-stone-600">Only a hyper_admin can change roles for admin accounts.</p>
+          <p className="mt-3 text-sm text-[var(--muted)]">Only a hyper_admin can change roles for admin accounts.</p>
         ) : (
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <label className="min-w-[160px]">
@@ -154,8 +154,8 @@ export function UserAdminActions({
       </div>
 
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Access</p>
-        <p className="mt-1 text-xs text-stone-500">
+        <p className="text-sm font-semibold text-[var(--foreground)]">Access</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">
           {suspended ? "This account cannot sign in." : "Sign-in allowed when credentials are valid."}
         </p>
         <button type="button" className={`${ui.buttonSecondary} mt-3`} onClick={() => setSuspendOpen(true)}>
@@ -165,8 +165,8 @@ export function UserAdminActions({
 
       {canImpersonate ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-5 shadow-sm">
-          <p className="text-sm font-semibold text-amber-950">Impersonate</p>
-          <p className="mt-1 text-xs text-stone-600">
+          <p className="text-sm font-semibold text-[var(--foreground)]">Impersonate</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
             Open the vendor/customer dashboard as <strong>{email}</strong>. Hyperadmin and admin areas stay blocked
             until you exit. Session switch uses a short-lived server grant (about one minute to apply).
           </p>
@@ -184,7 +184,7 @@ export function UserAdminActions({
       {actorIsHyperAdmin ? (
         <div className="rounded-2xl border border-red-300 bg-red-50/60 p-5 shadow-sm">
           <p className="text-sm font-semibold text-red-900">Danger zone</p>
-          <p className="mt-1 text-xs text-stone-600">
+          <p className="mt-1 text-xs text-[var(--muted)]">
             Permanently delete <strong>{email}</strong> and anonymize all their data. Orders and bookings are preserved
             in anonymized form for financial records. This action cannot be undone.
           </p>

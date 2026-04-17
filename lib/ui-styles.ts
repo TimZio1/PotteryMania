@@ -116,3 +116,21 @@ export function getUi(mode: VisualMode): UiTokenSet {
 }
 
 export type UiTokenSet = typeof studioUi | typeof platformUi;
+
+/**
+ * Typography on the dark platform canvas (`pm-visual-platform` main) — not inside local `bg-white` / tinted cards.
+ * Prefer these over raw `text-amber-950` / `text-stone-*` in admin + dashboard shells so copy stays readable.
+ */
+export const canvasText = {
+  fg: "text-[var(--foreground)]",
+  muted: "text-[var(--muted)]",
+  accent: "text-[var(--accent)]",
+  overline:
+    "text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]",
+  pageTitle: "text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl",
+  pageTitleMd: "text-3xl font-semibold tracking-tight text-[var(--foreground)]",
+  pageTitleSm: "text-2xl font-semibold tracking-tight text-[var(--foreground)]",
+  sectionTitle: "text-lg font-semibold text-[var(--foreground)]",
+  lead: "mt-2 max-w-2xl text-sm text-[var(--muted)]",
+  leadLg: "mt-3 max-w-3xl text-sm leading-7 text-[var(--muted)] sm:text-base",
+} as const;

@@ -32,7 +32,7 @@ export function AdminOrderRefundPanel({ orderId, snapshot, allowRefund = true }:
     return (
       <div className={`${ui.cardMuted} mt-8`}>
         <p className={ui.label}>Stripe refund</p>
-        <p className="mt-1 text-sm text-stone-600">{snapshot.error}</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">{snapshot.error}</p>
       </div>
     );
   }
@@ -41,10 +41,10 @@ export function AdminOrderRefundPanel({ orderId, snapshot, allowRefund = true }:
     return (
       <div className={`${ui.cardMuted} mt-8`}>
         <p className={ui.label}>Stripe refund</p>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-[var(--muted)]">
           No refundable balance on Stripe (already fully refunded or not captured).
         </p>
-        <p className="mt-2 text-xs text-stone-500">
+        <p className="mt-2 text-xs text-[var(--muted)]">
           Received {formatMoney(snapshot.amountReceivedCents, snapshot.currency)}, already refunded{" "}
           {formatMoney(snapshot.amountRefundedCents, snapshot.currency)}.
         </p>
@@ -56,9 +56,9 @@ export function AdminOrderRefundPanel({ orderId, snapshot, allowRefund = true }:
     return (
       <div className={`${ui.cardMuted} mt-8`}>
         <p className={ui.label}>Stripe refund</p>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Only <strong>hyper_admin</strong> can issue Stripe refunds. Refundable balance (read-only):{" "}
-          <span className="font-semibold tabular-nums text-amber-950">
+          <span className="font-semibold tabular-nums text-[var(--foreground)]">
             {formatMoney(snapshot.refundableCents, snapshot.currency)}
           </span>
           .
@@ -126,18 +126,18 @@ export function AdminOrderRefundPanel({ orderId, snapshot, allowRefund = true }:
   return (
     <div className={`${ui.cardMuted} mt-8`}>
       <p className={ui.label}>Stripe refund</p>
-      <p className="mt-1 text-sm text-stone-700">
+      <p className="mt-1 text-sm text-[var(--foreground)]">
         Refundable now:{" "}
-        <span className="font-semibold tabular-nums text-amber-950">
+        <span className="font-semibold tabular-nums text-[var(--foreground)]">
           {formatMoney(snapshot.refundableCents, snapshot.currency)}
         </span>
-        <span className="text-stone-500">
+        <span className="text-[var(--muted)]">
           {" "}
           (captured {formatMoney(snapshot.amountReceivedCents, snapshot.currency)}, refunded so far{" "}
           {formatMoney(snapshot.amountRefundedCents, snapshot.currency)})
         </span>
       </p>
-      <p className="mt-2 text-xs text-stone-500">
+      <p className="mt-2 text-xs text-[var(--muted)]">
         Uses destination-charge refund rules (reverse transfer + application fee). Logged to audit with your reason.
       </p>
 

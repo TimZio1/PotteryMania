@@ -43,11 +43,11 @@ function FunnelBlock({
           return (
             <div key={s.key}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-sm font-medium text-amber-950">{s.label}</span>
-                <span className="font-mono text-sm text-stone-700">
+                <span className="text-sm font-medium text-stone-900">{s.label}</span>
+                <span className="font-mono text-sm text-stone-900">
                   {s.count.toLocaleString()}
                   {s.pctOfPrev != null ? (
-                    <span className="ml-2 text-stone-500">
+                    <span className="ml-2 text-stone-600">
                       ({s.pctOfPrev}% from previous
                       {steps[i - 1] ? ` · prior ${steps[i - 1]!.count.toLocaleString()}` : ""})
                     </span>
@@ -72,7 +72,7 @@ function FunnelBlock({
 function LineChart({ points }: { points: { day: string; cents: number }[] }) {
   if (points.length === 0) {
     return (
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-stone-600">
         No days in this range — pick a wider window to see revenue by day.
       </p>
     );
@@ -80,7 +80,7 @@ function LineChart({ points }: { points: { day: string; cents: number }[] }) {
   const hasRevenue = points.some((p) => p.cents > 0);
   if (!hasRevenue) {
     return (
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-stone-600">
         No paid orders in this window — revenue by day will appear after the first completed checkout.
       </p>
     );
@@ -174,14 +174,14 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
     <div className="mt-8 space-y-12">
       <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Report period</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-600">Report period</p>
           <p className="mt-1 text-sm text-stone-600">
             {range.label}
             <span className="ml-2 font-mono text-xs text-stone-400">
               {range.startISO.slice(0, 10)} → {range.endISO.slice(0, 10)}
             </span>
           </p>
-          <p className="mt-1 text-xs text-stone-500">
+          <p className="mt-1 text-xs text-stone-600">
             Funnel, table, and chart below use this range. Revenue strip uses rolling calendar windows (UTC).
           </p>
           {(integrationSignals.spreadconnectFailures > 0 || integrationSignals.metaCapiErrors > 0) && (
@@ -225,7 +225,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
         <form method="get" action="/admin/wear-analytics" className="flex flex-wrap items-end gap-2">
           <input type="hidden" name="range" value="custom" />
           <div>
-            <label className="text-xs text-stone-500">From</label>
+            <label className="text-xs text-stone-600">From</label>
             <input
               type="date"
               name="from"
@@ -234,7 +234,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
             />
           </div>
           <div>
-            <label className="text-xs text-stone-500">To</label>
+            <label className="text-xs text-stone-600">To</label>
             <input
               type="date"
               name="to"
@@ -250,7 +250,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
 
       {!hasActivity ? (
         <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/80 px-6 py-14 text-center">
-          <p className="text-lg font-medium text-amber-950">No activity in this period</p>
+          <p className="text-lg font-medium text-stone-900">No activity in this period</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-stone-600">
             No PDP events or paid orders yet. Send traffic to{" "}
             <Link href="/wear/shop" className="font-medium text-amber-900 underline">
@@ -263,44 +263,44 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
 
       {hasActivity ? (
         <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Overview</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-600">Overview</h2>
           <p className="mt-1 max-w-3xl text-sm text-stone-600">
             Rolling revenue helps you compare momentum; other KPIs match the report period above.
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-medium text-stone-500">Revenue · today (UTC)</p>
-              <p className="mt-1 text-xl font-semibold text-amber-950">{eur(revenueWindows.todayCents)}</p>
+              <p className="text-xs font-medium text-stone-600">Revenue · today (UTC)</p>
+              <p className="mt-1 text-xl font-semibold text-stone-900">{eur(revenueWindows.todayCents)}</p>
             </div>
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-medium text-stone-500">Revenue · last 7 days</p>
-              <p className="mt-1 text-xl font-semibold text-amber-950">{eur(revenueWindows.last7Cents)}</p>
+              <p className="text-xs font-medium text-stone-600">Revenue · last 7 days</p>
+              <p className="mt-1 text-xl font-semibold text-stone-900">{eur(revenueWindows.last7Cents)}</p>
             </div>
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-medium text-stone-500">Revenue · last 30 days</p>
-              <p className="mt-1 text-xl font-semibold text-amber-950">{eur(revenueWindows.last30Cents)}</p>
+              <p className="text-xs font-medium text-stone-600">Revenue · last 30 days</p>
+              <p className="mt-1 text-xl font-semibold text-stone-900">{eur(revenueWindows.last30Cents)}</p>
             </div>
           </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <p className="text-xs text-stone-500">Revenue · this period</p>
-              <p className="mt-1 text-2xl font-semibold text-amber-950">{eur(overview.revenueCents)}</p>
+              <p className="text-xs text-stone-600">Revenue · this period</p>
+              <p className="mt-1 text-2xl font-semibold text-stone-900">{eur(overview.revenueCents)}</p>
             </div>
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <p className="text-xs text-stone-500">Orders · this period</p>
-              <p className="mt-1 text-2xl font-semibold text-amber-950">{overview.orderCount}</p>
+              <p className="text-xs text-stone-600">Orders · this period</p>
+              <p className="mt-1 text-2xl font-semibold text-stone-900">{overview.orderCount}</p>
             </div>
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <p className="text-xs text-stone-500">Avg. order value</p>
-              <p className="mt-1 text-2xl font-semibold text-amber-950">
+              <p className="text-xs text-stone-600">Avg. order value</p>
+              <p className="mt-1 text-2xl font-semibold text-stone-900">
                 {overview.aovCents != null ? eur(overview.aovCents) : "—"}
               </p>
             </div>
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <p className="text-xs text-stone-500">Conversion · view → purchase</p>
-              <p className="mt-1 text-2xl font-semibold text-amber-950">
+              <p className="text-xs text-stone-600">Conversion · view → purchase</p>
+              <p className="mt-1 text-2xl font-semibold text-stone-900">
                 {overview.conversionViewToPurchasePct != null
                   ? `${overview.conversionViewToPurchasePct}%`
                   : "—"}
@@ -309,14 +309,14 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
           </div>
 
           <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-xs text-stone-500">Top product by revenue · this period</p>
-            <p className="mt-1 text-lg font-semibold text-amber-950">
+            <p className="text-xs text-stone-600">Top product by revenue · this period</p>
+            <p className="mt-1 text-lg font-semibold text-stone-900">
               {overview.topProduct ? overview.topProduct.name : "—"}
             </p>
             {overview.topProduct ? (
               <p className="mt-1 font-mono text-xs text-stone-600">{eur(overview.topProduct.revenueCents)}</p>
             ) : (
-              <p className="mt-1 text-sm text-stone-500">No paid line items in this window.</p>
+              <p className="mt-1 text-sm text-stone-600">No paid line items in this window.</p>
             )}
           </div>
         </section>
@@ -326,7 +326,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
         <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-amber-950">Funnel</h2>
+              <h2 className="text-lg font-semibold text-stone-900">Funnel</h2>
               <p className="mt-1 max-w-2xl text-sm text-stone-600">
                 PDP events and checkout-start beacons, ending in paid orders. Percentages are step-to-step carry-over.
               </p>
@@ -347,9 +347,9 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
 
       {insights.length > 0 ? (
         <section className="rounded-2xl border border-amber-200/80 bg-amber-50/60 p-6">
-          <h2 className="text-lg font-semibold text-amber-950">Insights</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Insights</h2>
           <p className="mt-1 text-sm text-stone-600">Rule-based, actionable signals from metrics in this report.</p>
-          <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-relaxed text-stone-800">
+          <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-relaxed text-stone-900">
             {insights.map((t, i) => (
               <li key={i}>{t}</li>
             ))}
@@ -363,7 +363,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
 
       {hasActivity ? (
         <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-amber-950">Revenue over time</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Revenue over time</h2>
           <p className="mt-1 text-sm text-stone-600">Paid orders by calendar day (UTC), for the report period.</p>
           <div className="mt-6">
             {!hasPurchases ? (
@@ -381,7 +381,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
         <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-amber-950">Top products</h2>
+              <h2 className="text-lg font-semibold text-stone-900">Top products</h2>
               <p className="mt-1 max-w-2xl text-sm text-stone-600">
                 Checkout started = sessions (pending or paid orders) that included the product. Purchases = paid orders
                 containing the product. Conversion = purchases ÷ PDP views when views are tracked with{" "}
@@ -389,7 +389,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-stone-500">Sort</span>
+              <span className="text-xs text-stone-600">Sort</span>
               {(
                 [
                   ["revenue", "Revenue"],
@@ -414,13 +414,13 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
             </div>
           </div>
           {sortedProducts.length === 0 ? (
-            <p className="mt-8 text-sm text-stone-500">
+            <p className="mt-8 text-sm text-stone-600">
               No product-level rows for this window (no views, cart events, checkout sessions, or revenue).
             </p>
           ) : (
             <div className="mt-6 overflow-x-auto">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-stone-200 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                <thead className="border-b border-stone-200 text-xs font-semibold uppercase tracking-wide text-stone-600">
                   <tr>
                     <th className="px-3 py-2">Product</th>
                     <th className="px-3 py-2 text-right">Views</th>
@@ -445,7 +445,7 @@ export default function WearAnalyticsDashboardClient(props: WearDashboardClientP
                             {p.name}
                           </Link>
                         ) : (
-                          <span className="font-medium text-amber-950">{p.name}</span>
+                          <span className="font-medium text-stone-900">{p.name}</span>
                         )}
                       </td>
                       <td className="px-3 py-3 text-right font-mono text-xs">{p.views}</td>

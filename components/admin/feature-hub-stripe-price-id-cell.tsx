@@ -73,7 +73,7 @@ export function FeatureHubStripePriceIdCell({
         aria-label="Stripe recurring price id"
         title="Stripe Price id (recurring). Empty clears. Save on blur or Enter."
       />
-      {hint ? <span className="text-[10px] text-stone-500">{hint}</span> : null}
+      {hint ? <span className="text-[10px] text-[var(--muted)]">{hint}</span> : null}
     </div>
   );
 }

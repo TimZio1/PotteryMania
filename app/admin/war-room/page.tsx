@@ -151,34 +151,34 @@ export default async function AdminWarRoomPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Hyperadmin</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">War room</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Hyperadmin</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">War room</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         One screen for triage: queue depth, the oldest bookings pending studio confirmation, today&apos;s commerce pulse,
         shortcuts, and fresh audit lines. Heavy charts stay on the executive overview.
       </p>
 
       <section className="mt-10" id="pulse">
-        <h2 className="text-lg font-semibold text-amber-950">Pulse (UTC day)</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Pulse (UTC day)</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-stone-500">New users today</p>
-            <p className="mt-2 text-3xl font-semibold text-amber-950">{newUsersToday}</p>
+            <p className="text-sm text-[var(--muted)]">New users today</p>
+            <p className="mt-2 text-3xl font-semibold text-[var(--foreground)]">{newUsersToday}</p>
           </div>
           <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-stone-500">Paid orders today</p>
-            <p className="mt-2 text-3xl font-semibold text-amber-950">{paidOrdersToday}</p>
+            <p className="text-sm text-[var(--muted)]">Paid orders today</p>
+            <p className="mt-2 text-3xl font-semibold text-[var(--foreground)]">{paidOrdersToday}</p>
           </div>
           <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-stone-500">Paid orders last 24h</p>
-            <p className="mt-2 text-3xl font-semibold text-amber-950">{paidOrders24h}</p>
+            <p className="text-sm text-[var(--muted)]">Paid orders last 24h</p>
+            <p className="mt-2 text-3xl font-semibold text-[var(--foreground)]">{paidOrders24h}</p>
           </div>
         </div>
       </section>
 
       <section className="mt-10" id="queues">
-        <h2 className="text-lg font-semibold text-amber-950">Queues</h2>
-        <p className="mt-1 text-sm text-stone-600">Tap a card to jump to the right surface in Operations or Users.</p>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Queues</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">Tap a card to jump to the right surface in Operations or Users.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {queues.map((q) => (
             <Link
@@ -189,9 +189,9 @@ export default async function AdminWarRoomPage() {
                 q.danger && q.count > 0 ? "border-amber-300 bg-amber-50/50" : "border-stone-200 bg-white",
               )}
             >
-              <p className="text-sm font-medium text-stone-700">{q.label}</p>
-              <p className="mt-2 text-3xl font-semibold text-amber-950">{q.count}</p>
-              <p className="mt-2 text-xs text-stone-500">{q.hint}</p>
+              <p className="text-sm font-medium text-[var(--foreground)]">{q.label}</p>
+              <p className="mt-2 text-3xl font-semibold text-[var(--foreground)]">{q.count}</p>
+              <p className="mt-2 text-xs text-[var(--muted)]">{q.hint}</p>
             </Link>
           ))}
         </div>
@@ -200,27 +200,27 @@ export default async function AdminWarRoomPage() {
       <section className="mt-10">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-amber-950">Oldest bookings pending studio confirmation</h2>
-            <p className="mt-1 text-sm text-stone-600">FIFO-style preview — full list lives on Operations.</p>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Oldest bookings pending studio confirmation</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">FIFO-style preview — full list lives on Operations.</p>
           </div>
           <Link href="/admin/operations#booking-queue" className={cn(ui.buttonSecondary, "text-sm")}>
             Open booking queue
           </Link>
         </div>
         {approvalBookingsPreview.length === 0 ? (
-          <p className="mt-4 text-sm text-stone-500">No bookings waiting on studios right now.</p>
+          <p className="mt-4 text-sm text-[var(--muted)]">No bookings waiting on studios right now.</p>
         ) : (
           <ul className="mt-4 divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white shadow-sm">
             {approvalBookingsPreview.map((b) => (
               <li key={b.id} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-medium text-stone-900">{b.experience.title}</p>
-                  <p className="text-sm text-stone-600">
+                  <p className="text-sm text-[var(--muted)]">
                     {b.studio.displayName} · {b.customerName}
                   </p>
-                  <p className="text-xs text-stone-500">{b.customerEmail}</p>
+                  <p className="text-xs text-[var(--muted)]">{b.customerEmail}</p>
                 </div>
-                <div className="text-xs text-stone-500 sm:text-right">
+                <div className="text-xs text-[var(--muted)] sm:text-right">
                   <p>{b.createdAt.toISOString().slice(0, 16)} UTC</p>
                   <Link href={`/studios/${b.studio.id}`} className="text-amber-900 underline">
                     Studio profile
@@ -233,7 +233,7 @@ export default async function AdminWarRoomPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Shortcuts</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Shortcuts</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {shortcuts.map((s) => (
             <Link key={s.href} href={s.href} className={cn(ui.buttonSecondary, "text-xs")}>
@@ -245,7 +245,7 @@ export default async function AdminWarRoomPage() {
 
       <section className="mt-10">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold text-amber-950">Recent admin actions</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Recent admin actions</h2>
           <Link href="/admin/audit" className={cn(ui.buttonGhost, "text-sm")}>
             Full audit →
           </Link>
@@ -262,11 +262,11 @@ export default async function AdminWarRoomPage() {
             <tbody className="divide-y divide-stone-100">
               {recentAudit.map((row) => (
                 <tr key={row.id}>
-                  <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-stone-600">
+                  <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-[var(--muted)]">
                     {row.createdAt.toISOString().slice(0, 19)}
                   </td>
-                  <td className="px-4 py-2 text-stone-800">{row.action}</td>
-                  <td className="px-4 py-2 text-xs text-stone-600">
+                  <td className="px-4 py-2 text-[var(--foreground)]">{row.action}</td>
+                  <td className="px-4 py-2 text-xs text-[var(--muted)]">
                     {row.entityType}
                     {row.entityId ? (
                       <span className="ml-1 font-mono text-[11px] text-stone-400">{row.entityId.slice(0, 8)}…</span>

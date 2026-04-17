@@ -31,13 +31,13 @@ export default async function AdminWebhookEventsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-[var(--muted)]">
         <Link href="/admin/operations" className="text-amber-900 underline">
           ← Operations
         </Link>
       </p>
       <h1 className="mt-4 font-serif text-3xl text-stone-900">Stripe webhook failures</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Side-effect failures (email, calendar, Spreadconnect) are logged per event. Resolve in Stripe Dashboard or retry
         manually, then mark resolved here.
       </p>
@@ -56,19 +56,19 @@ export default async function AdminWebhookEventsPage() {
           <tbody>
             {tasks.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-stone-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-[var(--muted)]">
                   No unresolved webhook task failures.
                 </td>
               </tr>
             ) : (
               tasks.map((t: TaskWithEvent) => (
                 <tr key={t.id} className="border-b border-stone-100">
-                  <td className="whitespace-nowrap px-4 py-3 text-stone-700">
+                  <td className="whitespace-nowrap px-4 py-3 text-[var(--foreground)]">
                     {t.failedAt?.toISOString().slice(0, 19).replace("T", " ")}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-stone-800">{t.concern}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-stone-600">{t.event?.id ?? t.stripeWebhookEventId}</td>
-                  <td className="max-w-md px-4 py-3 text-xs text-stone-600">{t.failureReason}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-[var(--foreground)]">{t.concern}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-[var(--muted)]">{t.event?.id ?? t.stripeWebhookEventId}</td>
+                  <td className="max-w-md px-4 py-3 text-xs text-[var(--muted)]">{t.failureReason}</td>
                   <td className="px-4 py-3">
                     <ResolveWebhookTaskButton taskId={t.id} />
                   </td>
@@ -78,7 +78,7 @@ export default async function AdminWebhookEventsPage() {
           </tbody>
         </table>
       </div>
-      <p className="mt-4 text-xs text-stone-500">
+      <p className="mt-4 text-xs text-[var(--muted)]">
         API: <code className="rounded bg-stone-100 px-1">GET /api/admin/webhook-events?status=failed</code> ·{" "}
         <code className="rounded bg-stone-100 px-1">PATCH</code> with <code>{"{ taskId }"}</code>
       </p>

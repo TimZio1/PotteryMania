@@ -40,9 +40,9 @@ export default async function AdminPlatformFeaturesPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Monetization</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Platform add-ons</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Monetization</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Platform add-ons</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Catalog entries power the studio Features page and runtime gates (for example kiln). Turning off &ldquo;Grant
         all&rdquo; makes each studio rely on an active activation. Set a recurring Stripe Price id (
         <code className="font-mono text-xs">price_…</code>) so vendors can subscribe via Checkout; leave it empty to
@@ -61,7 +61,7 @@ export default async function AdminPlatformFeaturesPage() {
         {initial.length ? (
           <PlatformFeaturesAdminTable initial={initial} />
         ) : (
-          <p className="text-sm text-stone-600">
+          <p className="text-sm text-[var(--muted)]">
             No rows yet. Run <code className="rounded bg-stone-100 px-1 py-0.5 font-mono text-xs">prisma migrate deploy</code>{" "}
             so seeded catalog is created.
           </p>

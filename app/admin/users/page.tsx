@@ -80,9 +80,9 @@ export default async function AdminUsersPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Users</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Accounts</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Users</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Accounts</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Search by email, filter by role, account status, and email verification. List shows order/booking counts as a
         quick activity proxy; filter by internal **admin flag** (exact tag). Open a user for flags, notes, suspension,
         role changes, impersonation, and activity (audit logged).
@@ -135,7 +135,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-stone-500">
+      <p className="mt-6 text-sm text-[var(--muted)]">
         {total} accounts · page {page} of {totalPages}
       </p>
 
@@ -161,7 +161,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                 r.suspendedAt ? (
                   <span className="text-xs font-medium text-red-700">Suspended</span>
                 ) : (
-                  <span className="text-xs text-stone-500">Active</span>
+                  <span className="text-xs text-[var(--muted)]">Active</span>
                 ),
             },
             {
@@ -171,7 +171,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                 r.emailVerifiedAt ? (
                   <span className="text-xs text-emerald-800">Yes</span>
                 ) : (
-                  <span className="text-xs text-stone-500">No</span>
+                  <span className="text-xs text-[var(--muted)]">No</span>
                 ),
             },
             {
@@ -184,7 +184,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                 const show = r.adminTags.slice(0, 4);
                 const rest = r.adminTags.length - show.length;
                 return (
-                  <span className="text-xs text-stone-600">
+                  <span className="text-xs text-[var(--muted)]">
                     {show.join(", ")}
                     {rest > 0 ? ` +${rest}` : ""}
                   </span>
@@ -195,7 +195,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
               key: "activity",
               header: "Activity",
               cell: (r) => (
-                <span className="text-xs text-stone-600">
+                <span className="text-xs text-[var(--muted)]">
                   {r._count.orders} orders · {r._count.bookingsAsCustomer} bookings
                 </span>
               ),
@@ -204,7 +204,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
               key: "lastLogin",
               header: "Last login",
               cell: (r) => (
-                <span className="text-xs text-stone-500">
+                <span className="text-xs text-[var(--muted)]">
                   {r.lastLoginAt ? r.lastLoginAt.toISOString().slice(0, 10) : "—"}
                 </span>
               ),
@@ -212,7 +212,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
             {
               key: "created",
               header: "Joined",
-              cell: (r) => <span className="text-xs text-stone-500">{r.createdAt.toISOString().slice(0, 10)}</span>,
+              cell: (r) => <span className="text-xs text-[var(--muted)]">{r.createdAt.toISOString().slice(0, 10)}</span>,
             },
           ]}
         />

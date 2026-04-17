@@ -13,7 +13,8 @@
   --foreground: #EDEDED;
   --surface: #161616;
   --surface-elevated: #1C1C1C;
-  --muted: #A1A1A1;
+  /* Slightly lifted vs pure gray-400 for WCAG on near-black canvas */
+  --muted: #B8B8B8;
   --border: #262626;
   --divider: #262626;
 

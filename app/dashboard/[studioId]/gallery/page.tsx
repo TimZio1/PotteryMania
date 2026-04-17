@@ -34,8 +34,8 @@ export default async function StudioGalleryPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className={ui.overline}>Marketing</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Gallery</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Gallery</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Active images shown in your public studio gallery. Use `/api/studios/{studioId}/gallery-images` to add and sort.
         </p>
       </div>

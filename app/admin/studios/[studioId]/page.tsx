@@ -94,9 +94,9 @@ export default async function AdminStudioDetailPage({ params }: Props) {
         ← All studios
       </Link>
 
-      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Studio</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">{studio.displayName}</h1>
-      <p className="mt-1 text-sm text-stone-600">
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Studio</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{studio.displayName}</h1>
+      <p className="mt-1 text-sm text-[var(--muted)]">
         <code className="text-xs">{studio.status}</code>
         <span className="mx-2 text-stone-300">·</span>
         {studio.city}, {studio.country}
@@ -117,20 +117,20 @@ export default async function AdminStudioDetailPage({ params }: Props) {
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <section className={`${ui.cardMuted} space-y-3`}>
-            <h2 className="text-sm font-semibold text-amber-950">Contact &amp; legal</h2>
-            <dl className="grid gap-2 text-sm text-stone-700">
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">Contact &amp; legal</h2>
+            <dl className="grid gap-2 text-sm text-[var(--foreground)]">
               <div>
-                <dt className="text-xs text-stone-500">Email</dt>
+                <dt className="text-xs text-[var(--muted)]">Email</dt>
                 <dd>{studio.email}</dd>
               </div>
               {studio.phone ? (
                 <div>
-                  <dt className="text-xs text-stone-500">Phone</dt>
+                  <dt className="text-xs text-[var(--muted)]">Phone</dt>
                   <dd>{studio.phone}</dd>
                 </div>
               ) : null}
               <div>
-                <dt className="text-xs text-stone-500">Address</dt>
+                <dt className="text-xs text-[var(--muted)]">Address</dt>
                 <dd>
                   {studio.addressLine1}
                   {studio.addressLine2 ? `, ${studio.addressLine2}` : ""}
@@ -138,7 +138,7 @@ export default async function AdminStudioDetailPage({ params }: Props) {
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-stone-500">Legal name / VAT</dt>
+                <dt className="text-xs text-[var(--muted)]">Legal name / VAT</dt>
                 <dd>
                   {studio.legalBusinessName} · {studio.vatNumber}
                 </dd>
@@ -147,18 +147,18 @@ export default async function AdminStudioDetailPage({ params }: Props) {
           </section>
 
           <section className={`${ui.cardMuted} space-y-3`}>
-            <h2 className="text-sm font-semibold text-amber-950">Commerce signals</h2>
-            <ul className="space-y-2 text-sm text-stone-700">
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">Commerce signals</h2>
+            <ul className="space-y-2 text-sm text-[var(--foreground)]">
               <li>
-                <span className="text-stone-500">Activation fee:</span>{" "}
+                <span className="text-[var(--muted)]">Activation fee:</span>{" "}
                 {studio.activationPaidAt ? (
                   <span className="font-medium text-emerald-800">Paid {studio.activationPaidAt.toISOString().slice(0, 10)}</span>
                 ) : (
-                  <span className="text-stone-600">Not paid</span>
+                  <span className="text-[var(--muted)]">Not paid</span>
                 )}
               </li>
               <li>
-                <span className="text-stone-500">Stripe Connect:</span>{" "}
+                <span className="text-[var(--muted)]">Stripe Connect:</span>{" "}
                 {studio.stripeAccount ? (
                   studio.stripeAccount.chargesEnabled && studio.stripeAccount.payoutsEnabled ? (
                     <span className="font-medium text-emerald-800">Charges &amp; payouts enabled</span>
@@ -166,19 +166,19 @@ export default async function AdminStudioDetailPage({ params }: Props) {
                     <span className="text-amber-800">Onboarding incomplete ({studio.stripeAccount.onboardingStatus})</span>
                   )
                 ) : (
-                  <span className="text-stone-500">No account</span>
+                  <span className="text-[var(--muted)]">No account</span>
                 )}
               </li>
               <li>
-                <span className="text-stone-500">Catalog:</span> {studio._count.experiences} classes,{" "}
+                <span className="text-[var(--muted)]">Catalog:</span> {studio._count.experiences} classes,{" "}
                 {studio._count.products} products, {studio._count.bookings} bookings
               </li>
               <li>
-                <span className="text-stone-500">Orders (this studio):</span> {paidOrdersCount} paid · {pendingOrdersCount}{" "}
+                <span className="text-[var(--muted)]">Orders (this studio):</span> {paidOrdersCount} paid · {pendingOrdersCount}{" "}
                 pending checkout
               </li>
               <li>
-                <span className="text-stone-500">Rank weight (platform):</span>{" "}
+                <span className="text-[var(--muted)]">Rank weight (platform):</span>{" "}
                 <span className="font-mono">{studio.marketplaceRankWeight}</span>
               </li>
             </ul>

@@ -50,8 +50,8 @@ export default async function StudioGiftCardsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Revenue</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Gift cards</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Gift cards</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Create branded studio gift cards, issue them directly, and keep the balance and delivery status visible in one place.
         </p>
       </div>

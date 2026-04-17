@@ -83,9 +83,9 @@ export default function ExperimentsAdminClient() {
   return (
     <div className="space-y-8">
       <div className={`${ui.card} space-y-3`}>
-        <h2 className="text-lg font-semibold text-amber-950">New experiment</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">New experiment</h2>
         {error ? <p className={ui.errorText}>{error}</p> : null}
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-[var(--muted)]">
           Slug is referenced in code when reading assignment. Variant B share is 0–100; A gets the rest.
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -103,8 +103,8 @@ export default function ExperimentsAdminClient() {
         {rows.map((e) => (
           <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
             <div>
-              <span className="font-medium text-stone-900">{e.name}</span>{" "}
-              <code className="text-xs text-stone-500">{e.slug}</code> · B={e.variantBPercent}% ·{" "}
+              <span className="font-medium text-[var(--foreground)]">{e.name}</span>{" "}
+              <code className="text-xs text-[var(--muted)]">{e.slug}</code> · B={e.variantBPercent}% ·{" "}
               {e.isActive ? "active" : "off"}
             </div>
             <button type="button" className={ui.buttonGhost} onClick={() => void toggle(e)}>
@@ -112,7 +112,7 @@ export default function ExperimentsAdminClient() {
             </button>
           </li>
         ))}
-        {rows.length === 0 ? <li className="px-4 py-6 text-stone-500">No experiments.</li> : null}
+        {rows.length === 0 ? <li className="px-4 py-6 text-[var(--muted)]">No experiments.</li> : null}
       </ul>
     </div>
   );

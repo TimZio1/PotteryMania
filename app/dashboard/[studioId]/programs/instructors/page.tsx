@@ -61,8 +61,8 @@ export default async function StudioInstructorsPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className={ui.overline}>Operations</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Instructors</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Instructors</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Assign instructors to classes and use them in schedule planning and booking analytics.
         </p>
       </div>
@@ -70,15 +70,15 @@ export default async function StudioInstructorsPage({ params }: Props) {
         <StudioInstructorsClient studioId={studioId} initialInstructors={instructors} />
       </section>
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">Upcoming schedule by instructor</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Upcoming schedule by instructor</h2>
         {bookingsByInstructor.size === 0 ? (
-          <p className="mt-2 text-sm text-stone-600">No upcoming instructor-assigned bookings yet.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">No upcoming instructor-assigned bookings yet.</p>
         ) : (
           <div className="mt-4 space-y-4">
             {[...bookingsByInstructor.values()].map((group) => (
               <article key={group.instructorName} className="rounded-xl border border-stone-200 bg-white p-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-700">{group.instructorName}</h3>
-                <ul className="mt-3 space-y-2 text-sm text-stone-700">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--foreground)]">{group.instructorName}</h3>
+                <ul className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
                   {group.bookings.map((booking) => (
                     <li key={booking.id} className="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2">
                       {booking.slot.slotDate.toISOString().slice(0, 10)} · {booking.slot.startTime}-{booking.slot.endTime} ·{" "}

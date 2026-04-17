@@ -20,9 +20,9 @@ export default async function AdminMarketplacePage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Discovery controls (off)</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Discovery controls</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Discovery controls (off)</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Discovery controls</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         These settings take effect when wider public discovery is enabled again. Featured placements and ranking boosts stay
         available for operations. Per-studio <strong>sort weight</strong> is edited on{" "}
         <Link href="/admin/marketplace-ranking" className="font-medium text-amber-900 underline">

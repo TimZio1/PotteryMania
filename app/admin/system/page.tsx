@@ -28,9 +28,9 @@ export default async function AdminSystemPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">System</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Health & controls</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">System</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Health & controls</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Feature flags are audited. Environment signals are read-only here; set secrets on your host (Railway / Vercel).
       </p>
 
@@ -46,8 +46,8 @@ export default async function AdminSystemPage() {
       </div>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Feature flags</h2>
-        <p className="mt-2 text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Feature flags</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Toggle <code className="text-xs">booking_checkout_enabled</code> and{" "}
           <code className="text-xs">marketplace_checkout_enabled</code> (product / shop checkout; legacy env key name) to
           pause new checkouts without redeploying (60s cache on API nodes).
@@ -65,15 +65,15 @@ export default async function AdminSystemPage() {
       </section>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="font-semibold text-amber-950">Endpoint checks</h2>
-        <p className="mt-1 text-xs text-stone-500">
+        <h2 className="font-semibold text-[var(--foreground)]">Endpoint checks</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Browser-side fetch to this origin (session cookie applies to Auth). For production signals, also use host monitoring.
         </p>
         <SystemHealthPings />
       </section>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-stone-50/80 p-5 text-sm text-stone-600">
-        <h2 className="font-semibold text-amber-950">Environment snapshot</h2>
+        <h2 className="font-semibold text-[var(--foreground)]">Environment snapshot</h2>
         <ul className="mt-3 list-inside list-disc space-y-1">
           <li>
             Guest restricted mode:{" "}

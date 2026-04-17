@@ -19,9 +19,9 @@ export default async function AdminWearProductNewPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">New wear product</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">New wear product</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         After creating, add variants (sizes/colors) from the edit screen if the piece has options.
       </p>
       <WearProductEditorClient productId={null} />

@@ -180,8 +180,8 @@ export default function MarketplaceControlsClient() {
       ) : null}
 
       <section className={`${ui.card} space-y-4`}>
-        <h2 className="text-lg font-semibold text-amber-950">Featured placements</h2>
-        <p className="text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Featured placements</h2>
+        <p className="text-sm text-[var(--muted)]">
           Featured studio slots (for example homepage hero). Public discovery is off today; keep placements ready if you
           re-enable it later, and run ranking jobs after large changes.
         </p>
@@ -232,13 +232,13 @@ export default function MarketplaceControlsClient() {
               </button>
             </li>
           ))}
-          {placements.length === 0 ? <li className="py-2 text-stone-500">No placements yet.</li> : null}
+          {placements.length === 0 ? <li className="py-2 text-[var(--muted)]">No placements yet.</li> : null}
         </ul>
       </section>
 
       <section className={`${ui.card} space-y-4`}>
-        <h2 className="text-lg font-semibold text-amber-950">Ranking boosts</h2>
-        <p className="text-sm text-stone-600">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Ranking boosts</h2>
+        <p className="text-sm text-[var(--muted)]">
           Time-bounded lift to the manual part of the composite score (used when public discovery is enabled).
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -292,7 +292,7 @@ export default function MarketplaceControlsClient() {
               </button>
             </li>
           ))}
-          {boosts.length === 0 ? <li className="py-2 text-stone-500">No boosts yet.</li> : null}
+          {boosts.length === 0 ? <li className="py-2 text-[var(--muted)]">No boosts yet.</li> : null}
         </ul>
       </section>
     </div>

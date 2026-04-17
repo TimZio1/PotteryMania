@@ -169,7 +169,7 @@ export default function StudioClientFieldsClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>Profile field list</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Client fields</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Client fields</h2>
           </div>
           <button type="button" className={ui.buttonPrimary} onClick={openNew}>
             + New
@@ -188,17 +188,17 @@ export default function StudioClientFieldsClient({
               }`}
             >
               <p className="font-medium text-stone-900">{field.title}</p>
-              <p className="mt-1 text-xs text-stone-500">
+              <p className="mt-1 text-xs text-[var(--muted)]">
                 {field.fieldType.replace(/_/g, " ")} · {field.isRequired ? "required" : "optional"}
               </p>
             </button>
           ))}
-          {fields.length === 0 ? <p className="text-sm text-stone-600">No client profile fields yet.</p> : null}
+          {fields.length === 0 ? <p className="text-sm text-[var(--muted)]">No client profile fields yet.</p> : null}
         </div>
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">{selected ? `Edit: ${selected.title}` : "New client field"}</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">{selected ? `Edit: ${selected.title}` : "New client field"}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block text-sm">
             <span className={ui.label}>Field title</span>
@@ -222,7 +222,7 @@ export default function StudioClientFieldsClient({
           </label>
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="inline-flex items-center gap-2 text-sm text-stone-700">
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input type="checkbox" checked={form.isRequired} onChange={(e) => setForm((c) => ({ ...c, isRequired: e.target.checked }))} />
             Required field
           </label>

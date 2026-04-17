@@ -157,7 +157,7 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
         onSubmit={createFeature}
         className="rounded-2xl border border-dashed border-amber-300/80 bg-amber-50/40 p-4 shadow-sm"
       >
-        <h2 className="text-sm font-semibold text-amber-950">Add catalog feature</h2>
+        <h2 className="text-sm font-semibold text-stone-900">Add catalog feature</h2>
         <p className="mt-1 text-xs text-stone-600">
           Slug is permanent (lowercase, hyphens). Use for runtime gates and API keys (e.g.{" "}
           <code className="font-mono">kiln_tracking</code>).
@@ -212,7 +212,7 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
             className={cn(ui.input, "mt-1 w-full resize-y text-sm")}
           />
         </label>
-        <label className="mt-3 flex items-center gap-2 text-xs text-stone-700">
+        <label className="mt-3 flex items-center gap-2 text-xs text-stone-900">
           <input type="checkbox" checked={newGrantAll} onChange={(e) => setNewGrantAll(e.target.checked)} />
           Grant to all studios by default
         </label>
@@ -264,7 +264,7 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
                         void patch(f.id, { name: v });
                       }}
                     />
-                    <p className="font-mono text-xs text-stone-500">{f.slug}</p>
+                    <p className="font-mono text-xs text-stone-600">{f.slug}</p>
                     <textarea
                       key={`d-${f.id}-${f.description.slice(0, 20)}`}
                       defaultValue={f.description}
@@ -278,7 +278,7 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
                       }}
                     />
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="text-xs text-stone-500">Category</span>
+                      <span className="text-xs text-stone-600">Category</span>
                       <input
                         key={`c-${f.id}-${f.category}`}
                         type="text"
@@ -310,7 +310,7 @@ export default function PlatformFeaturesAdminTable({ initial }: { initial: Admin
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-stone-500">{f.currency}</span>
+                      <span className="text-stone-600">{f.currency}</span>
                       <input
                         key={`p-${f.id}-${f.priceCents}`}
                         type="number"

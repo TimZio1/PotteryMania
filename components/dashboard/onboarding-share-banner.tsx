@@ -49,14 +49,14 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
     <div className="mb-6 space-y-3">
       {profileIncomplete ? (
         <div className="rounded-(--pm-radius-card) border border-amber-300/70 bg-amber-50/90 p-(--pm-space-4) text-sm text-stone-700 sm:p-(--pm-space-5)">
-          <p className="font-semibold text-amber-950">Finish business details before payouts</p>
-          <p className="mt-1 text-stone-600">
+          <p className="font-semibold text-[var(--foreground)]">Finish business details before payouts</p>
+          <p className="mt-1 text-[var(--muted)]">
             You started with quick setup. Add your full address, tax ID, and legal name in Studio profile when you&apos;re
             ready to connect Stripe and receive money.
           </p>
           <Link
             href={`/dashboard/studio/${studioId}`}
-            className="mt-2 inline-block text-sm font-semibold text-amber-950 underline underline-offset-2 hover:text-amber-800"
+            className="mt-2 inline-block text-sm font-semibold text-[var(--foreground)] underline underline-offset-2 hover:text-amber-800"
           >
             Complete studio profile →
           </Link>
@@ -69,13 +69,13 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
               Your studio is ready
             </p>
             <p className="mt-1 text-sm font-medium text-stone-900">Your public studio page is live. Share your link to start getting bookings.</p>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-[var(--muted)]">
               <span className="font-mono text-xs break-all sm:text-sm">{publicUrl}</span>
             </p>
-            <p className="mt-3 text-sm text-stone-600">
+            <p className="mt-3 text-sm text-[var(--muted)]">
               New: use the step-by-step helper — add a listing, a class, or payouts without digging through menus.
             </p>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Want your own storefront domain? Add it in studio settings once your studio is approved.
             </p>
             <Link
@@ -110,7 +110,7 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
             <button
               type="button"
               onClick={clearQuery}
-              className="text-sm text-stone-500 underline hover:text-stone-800"
+              className="text-sm text-[var(--muted)] underline hover:text-[var(--foreground)]"
             >
               Dismiss
             </button>

@@ -11,7 +11,7 @@ export function AuditDiffViewer({
 }) {
   const rows = diffAuditFields(before, after).filter((row) => row.changed);
   if (!rows.length) {
-    return <p className="text-sm text-stone-500">No field-level diff available.</p>;
+    return <p className="text-sm text-stone-600">No field-level diff available.</p>;
   }
 
   return (
@@ -27,11 +27,11 @@ export function AuditDiffViewer({
         <tbody className="divide-y divide-stone-100 bg-white">
           {rows.map((row) => (
             <tr key={row.key}>
-              <td className="px-3 py-2 font-medium text-stone-700">{row.key}</td>
-              <td className="px-3 py-2 text-stone-500">
+              <td className="px-3 py-2 font-medium text-stone-900">{row.key}</td>
+              <td className="px-3 py-2 text-stone-600">
                 <code>{stringifyJson(row.before)}</code>
               </td>
-              <td className="px-3 py-2 text-stone-700">
+              <td className="px-3 py-2 text-stone-900">
                 <code>{stringifyJson(row.after)}</code>
               </td>
             </tr>

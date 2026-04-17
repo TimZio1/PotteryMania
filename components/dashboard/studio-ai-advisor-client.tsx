@@ -43,8 +43,8 @@ export default function StudioAiAdvisorClient({
   if (!entitled) {
     return (
       <div className={cn(ui.cardMuted, "space-y-4")}>
-        <p className="text-sm font-semibold text-amber-950">AI Advisor is locked</p>
-        <p className="text-sm text-stone-600">
+        <p className="text-sm font-semibold text-[var(--foreground)]">AI Advisor is locked</p>
+        <p className="text-sm text-[var(--muted)]">
           Enable the <strong>AI Advisor</strong> add-on under Features to ask questions tailored to your studio&apos;s
           listings and booking activity.
         </p>
@@ -97,12 +97,12 @@ export default function StudioAiAdvisorClient({
 
       {reply ? (
         <div className={ui.cardMuted}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Reply</p>
-          <div className="mt-3 whitespace-pre-wrap text-sm text-stone-800">{reply}</div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Reply</p>
+          <div className="mt-3 whitespace-pre-wrap text-sm text-[var(--foreground)]">{reply}</div>
         </div>
       ) : null}
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-[var(--muted)]">
         AI output is informational, not legal or financial advice. Always verify important decisions independently.
       </p>
     </div>

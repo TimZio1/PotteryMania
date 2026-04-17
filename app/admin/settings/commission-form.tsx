@@ -194,11 +194,11 @@ export function CommissionForm() {
 
   return (
     <div className="space-y-6">
-      {msg ? <p className="text-sm text-stone-600">{msg}</p> : null}
-      {loading ? <p className="text-sm text-stone-500">Loading commission settings…</p> : null}
+      {msg ? <p className="text-sm text-[var(--muted)]">{msg}</p> : null}
+      {loading ? <p className="text-sm text-[var(--muted)]">Loading commission settings…</p> : null}
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Global platform commission</p>
-        <p className="mt-2 text-sm text-stone-700">Define baseline fees for product sales and class bookings.</p>
+        <p className="text-sm font-semibold text-[var(--foreground)]">Global platform commission</p>
+        <p className="mt-2 text-sm text-[var(--foreground)]">Define baseline fees for product sales and class bookings.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className={ui.label}>Products (bps)</span>
@@ -241,8 +241,8 @@ export function CommissionForm() {
         </div>
       </div>
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Per-studio override</p>
-        <p className="mt-2 text-sm text-stone-700">Override commission for a specific studio and item type.</p>
+        <p className="text-sm font-semibold text-[var(--foreground)]">Per-studio override</p>
+        <p className="mt-2 text-sm text-[var(--foreground)]">Override commission for a specific studio and item type.</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
           <label className="sm:col-span-2">
             <span className={ui.label}>Studio ID</span>
@@ -272,10 +272,10 @@ export function CommissionForm() {
         </button>
         <div className="mt-4 space-y-2">
           {overrides.length === 0 ? (
-            <p className="text-xs text-stone-500">No active overrides.</p>
+            <p className="text-xs text-[var(--muted)]">No active overrides.</p>
           ) : (
             overrides.map((row) => (
-              <div key={row.id} className="rounded-lg border border-stone-200 px-3 py-2 text-xs text-stone-700">
+              <div key={row.id} className="rounded-lg border border-stone-200 px-3 py-2 text-xs text-[var(--foreground)]">
                 <span className="font-medium">{row.studioName}</span> ({row.studioId}) · {row.itemType} ·{" "}
                 {(row.percentageBasisPoints / 100).toFixed(2)}%
               </div>
@@ -284,14 +284,14 @@ export function CommissionForm() {
         </div>
       </div>
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Tier pricing and commission matrix</p>
-        <p className="mt-2 text-sm text-stone-700">
+        <p className="text-sm font-semibold text-[var(--foreground)]">Tier pricing and commission matrix</p>
+        <p className="mt-2 text-sm text-[var(--foreground)]">
           Edit monthly/annual tier prices and default commission rates by tier. Studio-specific overrides still take priority.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-[860px] w-full text-xs">
             <thead>
-              <tr className="border-b border-stone-200 text-left text-stone-500">
+              <tr className="border-b border-stone-200 text-left text-[var(--muted)]">
                 <th className="px-2 py-2 font-semibold uppercase tracking-wide">Tier</th>
                 <th className="px-2 py-2 font-semibold uppercase tracking-wide">Monthly (cents)</th>
                 <th className="px-2 py-2 font-semibold uppercase tracking-wide">Annual eq. (cents)</th>
@@ -302,7 +302,7 @@ export function CommissionForm() {
             <tbody>
               {PLAN_KEYS.map((key) => (
                 <tr key={key} className="border-b border-stone-100">
-                  <td className="px-2 py-2 font-semibold text-stone-700">{key}</td>
+                  <td className="px-2 py-2 font-semibold text-[var(--foreground)]">{key}</td>
                   <td className="px-2 py-2">
                     <input
                       type="number"
@@ -383,8 +383,8 @@ export function CommissionForm() {
         </button>
       </div>
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-amber-950">Wearables — studio margin controls</p>
-        <p className="mt-2 text-sm text-stone-700">
+        <p className="text-sm font-semibold text-[var(--foreground)]">Wearables — studio margin controls</p>
+        <p className="mt-2 text-sm text-[var(--foreground)]">
           Studios earn a margin on wearable sales. Control the default, allowed range, and whether studios can adjust their own margin.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -431,7 +431,7 @@ export function CommissionForm() {
               onChange={(e) => setWearLocked(e.target.checked)}
               className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
             />
-            <span className="text-sm text-stone-700">Lock studio editing</span>
+            <span className="text-sm text-[var(--foreground)]">Lock studio editing</span>
           </label>
         </div>
         <button

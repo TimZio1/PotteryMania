@@ -19,9 +19,9 @@ export default async function AdminBlogPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Editorial</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Blog</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Editorial</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Blog</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Publish high-intent content for pottery studios, ceramic artists, ecommerce, bookings, and discovery.
         </p>
       </div>

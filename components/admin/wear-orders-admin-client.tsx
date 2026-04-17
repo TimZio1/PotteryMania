@@ -95,7 +95,7 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
     <div className="mt-8 space-y-8">
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">New · awaiting payment</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-600">New · awaiting payment</p>
           <p className="mt-2 text-3xl font-semibold text-amber-950">{summary.pending}</p>
         </div>
         <div className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 shadow-sm">
@@ -118,7 +118,7 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
         className="flex flex-col gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm lg:flex-row lg:flex-wrap lg:items-end"
       >
         <div className="min-w-[160px]">
-          <label className="text-xs font-medium text-stone-500">Status</label>
+          <label className="text-xs font-medium text-stone-600">Status</label>
           <select
             name="status"
             defaultValue={filter.status || "all"}
@@ -132,7 +132,7 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
           </select>
         </div>
         <div className="min-w-[200px] flex-1">
-          <label className="text-xs font-medium text-stone-500">Search</label>
+          <label className="text-xs font-medium text-stone-600">Search</label>
           <input
             type="search"
             name="q"
@@ -142,7 +142,7 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-stone-500">From</label>
+          <label className="text-xs font-medium text-stone-600">From</label>
           <input
             type="date"
             name="from"
@@ -151,7 +151,7 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-stone-500">To</label>
+          <label className="text-xs font-medium text-stone-600">To</label>
           <input
             type="date"
             name="to"
@@ -169,14 +169,14 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
         </div>
       </form>
 
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-[var(--muted)]">
         Showing {initial.length} order{initial.length === 1 ? "" : "s"} (newest first, max 500). Open a row for line
         items and lifecycle actions.
       </p>
 
-      <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white text-stone-800">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-stone-200 bg-stone-50/80 text-xs font-semibold uppercase tracking-wide text-stone-500">
+          <thead className="border-b border-stone-200 bg-stone-50/80 text-xs font-semibold uppercase tracking-wide text-stone-600">
             <tr>
               <th className="px-4 py-3">Created</th>
               <th className="px-4 py-3">Customer</th>
@@ -196,12 +196,12 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
                     o.needsAction ? "bg-amber-50/30" : "",
                   )}
                 >
-                  <td className="px-4 py-3 whitespace-nowrap text-xs text-stone-600">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-stone-500">
                     {o.createdAt.slice(0, 19).replace("T", " ")}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-amber-950">{o.customerName}</div>
-                    <div className="text-xs text-stone-500">{o.customerEmail}</div>
+                    <div className="font-medium text-stone-900">{o.customerName}</div>
+                    <div className="text-xs text-stone-600">{o.customerEmail}</div>
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -220,8 +220,8 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
                       <span className="text-stone-400">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-stone-700">{money(o.subtotalCents, o.currency)}</td>
-                  <td className="px-4 py-3 text-stone-700">
+                  <td className="px-4 py-3 text-stone-900">{money(o.subtotalCents, o.currency)}</td>
+                  <td className="px-4 py-3 text-stone-900">
                     {o.amountTotalCents != null ? money(o.amountTotalCents, o.currency) : "—"}
                   </td>
                   <td className="px-4 py-3">
@@ -245,7 +245,7 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
                 {open === o.id ? (
                   <tr className="border-b border-stone-200 bg-stone-50/50">
                     <td colSpan={7} className="px-4 py-4">
-                      <ul className="space-y-2 text-sm text-stone-700">
+                      <ul className="space-y-2 text-sm text-stone-800">
                         {o.items.map((it) => (
                           <li
                             key={it.id}
@@ -254,9 +254,9 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
                             <span>
                               {it.productNameSnapshot}
                               {it.variantLabelSnapshot ? (
-                                <span className="text-stone-500"> · {it.variantLabelSnapshot}</span>
+                                <span className="text-stone-600"> · {it.variantLabelSnapshot}</span>
                               ) : null}{" "}
-                              <span className="text-stone-500">×{it.quantity}</span>
+                              <span className="text-stone-600">×{it.quantity}</span>
                             </span>
                             <span className="font-mono text-xs">{money(it.lineTotalCents, o.currency)}</span>
                           </li>

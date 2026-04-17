@@ -63,39 +63,39 @@ export default async function AdminStorefrontDomainsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Platform operator console</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Storefront domains</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600 sm:text-base">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Platform operator console</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Storefront domains</h1>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--muted)] sm:text-base">
           One operational source of truth for studio-owned storefront domains: DNS target, routing readiness, canonical origin, and current domain inventory.
         </p>
       </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Setup ready</p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{setupReady ? "Yes" : "No"}</p>
-          <p className="mt-2 text-sm text-stone-600">True only when target hostname, canonical origin, and resolve base URL are all available.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Setup ready</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{setupReady ? "Yes" : "No"}</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">True only when target hostname, canonical origin, and resolve base URL are all available.</p>
         </article>
         <article className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Live storefront domains</p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{activeDomains}</p>
-          <p className="mt-2 text-sm text-stone-600">Verified + active studio domains currently eligible for host resolution.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Live storefront domains</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{activeDomains}</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Verified + active studio domains currently eligible for host resolution.</p>
         </article>
         <article className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Pending domains</p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{pendingDomains}</p>
-          <p className="mt-2 text-sm text-stone-600">Domains added by studios but not yet fully verified.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Pending domains</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{pendingDomains}</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Domains added by studios but not yet fully verified.</p>
         </article>
         <article className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Tracked domains</p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{totalDomains}</p>
-          <p className="mt-2 text-sm text-stone-600">Most recent 200 domain rows in the shared vendor-domain registry.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Tracked domains</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{totalDomains}</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Most recent 200 domain rows in the shared vendor-domain registry.</p>
         </article>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Routing configuration</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Routing configuration</p>
           <div className="mt-5 space-y-3">
             <div className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(Boolean(connectTargetHostname))}`}>
               <p className="font-semibold">DNS target hostname</p>
@@ -122,8 +122,8 @@ export default async function AdminStorefrontDomainsPage() {
         </div>
 
         <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Operator checklist</p>
-          <ol className="mt-5 space-y-3 text-sm leading-6 text-stone-700">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Operator checklist</p>
+          <ol className="mt-5 space-y-3 text-sm leading-6 text-[var(--foreground)]">
             <li>1. Set `NEXT_PUBLIC_SITE_URL` and `AUTH_URL` to the exact public PotteryMania origin.</li>
             <li>2. Set `INTERNAL_APP_ORIGIN` to the same primary HTTPS origin so middleware can call the resolve API reliably.</li>
             <li>3. Set `VENDOR_DOMAIN_RESOLVE_SECRET` so host resolution is not publicly callable without the shared secret header.</li>
@@ -146,8 +146,8 @@ export default async function AdminStorefrontDomainsPage() {
       <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Tracked domain inventory</p>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-amber-950">Most recent storefront domains</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Tracked domain inventory</p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">Most recent storefront domains</h2>
           </div>
           <Link href="/admin/studios" className="text-sm font-medium text-amber-900 underline underline-offset-2">
             Open studios →
@@ -155,7 +155,7 @@ export default async function AdminStorefrontDomainsPage() {
         </div>
 
         {domains.length === 0 ? (
-          <p className="mt-5 text-sm text-stone-500">No studio storefront domains have been added yet.</p>
+          <p className="mt-5 text-sm text-[var(--muted)]">No studio storefront domains have been added yet.</p>
         ) : (
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full divide-y divide-stone-200 text-left text-sm">
@@ -172,19 +172,19 @@ export default async function AdminStorefrontDomainsPage() {
               <tbody className="divide-y divide-stone-100">
                 {domains.map((domain) => (
                   <tr key={domain.id} className="align-top">
-                    <td className="px-3 py-3 font-mono text-xs text-stone-800 sm:text-sm">{domain.domainName}</td>
+                    <td className="px-3 py-3 font-mono text-xs text-[var(--foreground)] sm:text-sm">{domain.domainName}</td>
                     <td className="px-3 py-3">
                       <div className="min-w-56">
                         <p className="font-medium text-stone-900">{domain.studio.displayName}</p>
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-[var(--muted)]">
                           {domain.studio.status} · <Link href={`/admin/studios/${domain.studio.id}`} className="underline underline-offset-2">open studio</Link>
                         </p>
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-stone-700">{domain.verificationStatus}</td>
-                    <td className="px-3 py-3 text-stone-700">{domain.sslStatus}</td>
-                    <td className="px-3 py-3 text-stone-700">{domain.isActive ? "Yes" : "No"}</td>
-                    <td className="px-3 py-3 text-stone-500">{domain.updatedAt.toISOString().slice(0, 10)}</td>
+                    <td className="px-3 py-3 text-[var(--foreground)]">{domain.verificationStatus}</td>
+                    <td className="px-3 py-3 text-[var(--foreground)]">{domain.sslStatus}</td>
+                    <td className="px-3 py-3 text-[var(--foreground)]">{domain.isActive ? "Yes" : "No"}</td>
+                    <td className="px-3 py-3 text-[var(--muted)]">{domain.updatedAt.toISOString().slice(0, 10)}</td>
                   </tr>
                 ))}
               </tbody>

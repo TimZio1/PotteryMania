@@ -263,7 +263,7 @@ export default function StudioClassesClient({
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-stone-500">
+                  <td colSpan={8} className="px-4 py-8 text-center text-[var(--muted)]">
                     No classes match filters.
                   </td>
                 </tr>
@@ -281,9 +281,9 @@ export default function StudioClassesClient({
                       onClick={() => openRow(c)}
                     >
                       <td className="px-4 py-3 font-medium text-stone-900">{c.title}</td>
-                      <td className="px-4 py-3 text-stone-600">{c.status}</td>
-                      <td className="px-4 py-3 text-stone-600">{c.experienceType.replace(/_/g, " ")}</td>
-                      <td className="px-4 py-3 text-stone-600">
+                      <td className="px-4 py-3 text-[var(--muted)]">{c.status}</td>
+                      <td className="px-4 py-3 text-[var(--muted)]">{c.experienceType.replace(/_/g, " ")}</td>
+                      <td className="px-4 py-3 text-[var(--muted)]">
                         {c.nextSlot ? (
                           <>
                             {c.nextSlot.slotDate}
@@ -296,11 +296,11 @@ export default function StudioClassesClient({
                           "—"
                         )}
                       </td>
-                      <td className="px-4 py-3 text-stone-600">
+                      <td className="px-4 py-3 text-[var(--muted)]">
                         {pct !== null ? (
                           <>
                             {pct}%
-                            <span className="block text-xs text-stone-500">
+                            <span className="block text-xs text-[var(--muted)]">
                               {c.nextSlot?.capacityReserved}/{c.nextSlot?.capacityTotal} ({c.nextSlot?.slotStatus})
                             </span>
                           </>
@@ -308,8 +308,8 @@ export default function StudioClassesClient({
                           "—"
                         )}
                       </td>
-                      <td className="px-4 py-3 text-stone-600">{c.recurringRulesCount}</td>
-                      <td className="px-4 py-3 text-stone-600">
+                      <td className="px-4 py-3 text-[var(--muted)]">{c.recurringRulesCount}</td>
+                      <td className="px-4 py-3 text-[var(--muted)]">
                         {c.pricingType === "recurring" && c.recurringPriceCents != null
                           ? `€${(c.recurringPriceCents / 100).toFixed(2)}/${billingIntervalLabel(
                               c.billingInterval ?? "monthly",
@@ -339,7 +339,7 @@ export default function StudioClassesClient({
           )}
         >
           <div className="flex items-start justify-between gap-2">
-            <p className="text-xs font-semibold uppercase text-stone-500">Edit class</p>
+            <p className="text-xs font-semibold uppercase text-[var(--muted)]">Edit class</p>
             <button type="button" className={ui.buttonGhost} onClick={() => setSelected(null)}>
               Close
             </button>
@@ -435,7 +435,7 @@ export default function StudioClassesClient({
             />
           </label>
           <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Monetization</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Monetization</p>
             <div className="mt-2 flex flex-wrap gap-4 text-sm">
               <label className="inline-flex items-center gap-2">
                 <input
@@ -545,7 +545,7 @@ export default function StudioClassesClient({
                     />
                   </label>
                 </div>
-                <label className="flex items-center gap-2 text-sm text-stone-700">
+                <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
                   <input
                     type="checkbox"
                     checked={form.autoRenew}
@@ -602,7 +602,7 @@ export default function StudioClassesClient({
               </select>
             </label>
           </div>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.bookingApprovalRequired}
@@ -610,7 +610,7 @@ export default function StudioClassesClient({
             />
             Require vendor approval
           </label>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.waitlistEnabled}
@@ -618,7 +618,7 @@ export default function StudioClassesClient({
             />
             Waitlist when full
           </label>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.allowPayAtStudio}
@@ -626,7 +626,7 @@ export default function StudioClassesClient({
             />
             Allow pay at studio (no online payment)
           </label>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.allowFullPaymentOption}
@@ -644,7 +644,7 @@ export default function StudioClassesClient({
               value={form.bookingCutoffHours}
               onChange={(e) => setForm((f) => ({ ...f, bookingCutoffHours: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
             />
-            <span className="mt-1 block text-xs text-stone-500">
+            <span className="mt-1 block text-xs text-[var(--muted)]">
               0 = no cutoff. Recommended: 3h.
             </span>
           </label>
@@ -660,7 +660,7 @@ export default function StudioClassesClient({
                 setForm((f) => ({ ...f, bufferMinutesAfter: Math.max(0, parseInt(e.target.value, 10) || 0) }))
               }
             />
-            <span className="mt-1 block text-xs text-stone-500">
+            <span className="mt-1 block text-xs text-[var(--muted)]">
               Extra cleanup/reset time kept free after each generated session.
             </span>
           </label>
@@ -669,7 +669,7 @@ export default function StudioClassesClient({
             {saving ? "Saving…" : "Save changes"}
           </button>
 
-          <p className="border-t border-stone-100 pt-3 text-xs text-stone-500">
+          <p className="border-t border-stone-100 pt-3 text-xs text-[var(--muted)]">
             Images, long description, location, deposits, and slot generation live in{" "}
             <Link href={`/dashboard/${studioId}/programs/planner`} className="font-medium text-amber-900 underline">
               class builder

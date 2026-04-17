@@ -233,7 +233,7 @@ export default function NewStudioPage() {
     const fe = fieldErrors[k];
     return (
       <label key={k} className="block text-sm">
-        <span className="text-stone-600">{required ? `${label} *` : label}</span>
+        <span className="text-[var(--muted)]">{required ? `${label} *` : label}</span>
         <input
           type={type}
           aria-invalid={fe ? "true" : undefined}
@@ -253,15 +253,15 @@ export default function NewStudioPage() {
 
   return (
     <div className="mx-auto max-w-xl px-5 py-10 sm:px-6 sm:py-12">
-      <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-medium text-amber-900 hover:text-amber-950">
+      <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-medium text-amber-900 hover:text-[var(--foreground)]">
         ← Back
       </Link>
-      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
         Step 1 · What do you want to do?
       </p>
       <h1 className="mt-2 font-serif text-3xl font-normal tracking-[-0.02em] text-(--brand-ink)">Start selling your work</h1>
-      <p className="mt-1 text-xs text-stone-500">Whether you&apos;re a solo potter or running a full studio, pick what fits you best right now. You can always add more later.</p>
-      <p className="mt-2 text-sm leading-relaxed text-stone-600">{pathCopy.helper}</p>
+      <p className="mt-1 text-xs text-[var(--muted)]">Whether you&apos;re a solo potter or running a full studio, pick what fits you best right now. You can always add more later.</p>
+      <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{pathCopy.helper}</p>
       <div className="mt-5 grid gap-2 sm:grid-cols-3">
         <Link
           href={`/dashboard/studio/new?setup=bookings${fullForm ? "&full=1" : ""}`}
@@ -295,8 +295,8 @@ export default function NewStudioPage() {
         </Link>
       </div>
       <p className="mt-3 text-sm font-medium text-amber-900">{pathCopy.title}</p>
-      <p className="mt-1 text-sm text-stone-600">
-        Workspace plan: <span className="font-medium text-stone-800">{selectedPlan.name}</span> ({monthlyLabel(selectedPlan)},
+      <p className="mt-1 text-sm text-[var(--muted)]">
+        Workspace plan: <span className="font-medium text-[var(--foreground)]">{selectedPlan.name}</span> ({monthlyLabel(selectedPlan)},
         plus platform commission based on your tier).
       </p>
 
@@ -309,10 +309,10 @@ export default function NewStudioPage() {
           <form onSubmit={submitQuick} className="mt-6 space-y-4">
             {err ? <p className="text-sm text-red-600">{err}</p> : null}
             {sessionStatus === "loading" ? (
-              <p className="text-sm text-stone-500">Loading your account…</p>
+              <p className="text-sm text-[var(--muted)]">Loading your account…</p>
             ) : null}
             <label className="block text-sm">
-              <span className="text-stone-600">Your name or studio name *</span>
+              <span className="text-[var(--muted)]">Your name or studio name *</span>
               <input
                 aria-invalid={fieldErrors.displayName ? "true" : undefined}
                 className={`${inputBaseClass} ${fieldErrors.displayName ? inputInvalidClass : "border-stone-200"}`}
@@ -329,11 +329,11 @@ export default function NewStudioPage() {
               {fieldErrors.displayName ? (
                 <p className="mt-1 text-xs text-rose-600">{fieldErrors.displayName}</p>
               ) : (
-                <span className="mt-1 block text-xs text-stone-500">This is what customers see. Use your artist name or studio name.</span>
+                <span className="mt-1 block text-xs text-[var(--muted)]">This is what customers see. Use your artist name or studio name.</span>
               )}
             </label>
             <label className="block text-sm">
-              <span className="text-stone-600">Country *</span>
+              <span className="text-[var(--muted)]">Country *</span>
               <input
                 aria-invalid={fieldErrors.country ? "true" : undefined}
                 className={`${inputBaseClass} ${fieldErrors.country ? inputInvalidClass : "border-stone-200"}`}
@@ -350,7 +350,7 @@ export default function NewStudioPage() {
               {fieldErrors.country ? <p className="mt-1 text-xs text-rose-600">{fieldErrors.country}</p> : null}
             </label>
             <label className="block text-sm">
-              <span className="text-stone-600">City or region (optional)</span>
+              <span className="text-[var(--muted)]">City or region (optional)</span>
               <input
                 className={`${inputBaseClass} border-stone-200`}
                 value={quick.city}
@@ -361,7 +361,7 @@ export default function NewStudioPage() {
               />
             </label>
             <label className="block text-sm">
-              <span className="text-stone-600">Contact email *</span>
+              <span className="text-[var(--muted)]">Contact email *</span>
               <input
                 type="email"
                 aria-invalid={fieldErrors.email ? "true" : undefined}
@@ -378,7 +378,7 @@ export default function NewStudioPage() {
               {fieldErrors.email ? (
                 <p className="mt-1 text-xs text-rose-600">{fieldErrors.email}</p>
               ) : (
-                <span className="mt-1 block text-xs text-stone-500">We pre-fill from your account; change if needed.</span>
+                <span className="mt-1 block text-xs text-[var(--muted)]">We pre-fill from your account; change if needed.</span>
               )}
             </label>
             <button
@@ -389,7 +389,7 @@ export default function NewStudioPage() {
               {submitting ? "Creating…" : pathCopy.cta}
             </button>
           </form>
-          <p className="mt-6 text-center text-sm text-stone-600">
+          <p className="mt-6 text-center text-sm text-[var(--muted)]">
             Need VAT, legal entity name, and full address now?{" "}
             <Link
               href={`/dashboard/studio/new?setup=${setup}&full=1`}
@@ -401,14 +401,14 @@ export default function NewStudioPage() {
         </>
       ) : (
         <>
-          <p className="mt-4 text-xs text-stone-500">
+          <p className="mt-4 text-xs text-[var(--muted)]">
             <Link href={`/dashboard/studio/new?setup=${setup}`} className="font-medium text-amber-900 underline">
               ← Back to quick setup
             </Link>
           </p>
           <form onSubmit={submitFull} className="mt-6 space-y-3">
             {err ? <p className="text-sm text-red-600">{err}</p> : null}
-            <p className="text-xs text-stone-500">Fields marked with * are required before you can create the studio.</p>
+            <p className="text-xs text-[var(--muted)]">Fields marked with * are required before you can create the studio.</p>
             {field("displayName", "Display name", true)}
             {field("legalBusinessName", "Legal business name", true)}
             {field("vatNumber", "VAT / tax number", true)}

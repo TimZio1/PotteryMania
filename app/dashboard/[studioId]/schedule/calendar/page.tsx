@@ -94,8 +94,8 @@ export default async function StudioScheduleCalendarPage({ params, searchParams 
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Schedule</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Calendar</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Calendar</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Week / day views, capacity bars, and time-overlap warnings. Drag-and-drop reschedule is not enabled yet — adjust
           rules and slots from Programs.
         </p>

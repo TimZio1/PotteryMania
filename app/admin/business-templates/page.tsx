@@ -24,8 +24,8 @@ export default async function AdminBusinessTemplatesPage() {
   return (
     <div>
       <p className={ui.overline}>Catalog</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Studio business templates</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Studio business templates</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Control visibility, list pricing, featured and platform-recommended badges, and the default template shown to new
         studios. Vendor gallery copy and themes are seeded; edit rows in the database or extend seed files for large copy
         changes.

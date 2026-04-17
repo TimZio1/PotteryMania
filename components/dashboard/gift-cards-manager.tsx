@@ -166,8 +166,8 @@ export default function GiftCardsManager({
         <section className={`${ui.card} space-y-4`}>
           <div>
             <p className={ui.overline}>Issue card</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Create and email a gift card</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Create and email a gift card</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Issue a studio-owned gift card instantly and email the live code to the recipient.
             </p>
           </div>
@@ -223,8 +223,8 @@ export default function GiftCardsManager({
         <section className={`${ui.card} space-y-4`}>
           <div>
             <p className={ui.overline}>Template</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Create a gift card style</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Create a gift card style</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Set a background image and colors to make gift cards feel branded.
             </p>
           </div>
@@ -272,7 +272,7 @@ export default function GiftCardsManager({
         <section className={`${ui.card} space-y-4`}>
           <div>
             <p className={ui.overline}>History</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Issued gift cards</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Issued gift cards</h2>
           </div>
           {giftCards.length === 0 ? (
             <p className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
@@ -285,18 +285,18 @@ export default function GiftCardsManager({
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-medium text-stone-900">{giftCard.name}</p>
-                      <p className="mt-1 text-xs text-stone-500">
+                      <p className="mt-1 text-xs text-[var(--muted)]">
                         {giftCard.code} · {giftCard.recipientName || "Recipient"} · {giftCard.recipientEmail || "No email"}
                       </p>
                     </div>
                     <div className="text-right text-sm">
-                      <p className="font-medium text-amber-950">EUR {(giftCard.remainingValueCents / 100).toFixed(2)} left</p>
-                      <p className="text-xs text-stone-500">
+                      <p className="font-medium text-[var(--foreground)]">EUR {(giftCard.remainingValueCents / 100).toFixed(2)} left</p>
+                      <p className="text-xs text-[var(--muted)]">
                         of EUR {(giftCard.originalValueCents / 100).toFixed(2)}
                       </p>
                     </div>
                   </div>
-                  <p className="mt-3 text-xs text-stone-500">
+                  <p className="mt-3 text-xs text-[var(--muted)]">
                     {giftCard.sentAt ? `Sent ${giftCard.sentAt.slice(0, 10)}` : "Not emailed yet"} ·{" "}
                     {giftCard.isActive ? "active" : "inactive"}
                   </p>

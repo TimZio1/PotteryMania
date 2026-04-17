@@ -233,13 +233,13 @@ export default async function MyBusinessPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
         Owner view
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">
         My business
       </h1>
-      <p className="mt-3 text-sm text-stone-600">
+      <p className="mt-3 text-sm text-[var(--muted)]">
         {new Date().toLocaleDateString("en-IE", {
           month: "long",
           year: "numeric",
@@ -252,10 +252,10 @@ export default async function MyBusinessPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
             My profits
           </p>
-          <p className="mt-4 text-4xl font-semibold tracking-tight text-amber-950">
+          <p className="mt-4 text-4xl font-semibold tracking-tight text-[var(--foreground)]">
             {eur(netProfit)}
           </p>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Net this month (after refunds)
           </p>
 
@@ -294,10 +294,10 @@ export default async function MyBusinessPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-700">
             My expenses
           </p>
-          <p className="mt-4 text-4xl font-semibold tracking-tight text-amber-950">
+          <p className="mt-4 text-4xl font-semibold tracking-tight text-[var(--foreground)]">
             {eur(refundsThis)}
           </p>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Total outflows this month
           </p>
 
@@ -310,7 +310,7 @@ export default async function MyBusinessPage() {
           </dl>
 
           <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
-            <p className="text-sm text-stone-600">
+            <p className="text-sm text-[var(--muted)]">
               Stripe fees and hosting costs are not tracked here yet. Add ledger
               entries to see the full picture.
             </p>
@@ -323,10 +323,10 @@ export default async function MyBusinessPage() {
             Studios
           </p>
           <div className="mt-4 flex items-baseline gap-4">
-            <p className="text-4xl font-semibold tracking-tight text-amber-950">
+            <p className="text-4xl font-semibold tracking-tight text-[var(--foreground)]">
               {totalStudios}
             </p>
-            <p className="text-sm text-stone-500">total</p>
+            <p className="text-sm text-[var(--muted)]">total</p>
           </div>
 
           <dl className="mt-6 space-y-4">
@@ -345,12 +345,12 @@ export default async function MyBusinessPage() {
             T-shirt sales
           </p>
           <div className="mt-4 flex items-baseline gap-4">
-            <p className="text-4xl font-semibold tracking-tight text-amber-950">
+            <p className="text-4xl font-semibold tracking-tight text-[var(--foreground)]">
               {eur(wearRevenue)}
             </p>
-            <p className="text-sm text-stone-500">this month</p>
+            <p className="text-sm text-[var(--muted)]">this month</p>
           </div>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-[var(--muted)]">
             {wearUnits} unit{wearUnits !== 1 ? "s" : ""} sold &middot;{" "}
             {wearOrdersThisMonth.length} order
             {wearOrdersThisMonth.length !== 1 ? "s" : ""}
@@ -358,7 +358,7 @@ export default async function MyBusinessPage() {
 
           {wearTopProducts.length > 0 && (
             <div className="mt-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
                 Top sellers (30 days)
               </p>
               <ol className="mt-3 space-y-2">
@@ -367,10 +367,10 @@ export default async function MyBusinessPage() {
                     key={item.wearProductId}
                     className="flex items-center justify-between gap-3 rounded-xl border border-stone-100 bg-stone-50/60 px-4 py-2.5"
                   >
-                    <span className="truncate text-sm font-medium text-amber-950">
+                    <span className="truncate text-sm font-medium text-[var(--foreground)]">
                       {i + 1}. {nameMap.get(item.wearProductId) ?? "Unknown"}
                     </span>
-                    <span className="whitespace-nowrap text-sm text-stone-500">
+                    <span className="whitespace-nowrap text-sm text-[var(--muted)]">
                       {item._sum.quantity ?? 0} sold
                     </span>
                   </li>
@@ -381,7 +381,7 @@ export default async function MyBusinessPage() {
 
           {wearTopProducts.length === 0 && (
             <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
-              <p className="text-sm text-stone-500">No t-shirt sales in the last 30 days.</p>
+              <p className="text-sm text-[var(--muted)]">No t-shirt sales in the last 30 days.</p>
             </div>
           )}
         </section>
@@ -405,12 +405,12 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-stone-200/70 pb-3 last:border-b-0 last:pb-0">
-      <dt className="text-sm text-stone-500">{label}</dt>
+      <dt className="text-sm text-[var(--muted)]">{label}</dt>
       <dd className="flex items-center gap-2">
         <span
           className={cn(
             "text-lg font-semibold tracking-tight",
-            negative ? "text-red-700" : positive ? "text-emerald-700" : "text-amber-950",
+            negative ? "text-red-700" : positive ? "text-emerald-700" : "text-[var(--foreground)]",
           )}
         >
           {value}

@@ -37,8 +37,8 @@ function CodeCard({
 }) {
   return (
     <div className="rounded-xl border border-stone-200 bg-stone-50/70 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{title}</p>
-      <p className="mt-1 text-xs leading-relaxed text-stone-500">{description}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{title}</p>
+      <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">{description}</p>
       <div className="relative mt-3">
         <pre className="overflow-x-auto rounded-lg bg-white p-3 text-xs leading-relaxed text-stone-700 ring-1 ring-stone-200">
 {code}
@@ -89,20 +89,20 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
         <p className={ui.overline}>Shortlists</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Web page integration shortlists</h1>
-        <p className="mt-2 max-w-3xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Web page integration shortlists</h1>
+        <p className="mt-2 max-w-3xl text-sm text-[var(--muted)]">
           One place for the three website integration paths you asked for: shop, bookings, and e shop reseller.
         </p>
-        <p className="mt-2 max-w-3xl text-sm text-stone-600">
+        <p className="mt-2 max-w-3xl text-sm text-[var(--muted)]">
           Shop and bookings currently integrate best through your hosted PotteryMania pages. E shop reseller supports both a JavaScript widget and an iframe embed.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <section className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">1. Shop</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">1. Shop</p>
           <h2 className="mt-2 text-lg font-semibold text-stone-900">Sell ceramics from your site</h2>
-          <p className="mt-2 text-sm text-stone-600">
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Best when you want a clean button or an embedded hosted shop section on your own website.
           </p>
           <div className="mt-4 flex flex-col gap-2">
@@ -116,9 +116,9 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
         </section>
 
         <section className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">2. Bookings</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">2. Bookings</p>
           <h2 className="mt-2 text-lg font-semibold text-stone-900">Send visitors into live class booking</h2>
-          <p className="mt-2 text-sm text-stone-600">
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Best when your external site needs a direct way into your upcoming sessions and bookable classes.
           </p>
           <div className="mt-4 flex flex-col gap-2">
@@ -132,9 +132,9 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
         </section>
 
         <section className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">3. E shop reseller</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">3. E shop reseller</p>
           <h2 className="mt-2 text-lg font-semibold text-stone-900">Embed your reseller wear shop</h2>
-          <p className="mt-2 text-sm text-stone-600">
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Best when you want a real embedded storefront for branded apparel on WordPress, Wix, Squarespace, or any HTML site.
           </p>
           <div className="mt-4 flex flex-col gap-2">
@@ -152,7 +152,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-stone-900">Website snippets</h2>
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm text-[var(--muted)]">
               Copy the version that fits your website builder. Keep it simple: button link for fast setup, iframe if you want the PotteryMania page inside your site, reseller widget for the full e shop integration.
             </p>
           </div>
@@ -160,7 +160,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-amber-950">Shop</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Shop</p>
             <CodeCard
               title="Hosted button"
               description="Best default for Shopify, WordPress, Squarespace, Wix, or any custom site."
@@ -174,7 +174,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-amber-950">Bookings</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Bookings</p>
             <CodeCard
               title="Booking button"
               description="Sends visitors straight to your upcoming sessions section."
@@ -188,7 +188,7 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-amber-950">E shop reseller</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">E shop reseller</p>
             <CodeCard
               title="Widget"
               description="Recommended. Inline reseller storefront that feels native to your page."

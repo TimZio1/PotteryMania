@@ -79,8 +79,8 @@ export default function GoogleCalendarSettingsCard({
 
   return (
     <div className={`${platformUi.card} space-y-3`}>
-      <h2 className="text-lg font-semibold text-amber-950">Google Calendar</h2>
-      <p className="text-sm text-stone-600">
+      <h2 className="text-lg font-semibold text-[var(--foreground)]">Google Calendar</h2>
+      <p className="text-sm text-[var(--muted)]">
         Confirmed class bookings can appear on your Google Calendar. Connect once; confirmations and reschedules update the same
         event automatically.
       </p>
@@ -90,9 +90,9 @@ export default function GoogleCalendarSettingsCard({
           <code className="rounded bg-stone-100 px-1 text-stone-800">GOOGLE_CALENDAR_CLIENT_ID</code> / secret).
         </p>
       ) : connected ? (
-        <div className="space-y-3 text-sm text-stone-700">
+        <div className="space-y-3 text-sm text-[var(--foreground)]">
           <p className="font-medium text-emerald-700">Connected</p>
-          {lastSyncAt ? <p className="text-stone-500">Last sync: {new Date(lastSyncAt).toLocaleString()}</p> : null}
+          {lastSyncAt ? <p className="text-[var(--muted)]">Last sync: {new Date(lastSyncAt).toLocaleString()}</p> : null}
           {syncErrorState ? <p className="text-rose-700">Last error: {syncErrorState}</p> : null}
           {hasGoogleConnection && connected ? (
             <label className="flex cursor-pointer items-center gap-2">
@@ -112,7 +112,7 @@ export default function GoogleCalendarSettingsCard({
           </div>
         </div>
       ) : (
-        <div className="space-y-2 text-sm text-stone-700">
+        <div className="space-y-2 text-sm text-[var(--foreground)]">
           {connectionStatus === "error" ? (
             <p className="text-rose-700">Connection error{syncErrorState ? `: ${syncErrorState}` : ""}. Reconnect to restore sync.</p>
           ) : (

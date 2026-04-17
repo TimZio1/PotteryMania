@@ -135,8 +135,8 @@ export default function StudioTemplateGalleryClient({
   if (templates.length === 0) {
     return (
       <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-amber-50/60 px-6 py-8 text-center">
-        <p className="text-lg font-semibold text-amber-950">Templates are not available yet</p>
-        <p className="mt-2 text-sm text-stone-700">
+        <p className="text-lg font-semibold text-[var(--foreground)]">Templates are not available yet</p>
+        <p className="mt-2 text-sm text-[var(--foreground)]">
           The platform is still configuring studio templates. Check back soon or contact support.
         </p>
       </div>
@@ -147,10 +147,10 @@ export default function StudioTemplateGalleryClient({
     <div className="mx-auto max-w-6xl">
       <header className="mb-8 max-w-2xl">
         <p className={ui.overline}>Studio template</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
           Choose how your studio grows
         </h1>
-        <p className="mt-3 text-sm text-stone-600 sm:text-base">
+        <p className="mt-3 text-sm text-[var(--muted)] sm:text-base">
           Each option matches a different business model — pick one focus. Your classes, students, and sales stay intact.
         </p>
       </header>
@@ -177,7 +177,7 @@ export default function StudioTemplateGalleryClient({
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className={`text-lg font-semibold ${isWearVisual ? "text-white" : "text-amber-950"}`}>{t.name}</h2>
+                  <h2 className={`text-lg font-semibold ${isWearVisual ? "text-white" : "text-[var(--foreground)]"}`}>{t.name}</h2>
                   <div className="flex flex-wrap justify-end gap-1.5">
                     {studioRec ? (
                       <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-950">
@@ -190,7 +190,7 @@ export default function StudioTemplateGalleryClient({
                       </span>
                     ) : null}
                     {showFeatured ? (
-                      <span className="shrink-0 rounded-full bg-stone-200 px-2.5 py-0.5 text-xs font-medium text-stone-800">
+                      <span className="shrink-0 rounded-full bg-stone-200 px-2.5 py-0.5 text-xs font-medium text-[var(--foreground)]">
                         Featured
                       </span>
                     ) : null}
@@ -201,11 +201,11 @@ export default function StudioTemplateGalleryClient({
                     ) : null}
                   </div>
                 </div>
-                <p className={`mt-1 text-xs font-medium uppercase tracking-wide ${isWearVisual ? "text-neutral-400" : "text-stone-500"}`}>
+                <p className={`mt-1 text-xs font-medium uppercase tracking-wide ${isWearVisual ? "text-neutral-400" : "text-[var(--muted)]"}`}>
                   {t.businessModelLabel}
                 </p>
-                <p className={`mt-2 text-sm font-medium ${isWearVisual ? "text-neutral-200" : "text-stone-800"}`}>{t.tagline}</p>
-                <ul className={`mt-4 flex-1 space-y-2 text-sm ${isWearVisual ? "text-neutral-300" : "text-stone-600"}`}>
+                <p className={`mt-2 text-sm font-medium ${isWearVisual ? "text-neutral-200" : "text-[var(--foreground)]"}`}>{t.tagline}</p>
+                <ul className={`mt-4 flex-1 space-y-2 text-sm ${isWearVisual ? "text-neutral-300" : "text-[var(--muted)]"}`}>
                   {t.bullets.filter(Boolean).map((b) => (
                     <li key={b} className="flex gap-2">
                       <span className={`mt-1.5 h-1 w-1 shrink-0 rounded-full ${v.bulletDot}`} aria-hidden />
@@ -213,7 +213,7 @@ export default function StudioTemplateGalleryClient({
                     </li>
                   ))}
                 </ul>
-                <p className={`mt-6 text-sm font-semibold ${isWearVisual ? "text-amber-200" : "text-amber-950"}`}>
+                <p className={`mt-6 text-sm font-semibold ${isWearVisual ? "text-amber-200" : "text-[var(--foreground)]"}`}>
                   {money(t.priceCents, t.currency)} / month
                 </p>
                 <div
@@ -261,24 +261,24 @@ export default function StudioTemplateGalleryClient({
               {phase === "preview" || phase === "confirm" ? (
                 <>
                   <section className="border-b border-stone-100 pb-6">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Compare</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Compare</p>
                     <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4">
-                        <p className="text-xs font-semibold text-stone-500">Your current setup</p>
-                        <p className="mt-2 text-sm text-stone-800">{leftSummary}</p>
+                        <p className="text-xs font-semibold text-[var(--muted)]">Your current setup</p>
+                        <p className="mt-2 text-sm text-[var(--foreground)]">{leftSummary}</p>
                       </div>
                       <div
                         className={`rounded-xl border p-4 ${drawerVisual.compareNewBorder} ${drawerVisual.compareNewBg}`}
                       >
                         <p className={`text-xs font-semibold ${drawerVisual.compareNewLabel}`}>New template</p>
-                        <p className={`mt-2 text-sm ${selectedIsWear ? "text-neutral-200" : "text-stone-800"}`}>{rightSummary}</p>
+                        <p className={`mt-2 text-sm ${selectedIsWear ? "text-neutral-200" : "text-[var(--foreground)]"}`}>{rightSummary}</p>
                       </div>
                     </div>
                   </section>
 
                   <section className="border-b border-stone-100 py-6">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">What will change</p>
-                    <ul className="mt-3 space-y-2 text-sm text-stone-700">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">What will change</p>
+                    <ul className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
                       {selected.whatWillChange.map((line) => (
                         <li key={line} className="flex gap-2">
                           <span className={drawerVisual.compareNewLabel} aria-hidden>
@@ -291,8 +291,8 @@ export default function StudioTemplateGalleryClient({
                   </section>
 
                   <section className="border-b border-stone-100 py-6">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Expected impact</p>
-                    <ul className="mt-3 space-y-2 text-sm text-stone-700">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Expected impact</p>
+                    <ul className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
                       {selected.expectedImpact.map((line) => (
                         <li key={line} className="flex gap-2">
                           <span className="text-emerald-700" aria-hidden>
@@ -305,8 +305,8 @@ export default function StudioTemplateGalleryClient({
                   </section>
 
                   <section className="py-6">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Safety</p>
-                    <p className="mt-2 text-sm text-stone-700">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Safety</p>
+                    <p className="mt-2 text-sm text-[var(--foreground)]">
                       Your data stays intact. No classes or students are removed — we only change how your dashboard guides
                       you.
                     </p>
@@ -321,7 +321,7 @@ export default function StudioTemplateGalleryClient({
                   ) : (
                     <div className="space-y-4">
                       <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-800">
-                        <p className="font-semibold text-amber-950">Confirm activation</p>
+                        <p className="font-semibold text-[var(--foreground)]">Confirm activation</p>
                         <p className="mt-2">
                           Activate <strong>{selected.name}</strong> at{" "}
                           <strong>{money(selected.priceCents, selected.currency)}</strong> per month (list price). Your choice
@@ -352,16 +352,16 @@ export default function StudioTemplateGalleryClient({
               ) : (
                 <div className="space-y-8">
                   <div>
-                    <p className="text-xl font-semibold text-amber-950">
+                    <p className="text-xl font-semibold text-[var(--foreground)]">
                       Your studio is now optimized for {selected.successGoalPhrase}
                     </p>
-                    <p className="mt-2 text-sm text-stone-600">
+                    <p className="mt-2 text-sm text-[var(--muted)]">
                       Let’s complete your setup so you see results faster.
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Next steps</p>
-                    <ul className="mt-3 space-y-3 text-sm text-stone-800">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Next steps</p>
+                    <ul className="mt-3 space-y-3 text-sm text-[var(--foreground)]">
                       <li className="flex gap-2">
                         <span className="text-amber-700">○</span>
                         Create your next class

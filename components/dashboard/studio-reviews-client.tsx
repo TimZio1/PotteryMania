@@ -61,10 +61,10 @@ export default function StudioReviewsClient({
 
   return (
     <section className={ui.card}>
-      <h2 className="text-lg font-semibold text-amber-950">Incoming reviews</h2>
+      <h2 className="text-lg font-semibold text-[var(--foreground)]">Incoming reviews</h2>
       {error ? <p className={`${ui.errorText} mt-3`}>{error}</p> : null}
       {reviews.length === 0 ? (
-        <p className="mt-3 text-sm text-stone-600">No reviews yet.</p>
+        <p className="mt-3 text-sm text-[var(--muted)]">No reviews yet.</p>
       ) : (
         <div className="mt-4 space-y-4">
           {reviews.map((review) => (
@@ -76,7 +76,7 @@ export default function StudioReviewsClient({
                     {"☆".repeat(5 - review.rating)}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-stone-900">{review.title || "Untitled review"}</p>
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     {reviewAuthorLabel(review.author)}
                     {review.experience ? ` · ${review.experience.title}` : ""}
                   </p>
@@ -100,7 +100,7 @@ export default function StudioReviewsClient({
                   </button>
                 </div>
               </div>
-              {review.body ? <p className="mt-3 whitespace-pre-wrap text-sm text-stone-700">{review.body}</p> : null}
+              {review.body ? <p className="mt-3 whitespace-pre-wrap text-sm text-[var(--foreground)]">{review.body}</p> : null}
               <p className="mt-2 text-xs text-stone-400">
                 {review.isVisible ? "Visible" : "Hidden"} · {review.isFeatured ? "Featured" : "Standard"} ·{" "}
                 {new Date(review.createdAt).toLocaleString()}

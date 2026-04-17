@@ -74,13 +74,13 @@ export default function StudioCalendarClient({
         <Link href={scheduleHref} className="block font-medium text-stone-900 line-clamp-2 hover:text-amber-900">
           {sl.experience.title}
         </Link>
-        <p className="text-stone-500">
+        <p className="text-[var(--muted)]">
           {sl.startTime}–{sl.endTime}
         </p>
         <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stone-200">
           <div className="h-full bg-amber-700" style={{ width: `${fill}%` }} />
         </div>
-        <p className="mt-0.5 text-[10px] text-stone-500">
+        <p className="mt-0.5 text-[10px] text-[var(--muted)]">
           {sl.capacityReserved}/{sl.capacityTotal} · {sl.status}
           {conflict ? <span className="ml-1 font-semibold text-rose-700">overlap</span> : null}
         </p>
@@ -135,7 +135,7 @@ export default function StudioCalendarClient({
         </div>
       </div>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-[var(--muted)]">
         Week starting <span className="font-mono">{weekStartIso}</span>. Red outline = overlapping times that day. Edit
         slots from{" "}
         <Link href={`/dashboard/${studioId}/programs/planner`} className="font-medium text-amber-900 underline">
@@ -150,8 +150,8 @@ export default function StudioCalendarClient({
             const list = byDay.get(d.key) ?? [];
             return (
               <div key={d.key} className="min-h-[160px] rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">{d.labelShort}</p>
-                <p className="text-sm font-medium text-amber-950">{d.dayNum}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">{d.labelShort}</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">{d.dayNum}</p>
                 <ul className="mt-2 space-y-2">
                   {list.map((sl) => (
                     <SlotCard key={sl.id} sl={sl} />
@@ -179,12 +179,12 @@ export default function StudioCalendarClient({
             ))}
           </div>
           <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-semibold text-amber-950">
+            <p className="text-sm font-semibold text-[var(--foreground)]">
               {selectedDay.labelShort} {selectedDay.dayNum}
             </p>
             <ul className="mt-3 space-y-2">
               {selectedSlots.length === 0 ? (
-                <li className="text-sm text-stone-500">No sessions this day.</li>
+                <li className="text-sm text-[var(--muted)]">No sessions this day.</li>
               ) : (
                 selectedSlots.map((sl) => <SlotCard key={sl.id} sl={sl} />)
               )}

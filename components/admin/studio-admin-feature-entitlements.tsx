@@ -58,8 +58,8 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
 
   return (
     <section className={`${ui.cardMuted} space-y-3`}>
-      <h2 className="text-sm font-semibold text-amber-950">Platform add-ons</h2>
-      <p className="text-xs text-stone-500">
+      <h2 className="text-sm font-semibold text-[var(--foreground)]">Platform add-ons</h2>
+      <p className="text-xs text-[var(--muted)]">
         Grant sets access without Checkout. Revoke clears access; if the studio has a Stripe subscription for this add-on
         (or bundle), you can end billing <strong>now</strong> or at the <strong>end of the billing period</strong> (same
         as vendor self-serve). Override price is ops reference only.
@@ -74,7 +74,7 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
           placeholder="Why you are granting, revoking, or changing override pricing…"
           maxLength={500}
         />
-        <span className="mt-1 block text-[11px] text-stone-500">Logged on admin audit; minimum 8 characters.</span>
+        <span className="mt-1 block text-[11px] text-[var(--muted)]">Logged on admin audit; minimum 8 characters.</span>
       </label>
       <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
         <table className="min-w-full divide-y divide-stone-200 text-sm">
@@ -96,12 +96,12 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
               return (
                 <tr key={r.featureId} className="align-top">
                   <td className="px-3 py-2">
-                    <p className="font-medium text-amber-950">{r.name}</p>
-                    <code className="text-xs text-stone-500">{r.slug}</code>
+                    <p className="font-medium text-stone-900">{r.name}</p>
+                    <code className="text-xs text-stone-600">{r.slug}</code>
                   </td>
-                  <td className="px-3 py-2 text-stone-700">
+                  <td className="px-3 py-2 text-stone-900">
                     {!r.platformActive ? (
-                      <span className="text-stone-500">Catalog off</span>
+                      <span className="text-stone-600">Catalog off</span>
                     ) : r.grantByDefault ? (
                       <span className="text-emerald-800">Included for all studios</span>
                     ) : (
@@ -110,7 +110,7 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
                           {r.accessEffective ? "On" : "Off"}
                         </span>
                         {r.activation ? (
-                          <span className="ml-1 text-xs text-stone-500">({r.activation.status})</span>
+                          <span className="ml-1 text-xs text-stone-600">({r.activation.status})</span>
                         ) : null}
                         {r.activation?.status === "pending_cancel" && r.activation.deactivatesAtIso ? (
                           <p className="mt-1 text-[11px] font-medium text-amber-900">
@@ -160,7 +160,7 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
                           Revoke
                         </button>
                         {r.isPaidAddOn ? (
-                          <span className="w-full text-[11px] text-stone-500">Paid catalog — grant bypasses Checkout</span>
+                          <span className="w-full text-[11px] text-stone-600">Paid catalog — grant bypasses Checkout</span>
                         ) : null}
                       </div>
                     )}
@@ -193,7 +193,7 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
                             void patch(r.featureId, { overridePriceCents: cents });
                           }}
                         />
-                        <span className="text-[11px] text-stone-500">Blur to save; empty clears</span>
+                        <span className="text-[11px] text-stone-600">Blur to save; empty clears</span>
                       </div>
                     )}
                   </td>
@@ -203,7 +203,7 @@ export function StudioAdminFeatureEntitlements({ studioId, rows }: Props) {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-stone-600">
         Catalog:{" "}
         <Link href="/admin/platform-features" className="text-amber-900 underline">
           Platform add-ons

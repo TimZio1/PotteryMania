@@ -140,9 +140,9 @@ export default async function AdminWearOrdersPage({
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Wear orders</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Wear orders</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Operational queue for native wear. Move orders through production and shipping; Stripe still confirms payment.
       </p>
 

@@ -61,8 +61,8 @@ export default async function StudioAddOnsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Booking setup</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Class add-ons</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Class add-ons</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Mirror the best parts of SimplyBook add-ons: assign optional extras to classes, price them clearly, and save
           the chosen extras on each reservation.
         </p>

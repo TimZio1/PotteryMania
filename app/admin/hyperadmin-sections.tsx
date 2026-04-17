@@ -131,13 +131,13 @@ export function HyperadminSections(props: Props) {
       <Section id="growth" eyebrow="Growth & Conversion" title="Lead flow, activation, referral performance, and where funnel friction is visible.">
         <ScoreGrid cards={props.growthCards} />
         <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold text-amber-950">Founder funnel</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">Founder funnel</p>
           <div className="mt-5 grid gap-4 md:grid-cols-4">
             {props.funnelSteps.map((step) => (
               <article key={step.label} className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">{step.label}</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{step.value}</p>
-                <p className="mt-2 text-sm leading-6 text-stone-600">{step.note}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">{step.label}</p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{step.value}</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{step.note}</p>
               </article>
             ))}
           </div>
@@ -155,12 +155,12 @@ export function HyperadminSections(props: Props) {
       <Section id="product" eyebrow="Product / Feature Usage Analytics" title="Usage proxies available today plus the instrumentation gaps to close next.">
         <ScoreGrid cards={props.productCards} />
         <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold text-amber-950">Instrumentation needed for feature intelligence</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">Instrumentation needed for feature intelligence</p>
           <div className="mt-5 grid gap-3 lg:grid-cols-2">
             {props.instrumentationGaps.map((gap) => (
               <article key={gap.title} className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4">
-                <p className="text-sm font-semibold text-amber-950">{gap.title}</p>
-                <p className="mt-2 text-sm leading-6 text-stone-600">{gap.detail}</p>
+                <p className="text-sm font-semibold text-[var(--foreground)]">{gap.title}</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{gap.detail}</p>
               </article>
             ))}
           </div>
@@ -181,7 +181,7 @@ export function HyperadminSections(props: Props) {
             headers={["Account", "Commerce value", "Risk signal", "Context"]}
           />
           <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold text-amber-950">Alerts & recommendations engine</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Alerts & recommendations engine</p>
             <div className="mt-5 space-y-3">
               {props.alerts.map((alert) => (
                 <article key={alert.title} className={`rounded-2xl border p-4 ${alertTone[alert.severity]}`}>
@@ -224,8 +224,8 @@ function Section({
 }) {
   return (
     <section id={id} className="scroll-mt-24 rounded-4xl border border-stone-200 bg-[linear-gradient(180deg,#fbfaf8_0%,#f6f2ed_100%)] p-6 shadow-sm sm:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">{eyebrow}</p>
-      <h3 className="mt-3 text-2xl font-semibold tracking-tight text-amber-950">{title}</h3>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">{eyebrow}</p>
+      <h3 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--foreground)]">{title}</h3>
       <div className="mt-6">{children}</div>
     </section>
   );
@@ -236,9 +236,9 @@ function ScoreGrid({ cards }: { cards: ScoreCard[] }) {
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
         <article key={card.label} className={`rounded-2xl border p-5 shadow-sm ${toneClass[card.tone ?? "default"]}`}>
-          <p className="text-sm text-stone-500">{card.label}</p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{card.value}</p>
-          {card.note ? <p className="mt-2 text-sm leading-6 text-stone-600">{card.note}</p> : null}
+          <p className="text-sm text-[var(--muted)]">{card.label}</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{card.value}</p>
+          {card.note ? <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{card.note}</p> : null}
         </article>
       ))}
     </div>
@@ -258,14 +258,14 @@ function RankedTable({
 }) {
   return (
     <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-      <p className="text-sm font-semibold text-amber-950">{title}</p>
-      <p className="mt-1 text-sm text-stone-500">{subtitle}</p>
+      <p className="text-sm font-semibold text-[var(--foreground)]">{title}</p>
+      <p className="mt-1 text-sm text-[var(--muted)]">{subtitle}</p>
       {rows.length === 0 ? (
-        <p className="mt-5 text-sm text-stone-500">No data yet.</p>
+        <p className="mt-5 text-sm text-[var(--muted)]">No data yet.</p>
       ) : (
         <div className="mt-5 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="text-stone-500">
+            <thead className="text-[var(--muted)]">
               <tr className="border-b border-stone-200">
                 {headers.map((header) => (
                   <th key={header} className="px-0 py-3 pr-4 font-medium">
@@ -278,12 +278,12 @@ function RankedTable({
               {rows.map((row) => (
                 <tr key={`${row.name}-${row.secondary ?? ""}`} className="border-b border-stone-100 last:border-b-0">
                   <td className="px-0 py-4 pr-4">
-                    <p className="font-medium text-amber-950">{row.name}</p>
-                    {row.secondary ? <p className="text-xs text-stone-500">{row.secondary}</p> : null}
+                    <p className="font-medium text-[var(--foreground)]">{row.name}</p>
+                    {row.secondary ? <p className="text-xs text-[var(--muted)]">{row.secondary}</p> : null}
                   </td>
-                  <td className="px-0 py-4 pr-4 text-stone-700">{row.metricA}</td>
-                  <td className="px-0 py-4 pr-4 text-stone-700">{row.metricB}</td>
-                  <td className="px-0 py-4 text-stone-700">{row.metricC ?? "—"}</td>
+                  <td className="px-0 py-4 pr-4 text-[var(--foreground)]">{row.metricA}</td>
+                  <td className="px-0 py-4 pr-4 text-[var(--foreground)]">{row.metricB}</td>
+                  <td className="px-0 py-4 text-[var(--foreground)]">{row.metricC ?? "—"}</td>
                 </tr>
               ))}
             </tbody>

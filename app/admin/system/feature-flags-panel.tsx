@@ -43,8 +43,8 @@ export function FeatureFlagsPanel({ initial }: { initial: FlagRow[] }) {
         {initial.map((f) => (
           <li key={f.id} className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-mono text-sm font-medium text-amber-950">{f.flagKey}</p>
-              <p className="mt-1 text-xs text-stone-500">{JSON.stringify(f.flagValue)}</p>
+              <p className="font-mono text-sm font-medium text-[var(--foreground)]">{f.flagKey}</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">{JSON.stringify(f.flagValue)}</p>
             </div>
             <button
               type="button"

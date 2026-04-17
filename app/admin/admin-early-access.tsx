@@ -29,8 +29,8 @@ export function AdminEarlyAccessList({ rows, totalCount }: { rows: Row[]; totalC
 
   return (
     <div className="mt-10">
-      <h2 className="text-lg font-medium text-amber-950">Studio lead captures</h2>
-      <p className="mt-1 text-sm text-stone-500">
+      <h2 className="text-lg font-medium text-[var(--foreground)]">Studio lead captures</h2>
+      <p className="mt-1 text-sm text-[var(--muted)]">
         Legacy captures from <code className="rounded bg-stone-100 px-1">/early-access</code>. Newest first.{capNote} Not the same as
         registered users — those appear under{" "}
         <Link href="/admin/users" className="font-medium text-amber-900 underline">
@@ -39,20 +39,20 @@ export function AdminEarlyAccessList({ rows, totalCount }: { rows: Row[]; totalC
         .
       </p>
       {!rows.length ? (
-        <p className="mt-4 text-sm text-stone-500">No signups yet.</p>
+        <p className="mt-4 text-sm text-[var(--muted)]">No signups yet.</p>
       ) : (
         <ul className="mt-4 space-y-4">
           {rows.map((r) => (
             <li key={r.id} className="rounded-lg border border-stone-200 bg-white p-4 text-sm">
-              <p className="font-medium text-amber-950">{r.studioName}</p>
-              <p className="mt-1 text-stone-700">
+              <p className="font-medium text-[var(--foreground)]">{r.studioName}</p>
+              <p className="mt-1 text-[var(--foreground)]">
                 <a href={`mailto:${r.email}`} className="text-amber-900 underline">
                   {r.email}
                 </a>
               </p>
-              <p className="mt-1 text-stone-600">Country: {r.country}</p>
-              {r.websiteOrIg && <p className="mt-1 text-stone-600">Web / IG: {r.websiteOrIg}</p>}
-              <p className="mt-2 text-xs text-stone-500">Interested in: {interestFlags(r)}</p>
+              <p className="mt-1 text-[var(--muted)]">Country: {r.country}</p>
+              {r.websiteOrIg && <p className="mt-1 text-[var(--muted)]">Web / IG: {r.websiteOrIg}</p>}
+              <p className="mt-2 text-xs text-[var(--muted)]">Interested in: {interestFlags(r)}</p>
               <p className="mt-1 text-xs text-stone-400">{new Date(r.createdAt).toLocaleString()}</p>
               {r.photoUrls.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">

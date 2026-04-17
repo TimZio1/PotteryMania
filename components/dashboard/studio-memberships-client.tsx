@@ -206,7 +206,7 @@ export default function StudioMembershipsClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>Catalog</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Memberships</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Memberships</h2>
           </div>
           <button type="button" className={ui.buttonPrimary} onClick={openNew}>
             + New
@@ -226,7 +226,7 @@ export default function StudioMembershipsClient({
                 }`}
               >
                 <p className="font-medium text-stone-900">{item.name}</p>
-                <p className="mt-1 text-xs text-stone-500">
+                <p className="mt-1 text-xs text-[var(--muted)]">
                   €{(item.priceCents / 100).toFixed(2)} · {item.durationDays} days · {item._count?.purchases ?? 0} members
                 </p>
               </button>
@@ -239,7 +239,7 @@ export default function StudioMembershipsClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>{selected ? "Edit" : "Create"}</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">{selected ? selected.name : "New membership"}</h2>
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">{selected ? selected.name : "New membership"}</h2>
           </div>
           {selected ? (
             <button type="button" className={ui.buttonGhost} onClick={removeSelected} disabled={busy}>
@@ -278,7 +278,7 @@ export default function StudioMembershipsClient({
           </label>
         </div>
 
-        <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
+        <div className="grid gap-2 text-sm text-[var(--foreground)] sm:grid-cols-2">
           <label className="inline-flex items-center gap-2">
             <input type="checkbox" checked={form.isRecurring} onChange={(e) => setForm((c) => ({ ...c, isRecurring: e.target.checked }))} />
             Recurring
@@ -305,7 +305,7 @@ export default function StudioMembershipsClient({
             {experiences.map((experience) => {
               const checked = form.experienceIds.includes(experience.id);
               return (
-                <label key={experience.id} className="inline-flex items-center gap-2 rounded-xl border border-stone-200 p-2 text-sm text-stone-700">
+                <label key={experience.id} className="inline-flex items-center gap-2 rounded-xl border border-stone-200 p-2 text-sm text-[var(--foreground)]">
                   <input type="checkbox" checked={checked} onChange={() => toggleExperience(experience.id)} />
                   <span>{experience.title}</span>
                 </label>

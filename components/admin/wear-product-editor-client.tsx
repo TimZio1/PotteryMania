@@ -263,7 +263,7 @@ export default function WearProductEditorClient({
       <form onSubmit={saveProduct} className="space-y-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Name</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Name</label>
             <input
               className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm"
               value={name}
@@ -272,7 +272,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Slug</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Slug</label>
             <input
               className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 font-mono text-sm"
               value={slug}
@@ -281,7 +281,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Category</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Category</label>
             <input
               className="mt-1 w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-700"
               value={categoryLabel}
@@ -289,7 +289,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Sort order</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Sort order</label>
             <input
               type="number"
               className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm"
@@ -298,7 +298,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Subtitle</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Subtitle</label>
             <input
               className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm"
               value={subtitle}
@@ -306,7 +306,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Description</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Description</label>
             <textarea
               rows={6}
               className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm leading-relaxed"
@@ -356,14 +356,14 @@ export default function WearProductEditorClient({
                   </button>
                 ) : null}
               </div>
-              <p className="mt-2 text-xs text-stone-500">
+              <p className="mt-2 text-xs text-stone-600">
                 Uses synced Spreadshop details plus product imagery to describe the visible design without inventing specs.
               </p>
               {aiErr ? <p className="mt-3 text-sm font-medium text-red-700">{aiErr}</p> : null}
               {aiPreview ? (
                 <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">AI preview</p>
-                  <pre className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-600">AI preview</p>
+                  <pre className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-900">
                     {aiPreview}
                   </pre>
                 </div>
@@ -371,7 +371,7 @@ export default function WearProductEditorClient({
             </div>
           ) : null}
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Base price (cents)</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Base price (cents)</label>
             <input
               type="number"
               min={0}
@@ -382,7 +382,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">Currency</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">Currency</label>
             <input
               className="mt-1 w-full rounded-lg border border-stone-200 px-3 py-2 text-sm uppercase"
               value={currency}
@@ -390,7 +390,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">
               Image URLs (one per line, HTTPS)
             </label>
             <textarea
@@ -402,7 +402,7 @@ export default function WearProductEditorClient({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+            <label className="text-xs font-semibold uppercase tracking-wide text-stone-600">
               Spreadconnect SKU — no variants only (optional)
             </label>
             <input
@@ -411,16 +411,16 @@ export default function WearProductEditorClient({
               onChange={(e) => setExternalFulfillmentId(e.target.value)}
               placeholder="e.g. P1026247707A12S5"
             />
-            <p className="mt-1 text-[11px] text-stone-500">
+            <p className="mt-1 text-[11px] text-stone-600">
               When this product has <strong>no</strong> variants, this value is used as the Spreadconnect line SKU on
               auto-submit. If you use variants, set SKU on each variant instead.
             </p>
           </div>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-stone-900">
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
             Active (visible when not archived)
           </label>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-stone-900">
             <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
             Featured
           </label>
@@ -440,7 +440,7 @@ export default function WearProductEditorClient({
 
       {!isCreate ? (
         <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-amber-950">Variants</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Variants</h2>
           <p className="mt-1 text-sm text-stone-600">
             When variants exist, shoppers must pick one. Leave price empty to inherit the base price. Leave stock empty for
             unlimited.
@@ -451,7 +451,7 @@ export default function WearProductEditorClient({
               <div key={v.id} className="rounded-xl border border-stone-100 bg-stone-50/80 p-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="text-xs text-stone-500">Label</label>
+                    <label className="text-xs text-stone-600">Label</label>
                     <input
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                       value={v.label}
@@ -459,7 +459,7 @@ export default function WearProductEditorClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500">Sort</label>
+                    <label className="text-xs text-stone-600">Sort</label>
                     <input
                       type="number"
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
@@ -468,7 +468,7 @@ export default function WearProductEditorClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500">Size</label>
+                    <label className="text-xs text-stone-600">Size</label>
                     <input
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                       value={v.optionSize ?? ""}
@@ -476,7 +476,7 @@ export default function WearProductEditorClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500">Color</label>
+                    <label className="text-xs text-stone-600">Color</label>
                     <input
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                       value={v.optionColor ?? ""}
@@ -484,7 +484,7 @@ export default function WearProductEditorClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500">SKU (Spreadconnect)</label>
+                    <label className="text-xs text-stone-600">SKU (Spreadconnect)</label>
                     <input
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 font-mono text-sm"
                       value={v.sku ?? ""}
@@ -493,7 +493,7 @@ export default function WearProductEditorClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500">Price override (cents, empty = base)</label>
+                    <label className="text-xs text-stone-600">Price override (cents, empty = base)</label>
                     <input
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                       value={
@@ -511,7 +511,7 @@ export default function WearProductEditorClient({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-stone-500">Stock (empty = ∞)</label>
+                    <label className="text-xs text-stone-600">Stock (empty = ∞)</label>
                     <input
                       className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                       value={
@@ -530,7 +530,7 @@ export default function WearProductEditorClient({
                       }}
                     />
                   </div>
-                  <label className="flex items-center gap-2 text-sm text-stone-700 sm:col-span-2">
+                  <label className="flex items-center gap-2 text-sm text-stone-900 sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={v.isActive}
@@ -552,10 +552,10 @@ export default function WearProductEditorClient({
           </div>
 
           <form onSubmit={addVariant} className="mt-8 space-y-3 border-t border-stone-200 pt-6">
-            <h3 className="text-sm font-semibold text-amber-950">Add variant</h3>
+            <h3 className="text-sm font-semibold text-stone-900">Add variant</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="text-xs text-stone-500">Label *</label>
+                <label className="text-xs text-stone-600">Label *</label>
                 <input
                   className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                   value={newLabel}
@@ -564,7 +564,7 @@ export default function WearProductEditorClient({
                 />
               </div>
               <div>
-                <label className="text-xs text-stone-500">Size</label>
+                <label className="text-xs text-stone-600">Size</label>
                 <input
                   className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                   value={newSize}
@@ -572,7 +572,7 @@ export default function WearProductEditorClient({
                 />
               </div>
               <div>
-                <label className="text-xs text-stone-500">Color</label>
+                <label className="text-xs text-stone-600">Color</label>
                 <input
                   className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                   value={newColor}
@@ -580,7 +580,7 @@ export default function WearProductEditorClient({
                 />
               </div>
               <div>
-                <label className="text-xs text-stone-500">Price (cents)</label>
+                <label className="text-xs text-stone-600">Price (cents)</label>
                 <input
                   className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                   value={newPrice}
@@ -588,7 +588,7 @@ export default function WearProductEditorClient({
                 />
               </div>
               <div>
-                <label className="text-xs text-stone-500">Stock</label>
+                <label className="text-xs text-stone-600">Stock</label>
                 <input
                   className="mt-1 w-full rounded border border-stone-200 px-2 py-1.5 text-sm"
                   value={newStock}

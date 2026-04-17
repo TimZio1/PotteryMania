@@ -33,8 +33,8 @@ export default async function StudioCalendarNotesPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className={ui.overline}>Operations</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Calendar notes</h1>
-        <p className="mt-2 text-sm text-stone-600">Internal reminders and context blocks for your studio team.</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Calendar notes</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">Internal reminders and context blocks for your studio team.</p>
       </div>
       <section className={ui.card}>
         <StudioCalendarNotesClient

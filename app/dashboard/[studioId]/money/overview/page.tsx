@@ -84,8 +84,8 @@ export default async function StudioMoneyOverviewPage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-8">
       <div>
         <p className={ui.overline}>Money</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Overview</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Overview</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Owner-facing totals and settlement signals. Payouts run through Stripe Connect — these numbers are for
           reconciliation, not bank deposits line-for-line. Raw payment rows and order lines live under{" "}
           <Link href={`/dashboard/${studioId}/money/activity`} className="font-medium text-amber-900 underline">
@@ -101,29 +101,29 @@ export default async function StudioMoneyOverviewPage({ params }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Product sales (your share)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">€{(orderVendor / 100).toFixed(2)}</p>
+          <p className="text-sm text-[var(--muted)]">Product sales (your share)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(orderVendor / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Experiences (collected)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">€{(bookingPaid / 100).toFixed(2)}</p>
+          <p className="text-sm text-[var(--muted)]">Experiences (collected)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(bookingPaid / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Stripe captured (product sales)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">€{(stripeSucceededCents / 100).toFixed(2)}</p>
-          <p className="mt-1 text-xs text-stone-500">{stripeSucceeded.length} succeeded · €{(stripePendingCents / 100).toFixed(2)} pending</p>
+          <p className="text-sm text-[var(--muted)]">Stripe captured (product sales)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(stripeSucceededCents / 100).toFixed(2)}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{stripeSucceeded.length} succeeded · €{(stripePendingCents / 100).toFixed(2)} pending</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-stone-500">Refunded / partial (records)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">€{(stripeRefundedCents / 100).toFixed(2)}</p>
-          <p className="mt-1 text-xs text-stone-500">{stripeRefunded.length} payment row(s)</p>
+          <p className="text-sm text-[var(--muted)]">Refunded / partial (records)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(stripeRefundedCents / 100).toFixed(2)}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{stripeRefunded.length} payment row(s)</p>
         </div>
       </div>
 
       <div className={`${ui.card} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>
         <div>
-          <p className="text-sm font-semibold text-amber-950">Payment activity</p>
-          <p className="mt-1 text-sm text-stone-600">Stripe captures, product lines, and class payment rows.</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">Payment activity</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Stripe captures, product lines, and class payment rows.</p>
         </div>
         <Link href={`/dashboard/${studioId}/money/activity`} className={ui.buttonPrimary}>
           Open activity

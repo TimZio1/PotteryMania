@@ -185,13 +185,13 @@ export default function StudioNotificationsClient({
   return (
     <div className="space-y-6">
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">SMS and WhatsApp channels</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">SMS and WhatsApp channels</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="inline-flex items-center gap-2 text-sm text-stone-700">
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input type="checkbox" checked={channels.smsEnabled} onChange={(e) => setChannels((c) => ({ ...c, smsEnabled: e.target.checked }))} />
             Enable SMS notifications
           </label>
-          <label className="inline-flex items-center gap-2 text-sm text-stone-700">
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={channels.whatsappNotificationsEnabled}
@@ -223,7 +223,7 @@ export default function StudioNotificationsClient({
 
       <section className={ui.card}>
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-lg font-semibold text-amber-950">Notification templates</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Notification templates</h2>
           <button type="button" className={ui.buttonSecondary} onClick={resetForm}>
             New template
           </button>
@@ -231,7 +231,7 @@ export default function StudioNotificationsClient({
         <div className="mt-4 grid gap-4 lg:grid-cols-[320px_1fr]">
           <div className="space-y-2">
             {templates.length === 0 ? (
-              <p className="text-sm text-stone-600">No templates yet.</p>
+              <p className="text-sm text-[var(--muted)]">No templates yet.</p>
             ) : (
               templates.map((template) => (
                 <button
@@ -243,7 +243,7 @@ export default function StudioNotificationsClient({
                   }`}
                 >
                   <p className="text-sm font-medium text-stone-900">{template.subject}</p>
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     {TEMPLATE_LABELS[template.templateType]}
                     {template.experience ? ` · ${template.experience.title}` : " · all classes"}
                   </p>
@@ -287,7 +287,7 @@ export default function StudioNotificationsClient({
               <span className={ui.label}>Body HTML (supports template variables like customerName, className, studioName)</span>
               <textarea className={`${ui.input} mt-1 min-h-40`} value={form.bodyHtml} onChange={(e) => setForm((c) => ({ ...c, bodyHtml: e.target.value }))} />
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-stone-700">
+            <label className="inline-flex items-center gap-2 text-sm text-[var(--foreground)]">
               <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((c) => ({ ...c, isActive: e.target.checked }))} />
               Active
             </label>

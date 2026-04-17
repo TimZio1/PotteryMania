@@ -30,8 +30,8 @@ export default async function StudioCommerceOrdersPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Commerce</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Orders</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Orders</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Order history and fulfillment. Product catalog and inventory live under Catalog.
         </p>
       </div>

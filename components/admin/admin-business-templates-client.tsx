@@ -51,14 +51,14 @@ export default function AdminBusinessTemplatesClient({ overview }: { overview: O
   return (
     <div className="space-y-8">
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">Last 30 days · funnel</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Last 30 days · funnel</h2>
         <p className="mt-1 text-sm text-stone-600">
           Vendor-emitted events plus server-side activation_success. Gallery views may include refreshes.
         </p>
         <ul className="mt-4 flex flex-wrap gap-3 text-sm">
           {overview.funnel30d.map((f) => (
             <li key={f.eventType} className="rounded-full bg-stone-100 px-3 py-1 font-medium text-stone-800">
-              {f.eventType}: <span className="text-amber-950">{f.count}</span>
+              {f.eventType}: <span className="text-stone-900">{f.count}</span>
             </li>
           ))}
           <li className="rounded-full bg-amber-100 px-3 py-1 font-medium text-amber-950">
@@ -120,8 +120,8 @@ function TemplateAdminRow({
   return (
     <tr className="border-b border-stone-100 align-top">
       <td className="px-4 py-3">
-        <p className="font-semibold text-amber-950">{t.name}</p>
-        <p className="font-mono text-xs text-stone-500">{t.slug}</p>
+        <p className="font-semibold text-stone-900">{t.name}</p>
+        <p className="font-mono text-xs text-stone-600">{t.slug}</p>
         <p className="mt-1 text-xs text-stone-600">{t.businessModelLabel}</p>
       </td>
       <td className="px-4 py-3">
@@ -134,7 +134,7 @@ function TemplateAdminRow({
           onChange={(e) => setPriceEur(e.target.value)}
           inputMode="decimal"
         />
-        <p className="mt-1 text-xs text-stone-500">{t.currency}</p>
+        <p className="mt-1 text-xs text-stone-600">{t.currency}</p>
       </td>
       <td className="px-4 py-3">
         <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
@@ -153,7 +153,7 @@ function TemplateAdminRow({
           inputMode="numeric"
         />
       </td>
-      <td className="px-4 py-3 text-stone-800">{activeStudios}</td>
+      <td className="px-4 py-3 text-stone-900">{activeStudios}</td>
       <td className="px-4 py-3">
         <button
           type="button"

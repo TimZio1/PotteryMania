@@ -136,7 +136,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
     <div className="space-y-8">
       {msg ? <p className={ui.errorText}>{msg}</p> : null}
       <div className={ui.card}>
-        <h2 className="text-lg font-semibold text-amber-950">New firing</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">New firing</h2>
         <div className="mt-4 space-y-3">
           <div>
             <label className={ui.label} htmlFor="kiln-label">
@@ -177,8 +177,8 @@ export default function KilnManager({ studioId }: { studioId: string }) {
       <div className="space-y-4">
         {firings.length === 0 ? (
           <div className={`${ui.card} text-center`}>
-            <p className="font-medium text-amber-950">No firings logged yet</p>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="font-medium text-[var(--foreground)]">No firings logged yet</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Create your first firing above to track kiln loads and pieces from queue through complete.
             </p>
           </div>
@@ -187,9 +187,9 @@ export default function KilnManager({ studioId }: { studioId: string }) {
           <div key={f.id} className={ui.card}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="font-semibold text-amber-950">{f.label || "Untitled firing"}</p>
-                <p className="text-xs text-stone-500">Status: {f.status}</p>
-                {f.notes ? <p className="mt-2 text-sm text-stone-600">{f.notes}</p> : null}
+                <p className="font-semibold text-[var(--foreground)]">{f.label || "Untitled firing"}</p>
+                <p className="text-xs text-[var(--muted)]">Status: {f.status}</p>
+                {f.notes ? <p className="mt-2 text-sm text-[var(--muted)]">{f.notes}</p> : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 {(["draft", "loading", "firing", "cooling", "complete"] as const).map((s) => (
@@ -214,7 +214,7 @@ export default function KilnManager({ studioId }: { studioId: string }) {
               </div>
             </div>
             <div className="mt-4 border-t border-stone-100 pt-4">
-              <p className="text-sm font-medium text-stone-800">Pieces</p>
+              <p className="text-sm font-medium text-[var(--foreground)]">Pieces</p>
               <ul className="mt-2 space-y-2">
                 {f.items.map((it) => (
                   <li key={it.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-stone-50 px-3 py-2 text-sm">

@@ -29,8 +29,8 @@ export default async function StudioGuestsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Guests</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Guests</h1>
-        <p className="mt-2 text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Guests</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Booking history merged with saved contacts. Search and tag filters, side panel for notes — add contacts who have not booked yet.
         </p>
       </div>

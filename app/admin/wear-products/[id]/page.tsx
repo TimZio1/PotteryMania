@@ -68,12 +68,12 @@ export default async function AdminWearProductEditPage({ params }: WearProductPa
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Edit · {p.name}</h1>
-      <p className="mt-2 text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Edit · {p.name}</h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">
         Slug: <span className="font-mono text-xs">{p.slug}</span>
       </p>
-      <p className="mt-1 text-sm text-stone-600">
+      <p className="mt-1 text-sm text-[var(--muted)]">
         Category: <span className="font-medium">{category.categoryLabel}</span>
       </p>
       <WearProductEditorClient productId={p.id} initial={initial} />

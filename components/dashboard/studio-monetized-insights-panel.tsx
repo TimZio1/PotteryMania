@@ -82,10 +82,10 @@ export default function StudioMonetizedInsightsPanel({
 
   if (items.length === 0) {
     return (
-      <div className={cn(ui.cardMuted, "text-sm text-stone-600")}>
+      <div className={cn(ui.cardMuted, "text-sm text-[var(--muted)]")}>
         {variant === "full" ? (
           <>
-            <p className="font-medium text-amber-950">No insight cards yet</p>
+            <p className="font-medium text-[var(--foreground)]">No insight cards yet</p>
             <p className="mt-2">
               Cards appear when your studio has enough recent class and booking data, and when anonymized benchmarks are
               available (e.g. pricing comparison needs several other studios in your country).
@@ -110,9 +110,9 @@ export default function StudioMonetizedInsightsPanel({
           <div key={row.id} id={`insight-${row.id}`} className={cn(ui.card, "scroll-mt-24")}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">{row.category}</p>
-                <h3 className="mt-1 text-base font-semibold text-amber-950">{row.previewTitle}</h3>
-                <p className="mt-2 text-sm text-stone-700">{row.previewHook}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">{row.category}</p>
+                <h3 className="mt-1 text-base font-semibold text-[var(--foreground)]">{row.previewTitle}</h3>
+                <p className="mt-2 text-sm text-[var(--foreground)]">{row.previewHook}</p>
                 {row.potentialBenefit ? (
                   <p className="mt-2 text-xs font-medium text-amber-900">{row.potentialBenefit}</p>
                 ) : null}
@@ -145,7 +145,7 @@ export default function StudioMonetizedInsightsPanel({
               </div>
             </div>
 
-            <p className="mt-3 text-xs text-stone-500">
+            <p className="mt-3 text-xs text-[var(--muted)]">
               Based on your studio data
               {row.benchmarkSampleSize != null ? ` · sample n≈${row.benchmarkSampleSize}` : ""}
               {row.confidenceScore != null ? ` · model confidence ${Math.round(row.confidenceScore * 100)}%` : ""}
@@ -178,17 +178,17 @@ export default function StudioMonetizedInsightsPanel({
             ) : null}
 
             {analysis && allowUnlock ? (
-              <div className="mt-6 space-y-4 border-t border-stone-100 pt-4 text-sm text-stone-800">
+              <div className="mt-6 space-y-4 border-t border-stone-100 pt-4 text-sm text-[var(--foreground)]">
                 <section>
-                  <p className="text-xs font-semibold uppercase text-stone-500">Diagnosis</p>
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">Diagnosis</p>
                   <p className="mt-1">{analysis.diagnosis}</p>
                 </section>
                 <section>
-                  <p className="text-xs font-semibold uppercase text-stone-500">Benchmark</p>
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">Benchmark</p>
                   <p className="mt-1">{analysis.benchmark}</p>
                 </section>
                 <section>
-                  <p className="text-xs font-semibold uppercase text-stone-500">Recommendations</p>
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">Recommendations</p>
                   <ul className="mt-1 list-inside list-disc space-y-1">
                     {analysis.recommendations.map((line, i) => (
                       <li key={i}>{line}</li>
@@ -196,11 +196,11 @@ export default function StudioMonetizedInsightsPanel({
                   </ul>
                 </section>
                 <section>
-                  <p className="text-xs font-semibold uppercase text-stone-500">Projection</p>
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">Projection</p>
                   <p className="mt-1">{analysis.projection}</p>
                 </section>
                 <section>
-                  <p className="text-xs font-semibold uppercase text-stone-500">Confidence</p>
+                  <p className="text-xs font-semibold uppercase text-[var(--muted)]">Confidence</p>
                   <p className="mt-1">{analysis.confidenceNote}</p>
                 </section>
                 {analysis.actions?.length ? (
@@ -224,7 +224,7 @@ export default function StudioMonetizedInsightsPanel({
       })}
 
       {variant === "compact" ? (
-        <p className="text-center text-xs text-stone-500">
+        <p className="text-center text-xs text-[var(--muted)]">
           <Link href={`/dashboard/${studioId}/ai`} className="text-amber-900 underline">
             Open AI Advisor for unlock &amp; details
           </Link>

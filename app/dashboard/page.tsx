@@ -27,8 +27,8 @@ export default async function DashboardPage() {
     return (
       <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
         <p className={platformUi.overline}>Account</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Start your studio workspace</h1>
-        <p className="mt-3 text-stone-600">
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Start your studio workspace</h1>
+        <p className="mt-3 text-[var(--muted)]">
           Create your studio, manage your account, or review upcoming sessions from one place.
         </p>
         <div className={`${platformUi.card} mt-8`}>
@@ -55,8 +55,8 @@ export default async function DashboardPage() {
   if (user.role !== "vendor") {
     return (
       <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
-        <h1 className="text-xl font-semibold text-amber-950">Studio control panel</h1>
-        <p className="mt-3 text-stone-600">
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">Studio control panel</h1>
+        <p className="mt-3 text-[var(--muted)]">
           This workspace is for studio operators. Public discovery and booking pages stay on the main site.
         </p>
         <Link href="/" className={`${platformUi.buttonSecondary} mt-6 inline-flex`}>
@@ -78,15 +78,15 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-center gap-3">
         <p className={platformUi.overline}>Studios</p>
       </div>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Studio control panel</h1>
-      <p className="mt-2 max-w-xl text-stone-600">
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Studio control panel</h1>
+      <p className="mt-2 max-w-xl text-[var(--muted)]">
         Run sessions, studio sales, public pages, and payouts from one place.
       </p>
 
       {latestStudio ? (
         <div className={`${platformUi.card} mt-8`}>
           <p className="text-sm font-medium text-stone-900">Subscriptions, packs & add-ons</p>
-          <p className="mt-2 text-sm text-stone-600">
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Buy feature packs, start add-on subscriptions, or review workspace billing for your studio workspace.
           </p>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -102,8 +102,8 @@ export default async function DashboardPage() {
 
       {studios.length === 0 ? (
         <div className={`${platformUi.cardMuted} mt-10`}>
-          <h2 className="text-lg font-semibold text-amber-950">Create your studio</h2>
-          <p className="mt-2 text-sm text-stone-600">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Create your studio</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Start with studio basics, add your first experience or product, preview your page, and activate advanced features
             whenever you are ready.
           </p>
@@ -120,10 +120,10 @@ export default async function DashboardPage() {
               <li key={s.id} className={platformUi.card}>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold text-amber-950">{s.displayName}</h2>
-                    <p className="mt-1 text-sm text-stone-500 capitalize">Status: {s.status.replace(/_/g, " ")}</p>
+                    <h2 className="text-lg font-semibold text-[var(--foreground)]">{s.displayName}</h2>
+                    <p className="mt-1 text-sm text-[var(--muted)] capitalize">Status: {s.status.replace(/_/g, " ")}</p>
 
-                    <p className="mt-3 text-sm text-stone-600">
+                    <p className="mt-3 text-sm text-[var(--muted)]">
                       <span className="font-medium text-stone-900">Direct payments:</span>{" "}
                       {activated ? (
                         <span className="text-emerald-700">Live</span>
@@ -131,7 +131,7 @@ export default async function DashboardPage() {
                         <span className="text-amber-800">Not live yet — connect payouts to activate direct bookings and sales</span>
                       )}
                     </p>
-                    <p className="mt-1 text-sm text-stone-600">
+                    <p className="mt-1 text-sm text-[var(--muted)]">
                       <span className="font-medium text-stone-900">Payouts:</span>{" "}
                       {stripeOk ? (
                         <span className="text-emerald-700">Connected</span>
@@ -152,19 +152,19 @@ export default async function DashboardPage() {
                     </Link>
                     <Link
                       href={`/dashboard/studio/${s.id}`}
-                      className="text-center text-xs text-stone-500 underline hover:text-amber-950"
+                      className="text-center text-xs text-[var(--muted)] underline hover:text-[var(--foreground)]"
                     >
                       Studio details &amp; payouts
                     </Link>
                     <Link
                       href={`/dashboard/${s.id}/features`}
-                      className="text-center text-xs text-stone-500 underline hover:text-amber-950"
+                      className="text-center text-xs text-[var(--muted)] underline hover:text-[var(--foreground)]"
                     >
                       Packs, subscriptions &amp; add-ons
                     </Link>
                     <Link
                       href={`/dashboard/${s.id}/settings`}
-                      className="text-center text-xs text-stone-500 underline hover:text-amber-950"
+                      className="text-center text-xs text-[var(--muted)] underline hover:text-[var(--foreground)]"
                     >
                       Storefront domain
                     </Link>
@@ -172,31 +172,31 @@ export default async function DashboardPage() {
                 </div>
                 {activated ? (
                   <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-stone-200/80 pt-4 text-sm">
-                    <Link href={`/dashboard/${s.id}/schedule/sessions`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/schedule/sessions`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Sessions
                     </Link>
-                    <Link href={`/dashboard/${s.id}/programs`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/programs`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Programs
                     </Link>
-                    <Link href={`/dashboard/${s.id}/commerce/catalog`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/commerce/catalog`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Catalog
                     </Link>
-                    <Link href={`/dashboard/${s.id}/money/overview`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/money/overview`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Money
                     </Link>
-                    <Link href={`/dashboard/${s.id}/guests`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/guests`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Guests
                     </Link>
-                    <Link href={`/dashboard/${s.id}/money/reports`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/money/reports`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Reports
                     </Link>
-                    <Link href={`/dashboard/${s.id}/features`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/features`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Packs & add-ons
                     </Link>
-                    <Link href={`/studios/${s.id}`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/studios/${s.id}`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Public page
                     </Link>
-                    <Link href={`/dashboard/${s.id}/settings`} className="font-medium text-stone-700 hover:text-amber-950 hover:underline">
+                    <Link href={`/dashboard/${s.id}/settings`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
                       Storefront domain
                     </Link>
                   </div>

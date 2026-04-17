@@ -29,7 +29,7 @@ function JsonBlock({ value, label }: { value: unknown; label: string }) {
     return (
       <div>
         <p className={ui.label}>{label}</p>
-        <p className="mt-1 text-sm text-stone-500">—</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">—</p>
       </div>
     );
   }
@@ -55,11 +55,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce</p>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-amber-950">Order</h1>
-          <p className="mt-1 font-mono text-xs text-stone-500">{order.id}</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)]">Order</h1>
+          <p className="mt-1 font-mono text-xs text-[var(--muted)]">{order.id}</p>
         </div>
         <Link href="/admin/orders" className={ui.buttonSecondary}>
           ← All orders
@@ -70,11 +70,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className={ui.label}>Placed</p>
-            <p className="mt-1 text-sm text-stone-800">{order.createdAt.toISOString().replace("T", " ").slice(0, 19)} UTC</p>
+            <p className="mt-1 text-sm text-[var(--foreground)]">{order.createdAt.toISOString().replace("T", " ").slice(0, 19)} UTC</p>
           </div>
           <div>
             <p className={ui.label}>Total</p>
-            <p className="mt-1 text-lg font-semibold tabular-nums text-amber-950">
+            <p className="mt-1 text-lg font-semibold tabular-nums text-[var(--foreground)]">
               {formatOrderMoney(order.totalCents, order.currency)}
             </p>
           </div>
@@ -86,7 +86,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           </div>
           <div>
             <p className={ui.label}>Payment / fulfillment</p>
-            <p className="mt-1 text-sm text-stone-700">
+            <p className="mt-1 text-sm text-[var(--foreground)]">
               <code>{order.paymentStatus}</code>
               <span className="text-stone-400"> · </span>
               <code>{order.fulfillmentStatus}</code>
@@ -97,9 +97,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
         <div className="grid gap-4 border-t border-stone-100 pt-4 sm:grid-cols-2">
           <div>
             <p className={ui.label}>Customer</p>
-            <p className="mt-1 text-sm font-medium text-stone-800">{order.customerName}</p>
-            <p className="text-sm text-stone-600">{order.customerEmail}</p>
-            {order.customerPhone ? <p className="text-sm text-stone-600">{order.customerPhone}</p> : null}
+            <p className="mt-1 text-sm font-medium text-[var(--foreground)]">{order.customerName}</p>
+            <p className="text-sm text-[var(--muted)]">{order.customerEmail}</p>
+            {order.customerPhone ? <p className="text-sm text-[var(--muted)]">{order.customerPhone}</p> : null}
             {order.customerUser ? (
               <p className="mt-2">
                 <Link href={`/admin/users/${order.customerUser.id}`} className="text-sm font-medium text-amber-900 hover:underline">
@@ -111,9 +111,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           <div>
             <p className={ui.label}>Stripe</p>
             {order.stripeCheckoutSessionId ? (
-              <p className="mt-1 break-all font-mono text-xs text-stone-700">{order.stripeCheckoutSessionId}</p>
+              <p className="mt-1 break-all font-mono text-xs text-[var(--foreground)]">{order.stripeCheckoutSessionId}</p>
             ) : (
-              <p className="mt-1 text-sm text-stone-500">—</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">—</p>
             )}
           </div>
         </div>
@@ -121,7 +121,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
         {(order.trackingNumber || order.trackingCarrier) && (
           <div className="border-t border-stone-100 pt-4">
             <p className={ui.label}>Tracking</p>
-            <p className="mt-1 text-sm text-stone-700">
+            <p className="mt-1 text-sm text-[var(--foreground)]">
               {[order.trackingCarrier, order.trackingNumber].filter(Boolean).join(" · ")}
               {order.trackingUrl ? (
                 <>
@@ -138,7 +138,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
         {order.notes ? (
           <div className="border-t border-stone-100 pt-4">
             <p className={ui.label}>Notes</p>
-            <p className="mt-1 text-sm text-stone-700 whitespace-pre-wrap">{order.notes}</p>
+            <p className="mt-1 text-sm text-[var(--foreground)] whitespace-pre-wrap">{order.notes}</p>
           </div>
         ) : null}
       </div>
@@ -149,7 +149,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
       </div>
 
       <div className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Line items</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Line items</h2>
         <ul className="mt-4 space-y-3">
           {order.items.map((item) => (
             <li
@@ -157,12 +157,12 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               className="rounded-2xl border border-stone-200 bg-white p-4 text-sm shadow-sm"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="font-medium text-stone-800">
+                <span className="font-medium text-[var(--foreground)]">
                   {item.itemType === "product" ? item.product?.title ?? "Product" : "Booking"}
                 </span>
-                <span className="tabular-nums text-stone-700">{formatOrderMoney(item.priceSnapshotCents, order.currency)}</span>
+                <span className="tabular-nums text-[var(--foreground)]">{formatOrderMoney(item.priceSnapshotCents, order.currency)}</span>
               </div>
-              <p className="mt-1 text-xs text-stone-500">
+              <p className="mt-1 text-xs text-[var(--muted)]">
                 {item.vendor.displayName} · qty {item.quantity}
                 {item.participantCount != null ? ` · participants ${item.participantCount}` : ""}
               </p>
@@ -173,9 +173,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
       </div>
 
       <div className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Payments</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Payments</h2>
         {order.payments.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-500">No payment rows.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">No payment rows.</p>
         ) : (
           <ul className="mt-4 space-y-2">
             {order.payments.map((p) => (

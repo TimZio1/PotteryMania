@@ -105,9 +105,9 @@ export default async function AdminReportsPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Reports</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Growth funnel (supply)</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Reports</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Growth funnel (supply)</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Operational funnel from legacy studio lead capture to live studio supply. Cohort view measures share of each signup
         month that placed an order or booking in subsequent calendar months.
       </p>
@@ -121,8 +121,8 @@ export default async function AdminReportsPage() {
 
       {dodRows.length > 0 && latestSnap && priorSnap ? (
         <section className="mt-10">
-          <h2 className="text-lg font-semibold text-amber-950">Daily performance vs prior UTC day</h2>
-          <p className="mt-1 max-w-2xl text-xs text-stone-500">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Daily performance vs prior UTC day</h2>
+          <p className="mt-1 max-w-2xl text-xs text-[var(--muted)]">
             Comparing{" "}
             <span className="font-mono">{latestSnap.snapshotDate.toISOString().slice(0, 10)}</span> to{" "}
             <span className="font-mono">{priorSnap.snapshotDate.toISOString().slice(0, 10)}</span> from stored snapshots
@@ -135,7 +135,7 @@ export default async function AdminReportsPage() {
                 { key: "m", header: "Metric", cell: (r) => r.metric },
                 { key: "l", header: "Latest day", cell: (r) => <span className="font-mono text-xs">{r.latest}</span> },
                 { key: "p", header: "Prior day", cell: (r) => <span className="font-mono text-xs">{r.prior}</span> },
-                { key: "d", header: "Δ %", cell: (r) => <span className="tabular-nums text-stone-700">{r.delta}</span> },
+                { key: "d", header: "Δ %", cell: (r) => <span className="tabular-nums text-[var(--foreground)]">{r.delta}</span> },
               ]}
               empty="—"
             />
@@ -144,8 +144,8 @@ export default async function AdminReportsPage() {
       ) : null}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Daily platform snapshots</h2>
-        <p className="mt-1 max-w-2xl text-xs text-stone-500">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Daily platform snapshots</h2>
+        <p className="mt-1 max-w-2xl text-xs text-[var(--muted)]">
           UTC-day aggregates from <code className="text-[11px]">analytics_snapshots</code>. Populate via cron{" "}
           <code className="text-[11px]">GET /api/cron/analytics-snapshots</code> (Bearer <code className="text-[11px]">CRON_SECRET</code>
           ).
@@ -177,8 +177,8 @@ export default async function AdminReportsPage() {
       <section className="mt-10">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-amber-950">Cohort commerce retention</h2>
-            <p className="mt-1 text-xs text-stone-500">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Cohort commerce retention</h2>
+            <p className="mt-1 text-xs text-[var(--muted)]">
               M0–M3 = calendar month offset from cohort month · % with order or booking (linked customer account).
             </p>
           </div>
@@ -220,8 +220,8 @@ export default async function AdminReportsPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Studio review cohort — paid add-on penetration (now)</h2>
-        <p className="mt-1 max-w-3xl text-xs text-stone-500">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Studio review cohort — paid add-on penetration (now)</h2>
+        <p className="mt-1 max-w-3xl text-xs text-[var(--muted)]">
           Cohort month = UTC month of <code className="text-[11px]">approvedAt</code>. “Paid add-on” = any non–grant-by-default
           catalog feature with billable activation today (<code className="text-[11px]">active</code>,{" "}
           <code className="text-[11px]">trialing</code>, <code className="text-[11px]">pending_cancel</code>). This is a{" "}
@@ -242,15 +242,15 @@ export default async function AdminReportsPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Funnel table</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Funnel table</h2>
         <div className="mt-4">
           <DataTable
             rows={funnelRows}
             empty="No data."
             columns={[
               { key: "step", header: "Step", cell: (r) => r.step },
-              { key: "value", header: "Count", cell: (r) => <span className="font-semibold text-amber-950">{r.value}</span> },
-              { key: "note", header: "Note", cell: (r) => <span className="text-xs text-stone-500">{r.note}</span> },
+              { key: "value", header: "Count", cell: (r) => <span className="font-semibold text-[var(--foreground)]">{r.value}</span> },
+              { key: "note", header: "Note", cell: (r) => <span className="text-xs text-[var(--muted)]">{r.note}</span> },
             ]}
           />
         </div>

@@ -89,7 +89,7 @@ export default function CategoriesAdminClient({ initial }: { initial: Row[] }) {
       {msg ? <p className={ui.successText}>{msg}</p> : null}
       <form onSubmit={(e) => void createRow(e)} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <p className="text-sm font-semibold text-stone-900">Create category</p>
-        <p className="mt-1 text-xs text-stone-500">Use one of the locked slugs if it does not exist yet.</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">Use one of the locked slugs if it does not exist yet.</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label>
             <span className={ui.label}>Slug</span>
@@ -159,9 +159,9 @@ export default function CategoriesAdminClient({ initial }: { initial: Row[] }) {
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-base font-semibold text-stone-900">{row.name}</p>
-              <p className="text-xs font-mono text-stone-500">{row.slug}</p>
+              <p className="text-xs font-mono text-[var(--muted)]">{row.slug}</p>
             </div>
-            <label className="inline-flex items-center gap-2 text-xs text-stone-600">
+            <label className="inline-flex items-center gap-2 text-xs text-[var(--muted)]">
               <input
                 type="checkbox"
                 checked={row.isActive}

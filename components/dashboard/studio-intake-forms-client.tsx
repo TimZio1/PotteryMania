@@ -234,8 +234,8 @@ export default function StudioIntakeFormsClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>Question bank</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">Booking questions</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Booking questions</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Collect notes, waivers, dates, selections, and file links during class booking.
             </p>
           </div>
@@ -266,7 +266,7 @@ export default function StudioIntakeFormsClient({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-medium text-stone-900">{item.title}</p>
-                      <p className="mt-1 text-xs text-stone-500">
+                      <p className="mt-1 text-xs text-[var(--muted)]">
                         {item.fieldType.replace(/_/g, " ")} · {item.isRequired ? "required" : "optional"}
                       </p>
                     </div>
@@ -285,10 +285,10 @@ export default function StudioIntakeFormsClient({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={ui.overline}>{selected ? "Edit" : "Create"}</p>
-            <h2 className="mt-1 text-lg font-semibold text-amber-950">
+            <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
               {selected ? selected.title : "New booking question"}
             </h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Questions appear on the booking form and are saved on the booking record for staff follow-up.
             </p>
           </div>
@@ -338,7 +338,7 @@ export default function StudioIntakeFormsClient({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.isRequired}
@@ -346,7 +346,7 @@ export default function StudioIntakeFormsClient({
             />
             Required
           </label>
-          <label className="flex items-center gap-2 text-sm text-stone-700">
+          <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={form.includeInInvoice}
@@ -380,7 +380,7 @@ export default function StudioIntakeFormsClient({
               onChange={(e) => setForm((current) => ({ ...current, optionsText: e.target.value }))}
               placeholder={"One option per line\nBeginner\nIntermediate\nAdvanced"}
             />
-            <span className="mt-1 block text-xs text-stone-500">One option per line.</span>
+            <span className="mt-1 block text-xs text-[var(--muted)]">One option per line.</span>
           </label>
         ) : form.fieldType === "file_upload" ? (
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
@@ -391,7 +391,7 @@ export default function StudioIntakeFormsClient({
 
         <div>
           <p className={ui.label}>Ask on these classes</p>
-          <p className="mt-1 text-xs text-stone-500">
+          <p className="mt-1 text-xs text-[var(--muted)]">
             If you leave this empty, the question is available to assign later but will not show on public bookings yet.
           </p>
           {experiences.length === 0 ? (

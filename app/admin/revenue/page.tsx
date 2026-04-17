@@ -214,9 +214,9 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Revenue</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Financial throughput</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Revenue</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Financial throughput</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Paid order GMV, platform commission snapshots, billing-plan and add-on MRR estimates, coupons, refunds, booking
         cash collected, and per-studio throughput. Rolling window defaults to <strong>30 days</strong>; switch to{" "}
         <strong>90 days</strong> for longer charts and per-studio totals. Use <strong>Breakdown</strong> for stream-level
@@ -224,7 +224,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-stone-500">Rolling window</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Rolling window</span>
         <Link
           href={revenueHref(tab, qRaw, 30)}
           className={cn(
@@ -255,8 +255,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           className={cn(
             "-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition",
             tab === "overview"
-              ? "border-amber-900 text-amber-950"
-              : "border-transparent text-stone-500 hover:text-amber-950",
+              ? "border-amber-900 text-[var(--foreground)]"
+              : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]",
           )}
         >
           Overview
@@ -266,8 +266,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           className={cn(
             "-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition",
             tab === "breakdown"
-              ? "border-amber-900 text-amber-950"
-              : "border-transparent text-stone-500 hover:text-amber-950",
+              ? "border-amber-900 text-[var(--foreground)]"
+              : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]",
           )}
         >
           Breakdown
@@ -304,8 +304,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       {tab === "breakdown" ? (
         <>
           <section className="mt-10">
-            <h2 className="text-lg font-semibold text-amber-950">Streams ({windowLabel} + MRR)</h2>
-            <p className="mt-1 text-xs text-stone-500">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Streams ({windowLabel} + MRR)</h2>
+            <p className="mt-1 text-xs text-[var(--muted)]">
               Commission and deposits are cash-basis in the window. MRR rows are directional (plan list + add-on catalog
               prices).
             </p>
@@ -336,21 +336,21 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
                 hint={`${insightPurchasesWindowCount} paid unlocks`}
               />
             </div>
-            <p className="mt-4 text-sm text-stone-600">
-              <span className="font-medium text-amber-950">Combined directional MRR</span> (plans + add-ons):{" "}
+            <p className="mt-4 text-sm text-[var(--muted)]">
+              <span className="font-medium text-[var(--foreground)]">Combined directional MRR</span> (plans + add-ons):{" "}
               {eur(combinedMrrDirectionalCents)} — Stripe remains source of truth.
             </p>
           </section>
 
           <section className="mt-10">
-            <h2 className="text-lg font-semibold text-amber-950">Billing plans</h2>
-            <p className="mt-1 text-xs text-stone-500">Subscriber count and MRR contribution per billing plan.</p>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Billing plans</h2>
+            <p className="mt-1 text-xs text-[var(--muted)]">Subscriber count and MRR contribution per billing plan.</p>
             <div className="mt-4">
               <DataTable
                 rows={planMrrRows}
                 empty="No billable subscriptions."
                 columns={[
-                  { key: "n", header: "Plan", cell: (r) => <span className="font-medium text-stone-800">{r.planName}</span> },
+                  { key: "n", header: "Plan", cell: (r) => <span className="font-medium text-[var(--foreground)]">{r.planName}</span> },
                   { key: "i", header: "Interval", cell: (r) => r.interval },
                   {
                     key: "p",
@@ -365,8 +365,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           </section>
 
           <section className="mt-10">
-            <h2 className="text-lg font-semibold text-amber-950">Platform add-ons</h2>
-            <p className="mt-1 text-xs text-stone-500">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Platform add-ons</h2>
+            <p className="mt-1 text-xs text-[var(--muted)]">
               Activations in <code className="text-[11px]">active</code>,{" "}
               <code className="text-[11px]">trialing</code>, or{" "}
               <code className="text-[11px]">pending_cancel</code>. Effective price = override or catalog.
@@ -389,8 +389,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
                     header: "Feature",
                     cell: (r) => (
                       <div>
-                        <span className="font-medium text-stone-800">{r.name}</span>
-                        <p className="text-xs text-stone-500">{r.slug}</p>
+                        <span className="font-medium text-[var(--foreground)]">{r.name}</span>
+                        <p className="text-xs text-[var(--muted)]">{r.slug}</p>
                       </div>
                     ),
                   },
@@ -412,16 +412,16 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           </div>
 
           <section className="mt-10 rounded-2xl border border-stone-200 bg-stone-50/80 p-5">
-            <h2 className="text-sm font-semibold text-amber-950">AI insight revenue</h2>
-            <p className="mt-1 text-sm text-stone-600">
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">AI insight revenue</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
               Paid unlocks in the selected window (see cards above). Template and conversion detail:{" "}
               <Link href="/admin/ai-insights" className="font-medium text-amber-900 underline">
                 AI insights
               </Link>
               .
             </p>
-            <p className="mt-2 text-lg font-semibold tabular-nums text-amber-950">{eur(insightRevenueWindowCents)}</p>
-            <p className="text-xs text-stone-500">{insightPurchasesWindowCount} purchase(s) · {windowLabel}</p>
+            <p className="mt-2 text-lg font-semibold tabular-nums text-[var(--foreground)]">{eur(insightRevenueWindowCents)}</p>
+            <p className="text-xs text-[var(--muted)]">{insightPurchasesWindowCount} purchase(s) · {windowLabel}</p>
           </section>
         </>
       ) : null}
@@ -429,8 +429,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       {tab === "overview" ? (
         <>
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Coupon performance ({windowLabel})</h2>
-        <p className="mt-1 text-xs text-stone-500">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Coupon performance ({windowLabel})</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Discount value attributed to redemptions (top {topCoupons.length} codes by value; sample capped at 3k rows).
         </p>
         <div className="mt-4">
@@ -456,8 +456,8 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       </div>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-amber-950">Per-studio throughput ({windowLabel})</h2>
-        <p className="mt-1 text-xs text-stone-500">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Per-studio throughput ({windowLabel})</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Live studios only, sorted by studio shop order GMV plus booking cash collected. Commission is the platform
           snapshot on order lines (same window as monetized orders above). Use search to narrow by studio name, city, or
           country.
@@ -506,7 +506,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
                     >
                       {r.displayName}
                     </Link>
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs text-[var(--muted)]">
                       {r.city}, {r.country}
                     </p>
                   </div>
@@ -515,27 +515,27 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
               {
                 key: "gmv",
                 header: "Order GMV",
-                cell: (r) => <span className="text-sm tabular-nums text-stone-800">{eur(r.orderGmvCents)}</span>,
+                cell: (r) => <span className="text-sm tabular-nums text-[var(--foreground)]">{eur(r.orderGmvCents)}</span>,
               },
               {
                 key: "comm",
                 header: "Commission",
                 cell: (r) => (
-                  <span className="text-sm tabular-nums text-stone-700">{eur(r.orderCommissionCents)}</span>
+                  <span className="text-sm tabular-nums text-[var(--foreground)]">{eur(r.orderCommissionCents)}</span>
                 ),
               },
               {
                 key: "dep",
                 header: "Booking cash",
                 cell: (r) => (
-                  <span className="text-sm tabular-nums text-stone-700">{eur(r.bookingCollectedCents)}</span>
+                  <span className="text-sm tabular-nums text-[var(--foreground)]">{eur(r.bookingCollectedCents)}</span>
                 ),
               },
               {
                 key: "tot",
                 header: "GMV + booking cash",
                 cell: (r) => (
-                  <span className="text-sm font-medium tabular-nums text-amber-950">
+                  <span className="text-sm font-medium tabular-nums text-[var(--foreground)]">
                     {eur(r.orderGmvCents + r.bookingCollectedCents)}
                   </span>
                 ),

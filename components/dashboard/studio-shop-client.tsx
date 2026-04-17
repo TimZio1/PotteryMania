@@ -428,7 +428,7 @@ export default function StudioShopClient({
       {tab === "products" ? (
         <div className="relative grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="space-y-4">
-            <p className="text-sm text-stone-600">
+            <p className="text-sm text-[var(--muted)]">
               Low-stock highlight when quantity is between 1 and {DEFAULT_LOW_STOCK_THRESHOLD}. Open{" "}
               <Link href={`/dashboard/${studioId}/commerce/catalog`} className="font-medium text-amber-900 underline">
                 Commerce → Catalog
@@ -499,7 +499,7 @@ export default function StudioShopClient({
                   </select>
                 </label>
                 <div className="sm:col-span-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Pricing model</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Pricing model</p>
                   <div className="mt-2 flex flex-wrap gap-4 text-sm">
                     <label className="inline-flex items-center gap-2">
                       <input
@@ -566,14 +566,14 @@ export default function StudioShopClient({
                     onChange={(e) => setCreateForm((f) => ({ ...f, variantsJson: e.target.value }))}
                     placeholder='[{"name":"Small","sku":"BOWL-S","priceCents":2200,"stockQuantity":12}]'
                   />
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     Leave empty for a single-SKU product. Fields: name, sku, priceCents, stockQuantity, sortOrder.
                   </p>
                 </label>
               </div>
               <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
                     Product images ({createImages.length}/{PRODUCT_IMAGE_MAX})
                   </p>
                   <label className={cn(ui.buttonSecondary, "cursor-pointer px-3 py-1.5 text-xs")}>
@@ -610,7 +610,7 @@ export default function StudioShopClient({
                   </label>
                 </div>
                 {createImages.length === 0 ? (
-                  <p className="mt-2 text-xs text-stone-500">Upload at least one image so products look complete in storefront listings.</p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">Upload at least one image so products look complete in storefront listings.</p>
                 ) : (
                   <ul className="mt-3 space-y-2">
                     {createImages.map((image, idx) => (
@@ -652,7 +652,7 @@ export default function StudioShopClient({
                               >
                                 Down
                               </button>
-                              <label className="inline-flex items-center gap-1 text-xs text-stone-700">
+                              <label className="inline-flex items-center gap-1 text-xs text-[var(--foreground)]">
                                 <input
                                   type="radio"
                                   checked={image.isPrimary}
@@ -703,7 +703,7 @@ export default function StudioShopClient({
                 <tbody>
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
+                      <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted)]">
                         No products match.
                       </td>
                     </tr>
@@ -736,17 +736,17 @@ export default function StudioShopClient({
                               </span>
                             ) : null}
                           </td>
-                          <td className="px-4 py-3 text-stone-600">
+                          <td className="px-4 py-3 text-[var(--muted)]">
                             {p.categoryLabel}
-                            {p.subcategory ? <span className="ml-1 text-xs text-stone-500">· {p.subcategory}</span> : null}
+                            {p.subcategory ? <span className="ml-1 text-xs text-[var(--muted)]">· {p.subcategory}</span> : null}
                           </td>
-                          <td className="px-4 py-3 text-stone-600">{p.status}</td>
-                          <td className="px-4 py-3 text-stone-600">
+                          <td className="px-4 py-3 text-[var(--muted)]">{p.status}</td>
+                          <td className="px-4 py-3 text-[var(--muted)]">
                             {p.stockQuantity}{" "}
-                            <span className="text-xs text-stone-500">({p.stockStatus.replace(/_/g, " ")})</span>
+                            <span className="text-xs text-[var(--muted)]">({p.stockStatus.replace(/_/g, " ")})</span>
                           </td>
-                          <td className="px-4 py-3 text-stone-600">{p.sku ?? "—"}</td>
-                          <td className="px-4 py-3 text-stone-600">
+                          <td className="px-4 py-3 text-[var(--muted)]">{p.sku ?? "—"}</td>
+                          <td className="px-4 py-3 text-[var(--muted)]">
                             {p.pricingType === "recurring" && p.recurringPriceCents != null
                               ? `€${(p.recurringPriceCents / 100).toFixed(2)}/${billingIntervalLabel(
                                   p.billingInterval ?? "monthly",
@@ -771,7 +771,7 @@ export default function StudioShopClient({
               )}
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="text-xs font-semibold uppercase text-stone-500">Quick edit</p>
+                <p className="text-xs font-semibold uppercase text-[var(--muted)]">Quick edit</p>
                 <button type="button" className={ui.buttonGhost} onClick={() => setSelected(null)}>
                   Close
                 </button>
@@ -830,7 +830,7 @@ export default function StudioShopClient({
                 />
               </label>
               <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Pricing model</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Pricing model</p>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm">
                   <label className="inline-flex items-center gap-2">
                     <input
@@ -948,7 +948,7 @@ export default function StudioShopClient({
                         onChange={(e) => setForm((f) => ({ ...f, cancellationPolicyText: e.target.value }))}
                       />
                     </label>
-                    <label className="flex items-center gap-2 text-sm text-stone-700">
+                    <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
                       <input
                         type="checkbox"
                         checked={form.autoRenew}
@@ -1019,7 +1019,7 @@ export default function StudioShopClient({
               </label>
               <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
                     Product images ({formImages.length}/{PRODUCT_IMAGE_MAX})
                   </p>
                   <label className={cn(ui.buttonSecondary, "cursor-pointer px-3 py-1.5 text-xs")}>
@@ -1056,7 +1056,7 @@ export default function StudioShopClient({
                   </label>
                 </div>
                 {formImages.length === 0 ? (
-                  <p className="mt-2 text-xs text-stone-500">No images yet. Upload at least one image for storefront quality.</p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">No images yet. Upload at least one image for storefront quality.</p>
                 ) : (
                   <ul className="mt-3 space-y-2">
                     {formImages.map((image, idx) => (
@@ -1098,7 +1098,7 @@ export default function StudioShopClient({
                               >
                                 Down
                               </button>
-                              <label className="inline-flex items-center gap-1 text-xs text-stone-700">
+                              <label className="inline-flex items-center gap-1 text-xs text-[var(--foreground)]">
                                 <input
                                   type="radio"
                                   checked={image.isPrimary}
@@ -1152,20 +1152,20 @@ export default function StudioShopClient({
             <tbody>
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-stone-500">
+                  <td colSpan={7} className="px-4 py-8 text-center text-[var(--muted)]">
                     No product sales yet.
                   </td>
                 </tr>
               ) : (
                 orders.map((o) => (
                   <tr key={o.id} className="border-b border-stone-100 last:border-0">
-                    <td className="px-4 py-3 text-stone-600">{o.createdAt.slice(0, 10)}</td>
-                    <td className="px-4 py-3 text-stone-600">
+                    <td className="px-4 py-3 text-[var(--muted)]">{o.createdAt.slice(0, 10)}</td>
+                    <td className="px-4 py-3 text-[var(--muted)]">
                       {o.customerName}
                       <br />
                       <span className="text-xs">{o.customerEmail}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-stone-600">
+                    <td className="px-4 py-3 text-xs text-[var(--muted)]">
                       <ul className="list-inside list-disc">
                         {o.items.map((it, i) => (
                           <li key={i}>
@@ -1174,8 +1174,8 @@ export default function StudioShopClient({
                         ))}
                       </ul>
                     </td>
-                    <td className="px-4 py-3 text-stone-600">€{(o.totalCents / 100).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-stone-600">{o.paymentStatus}</td>
+                    <td className="px-4 py-3 text-[var(--muted)]">€{(o.totalCents / 100).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-[var(--muted)]">{o.paymentStatus}</td>
                     <td className="px-4 py-3">
                       <select
                         className={cn(ui.input, "text-sm")}

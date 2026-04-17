@@ -61,8 +61,8 @@ export default async function StudioIntakeFormsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Booking setup</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Booking questions</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Booking questions</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Build intake questions per class so customers can share preferences, consent, dates, or file links before the
           booking is confirmed.
         </p>

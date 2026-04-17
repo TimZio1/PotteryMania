@@ -125,7 +125,7 @@ export default function EditStudioPage() {
         ← Studio control panel
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">Studio workspace</h1>
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-[var(--muted)]">
         {studio.status === "active"
           ? "Your studio is live and accepting bookings."
           : studio.status === "draft"
@@ -149,8 +149,8 @@ export default function EditStudioPage() {
       {/* ── Activation gate ── */}
       {!activated && (
         <div className="mt-6 rounded-2xl border-2 border-emerald-300 bg-emerald-50/60 p-5">
-          <h2 className="text-lg font-semibold text-amber-950">Activate direct payments</h2>
-          <p className="mt-2 text-sm text-stone-700">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Activate direct payments</h2>
+          <p className="mt-2 text-sm text-[var(--foreground)]">
             Connect Stripe first. Once payouts are enabled, direct product sales and reservations activate automatically.
           </p>
           <button
@@ -169,7 +169,7 @@ export default function EditStudioPage() {
         {err && !activating && <p className="text-sm text-red-600">{err}</p>}
         {fields.map((field) => (
           <label key={field.key} className="block text-sm">
-            <span className="text-stone-600">{field.label}</span>
+            <span className="text-[var(--muted)]">{field.label}</span>
             <input
               className="mt-1 w-full rounded border px-3 py-2"
               type={field.type ?? "text"}
@@ -237,7 +237,7 @@ export default function EditStudioPage() {
         <button type="button" onClick={stripeOnboard} className="rounded bg-stone-800 py-2 text-white">
           Connect payouts
         </button>
-        <button type="button" onClick={stripeSync} className="text-sm text-stone-600 underline">
+        <button type="button" onClick={stripeSync} className="text-sm text-[var(--muted)] underline">
           Refresh Stripe status
         </button>
       </div>

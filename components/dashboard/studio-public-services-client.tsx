@@ -63,7 +63,7 @@ export default function StudioPublicServicesClient({
     <form onSubmit={(e) => void save(e)} className={cn(ui.card, "space-y-5")}>
       <div>
         <h2 className="text-lg font-semibold text-stone-900">Public page services</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-[var(--muted)]">
           Control how experiences, catalog, and contact appear on your public studio page (<code className="text-xs">/studios/…</code>).{" "}
           <strong>Off</strong> hides the block; <strong>Visible</strong> shows it without direct booking or cart;{" "}
           <strong>Visible with link</strong> uses your URL for CTAs; <strong>Active</strong> uses built-in flows.
@@ -77,7 +77,7 @@ export default function StudioPublicServicesClient({
           return (
             <li key={key} className="rounded-lg border border-stone-200 bg-stone-50/60 p-4">
               <p className="font-medium text-stone-900">{title}</p>
-              <p className="mt-0.5 text-xs text-stone-600">{hint}</p>
+              <p className="mt-0.5 text-xs text-[var(--muted)]">{hint}</p>
               <fieldset className="mt-3 flex flex-wrap gap-2">
                 <legend className="sr-only">Mode for {title}</legend>
                 {MODE_OPTIONS.map((opt) => (

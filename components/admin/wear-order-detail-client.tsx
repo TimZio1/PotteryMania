@@ -238,7 +238,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
           >
             {humanStatus(initial.status)}
           </span>
-          <p className="mt-3 text-sm text-stone-600">
+          <p className="mt-3 text-sm text-[var(--muted)]">
             Created <span className="font-mono text-xs">{initial.createdAt.slice(0, 19).replace("T", " ")}</span>
             {" · "}
             Updated <span className="font-mono text-xs">{initial.updatedAt.slice(0, 19).replace("T", " ")}</span>
@@ -248,32 +248,32 @@ export default function WearOrderDetailClient({ initial }: Props) {
 
       <section className="grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-amber-950">Lifecycle timestamps</h2>
-          <dl className="mt-3 space-y-2 text-sm text-stone-700">
+          <h2 className="text-sm font-semibold text-stone-900">Lifecycle timestamps</h2>
+          <dl className="mt-3 space-y-2 text-sm text-stone-900">
             <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">Paid</dt>
+              <dt className="text-stone-600">Paid</dt>
               <dd className="font-mono text-xs">{initial.paidAt ? initial.paidAt.slice(0, 19).replace("T", " ") : "—"}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">Fulfilled</dt>
+              <dt className="text-stone-600">Fulfilled</dt>
               <dd className="font-mono text-xs">
                 {initial.fulfilledAt ? initial.fulfilledAt.slice(0, 19).replace("T", " ") : "—"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">Shipped</dt>
+              <dt className="text-stone-600">Shipped</dt>
               <dd className="font-mono text-xs">
                 {initial.shippedAt ? initial.shippedAt.slice(0, 19).replace("T", " ") : "—"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">Cancelled</dt>
+              <dt className="text-stone-600">Cancelled</dt>
               <dd className="font-mono text-xs">
                 {initial.cancelledAt ? initial.cancelledAt.slice(0, 19).replace("T", " ") : "—"}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-stone-500">Refunded</dt>
+              <dt className="text-stone-600">Refunded</dt>
               <dd className="font-mono text-xs">
                 {initial.refundedAt ? initial.refundedAt.slice(0, 19).replace("T", " ") : "—"}
               </dd>
@@ -282,21 +282,21 @@ export default function WearOrderDetailClient({ initial }: Props) {
         </div>
 
         <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-amber-950">Customer</h2>
+          <h2 className="text-sm font-semibold text-stone-900">Customer</h2>
           <p className="mt-2 font-medium text-stone-900">{initial.customerName}</p>
           <p className="text-sm text-stone-600">{initial.customerEmail}</p>
         </div>
       </section>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Totals</h2>
+        <h2 className="text-sm font-semibold text-stone-900">Totals</h2>
         <div className="mt-3 flex flex-wrap gap-8 text-sm">
           <div>
-            <p className="text-xs text-stone-500">Subtotal</p>
+            <p className="text-xs text-stone-600">Subtotal</p>
             <p className="mt-1 font-mono text-lg text-stone-900">{money(initial.subtotalCents, initial.currency)}</p>
           </div>
           <div>
-            <p className="text-xs text-stone-500">Paid total (Stripe)</p>
+            <p className="text-xs text-stone-600">Paid total (Stripe)</p>
             <p className="mt-1 font-mono text-lg text-stone-900">
               {initial.amountTotalCents != null ? money(initial.amountTotalCents, initial.currency) : "—"}
             </p>
@@ -305,7 +305,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
       </section>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Stripe</h2>
+        <h2 className="text-sm font-semibold text-stone-900">Stripe</h2>
         <div className="mt-3 space-y-2 break-all font-mono text-xs text-stone-600">
           {initial.stripeLinks.sessionUrl ? (
             <p>
@@ -331,7 +331,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
       </section>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Line items</h2>
+        <h2 className="text-sm font-semibold text-stone-900">Line items</h2>
         <ul className="mt-4 divide-y divide-stone-100 text-sm">
           {initial.items.map((it) => (
             <li key={it.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
@@ -346,13 +346,13 @@ export default function WearOrderDetailClient({ initial }: Props) {
                     {it.productNameSnapshot}
                   </Link>
                 ) : (
-                  <span className="font-medium text-amber-950">{it.productNameSnapshot}</span>
+                  <span className="font-medium text-stone-900">{it.productNameSnapshot}</span>
                 )}
                 {it.variantLabelSnapshot ? (
-                  <p className="text-xs text-stone-500">Variant: {it.variantLabelSnapshot}</p>
+                  <p className="text-xs text-stone-600">Variant: {it.variantLabelSnapshot}</p>
                 ) : null}
                 {it.variantSku ? <p className="text-xs text-stone-400">SKU: {it.variantSku}</p> : null}
-                <p className="text-xs text-stone-500">Qty {it.quantity}</p>
+                <p className="text-xs text-stone-600">Qty {it.quantity}</p>
               </div>
               <p className="font-mono text-sm">{money(it.lineTotalCents, initial.currency)}</p>
             </li>
@@ -361,8 +361,8 @@ export default function WearOrderDetailClient({ initial }: Props) {
       </section>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Fulfillment & tracking</h2>
-        <p className="mt-1 text-xs text-stone-500">Save without changing status — useful before you mark shipped.</p>
+        <h2 className="text-sm font-semibold text-stone-900">Fulfillment & tracking</h2>
+        <p className="mt-1 text-xs text-stone-600">Save without changing status — useful before you mark shipped.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label className="text-xs font-medium text-stone-600">Fulfillment provider</label>
@@ -398,7 +398,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
       </section>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Internal notes</h2>
+        <h2 className="text-sm font-semibold text-stone-900">Internal notes</h2>
         <textarea
           className="mt-3 min-h-[100px] w-full rounded-lg border border-stone-200 px-3 py-2 text-sm"
           value={notes}
@@ -415,7 +415,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
 
       {initial.allowedNext.length > 0 ? (
         <section className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-5">
-          <h2 className="text-sm font-semibold text-amber-950">Lifecycle actions</h2>
+          <h2 className="text-sm font-semibold text-stone-900">Lifecycle actions</h2>
           <p className="mt-1 text-xs text-stone-600">
             Cancelled and refunded require confirmation and an audit reason (8+ characters). Manual “mark paid” is only
             for edge reconciliation — Stripe webhook normally sets paid.
@@ -444,7 +444,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
           {actionErr ? <p className="mt-3 text-sm text-red-700">{actionErr}</p> : null}
         </section>
       ) : (
-        <p className="text-sm text-stone-600">This order is closed — no further status transitions.</p>
+        <p className="text-sm text-[var(--muted)]">This order is closed — no further status transitions.</p>
       )}
 
       <AnimatePresence>
@@ -490,7 +490,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
               transition={transition}
               onClick={(e) => e.stopPropagation()}
             >
-            <h3 id="wear-order-lifecycle-title" className="text-lg font-semibold text-amber-950">
+            <h3 id="wear-order-lifecycle-title" className="text-lg font-semibold text-stone-900">
               {ACTION_LABEL[modalNext] ?? humanStatus(modalNext)}
             </h3>
             <p id="wear-order-lifecycle-description" className="mt-2 text-sm text-stone-600">
@@ -509,7 +509,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
             ) : null}
             {modalNext === "shipped" ? (
               <div className="mt-4 space-y-3">
-                <p className="text-xs text-stone-500">Optional — values below are saved with this transition.</p>
+                <p className="text-xs text-stone-600">Optional — values below are saved with this transition.</p>
                 <input
                   className="w-full rounded-lg border border-stone-200 px-3 py-2 text-sm"
                   placeholder="Tracking number"
@@ -525,7 +525,7 @@ export default function WearOrderDetailClient({ initial }: Props) {
               </div>
             ) : null}
             {isDestructive(modalNext) ? (
-              <label className="mt-4 flex items-center gap-2 text-sm text-stone-800">
+              <label className="mt-4 flex items-center gap-2 text-sm text-stone-900">
                 <input
                   type="checkbox"
                   checked={confirmDestructive}

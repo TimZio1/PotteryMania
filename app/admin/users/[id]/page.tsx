@@ -191,9 +191,9 @@ export default async function AdminUserDetailPage({ params }: Props) {
       <Link href="/admin/users" className="text-sm font-medium text-amber-900 hover:underline">
         ← Users
       </Link>
-      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">User intelligence</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">{row.email}</h1>
-      <p className="mt-2 text-sm text-stone-600">
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">User intelligence</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{row.email}</h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">
         Role <code className="text-xs">{row.role}</code>
         {row.suspendedAt ? (
           <span className="ml-3 text-red-700">Suspended {row.suspendedAt.toISOString().slice(0, 10)}</span>
@@ -232,13 +232,13 @@ export default async function AdminUserDetailPage({ params }: Props) {
       </div>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Recent activity</h2>
-        <p className="mt-1 text-xs text-stone-500">
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">Recent activity</h2>
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Newest first: studio shop orders and class bookings as this customer, plus platform add-on changes on studios
           they own.
         </p>
         {timelineTop.length === 0 ? (
-          <p className="mt-4 text-sm text-stone-500">No orders, bookings, or add-on events yet.</p>
+          <p className="mt-4 text-sm text-[var(--muted)]">No orders, bookings, or add-on events yet.</p>
         ) : (
           <ul className="mt-4 divide-y divide-stone-100 text-sm">
             {timelineTop.map((e) => (
@@ -246,31 +246,31 @@ export default async function AdminUserDetailPage({ params }: Props) {
                 <div>
                   {e.kind === "order" ? (
                     <>
-                      <span className="font-medium text-amber-950">Order</span>{" "}
+                      <span className="font-medium text-[var(--foreground)]">Order</span>{" "}
                       <Link href={`/admin/orders/${e.id}`} className="text-amber-900 underline">
                         {e.id.slice(0, 8)}…
                       </Link>
-                      <span className="ml-2 text-xs text-stone-500">
+                      <span className="ml-2 text-xs text-[var(--muted)]">
                         {e.orderStatus} · {e.paymentStatus} · {formatEur(e.totalCents)}
                       </span>
                     </>
                   ) : e.kind === "booking" ? (
                     <>
-                      <span className="font-medium text-amber-950">Booking</span>{" "}
+                      <span className="font-medium text-[var(--foreground)]">Booking</span>{" "}
                       <Link href={`/admin/bookings/${e.id}`} className="text-amber-900 underline">
                         {e.ticketRef ?? e.id.slice(0, 8) + "…"}
                       </Link>
-                      <span className="ml-2 text-xs text-stone-500">
+                      <span className="ml-2 text-xs text-[var(--muted)]">
                         {e.title} · {e.bookingStatus} · {e.paymentStatus}
                       </span>
                     </>
                   ) : (
                     <>
-                      <span className="font-medium text-amber-950">Add-on</span>{" "}
-                      <span className="text-stone-700">
-                        {e.featureName} <code className="text-xs text-stone-500">({e.featureSlug})</code>
+                      <span className="font-medium text-[var(--foreground)]">Add-on</span>{" "}
+                      <span className="text-[var(--foreground)]">
+                        {e.featureName} <code className="text-xs text-[var(--muted)]">({e.featureSlug})</code>
                       </span>
-                      <span className="ml-2 text-xs text-stone-500">
+                      <span className="ml-2 text-xs text-[var(--muted)]">
                         {e.studioName} · {e.status}
                       </span>
                     </>
@@ -286,8 +286,8 @@ export default async function AdminUserDetailPage({ params }: Props) {
       </section>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Profile</h2>
-        <dl className="mt-3 grid gap-2 text-sm text-stone-600 sm:grid-cols-2">
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">Profile</h2>
+        <dl className="mt-3 grid gap-2 text-sm text-[var(--muted)] sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase text-stone-400">Created</dt>
             <dd>{row.createdAt.toISOString().slice(0, 10)}</dd>
@@ -309,24 +309,24 @@ export default async function AdminUserDetailPage({ params }: Props) {
 
       {acquisition ? (
         <section className="mt-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-amber-950">Acquisition</h2>
-          <p className="mt-2 text-xs text-stone-600">
+          <h2 className="text-sm font-semibold text-[var(--foreground)]">Acquisition</h2>
+          <p className="mt-2 text-xs text-[var(--muted)]">
             {acquisition.utmSource ?? "—"} / {acquisition.utmMedium ?? "—"} / {acquisition.utmCampaign ?? "—"}
           </p>
-          <p className="mt-1 text-xs text-stone-500">Landing: {acquisition.landingPath ?? "—"}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Landing: {acquisition.landingPath ?? "—"}</p>
         </section>
       ) : null}
 
       {row.ownedStudios.length > 0 ? (
         <section className="mt-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-amber-950">Studios</h2>
+          <h2 className="text-sm font-semibold text-[var(--foreground)]">Studios</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {row.ownedStudios.map((s) => (
               <li key={s.id}>
                 <Link href={`/admin/studios/${s.id}`} className="font-medium text-amber-900 underline">
                   {s.displayName}
                 </Link>{" "}
-                <code className="text-xs text-stone-500">({s.status})</code>
+                <code className="text-xs text-[var(--muted)]">({s.status})</code>
               </li>
             ))}
           </ul>
@@ -334,17 +334,17 @@ export default async function AdminUserDetailPage({ params }: Props) {
       ) : null}
 
       <section className="mt-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Internal notes</h2>
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">Internal notes</h2>
         <ul className="mt-4 space-y-3 text-sm">
           {row.adminNotesReceived.length === 0 ? (
-            <li className="text-stone-500">No notes yet.</li>
+            <li className="text-[var(--muted)]">No notes yet.</li>
           ) : (
             row.adminNotesReceived.map((n) => (
               <li key={n.id} className="border-b border-stone-100 pb-3 last:border-0">
                 <p className="text-xs text-stone-400">
                   {n.createdAt.toISOString().slice(0, 16)} · {n.author?.email ?? "unknown"}
                 </p>
-                <p className="mt-1 whitespace-pre-wrap text-stone-700">{n.content}</p>
+                <p className="mt-1 whitespace-pre-wrap text-[var(--foreground)]">{n.content}</p>
               </li>
             ))
           )}

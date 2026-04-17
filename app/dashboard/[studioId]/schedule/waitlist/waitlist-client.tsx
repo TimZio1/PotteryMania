@@ -35,7 +35,7 @@ export function WaitlistClient({ studioId, entries: initial }: { studioId: strin
   if (entries.length === 0) {
     return (
       <div className="rounded-2xl border border-stone-200 bg-white px-5 py-8 text-center">
-        <p className="text-sm text-stone-600">No active waitlist entries right now.</p>
+        <p className="text-sm text-[var(--muted)]">No active waitlist entries right now.</p>
         <p className="mt-1 text-xs text-stone-400">When your classes fill up, customers can join the waitlist and they will appear here.</p>
       </div>
     );
@@ -43,14 +43,14 @@ export function WaitlistClient({ studioId, entries: initial }: { studioId: strin
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-stone-500">{entries.length} active {entries.length === 1 ? "entry" : "entries"}</p>
+      <p className="text-sm text-[var(--muted)]">{entries.length} active {entries.length === 1 ? "entry" : "entries"}</p>
       <div className="divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white">
         {entries.map((e) => (
           <div key={e.id} className="flex flex-wrap items-start gap-4 px-5 py-4">
             <div className="min-w-0 flex-1">
               <p className="font-medium text-stone-900">{e.customerName}</p>
-              <p className="text-sm text-stone-600">{e.customerEmail}</p>
-              <p className="mt-1 text-xs text-stone-500">
+              <p className="text-sm text-[var(--muted)]">{e.customerEmail}</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">
                 {e.experienceTitle}
                 {e.slotDate ? ` · ${e.slotDate}` : ""}
                 {e.slotTime ? ` at ${e.slotTime}` : ""}

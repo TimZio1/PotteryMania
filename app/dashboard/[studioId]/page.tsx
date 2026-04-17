@@ -136,8 +136,8 @@ export default async function StudioPanelHomePage({ params }: Props) {
     <div className="mx-auto max-w-5xl space-y-8">
       {!studio?.businessTemplateSlug ? (
         <div className="rounded-2xl border border-amber-200/90 bg-linear-to-br from-amber-50/90 to-white px-5 py-6 shadow-sm sm:px-8 sm:py-8">
-          <h2 className="text-lg font-semibold text-amber-950 sm:text-xl">Choose how your studio workspace is organized</h2>
-          <p className="mt-2 max-w-xl text-sm text-stone-700">
+          <h2 className="text-lg font-semibold text-[var(--foreground)] sm:text-xl">Choose how your studio workspace is organized</h2>
+          <p className="mt-2 max-w-xl text-sm text-[var(--foreground)]">
             Pick a template to organize experiences, sessions, payments, and day-to-day studio workflows. Takes under a minute.
           </p>
           <Link
@@ -151,18 +151,18 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
       <div>
         <p className={ui.overline}>Home</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">{studio?.displayName}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">{studio?.displayName}</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Operational snapshot: what needs attention first, then today&apos;s sessions, money, and shortcuts.
         </p>
       </div>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-lg font-semibold text-amber-950">Needs attention</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Needs attention</h2>
         {needsAttentionItems.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-600">Nothing urgent right now.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Nothing urgent right now.</p>
         ) : (
-          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-stone-800">
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[var(--foreground)]">
             {needsAttentionItems.map((t, i) => (
               <li key={i}>{t}</li>
             ))}
@@ -172,20 +172,20 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
       <section>
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold text-amber-950">Today&apos;s sessions</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Today&apos;s sessions</h2>
           <Link href={`/dashboard/${studioId}/schedule/sessions`} className={`${ui.buttonGhost} text-sm text-amber-900`}>
             Open sessions
           </Link>
         </div>
         <div className="mt-3 space-y-2">
           {upcomingSlots.length === 0 ? (
-            <p className="text-sm text-stone-600">No sessions in the next week.</p>
+            <p className="text-sm text-[var(--muted)]">No sessions in the next week.</p>
           ) : (
             upcomingSlots.map((b) => (
               <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm">
                 <div>
                   <p className="font-medium text-stone-900">{b.experience.title}</p>
-                  <p className="text-stone-500">
+                  <p className="text-[var(--muted)]">
                     {b.slot.slotDate.toISOString().slice(0, 10)} {b.slot.startTime} · {b.customerName}
                   </p>
                 </div>
@@ -201,9 +201,9 @@ export default async function StudioPanelHomePage({ params }: Props) {
       <section className={`${ui.card} space-y-4`}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Money</p>
-            <p className="mt-1 text-2xl font-semibold text-amber-950">€{revenue30dEur.toFixed(2)}</p>
-            <p className="mt-1 text-xs text-stone-500">Direct revenue (30d est.) — {revenueEstimateNote}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Money</p>
+            <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">€{revenue30dEur.toFixed(2)}</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">Direct revenue (30d est.) — {revenueEstimateNote}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href={`/dashboard/${studioId}/money/overview`} className={ui.buttonPrimary}>
@@ -221,27 +221,27 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Guest contacts (90d)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{distinctStudents.length}</p>
-          <p className="mt-2 text-xs text-stone-500">Distinct booking email addresses.</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Guest contacts (90d)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{distinctStudents.length}</p>
+          <p className="mt-2 text-xs text-[var(--muted)]">Distinct booking email addresses.</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Session fill (7d)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{occPct !== null ? `${occPct}%` : "—"}</p>
-          <p className="mt-2 text-xs text-stone-500">Average reserved vs capacity on open slots.</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Session fill (7d)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{occPct !== null ? `${occPct}%` : "—"}</p>
+          <p className="mt-2 text-xs text-[var(--muted)]">Average reserved vs capacity on open slots.</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Upcoming sessions (7d)</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-950">{upcomingSlots.length}</p>
-          <p className="mt-2 text-xs text-stone-500">Confirmed or approved reservations this week.</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Upcoming sessions (7d)</p>
+          <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{upcomingSlots.length}</p>
+          <p className="mt-2 text-xs text-[var(--muted)]">Confirmed or approved reservations this week.</p>
         </div>
         <div className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Platform fee rates</p>
-          <p className="mt-2 text-base font-semibold text-amber-950">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Platform fee rates</p>
+          <p className="mt-2 text-base font-semibold text-[var(--foreground)]">
             Products {(productCommissionBps / 100).toFixed(2)}% · Bookings {(bookingCommissionBps / 100).toFixed(2)}%
             {wearMarginLabel ? ` · Wearables ${wearMarginLabel} margin` : null}
           </p>
-          <p className="mt-2 text-xs text-stone-500">
+          <p className="mt-2 text-xs text-[var(--muted)]">
             Applied at checkout settlement.
             {wearMarginLabel ? " Wearable margins are added on top of base prices." : null}
           </p>
@@ -250,8 +250,8 @@ export default async function StudioPanelHomePage({ params }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Quick actions</h2>
-          <p className="mt-2 text-sm text-stone-600">Jump straight into the work that keeps your studio moving.</p>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Quick actions</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">Jump straight into the work that keeps your studio moving.</p>
           <div className="mt-4 flex flex-col gap-2">
             <Link href={`/dashboard/${studioId}/schedule/sessions`} className={ui.buttonPrimary}>
               Open sessions
@@ -263,8 +263,8 @@ export default async function StudioPanelHomePage({ params }: Props) {
         </div>
 
         <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Public page</h2>
-          <p className="mt-2 text-sm text-stone-600">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Public page</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Preview the page your guests see, update presentation, and connect a storefront domain when ready.
           </p>
           {activeDomain ? (
@@ -272,7 +272,7 @@ export default async function StudioPanelHomePage({ params }: Props) {
               Custom domain live: <span className="font-medium">{activeDomain.domainName}</span>
             </p>
           ) : (
-            <p className="mt-2 text-xs text-stone-500">No custom storefront domain linked yet.</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">No custom storefront domain linked yet.</p>
           )}
           <div className="mt-4 flex flex-col gap-2">
             <Link href={`/studios/${studioId}`} className={ui.buttonPrimary}>
@@ -288,8 +288,8 @@ export default async function StudioPanelHomePage({ params }: Props) {
         </div>
 
         <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Programs</h2>
-          <p className="mt-2 text-sm text-stone-600">Add a class or workshop, then schedule bookable times.</p>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Programs</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">Add a class or workshop, then schedule bookable times.</p>
           <div className="mt-4 flex flex-col gap-2">
             <Link href={`/dashboard/${studioId}/programs`} className={ui.buttonPrimary}>
               Add experience
@@ -301,8 +301,8 @@ export default async function StudioPanelHomePage({ params }: Props) {
         </div>
 
         <div className={ui.card}>
-          <h2 className="text-lg font-semibold text-amber-950">Money &amp; payouts</h2>
-          <p className="mt-2 text-sm text-stone-600">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Money &amp; payouts</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
             {studio?.activationPaidAt
               ? "Your studio is live for direct payments. Review payout activity and Stripe setup."
               : "Finish payout setup when you are ready for direct bookings and sales."}

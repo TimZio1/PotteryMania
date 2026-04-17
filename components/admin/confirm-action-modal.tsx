@@ -130,8 +130,8 @@ export function ConfirmActionModal({
             transition={transition}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Critical action</p>
-            <h3 id={titleId} className="mt-3 text-2xl font-semibold tracking-tight text-amber-950">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Critical action</p>
+            <h3 id={titleId} className="mt-3 text-2xl font-semibold tracking-tight text-stone-900">
               {title}
             </h3>
             <p id={descriptionId} className="mt-3 text-sm leading-7 text-stone-600">

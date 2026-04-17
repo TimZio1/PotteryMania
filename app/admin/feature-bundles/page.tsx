@@ -46,9 +46,9 @@ export default async function AdminFeatureBundlesPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Monetization</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Feature bundles</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Monetization</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Feature bundles</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Group catalog add-ons into a single SKU with a package price and optional promo window. Vendors see bundles on
         Features / Add-ons. Set a Stripe <code className="font-mono text-xs">price_…</code> for one subscription that
         activates every feature in the bundle after Checkout.

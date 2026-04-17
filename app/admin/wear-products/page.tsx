@@ -106,9 +106,9 @@ export default async function AdminWearProductsPage({
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Wear products</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Wear products</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Catalog for the PotteryMania-native wear storefront. Archive removes pieces from the public shop without deleting
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
@@ -168,19 +168,19 @@ export default async function AdminWearProductsPage({
         <p className="mt-1 flex flex-wrap items-baseline gap-3">
           <span className="font-mono text-lg tracking-tight">{health.catalogTrustState}</span>
           {typeof health.internalHealthScore === "number" ? (
-            <span className="text-xs font-normal text-stone-600">
+            <span className="text-xs font-normal text-[var(--muted)]">
               Internal health score:{" "}
-              <span className="font-mono font-semibold text-stone-800">{health.internalHealthScore}</span>
+              <span className="font-mono font-semibold text-[var(--foreground)]">{health.internalHealthScore}</span>
               /100 (operator-only)
             </span>
           ) : null}
         </p>
-        <ul className="mt-2 list-inside list-disc text-xs text-stone-800">
+        <ul className="mt-2 list-inside list-disc text-xs text-[var(--foreground)]">
           {health.catalogTrustReasons.map((r, i) => (
             <li key={i}>{r}</li>
           ))}
         </ul>
-        <div className="mt-3 grid gap-1 text-xs text-stone-700 sm:grid-cols-2">
+        <div className="mt-3 grid gap-1 text-xs text-[var(--foreground)] sm:grid-cols-2">
           <p>
             Last sync:{" "}
             <span className="font-mono">{health.lastSyncAt ?? "—"}</span> ({health.lastSyncMode ?? "—"})
@@ -212,7 +212,7 @@ export default async function AdminWearProductsPage({
         {health.lastSyncError ? (
           <p className="mt-2 text-xs font-medium text-red-900">Sync error flag: {health.lastSyncError}</p>
         ) : null}
-        <p className="mt-3 text-xs text-stone-600">
+        <p className="mt-3 text-xs text-[var(--muted)]">
           Schedule: partial cron often; <strong>full discovery</strong> daily (or use the sync checkbox below once).
           Trust requires a fresh <strong>full</strong> sync within ~36h, no duplicate SKUs, and skip ratio under 85%.
         </p>
@@ -226,13 +226,13 @@ export default async function AdminWearProductsPage({
         }`}
       >
         <p className="font-semibold">Live shop visibility (same rules as /wear/shop)</p>
-        <p className="mt-1 text-stone-700">
+        <p className="mt-1 text-[var(--foreground)]">
           <span className="font-mono">{health.shopVisibleCount}</span> visible (
           <span className="font-mono">{health.syncedShopVisibleCount}</span> with SPOD-linked variants or external id) ·{" "}
           {health.totalProducts} total · {health.archivedCount} archived · {health.inactiveCount} inactive
         </p>
-        {health.emptyDiagnosis ? <p className="mt-2 text-stone-800">{health.emptyDiagnosis}</p> : null}
-        <p className="mt-2 text-xs text-stone-600">
+        {health.emptyDiagnosis ? <p className="mt-2 text-[var(--foreground)]">{health.emptyDiagnosis}</p> : null}
+        <p className="mt-2 text-xs text-[var(--muted)]">
           Spreadconnect: {health.spreadconnectConfigured ? "API key set (paid orders may submit)" : "not configured"}
           {health.spreadconnectConfigured
             ? ` · SC failures (24h): ${health.spreadconnectFailuresLast24h}, successes: ${health.spreadconnectSubmissionsLast24h}`
@@ -249,7 +249,7 @@ export default async function AdminWearProductsPage({
             Sampled product images returned non-OK HEAD: {health.brokenImages.length} (see API JSON for details).
           </p>
         ) : null}
-        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-600">
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
           <Link href="/wear/shop" className="font-medium text-amber-900 underline">
             Open public shop
           </Link>

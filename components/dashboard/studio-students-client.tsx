@@ -186,7 +186,7 @@ export default function StudioStudentsClient({
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-stone-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted)]">
                     No rows match filters.
                   </td>
                 </tr>
@@ -201,7 +201,7 @@ export default function StudioStudentsClient({
                     onClick={() => openRow(r)}
                   >
                     <td className="px-4 py-3 font-medium text-stone-900">{r.displayName}</td>
-                    <td className="px-4 py-3 text-stone-600">
+                    <td className="px-4 py-3 text-[var(--muted)]">
                       {r.email}
                       {r.phone ? (
                         <>
@@ -210,12 +210,12 @@ export default function StudioStudentsClient({
                         </>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-stone-600">{r.bookingCount}</td>
-                    <td className="px-4 py-3 text-stone-600">{r.attendedCount}</td>
-                    <td className="px-4 py-3 text-xs text-stone-600">
+                    <td className="px-4 py-3 text-[var(--muted)]">{r.bookingCount}</td>
+                    <td className="px-4 py-3 text-[var(--muted)]">{r.attendedCount}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--muted)]">
                       {r.tags.length ? r.tags.join(", ") : "—"}
                     </td>
-                    <td className="px-4 py-3 text-stone-600">
+                    <td className="px-4 py-3 text-[var(--muted)]">
                       {r.lastSessionDate ?? "—"}
                       {r.lastClassTitle ? (
                         <>
@@ -232,7 +232,7 @@ export default function StudioStudentsClient({
         </div>
 
         <div className={cn(ui.cardMuted, "space-y-3")}>
-          <p className="text-sm font-semibold text-amber-950">Add contact manually</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">Add contact manually</p>
           <form onSubmit={addManual} className="grid gap-3 sm:grid-cols-2">
             <label className="sm:col-span-2">
               <span className={ui.label}>Email</span>
@@ -295,8 +295,8 @@ export default function StudioStudentsClient({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold uppercase text-stone-500">Edit</p>
-              <p className="mt-1 text-sm text-stone-600">
+              <p className="text-xs font-semibold uppercase text-[var(--muted)]">Edit</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">
                 {selected.contactId ? "Saved profile" : "From bookings — save to add notes & tags"}
               </p>
             </div>
@@ -348,7 +348,7 @@ export default function StudioStudentsClient({
           <button type="button" disabled={saving} onClick={() => void save()} className={cn(ui.buttonPrimary, "w-full")}>
             {saving ? "Saving…" : "Save"}
           </button>
-          <dl className="border-t border-stone-100 pt-3 text-xs text-stone-500">
+          <dl className="border-t border-stone-100 pt-3 text-xs text-[var(--muted)]">
             <div className="flex justify-between gap-2">
               <dt>Bookings</dt>
               <dd>{selected.bookingCount}</dd>

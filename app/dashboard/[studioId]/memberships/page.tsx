@@ -55,8 +55,8 @@ export default async function StudioMembershipsPage({ params }: Props) {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className={ui.overline}>Revenue</p>
-        <h1 className="mt-1 text-2xl font-semibold text-amber-950">Memberships</h1>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Memberships</h1>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           Create member-only plans with duration, usage limits, and recurring pricing.
         </p>
       </div>

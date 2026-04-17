@@ -32,9 +32,9 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Settings</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">Platform configuration</h1>
-      <p className="mt-2 max-w-2xl text-sm text-stone-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Settings</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Platform configuration</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Commission edits are versioned in the audit log. Deeper billing lives in the finance engine.
       </p>
 
@@ -47,11 +47,11 @@ export default async function AdminSettingsPage() {
       </div>
 
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-amber-950">Admin config keys (read-only)</h2>
-        <p className="mt-2 text-xs text-stone-500">
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">Admin config keys (read-only)</h2>
+        <p className="mt-2 text-xs text-[var(--muted)]">
           {configSample.length} keys shown. Use DB or future editor for values; changes should go through audit.
         </p>
-        <ul className="mt-4 max-h-48 overflow-auto font-mono text-xs text-stone-600">
+        <ul className="mt-4 max-h-48 overflow-auto font-mono text-xs text-[var(--muted)]">
           {configSample.map((c) => (
             <li key={c.configKey}>{c.configKey}</li>
           ))}
