@@ -37,15 +37,15 @@ export function orderConfirmationCopy(input: {
     customer: renderEmailShell({
       eyebrow: "Order confirmed",
       title: "Your order is confirmed",
-      intro: `Hi ${input.customerName}, your PotteryMania order from ${input.studioName} is confirmed.`,
+      intro: `Hi ${input.customerName}, your order from ${input.studioName} is confirmed.`,
       bodyHtml: `${list}<p style="margin:16px 0 8px;">Total: €${escapeHtml(input.totalEur)}</p>${shipping}${tracking}`,
-      ctaLabel: "View PotteryMania",
+      ctaLabel: "View your order",
       ctaUrl: siteUrl,
     }),
     vendor: renderEmailShell({
       eyebrow: "New order",
       title: "A new order has arrived",
-      intro: `A new PotteryMania order has been placed for ${input.studioName}.`,
+      intro: `A new order has been placed for ${input.studioName}.`,
       bodyHtml: `${list}<p style="margin:16px 0 0;">Total charged: €${escapeHtml(input.totalEur)}</p>`,
       ctaLabel: "Open dashboard",
       ctaUrl: `${siteUrl}/dashboard`,
@@ -58,7 +58,7 @@ export function abandonedCartCopy(input: { recoveryUrl: string; itemCount: numbe
   return renderEmailShell({
     eyebrow: "Cart reminder",
     title: "Your cart is still waiting",
-    intro: `You still have ${input.itemCount} item(s) saved in PotteryMania.`,
+    intro: `You still have ${input.itemCount} item(s) in your cart.`,
     bodyHtml: `<p>Return whenever you are ready and complete your order.</p><p style="margin-top:20px;font-size:13px;color:#8b7a6d;">You received this because you opted in to cart reminders. To opt out, sign in at ${escapeHtml(site.replace(/\/+$/, ""))} and disable marketing email in your account (or contact support).</p>`,
     ctaLabel: "Return to your cart",
     ctaUrl: input.recoveryUrl,
@@ -87,7 +87,7 @@ export function orderShippedCopy(input: {
     title: "Your order is on the way",
     intro: `Hi ${input.customerName}, your order from ${input.studioName} has shipped.`,
     bodyHtml: `<p style="margin:0 0 12px;">${trackingIntro}</p>${carrierLine}${trackingLine}`,
-    ctaLabel: input.trackingUrl ? "Track shipment" : "Open PotteryMania",
+    ctaLabel: input.trackingUrl ? "Track shipment" : "View order details",
     ctaUrl:
       input.trackingUrl ||
       process.env.NEXT_PUBLIC_SITE_URL ||

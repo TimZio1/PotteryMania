@@ -115,7 +115,7 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
       title: "Your booking is confirmed",
       intro: `Your place for ${p.experienceTitle} is now confirmed.`,
       bodyHtml: block,
-      ctaLabel: "View PotteryMania",
+      ctaLabel: "View booking details",
       ctaUrl: siteUrl,
     }),
     studio: renderEmailShell({
@@ -155,14 +155,14 @@ export function bookingPendingStudioConfirmationCopy(p: BookingEmailFields): { c
       title: "Your booking is pending studio confirmation",
       intro: "Your payment was received and the studio has been notified.",
       bodyHtml: block,
-      ctaLabel: "View PotteryMania",
+      ctaLabel: "View booking details",
       ctaUrl: siteUrl,
     }),
     studio: renderEmailShell({
       eyebrow: "Confirmation needed",
       title: "A new booking needs your review",
       intro: `Please confirm or decline the booking for ${p.experienceTitle}.`,
-      bodyHtml: `${block}<p style="margin:16px 0 0;">Please confirm or decline in your PotteryMania dashboard.</p>`,
+      bodyHtml: `${block}<p style="margin:16px 0 0;">Please confirm or decline in your studio dashboard.</p>`,
       ctaLabel: "Open dashboard",
       ctaUrl: `${siteUrl}/dashboard`,
     }),
@@ -179,7 +179,7 @@ export function bookingRejectedCopy(p: BookingEmailFields & { reason?: string | 
     title: "Your booking was not confirmed",
     intro: `Your booking for ${p.experienceTitle} at ${p.studioName} could not be confirmed.`,
     bodyHtml: `${ticket}${reason}<p style="margin:16px 0 0;">If you were charged, contact the studio for a refund.</p>`,
-    ctaLabel: "View PotteryMania",
+    ctaLabel: "View booking details",
     ctaUrl: siteUrl,
   });
 }

@@ -592,7 +592,7 @@ export async function runCheckoutCompletionSideEffects(input: {
       await runSideEffect(`order_email_customer:${input.orderId}`, async () => {
         await sendOrderEmails({
           customerEmail: order.customerEmail,
-          subject: `Order confirmed — PotteryMania`,
+          subject: `Order confirmed — ${studioLabel}`,
           customerHtml: customer,
         });
       });

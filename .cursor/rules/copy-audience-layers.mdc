@@ -1,0 +1,35 @@
+---
+description: PotteryMania copy ownership — audience layers (Hyperadmin / studio / end customer)
+alwaysApply: true
+---
+
+# Copy ownership (launch blocker)
+
+**Principle:** The end customer belongs to the **studio**. The platform does not speak as seller/host to customers.
+
+## Layers (never mix in one sentence)
+
+| Layer | Routes (typical) | Voice |
+|-------|------------------|--------|
+| **HYPERADMIN** | `app/admin/**` | studios, users, revenue, system — never “book your class” |
+| **STUDIO_ADMIN** | `app/dashboard/**` | your studio, your customers, your bookings — never “add to cart” as if you’re the shopper |
+| **END_CUSTOMER** | public studio, book, checkout, shop flows | studio-first; **no** “with PotteryMania” as host; **no** dashboard language |
+
+## Forbidden in customer flows (Layer C)
+
+- Positioning the **platform** as the seller (“your PotteryMania order”, “Book with PotteryMania”).
+- Studio-dashboard verbs (“Set your availability”, “Manage customers”) on public pages.
+- Ambiguous **you** when two roles could read it.
+
+## Allowed platform mentions
+
+- **Hyperadmin** and internal tools: PotteryMania as operator is OK.
+- **Transactional email**: `From:` / technical footer may reference the product; **body copy** to customers must be **studio-neutral or studio-named**, not platform-as-brand.
+
+## Before changing strings
+
+1. **Role test:** Who is “you”? One role per sentence.
+2. **Collision test:** Would this confuse the wrong audience?
+3. **Platform leak test:** If a shopper reads it, is the studio still the relationship owner?
+
+When adding UI or emails, prefer `copyRole` mentally: `HYPERADMIN` | `STUDIO_ADMIN` | `END_CUSTOMER`.

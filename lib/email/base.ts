@@ -79,7 +79,8 @@ export function renderEmailShell(input: EmailShellInput) {
     ? `<p style="margin:0 0 14px;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#8b6f5e;">${escapeHtml(input.eyebrow)}</p>`
     : "";
   const footer = escapeHtml(
-    input.footerNote || "PotteryMania helps ceramic studios run their website, bookings, and shop in one place.",
+    input.footerNote ||
+      "You are receiving this email about a booking or order connected to a studio. Questions about your purchase? Contact the studio directly.",
   );
 
   return `<!doctype html>
@@ -88,7 +89,7 @@ export function renderEmailShell(input: EmailShellInput) {
     <div style="padding:32px 16px;">
       <div style="max-width:640px;margin:0 auto;background:#fffdf9;border:1px solid rgba(79,52,37,0.12);border-radius:28px;overflow:hidden;box-shadow:0 12px 40px rgba(61,36,23,0.08);">
         <div style="padding:22px 28px;background:linear-gradient(135deg,#f3e7da,#e3cfbc);border-bottom:1px solid rgba(79,52,37,0.12);">
-          <img src="${logoUrl}" alt="PotteryMania" width="200" style="max-width:200px;height:auto;display:block;border:0;" />
+          <img src="${logoUrl}" alt="" width="200" role="presentation" style="max-width:200px;height:auto;display:block;border:0;" />
         </div>
         <div style="padding:36px 28px;">
           ${eyebrow}
