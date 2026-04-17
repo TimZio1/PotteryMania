@@ -4,7 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { Spinner } from "@/components/ui/spinner";
-import { getWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
+import { loadWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
 import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
 import WearSpreadconnectDevTools from "@/components/admin/wear-spreadconnect-dev-tools";
@@ -69,29 +69,40 @@ export default async function AdminWearProductsPage({
     };
   });
 
-  const health = await getWearCatalogHealthSnapshot();
+  const { snapshot: health, error: healthSnapshotError } = await loadWearCatalogHealthSnapshot();
 
-  const recentBuilderJobs = await prisma.wearBuilderJob.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 20,
-    select: {
-      id: true,
-      state: true,
-      designImageUrl: true,
-      errorMessage: true,
-      wearProductId: true,
-      createdAt: true,
-    },
-  });
-
-  const initialBuilderJobs = recentBuilderJobs.map((j) => ({
-    id: j.id,
-    state: j.state,
-    designImageUrl: j.designImageUrl,
-    errorMessage: j.errorMessage,
-    wearProductId: j.wearProductId,
-    createdAt: j.createdAt.toISOString(),
-  }));
+  let initialBuilderJobs: {
+    id: string;
+    state: string;
+    designImageUrl: string | null;
+    errorMessage: string | null;
+    wearProductId: string | null;
+    createdAt: string;
+  }[] = [];
+  try {
+    const recentBuilderJobs = await prisma.wearBuilderJob.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        state: true,
+        designImageUrl: true,
+        errorMessage: true,
+        wearProductId: true,
+        createdAt: true,
+      },
+    });
+    initialBuilderJobs = recentBuilderJobs.map((j) => ({
+      id: j.id,
+      state: j.state,
+      designImageUrl: j.designImageUrl,
+      errorMessage: j.errorMessage,
+      wearProductId: j.wearProductId,
+      createdAt: j.createdAt.toISOString(),
+    }));
+  } catch (err) {
+    console.error("[admin/wear-products] wearBuilderJob query failed", err);
+  }
 
   return (
     <div>
@@ -101,6 +112,17 @@ export default async function AdminWearProductsPage({
         Catalog for the PotteryMania-native wear storefront. Archive removes pieces from the public shop without deleting
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
+
+      {healthSnapshotError ? (
+        <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">
+          <p className="font-semibold">Catalog health snapshot unavailable</p>
+          <p className="mt-1 break-all font-mono text-xs">{healthSnapshotError}</p>
+          <p className="mt-2 text-xs text-red-900">
+            The product list below may still load. If this persists, confirm <span className="font-mono">DATABASE_URL</span>{" "}
+            and run <span className="font-mono">npx prisma migrate deploy</span> on the host.
+          </p>
+        </div>
+      ) : null}
 
       {process.env.SPREADCONNECT_PROBE_ENABLED === "true" ? (
         <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50/80 px-4 py-3 text-xs text-violet-950">

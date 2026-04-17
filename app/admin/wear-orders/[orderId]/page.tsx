@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
-import type { WearOrderStatus } from "@prisma/client";
+import type { Prisma, WearOrderStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireHyperAdminUser } from "@/lib/auth-session";
 import { allowedWearOrderTransitions, isWearOrderTerminal } from "@/lib/wear-order-lifecycle";
@@ -9,6 +9,17 @@ import WearOrderDetailClient from "@/components/admin/wear-order-detail-client";
 import { metaAdminPage } from "@/lib/seo-routes";
 
 export const dynamic = "force-dynamic";
+
+type WearOrderAdminDetail = Prisma.WearOrderGetPayload<{
+  include: {
+    items: {
+      include: {
+        wearProduct: { select: { id: true; slug: true; name: true } };
+        wearProductVariant: { select: { id: true; label: true; sku: true } };
+      };
+    };
+  };
+}>;
 
 type OrderPageParams = { params: Promise<{ orderId: string }> };
 
@@ -23,17 +34,36 @@ export default async function AdminWearOrderDetailPage({ params }: OrderPagePara
 
   const { orderId } = await params;
 
-  const o = await prisma.wearOrder.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        include: {
-          wearProduct: { select: { id: true, slug: true, name: true } },
-          wearProductVariant: { select: { id: true, label: true, sku: true } },
+  let o: WearOrderAdminDetail | null;
+  try {
+    o = await prisma.wearOrder.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: {
+            wearProduct: { select: { id: true, slug: true, name: true } },
+            wearProductVariant: { select: { id: true, label: true, sku: true } },
+          },
         },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.error("[admin/wear-orders/detail] query failed", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    return (
+      <div>
+        <Link href="/admin/wear-orders" className="text-sm font-medium text-amber-900 underline-offset-2 hover:underline">
+          ← Wear orders
+        </Link>
+        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Commerce · Wear</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950">Order unavailable</h1>
+        <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">
+          <p className="font-semibold">This order could not be loaded</p>
+          <p className="mt-1 break-all font-mono text-xs">{msg}</p>
+        </div>
+      </div>
+    );
+  }
   if (!o) notFound();
 
   const allowedNext = isWearOrderTerminal(o.status)
@@ -80,7 +110,7 @@ export default async function AdminWearOrderDetailPage({ params }: OrderPagePara
       quantity: it.quantity,
       unitPriceCents: it.unitPriceCents,
       lineTotalCents: it.unitPriceCents * it.quantity,
-      productSlug: it.wearProduct.slug,
+      productSlug: it.wearProduct?.slug ?? "",
       variantSku: it.wearProductVariant?.sku ?? null,
     })),
   };

@@ -72,13 +72,7 @@ export default async function AdminWearOrdersPage({
   }
   if (andParts.length) where.AND = andParts;
 
-  const [
-    orders,
-    summaryPending,
-    summaryPaidPipeline,
-    summaryFulfilledAwaitingShip,
-    summaryClosed,
-  ] = await Promise.all([
+  const loadOrders = () =>
     prisma.wearOrder.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -90,14 +84,34 @@ export default async function AdminWearOrdersPage({
           },
         },
       },
-    }),
-    prisma.wearOrder.count({ where: { status: "pending" } }),
-    prisma.wearOrder.count({
-      where: { status: { in: ["paid", "manual_review", "in_production"] } },
-    }),
-    prisma.wearOrder.count({ where: { status: "fulfilled" } }),
-    prisma.wearOrder.count({ where: { status: { in: ["cancelled", "refunded"] } } }),
-  ]);
+    });
+
+  let orders: Awaited<ReturnType<typeof loadOrders>> = [];
+  let summaryPending = 0;
+  let summaryPaidPipeline = 0;
+  let summaryFulfilledAwaitingShip = 0;
+  let summaryClosed = 0;
+  let ordersLoadError: string | null = null;
+
+  try {
+    const tuple = await Promise.all([
+      loadOrders(),
+      prisma.wearOrder.count({ where: { status: "pending" } }),
+      prisma.wearOrder.count({
+        where: { status: { in: ["paid", "manual_review", "in_production"] } },
+      }),
+      prisma.wearOrder.count({ where: { status: "fulfilled" } }),
+      prisma.wearOrder.count({ where: { status: { in: ["cancelled", "refunded"] } } }),
+    ]);
+    orders = tuple[0];
+    summaryPending = tuple[1];
+    summaryPaidPipeline = tuple[2];
+    summaryFulfilledAwaitingShip = tuple[3];
+    summaryClosed = tuple[4];
+  } catch (err) {
+    ordersLoadError = err instanceof Error ? err.message : String(err);
+    console.error("[admin/wear-orders] query failed", err);
+  }
 
   const initial = orders.map((o) => ({
     id: o.id,
@@ -120,7 +134,7 @@ export default async function AdminWearOrdersPage({
       quantity: it.quantity,
       unitPriceCents: it.unitPriceCents,
       lineTotalCents: it.unitPriceCents * it.quantity,
-      productSlug: it.wearProduct.slug,
+      productSlug: it.wearProduct?.slug ?? "",
     })),
   }));
 
@@ -131,6 +145,18 @@ export default async function AdminWearOrdersPage({
       <p className="mt-2 max-w-2xl text-sm text-stone-600">
         Operational queue for native wear. Move orders through production and shipping; Stripe still confirms payment.
       </p>
+
+      {ordersLoadError ? (
+        <div className="mt-6 rounded-2xl border border-red-300 bg-red-50/90 px-4 py-3 text-sm text-red-950">
+          <p className="font-semibold">Wear orders could not be loaded</p>
+          <p className="mt-1 break-all font-mono text-xs">{ordersLoadError}</p>
+          <p className="mt-2 text-xs text-red-900">
+            Confirm <span className="font-mono">DATABASE_URL</span> and that wear order migrations are applied (
+            <span className="font-mono">npx prisma migrate deploy</span>).
+          </p>
+        </div>
+      ) : null}
+
       <WearOrdersAdminClient
         initial={initial}
         summary={{

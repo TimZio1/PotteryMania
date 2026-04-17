@@ -336,14 +336,18 @@ export default function WearOrderDetailClient({ initial }: Props) {
           {initial.items.map((it) => (
             <li key={it.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
               <div>
-                <Link
-                  href={`/wear/${it.productSlug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-amber-900 hover:underline"
-                >
-                  {it.productNameSnapshot}
-                </Link>
+                {it.productSlug ? (
+                  <Link
+                    href={`/wear/${it.productSlug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-amber-900 hover:underline"
+                  >
+                    {it.productNameSnapshot}
+                  </Link>
+                ) : (
+                  <span className="font-medium text-amber-950">{it.productNameSnapshot}</span>
+                )}
                 {it.variantLabelSnapshot ? (
                   <p className="text-xs text-stone-500">Variant: {it.variantLabelSnapshot}</p>
                 ) : null}

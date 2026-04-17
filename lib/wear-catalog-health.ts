@@ -208,3 +208,71 @@ export async function getWearCatalogHealthSnapshot() {
     },
   };
 }
+
+export type WearCatalogHealthSnapshot = Awaited<ReturnType<typeof getWearCatalogHealthSnapshot>>;
+
+/** Renders degraded panels when Prisma, sync state, or image probes fail. */
+export function wearCatalogHealthSnapshotUnavailable(reason: string): WearCatalogHealthSnapshot {
+  const rawKey = process.env.SPREADCONNECT_API_KEY?.trim() ?? "";
+  const spreadconnectPendingPlaceholder = rawKey === "__PENDING__";
+  const spreadconnectConfigured = getSpreadconnectConfig() !== null;
+  const spreadconnectWarning = spreadconnectPendingPlaceholder
+    ? "API key is __PENDING__ (catalog sync and POD submit disabled)"
+    : !rawKey
+      ? "SPREADCONNECT_API_KEY is not set (catalog sync and POD submit disabled)"
+      : null;
+
+  return {
+    shopVisibleCount: 0,
+    syncedShopVisibleCount: 0,
+    publishedReadyCount: 0,
+    publishedReadyButNotPublicEligibleCount: 0,
+    catalogTrustState: "FAILED",
+    catalogTrustReasons: [
+      `Could not compute catalog health (operators can still manage products below). ${reason}`,
+    ],
+    lastSyncAt: null,
+    lastFullSyncAt: null,
+    lastPartialSyncAt: null,
+    lastSyncMode: null,
+    lastSyncSkipRatio: null,
+    lastSyncError: reason,
+    internalHealthScore: 0,
+    totalProducts: 0,
+    archivedCount: 0,
+    inactiveCount: 0,
+    visibleSlugs: [],
+    visibleSample: [],
+    spreadconnectConfigured,
+    spreadconnectWarning,
+    catalogImportHint: null,
+    spreadconnectFailuresLast24h: 0,
+    spreadconnectSubmissionsLast24h: 0,
+    duplicateSkuGroupCount: 0,
+    duplicateSkuSamples: [],
+    unknownImageHosts: [],
+    brokenImages: [],
+    emptyDiagnosis: reason,
+    checklist: {
+      sameQueryAsPublicShop: true,
+      migrateCommand: "npx prisma migrate deploy",
+      catalogMigrationId: "20260423100000_wear_catalog_seed_data",
+      imageHostsNote:
+        "Add any hosts listed in unknownImageHosts to next.config.ts remotePatterns, then redeploy.",
+    },
+  };
+}
+
+export async function loadWearCatalogHealthSnapshot(): Promise<{
+  snapshot: WearCatalogHealthSnapshot;
+  error: string | null;
+}> {
+  try {
+    const snapshot = await getWearCatalogHealthSnapshot();
+    return { snapshot, error: null };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[wear-catalog-health] getWearCatalogHealthSnapshot failed", err);
+    return { snapshot: wearCatalogHealthSnapshotUnavailable(msg), error: msg };
+  }
+}
