@@ -73,24 +73,37 @@ export function WearCartPageClient() {
     refreshFromStorage();
   }, [refreshFromStorage]);
 
-  useEffect(() => {
-    let cancelledReq = false;
-    (async () => {
+  const loadCatalog = useCallback(async () => {
+    setLoadError(null);
+    setCatalogReady(false);
+    try {
+      const res = await fetch("/api/wear/products", { cache: "no-store", credentials: "same-origin" });
+      let data = {} as { products?: ProductRow[]; error?: string };
       try {
-        const res = await fetch("/api/wear/products", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load catalog");
-        const data = (await res.json()) as { products?: ProductRow[] };
-        if (!cancelledReq) setProducts(Array.isArray(data.products) ? data.products : []);
+        data = (await res.json()) as { products?: ProductRow[]; error?: string };
       } catch {
-        if (!cancelledReq) setLoadError("Could not load products.");
-      } finally {
-        if (!cancelledReq) setCatalogReady(true);
+        /* non-JSON error body */
       }
-    })();
-    return () => {
-      cancelledReq = true;
-    };
+      if (!res.ok) {
+        setLoadError(
+          data.error === "wear_catalog_unavailable"
+            ? "The shop catalog is temporarily unavailable. You can still change quantities below, or retry in a moment."
+            : "Could not load products.",
+        );
+        setProducts(Array.isArray(data.products) ? data.products : []);
+        return;
+      }
+      setProducts(Array.isArray(data.products) ? data.products : []);
+    } catch {
+      setLoadError("Could not load products. Check your connection and try again.");
+    } finally {
+      setCatalogReady(true);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadCatalog();
+  }, [loadCatalog]);
 
   const byId = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
 
@@ -216,7 +229,18 @@ export function WearCartPageClient() {
           </div>
         ) : null}
 
-        {loadError ? <p className="mt-6 text-center text-sm text-red-700">{loadError}</p> : null}
+        {loadError ? (
+          <div className="mt-6 space-y-3 text-center">
+            <p className="text-sm text-amber-950">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => void loadCatalog()}
+              className="text-sm font-medium text-amber-900 underline underline-offset-4 hover:text-amber-800"
+            >
+              Retry loading catalog
+            </button>
+          </div>
+        ) : null}
 
         {lines.length === 0 ? (
           <p className="mt-12 text-center text-sm text-stone-500">
