@@ -1,0 +1,14 @@
+{
+  "folders": [
+	{
+		"path": "../.."
+	},
+	{
+		"path": "../../../PROJECTS/oktana-hyperadmin-1.0.0/oktana-hyperadmin"
+	},
+	{
+		"path": "../../../PROJECTS/oktana-vendors-pro-1.2.0"
+	}
+],
+  "settings": {}
+}
