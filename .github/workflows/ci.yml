@@ -1,5 +1,10 @@
 # Fast checks on every push to `main` — intended as the Railway "Wait for CI" gate.
 # Heavy Playwright / pillar runs stay in `qa-pillars.yml` (PR + manual + schedule).
+#
+# Notes:
+# - One Vitest run with coverage (lib/**/*.test.ts) replaces separate unit + api-contract + coverage passes.
+# - Lint + tests run in parallel with `next build` to cut wall-clock time.
+# - cancel-in-progress only for PRs so rapid main pushes do not abort a nearly-finished run (avoids "skipped" confusion).
 name: CI
 
 on:
@@ -9,13 +14,28 @@ on:
   pull_request:
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CI: "true"
+  NEXT_TELEMETRY_DISABLED: "1"
+  DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5432/potterymania_ci?schema=public"
+  AUTH_SECRET: "ci-auth-secret-not-for-production"
+  AUTH_URL: "http://127.0.0.1:3000"
+  NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000"
+  STRIPE_SECRET_KEY: "sk_test_ci_placeholder"
+  STRIPE_WEBHOOK_SECRET: "whsec_ci_placeholder"
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_ci_placeholder"
+  CRON_SECRET: "ci-cron-secret"
+  RESEND_API_KEY: ""
+  RESEND_FROM: "PotteryMania <onboarding@resend.dev>"
 
 jobs:
-  verify:
+  quality:
+    name: Lint & test
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
@@ -30,18 +50,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-    env:
-      CI: "true"
-      DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5432/potterymania_ci?schema=public"
-      AUTH_SECRET: "ci-auth-secret-not-for-production"
-      AUTH_URL: "http://127.0.0.1:3000"
-      NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000"
-      STRIPE_SECRET_KEY: "sk_test_ci_placeholder"
-      STRIPE_WEBHOOK_SECRET: "whsec_ci_placeholder"
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_ci_placeholder"
-      CRON_SECRET: "ci-cron-secret"
-      RESEND_API_KEY: ""
-      RESEND_FROM: "PotteryMania <onboarding@resend.dev>"
     steps:
       - uses: actions/checkout@v4
 
@@ -53,7 +61,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Prisma validate
+      - name: Prisma validate & generate
         run: |
           npx prisma validate
           npx prisma generate --no-engine
@@ -61,14 +69,42 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit tests
-        run: npm test
-
-      - name: API contract tests
-        run: npm run test:api-contract
-
-      - name: Coverage gate
+      - name: Unit tests + coverage gate
         run: npm run test:coverage
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: potterymania_ci
+        options: >-
+          --health-cmd "pg_isready -U postgres -d potterymania_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma validate & generate
+        run: |
+          npx prisma validate
+          npx prisma generate --no-engine
 
       - name: Build
         run: npm run build:ci
