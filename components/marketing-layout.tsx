@@ -27,8 +27,8 @@ export function MarketingLayout({ children, toolbar }: Props) {
             <div className="max-w-md">
               <BrandLogo size="md" className="text-[var(--foreground)]" />
               <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">
-                The platform for people who work with clay - from solo artists to full studios - to sell their work,
-                take bookings, and run everything in one calm system.
+                For people who work with clay — from solo artists to full studios — sell your work, take bookings, and
+                run everything in one calm system.
               </p>
             </div>
             <div className="grid gap-x-12 gap-y-6 text-sm text-[var(--muted)] sm:grid-cols-2 lg:grid-cols-4">
