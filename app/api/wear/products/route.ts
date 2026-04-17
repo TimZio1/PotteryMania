@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import {
   resolveWearCatalogCategory,
   isWearTopSubcategory,
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
-import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
 
 export const dynamic = "force-dynamic";
 
@@ -17,16 +16,11 @@ export async function GET(req: Request) {
   const topSubFilter = isWearTopSubcategory(subParam) ? subParam : null;
 
   try {
-    const rows = await prisma.wearProduct.findMany({
-      where: wearPublicProductWhere(),
-      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-      include: {
-        variants: {
-          where: { isActive: true },
-          orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
-        },
-      },
-    });
+    const result = await findWearPublicProductsWithVariantsRetrying();
+    if (!result.ok) {
+      throw result.error instanceof Error ? result.error : new Error("wear catalog query failed");
+    }
+    const rows = result.rows;
 
     const products = rows
       .map((r) => {

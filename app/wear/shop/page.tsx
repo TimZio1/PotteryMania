@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { prisma } from "@/lib/db";
+import { WearShopRetryButton } from "@/components/wear/wear-shop-retry-button";
 import { buildMetadata } from "@/lib/seo";
 import { formatWearMoney } from "@/lib/wear-money";
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/lib/wear-categories";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
-import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+import { findWearPublicProductsWithVariantsRetrying, type WearPublicListingRow } from "@/lib/wear-public-catalog-query";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ type WearShopProps = {
   searchParams: Promise<{ category?: string; sub?: string }>;
 };
 
-type WearShopProduct = Awaited<ReturnType<typeof prisma.wearProduct.findMany>>[number] & {
+type WearShopProduct = WearPublicListingRow & {
   categorySlug: string;
   categoryLabel: string;
   fallbackCategory: string;
@@ -44,16 +44,9 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const activeCategory = sp.category?.trim().toLowerCase() || null;
   const activeTopSub = isWearTopSubcategory(sp.sub) ? sp.sub : null;
 
-  let products: Awaited<ReturnType<typeof prisma.wearProduct.findMany>> = [];
-  let dbUnavailable = false;
-  try {
-    products = await prisma.wearProduct.findMany({
-      where: wearPublicProductWhere(),
-      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-    });
-  } catch {
-    dbUnavailable = true;
-  }
+  const catalogResult = await findWearPublicProductsWithVariantsRetrying();
+  const dbUnavailable = !catalogResult.ok;
+  const products: WearPublicListingRow[] = catalogResult.ok ? catalogResult.rows : [];
 
   const catInput = (p: (typeof products)[number]) => ({
     slug: p.slug,
@@ -246,7 +239,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
           <div className="mx-auto mt-16 max-w-md text-center">
             <p className="text-sm leading-relaxed text-stone-600">
               {dbUnavailable
-                ? "The wear catalog is temporarily unavailable. Please try again shortly."
+                ? "We couldn’t load the wear catalog from the server. This is usually a brief connection issue — try again in a moment."
                 : activeCategory
                 ? activeTopSub
                   ? `No items currently in ${wearTopSubcategoryLabel(activeTopSub)}.`
@@ -265,6 +258,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 Create your studio
               </Link>
             </p>
+            {dbUnavailable ? (
+              <div className="mt-2 flex justify-center">
+                <WearShopRetryButton />
+              </div>
+            ) : null}
             {process.env.NODE_ENV === "development" ? (
               <p className="mt-8 font-mono text-[11px] text-stone-600">
                 Dev: run <span className="text-stone-400">npx prisma db seed</span> or use{" "}
