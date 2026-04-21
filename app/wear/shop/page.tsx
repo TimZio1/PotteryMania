@@ -154,15 +154,15 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   }
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 text-stone-900 sm:px-6 sm:py-20">
+    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-10 text-stone-900 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
-        <h1 className="mt-4 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
-        <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-stone-700">
+        <h1 className="mt-3 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
+        <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-stone-700">
           Secure checkout and fulfilment-partner shipping after purchase. Pieces are curated for creators who ship real work.
         </p>
         {hasTopsInCatalog ? (
-          <div className="mx-auto mt-8 max-w-4xl">
+          <div className="mx-auto mt-5 max-w-4xl">
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max items-center gap-2 pb-1">
                 <Link
@@ -192,7 +192,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             </div>
           </div>
         ) : null}
-        <div className="mx-auto mt-4 max-w-4xl">
+        <div className="mx-auto mt-3 max-w-4xl">
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex min-w-max items-center gap-2 pb-1">
               <Link
@@ -222,8 +222,17 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
           </div>
         </div>
 
+        {visible.length > 0 ? (
+          <p className="mx-auto mt-4 flex max-w-xl items-center justify-center gap-2 text-center text-xs text-stone-600">
+            <span className="inline-block translate-y-px text-stone-400" aria-hidden>
+              ↓
+            </span>
+            <span>Pieces start below — scroll to browse.</span>
+          </p>
+        ) : null}
+
         {visible.length === 0 ? (
-          <div className="mx-auto mt-16 max-w-md text-center">
+          <div className="mx-auto mt-12 max-w-md text-center">
             <p className="text-sm leading-relaxed text-stone-600">
               {dbUnavailable
                 ? "We couldn’t load the wear catalog from the server. This is usually a brief connection issue — try again in a moment."
@@ -261,7 +270,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             ) : null}
           </div>
         ) : (
-          <div className="mt-16 space-y-14">
+          <div className="mt-6 space-y-10 sm:space-y-12">
             {blocks.map((block) =>
               block.kind === "category" ? (
                 <section key={block.categorySlug} aria-labelledby={`wear-cat-${block.categorySlug}`}>
@@ -271,7 +280,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   >
                     {block.heading}
                   </h2>
-                  <div className="mt-10 space-y-12">
+                  <div className="mt-4 space-y-8 sm:space-y-10">
                     {block.subsections.map((sub) => (
                       <div key={sub.sub}>
                         <h3
@@ -280,7 +289,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                         >
                           {sub.label}
                         </h3>
-                        <ul className="mt-6 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+                        <ul className="mt-4 grid gap-8 sm:gap-10 sm:grid-cols-2 lg:grid-cols-3">
                           {sub.products.map((p) => {
                             const imgs = wearImageUrlsFromJson(p.images);
                             const src = imgs[0];
@@ -345,7 +354,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   >
                     {block.heading}
                   </h2>
-                  <ul className="mt-6 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+                  <ul className="mt-4 grid gap-8 sm:gap-10 sm:grid-cols-2 lg:grid-cols-3">
                     {block.products.map((p) => {
                       const imgs = wearImageUrlsFromJson(p.images);
                       const src = imgs[0];
