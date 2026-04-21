@@ -40,6 +40,7 @@ const BASE_PUBLIC_CORE = [
   "/reset-password",
   "/terms",
   "/privacy",
+  "/refunds",
   "/vendor-terms",
   "/checkout/success",
   "/unauthorized-admin",
@@ -58,17 +59,40 @@ function publicAllowlist(): string[] {
   ];
 }
 
-export default auth(async (req) => {
-  const suspended = Boolean(req.auth?.user && (req.auth.user as { suspended?: boolean }).suspended);
-  if (req.auth && suspended) {
-    const signout = new URL("/api/auth/signout", req.url);
-    signout.searchParams.set("callbackUrl", new URL("/login?reason=suspended", req.url).toString());
-    return NextResponse.redirect(signout);
-  }
+/**
+ * Cookie names Auth.js may have set depending on version and scheme.
+ * Clearing all variants prevents a stale session cookie from causing middleware to
+ * keep redirecting to /api/auth/signout on every navigation.
+ */
+const AUTH_COOKIE_NAMES = [
+  "next-auth.session-token",
+  "__Secure-next-auth.session-token",
+  "__Host-next-auth.session-token",
+  "authjs.session-token",
+  "__Secure-authjs.session-token",
+  "__Host-authjs.session-token",
+];
 
+function clearAuthCookies(res: NextResponse): NextResponse {
+  for (const name of AUTH_COOKIE_NAMES) {
+    res.cookies.set({ name, value: "", path: "/", maxAge: 0 });
+  }
+  return res;
+}
+
+export default auth(async (req) => {
   const path = req.nextUrl.pathname;
   const isApiPath = path.startsWith("/api/");
 
+  /**
+   * API paths must short-circuit BEFORE any redirect logic below.
+   *
+   * If a suspended user hits any page, we redirect to /api/auth/signout to
+   * clear their session. That request then runs through middleware again — and
+   * without this early return, the suspended check below would redirect
+   * /api/auth/signout back to itself, causing ERR_TOO_MANY_REDIRECTS and a 429
+   * from the hosting layer.
+   */
   if (isApiPath) {
     if (isStateChangingMethod(req.method) && !isCsrfExemptPath(path)) {
       const cookieHeader = req.headers.get("cookie");
@@ -81,6 +105,17 @@ export default auth(async (req) => {
       }
     }
     return NextResponse.next();
+  }
+
+  const suspended = Boolean(req.auth?.user && (req.auth.user as { suspended?: boolean }).suspended);
+  if (req.auth && suspended) {
+    /**
+     * Clear the session cookies inline and send the user straight to /login,
+     * rather than bouncing through /api/auth/signout. Eliminates one extra
+     * hop and guarantees no loop even if the signout handler were to fail.
+     */
+    const dest = new URL("/login?reason=suspended", req.url);
+    return clearAuthCookies(NextResponse.redirect(dest));
   }
 
   const rawHost = req.headers.get("host");

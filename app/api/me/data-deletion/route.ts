@@ -90,10 +90,16 @@ export async function DELETE() {
     message: "Account anonymized. You have been signed out.",
   });
 
-  response.cookies.delete("next-auth.session-token");
-  response.cookies.delete("__Secure-next-auth.session-token");
-  response.cookies.delete("authjs.session-token");
-  response.cookies.delete("__Secure-authjs.session-token");
+  for (const name of [
+    "next-auth.session-token",
+    "__Secure-next-auth.session-token",
+    "__Host-next-auth.session-token",
+    "authjs.session-token",
+    "__Secure-authjs.session-token",
+    "__Host-authjs.session-token",
+  ]) {
+    response.cookies.set({ name, value: "", path: "/", maxAge: 0 });
+  }
 
   return response;
 }

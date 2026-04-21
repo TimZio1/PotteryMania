@@ -154,11 +154,14 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
+                <Link href="/classes" className={linkClass("/classes")}>
+                  Find a class
+                </Link>
+                <Link href="/studios" className={linkClass("/studios")}>
+                  Browse studios
+                </Link>
                 <Link href="/pricing" className={linkClass("/pricing")}>
                   Pricing
-                </Link>
-                <Link href="/demo" className={linkClass("/demo")}>
-                  Demo
                 </Link>
                 <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
                   Create your studio
@@ -263,11 +266,18 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </>
             ) : (
               <>
+                <Link href="/classes" className={mobileLinkClass("/classes")} onClick={close}>
+                  Find a class
+                </Link>
+                <Link href="/studios" className={mobileLinkClass("/studios")} onClick={close}>
+                  Browse studios
+                </Link>
+                <Link href="/marketplace" className={mobileLinkClass("/marketplace")} onClick={close}>
+                  Shop
+                </Link>
+                <hr className="my-2 border-[var(--border)]" />
                 <Link href="/pricing" className={mobileLinkClass("/pricing")} onClick={close}>
                   Pricing
-                </Link>
-                <Link href="/demo" className={mobileLinkClass("/demo")} onClick={close}>
-                  Demo
                 </Link>
                 <Link href={createStudioHref} className={mobileLinkClass(createStudioActiveHref)} onClick={close}>
                   Create your studio

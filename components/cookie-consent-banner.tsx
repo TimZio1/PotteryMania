@@ -27,6 +27,9 @@ export function CookieConsentBanner() {
 
   useEffect(() => {
     setVisible(getConsentValue() === null);
+    const onReopen = () => setVisible(true);
+    window.addEventListener("pm-open-cookie-settings", onReopen);
+    return () => window.removeEventListener("pm-open-cookie-settings", onReopen);
   }, []);
 
   if (!visible) return null;

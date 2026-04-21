@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { MarketingPageTransition } from "@/components/marketing/marketing-page-transition";
 import { SiteHeader } from "@/components/site-header";
+import { CookieSettingsButton } from "@/components/cookie-settings-button";
 import { isPreregistrationOnly } from "@/lib/preregistration";
 import { ui } from "@/lib/ui-styles";
 
@@ -82,9 +83,13 @@ export function MarketingLayout({ children, toolbar }: Props) {
                 <Link href="/privacy" className="block transition hover:text-[var(--foreground)]">
                   Privacy
                 </Link>
+                <Link href="/refunds" className="block transition hover:text-[var(--foreground)]">
+                  Refunds & cancellations
+                </Link>
                 <Link href="/vendor-terms" className="block transition hover:text-[var(--foreground)]">
                   Studio terms
                 </Link>
+                <CookieSettingsButton className="block text-left transition hover:text-[var(--foreground)]" />
               </div>
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Contact</p>
