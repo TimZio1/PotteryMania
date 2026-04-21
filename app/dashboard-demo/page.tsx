@@ -119,7 +119,7 @@ export default function DashboardDemoPage() {
             </div>
           </div>
 
-          <div className="flex min-h-[calc(100vh-16rem)] flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-[0_24px_60px_rgba(28,25,23,0.08)] lg:flex-row">
+          <div className="flex min-h-[calc(100vh-16rem)] flex-col overflow-x-hidden rounded-3xl border border-stone-200 bg-white shadow-[0_24px_60px_rgba(28,25,23,0.08)] lg:flex-row">
             <div className="border-b border-stone-200 bg-stone-50/90 lg:hidden">
               <details className="group">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 text-left">

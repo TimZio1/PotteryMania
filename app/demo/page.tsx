@@ -177,13 +177,15 @@ export default function DemoPage() {
                 </ul>
               </div>
               <div className="st-card overflow-hidden p-0">
-                <Image
-                  src="https://images.unsplash.com/photo-1612196808214-bf7ad7533198?auto=format&fit=crop&w=1400&q=80"
-                  alt="Handmade ceramic pieces displayed on a studio shelf"
-                  width={1400}
-                  height={1100}
-                  className="h-full w-full object-cover"
-                />
+                <div className="relative aspect-4/5 min-h-[220px] w-full bg-stone-200/90 sm:min-h-[280px]">
+                  <Image
+                    src="https://images.unsplash.com/photo-1612196808214-bf7ad7533198?auto=format&fit=crop&w=1400&q=80"
+                    alt="Handmade ceramic pieces displayed on a studio shelf"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    className="object-cover"
+                  />
+                </div>
               </div>
             </div>
           </section>
@@ -231,13 +233,15 @@ export default function DemoPage() {
               <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {products.map((product) => (
                   <article key={product.title} className="st-tile overflow-hidden">
-                    <Image
-                      src={product.image}
-                      alt={product.title}
-                      width={1200}
-                      height={1200}
-                      className="aspect-square w-full object-cover"
-                    />
+                    <div className="relative aspect-square w-full bg-stone-200/90">
+                      <Image
+                        src={product.image}
+                        alt={product.title}
+                        fill
+                        sizes="(max-width: 640px) 92vw, (max-width: 1280px) 45vw, 22vw"
+                        className="object-cover"
+                      />
+                    </div>
                     <div className="p-4">
                       <h3 className="st-h3 text-base font-semibold">{product.title}</h3>
                       <p className="st-accent-text mt-2 text-sm font-semibold">{product.price}</p>
@@ -254,13 +258,15 @@ export default function DemoPage() {
           <section id="demo-about" className="st-section mt-6">
             <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
               <div className="st-card overflow-hidden p-0">
-                <Image
-                  src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1400&q=80"
-                  alt="Hands shaping clay on a pottery wheel"
-                  width={1400}
-                  height={1100}
-                  className="h-full w-full object-cover"
-                />
+                <div className="relative aspect-4/5 min-h-[220px] w-full bg-stone-200/90 sm:min-h-[280px]">
+                  <Image
+                    src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1400&q=80"
+                    alt="Hands shaping clay on a pottery wheel"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 45vw"
+                    className="object-cover"
+                  />
+                </div>
               </div>
               <div className="st-card p-6 sm:p-8">
                 <p className="st-muted text-sm uppercase tracking-wide">About</p>
