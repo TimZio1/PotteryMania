@@ -90,18 +90,20 @@ export function commissionCentsFromLine(lineTotalCents: number, basisPoints: num
   return Math.floor((lineTotalCents * basisPoints) / 10000);
 }
 
+const TIER_MATRIX_KEYS = ["bookings", "shop", "both", "pro"] as const;
+
 /**
- * Public marketing copy: global product + booking rates (matches `/admin/settings`).
+ * Public marketing copy: range across all tier × (product + booking) fees (Hyperadmin tier matrix).
  * On DB unreachable (e.g. `next build` without Postgres), returns code default label.
  */
 export async function getMarketingCheckoutCommissionPctLabel(): Promise<string> {
   try {
     const matrix = await resolveTierCommissionMatrix();
-    const productValues = [matrix.bookings.productBps, matrix.shop.productBps, matrix.both.productBps, matrix.pro.productBps];
-    const minBps = Math.min(...productValues);
-    const maxBps = Math.max(...productValues);
+    const allBps = TIER_MATRIX_KEYS.flatMap((k) => [matrix[k].productBps, matrix[k].bookingBps]);
+    const minBps = Math.min(...allBps);
+    const maxBps = Math.max(...allBps);
     if (minBps === maxBps) return platformCommissionPercentLabel(minBps);
-    return `from ${platformCommissionPercentLabel(minBps)}`;
+    return `${platformCommissionPercentLabel(minBps)}–${platformCommissionPercentLabel(maxBps)}`;
   } catch {
     return DEFAULT_PLATFORM_COMMISSION_PCT_LABEL;
   }

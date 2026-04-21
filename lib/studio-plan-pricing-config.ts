@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import {
   DEFAULT_PLATFORM_COMMISSION_BPS,
+  tierPlatformCommissionIncludeLine,
   platformCommissionPercentLabel,
 } from "@/lib/commission-defaults";
 import {
@@ -158,9 +159,26 @@ export async function resolveStudioPlanKeyByStudioId(studioId: string): Promise<
 export async function getStudioPlanCommissionLabelMap(): Promise<Record<StudioPlanKey, string>> {
   const matrix = await resolveTierCommissionMatrix();
   return {
-    bookings: platformCommissionPercentLabel(matrix.bookings.productBps),
-    shop: platformCommissionPercentLabel(matrix.shop.productBps),
-    both: platformCommissionPercentLabel(matrix.both.productBps),
-    pro: platformCommissionPercentLabel(matrix.pro.productBps),
+    bookings: tierPlatformCommissionIncludeLine(matrix.bookings.productBps, matrix.bookings.bookingBps),
+    shop: tierPlatformCommissionIncludeLine(matrix.shop.productBps, matrix.shop.bookingBps),
+    both: tierPlatformCommissionIncludeLine(matrix.both.productBps, matrix.both.bookingBps),
+    pro: tierPlatformCommissionIncludeLine(matrix.pro.productBps, matrix.pro.bookingBps),
   };
+}
+
+/** Per-tier product/booking % labels for comparison tables. */
+export async function getTierCommissionLabelMapByItemType(): Promise<{
+  product: Record<StudioPlanKey, string>;
+  booking: Record<StudioPlanKey, string>;
+}> {
+  const matrix = await resolveTierCommissionMatrix();
+  const keys: StudioPlanKey[] = ["bookings", "shop", "both", "pro"];
+  const product = {} as Record<StudioPlanKey, string>;
+  const booking = {} as Record<StudioPlanKey, string>;
+  for (const k of keys) {
+    const row = matrix[k];
+    product[k] = platformCommissionPercentLabel(row.productBps);
+    booking[k] = platformCommissionPercentLabel(row.bookingBps);
+  }
+  return { product, booking };
 }

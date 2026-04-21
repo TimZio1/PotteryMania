@@ -1,3 +1,5 @@
+import { DEFAULT_PLATFORM_COMMISSION_BPS, tierPlatformCommissionIncludeLine } from "@/lib/commission-defaults";
+
 export type StudioPlanKey = "bookings" | "shop" | "both" | "pro";
 
 export type StudioPlan = {
@@ -17,6 +19,19 @@ export type StudioPlanPricingOverride = {
 
 export type StudioPlanPricingConfig = Record<StudioPlanKey, StudioPlanPricingOverride>;
 export type StudioPlanCommissionLabels = Partial<Record<StudioPlanKey, string>>;
+
+/** Fallback commission line when DB labels are unavailable (matches default BPS). */
+export const STATIC_TIER_COMMISSION_BULLET = tierPlatformCommissionIncludeLine(
+  DEFAULT_PLATFORM_COMMISSION_BPS,
+  DEFAULT_PLATFORM_COMMISSION_BPS,
+);
+
+const STATIC_COMMISSION_LABELS: StudioPlanCommissionLabels = {
+  bookings: STATIC_TIER_COMMISSION_BULLET,
+  shop: STATIC_TIER_COMMISSION_BULLET,
+  both: STATIC_TIER_COMMISSION_BULLET,
+  pro: STATIC_TIER_COMMISSION_BULLET,
+};
 
 export const STUDIO_PLAN_CURRENCY = "EUR";
 
@@ -87,13 +102,13 @@ export function buildStudioPlans(
       pricingOverrides?.[p.key]?.annualMonthlyEquivalentCents ??
       DEFAULT_STUDIO_PLAN_PRICING[p.key].annualMonthlyEquivalentCents,
     headline: p.headline,
-    includes: [...p.baseIncludes, `${commissionLabelsByPlan[p.key] ?? "0%"} platform commission`],
+    includes: [...p.baseIncludes, commissionLabelsByPlan[p.key] ?? STATIC_TIER_COMMISSION_BULLET],
     ...(p.recommended ? { recommended: true } : {}),
   }));
 }
 
 /** Fallback for static/build-time contexts where DB is unavailable. */
-export const STUDIO_PLANS: readonly StudioPlan[] = buildStudioPlans("0%");
+export const STUDIO_PLANS: readonly StudioPlan[] = buildStudioPlans(STATIC_COMMISSION_LABELS);
 
 export function euroFromCents(cents: number): string {
   return `€${Math.floor(cents / 100)}`;
@@ -111,9 +126,15 @@ export function setupPathToPlanKey(setupPath: "bookings" | "shop" | "both"): Stu
   return setupPath;
 }
 
-export function studioPlanByKey(key: StudioPlanKey, pricingOverrides?: Partial<StudioPlanPricingConfig>): StudioPlan {
-  const source = pricingOverrides ? buildStudioPlans("0%", pricingOverrides) : STUDIO_PLANS;
+export function studioPlanByKey(
+  key: StudioPlanKey,
+  pricingOverrides?: Partial<StudioPlanPricingConfig>,
+  /** When loaded from `/api/public/studio-plan-pricing`, overrides static commission bullets per tier. */
+  commissionLabels?: StudioPlanCommissionLabels,
+): StudioPlan {
+  const labels = commissionLabels ? { ...STATIC_COMMISSION_LABELS, ...commissionLabels } : STATIC_COMMISSION_LABELS;
+  const source = buildStudioPlans(labels, pricingOverrides);
   const plan = source.find((p) => p.key === key);
-  if (!plan) return STUDIO_PLANS[2];
+  if (!plan) return source[2] ?? STUDIO_PLANS[2];
   return plan;
 }

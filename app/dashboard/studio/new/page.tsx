@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   monthlyLabel,
   setupPathToPlanKey,
   studioPlanByKey,
+  type StudioPlanCommissionLabels,
   type StudioPlanPricingConfig,
 } from "@/lib/studio-plan-pricing";
 import { StudioBrandImageField } from "@/components/dashboard/studio-brand-image-field";
@@ -54,6 +55,7 @@ export default function NewStudioPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [planPricing, setPlanPricing] = useState<Partial<StudioPlanPricingConfig> | null>(null);
+  const [commissionLabels, setCommissionLabels] = useState<StudioPlanCommissionLabels | null>(null);
 
   const [quick, setQuick] = useState({
     displayName: "",
@@ -100,8 +102,12 @@ export default function NewStudioPage() {
       try {
         const r = await fetch("/api/public/studio-plan-pricing", { cache: "no-store" });
         if (!r.ok) return;
-        const j = (await r.json()) as { planPricing?: Partial<StudioPlanPricingConfig> };
+        const j = (await r.json()) as {
+          planPricing?: Partial<StudioPlanPricingConfig>;
+          commissionLabels?: StudioPlanCommissionLabels;
+        };
         if (j.planPricing) setPlanPricing(j.planPricing);
+        if (j.commissionLabels) setCommissionLabels(j.commissionLabels);
       } catch {
         // Leave defaults in place when pricing endpoint is unavailable.
       }
@@ -109,7 +115,11 @@ export default function NewStudioPage() {
   }, []);
 
   const pathCopy = setupCopy(setup);
-  const selectedPlan = studioPlanByKey(setupPathToPlanKey(setup), planPricing ?? undefined);
+  const selectedPlan = useMemo(
+    () => studioPlanByKey(setupPathToPlanKey(setup), planPricing ?? undefined, commissionLabels ?? undefined),
+    [setup, planPricing, commissionLabels],
+  );
+  const tierCommissionLine = selectedPlan.includes[selectedPlan.includes.length - 1] ?? "";
 
   function pushAfterCreate(studioId: string, profileIncomplete: boolean) {
     const q = profileIncomplete ? "welcome=1&profile=incomplete" : "welcome=1";
@@ -296,8 +306,8 @@ export default function NewStudioPage() {
       </div>
       <p className="mt-3 text-sm font-medium text-amber-900">{pathCopy.title}</p>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Workspace plan: <span className="font-medium text-[var(--foreground)]">{selectedPlan.name}</span> ({monthlyLabel(selectedPlan)},
-        plus platform commission based on your tier).
+        Workspace plan: <span className="font-medium text-[var(--foreground)]">{selectedPlan.name}</span> ({monthlyLabel(selectedPlan)}).
+        {tierCommissionLine ? <span className="block sm:inline sm:before:content-['\00a0']"> {tierCommissionLine}</span> : null}
       </p>
 
       {!fullForm ? (

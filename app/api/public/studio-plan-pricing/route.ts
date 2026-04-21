@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
-import { resolveStudioPlanPricingConfig } from "@/lib/studio-plan-pricing-config";
+import {
+  getStudioPlanCommissionLabelMap,
+  resolveStudioPlanPricingConfig,
+} from "@/lib/studio-plan-pricing-config";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const planPricing = await resolveStudioPlanPricingConfig();
-  return NextResponse.json({ planPricing });
+  const [planPricing, commissionLabels] = await Promise.all([
+    resolveStudioPlanPricingConfig(),
+    getStudioPlanCommissionLabelMap(),
+  ]);
+  return NextResponse.json({ planPricing, commissionLabels });
 }

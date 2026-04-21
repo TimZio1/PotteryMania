@@ -35,7 +35,8 @@ export default async function AdminSettingsPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Settings</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Platform configuration</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Commission edits are versioned in the audit log. Deeper billing lives in the finance engine. Reseller (wearables) default margin drives public percentage copy on the marketing site.
+        Commission edits are versioned in the audit log. Deeper billing lives in the finance engine. The tier commission matrix
+        (product + booking bps per plan) powers checkout and all plan pricing copy; reseller (wearables) margin is separate.
       </p>
 
       <div className="mt-8">

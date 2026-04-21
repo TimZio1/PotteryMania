@@ -103,15 +103,37 @@ body {
   color: var(--foreground);
 }
 
-/* Hyperadmin main column: light paper + dark type. Redefines tokens so `text-[var(--foreground)]` / `text-[var(--muted)]` stay readable on white cards and on this canvas (parent shell is still dark-theme globals). */
-.pm-visual-platform main.admin-main-canvas {
+/*
+ * Hyperadmin (/admin only — see `admin-light-tokens` on `app/admin/layout.tsx`).
+ * Dark :root tokens would leave `ui.input` / `ui.select` at near-black `--surface` while cards use white/stone.
+ * Scoping to the whole shell (not only `main`) fixes fixed overlays, portals that stay inside this subtree, and the sidebar nav
+ * using `var(--muted)` / platform button tokens.
+ */
+.pm-visual-platform.admin-light-tokens {
   --foreground: #1c1917;
   --muted: #57534e;
+  --surface: #ffffff;
+  --surface-elevated: #fafaf9;
+  --border: #e7e5e4;
+  --divider: #e7e5e4;
+  --accent-muted: rgba(196, 122, 44, 0.12);
+  --background: #f0eeeb;
+  color-scheme: light;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.pm-visual-platform.admin-light-tokens ::selection {
+  background: rgba(196, 122, 44, 0.25);
+  color: var(--foreground);
+}
+
+.pm-visual-platform.admin-light-tokens main.admin-main-canvas {
   background-color: #f0eeeb;
   color: var(--foreground);
 }
 
-.pm-visual-platform main.admin-main-canvas ::selection {
+.pm-visual-platform.admin-light-tokens main.admin-main-canvas ::selection {
   background: rgba(196, 122, 44, 0.25);
   color: var(--foreground);
 }

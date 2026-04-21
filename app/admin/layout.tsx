@@ -48,7 +48,7 @@ export const metadata: Metadata = metaAdminPage(
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="pm-visual-platform min-h-screen" data-pm-visual="platform">
+    <div className="pm-visual-platform admin-light-tokens min-h-screen" data-pm-visual="platform">
       <div className="mx-auto grid min-h-screen max-w-[1480px] gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="hidden border-r border-stone-200/80 bg-stone-50/80 text-stone-900 lg:block">
           <div className="sticky top-0 flex h-full flex-col">

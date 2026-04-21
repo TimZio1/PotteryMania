@@ -15,6 +15,7 @@ vi.mock("@/lib/db", () => ({
     },
   },
 }));
+import { tierPlatformCommissionIncludeLine } from "./commission-defaults";
 import {
   commissionCentsFromLine,
   getMarketingCheckoutCommissionPctLabel,
@@ -69,6 +70,19 @@ describe("commission helpers", () => {
   it("returns locked single percentage label", async () => {
     const label = await getMarketingCheckoutCommissionPctLabel();
     expect(label).toBe("5%");
+  });
+});
+
+describe("tierPlatformCommissionIncludeLine", () => {
+  it("uses one phrase when product and booking bps match", () => {
+    expect(tierPlatformCommissionIncludeLine(500, 500)).toContain("5%");
+    expect(tierPlatformCommissionIncludeLine(500, 500)).toContain("product sales and class bookings");
+  });
+
+  it("splits when product and booking bps differ", () => {
+    const line = tierPlatformCommissionIncludeLine(500, 400);
+    expect(line).toContain("5%");
+    expect(line).toContain("4%");
   });
 });
 

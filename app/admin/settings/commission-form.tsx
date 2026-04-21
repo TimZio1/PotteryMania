@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DEFAULT_PLATFORM_COMMISSION_BPS } from "@/lib/commission-defaults";
+import { DEFAULT_PLATFORM_COMMISSION_BPS, platformCommissionPercentLabel } from "@/lib/commission-defaults";
 import { ui } from "@/lib/ui-styles";
 import type { StudioPlanKey, StudioPlanPricingConfig } from "@/lib/studio-plan-pricing";
 import type { TierCommissionMatrix } from "@/lib/studio-plan-pricing-config";
@@ -286,7 +286,10 @@ export function CommissionForm() {
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <p className="text-sm font-semibold text-[var(--foreground)]">Tier pricing and commission matrix</p>
         <p className="mt-2 text-sm text-[var(--foreground)]">
-          Edit monthly/annual tier prices and default commission rates by tier. Studio-specific overrides still take priority.
+          Edit monthly/annual subscription price per tier and the default platform fee on <strong>product sales</strong> and{" "}
+          <strong>class bookings</strong> (basis points). These drive checkout settlement and all public plan copy (pricing page,
+          signup, billing). Per-studio commission overrides and the global product/booking row above still take priority when
+          configured.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-[860px] w-full text-xs">
@@ -354,6 +357,9 @@ export function CommissionForm() {
                         }))
                       }
                     />
+                    <span className="mt-0.5 block text-[11px] text-stone-400">
+                      {platformCommissionPercentLabel(tierCommission[key].productBps)}
+                    </span>
                   </td>
                   <td className="px-2 py-2">
                     <input
@@ -372,6 +378,9 @@ export function CommissionForm() {
                         }))
                       }
                     />
+                    <span className="mt-0.5 block text-[11px] text-stone-400">
+                      {platformCommissionPercentLabel(tierCommission[key].bookingBps)}
+                    </span>
                   </td>
                 </tr>
               ))}

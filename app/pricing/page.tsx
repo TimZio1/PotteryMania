@@ -9,6 +9,7 @@ import { annualEquivalentLabel, buildStudioPlans, monthlyLabel } from "@/lib/stu
 import { getMarketingCheckoutCommissionPctLabel } from "@/lib/commission";
 import {
   getStudioPlanCommissionLabelMap,
+  getTierCommissionLabelMapByItemType,
   resolveStudioPlanPricingConfig,
 } from "@/lib/studio-plan-pricing-config";
 
@@ -21,14 +22,18 @@ export const metadata: Metadata = buildMetadata({
   path: "/pricing",
 });
 
-function buildComparisonRows(commissionLabel: string): { label: string; cells: Record<StudioPlan["key"], string | boolean> }[] {
+function buildComparisonRows(
+  productPct: Record<StudioPlan["key"], string>,
+  bookingPct: Record<StudioPlan["key"], string>,
+): { label: string; cells: Record<StudioPlan["key"], string | boolean> }[] {
   return [
     { label: "Public studio page", cells: { bookings: true, shop: true, both: true, pro: true } },
     { label: "Online class bookings + checkout", cells: { bookings: true, shop: "—", both: true, pro: true } },
     { label: "Product shop + stock", cells: { bookings: "—", shop: true, both: true, pro: true } },
     { label: "Unified dashboard (shop + classes)", cells: { bookings: "—", shop: "—", both: true, pro: true } },
     { label: "Branding controls", cells: { bookings: "Basic", shop: "Basic", both: true, pro: true } },
-    { label: `${commissionLabel} platform commission`, cells: { bookings: true, shop: true, both: true, pro: true } },
+    { label: "Platform fee on product sales (your tier)", cells: { bookings: productPct.bookings, shop: productPct.shop, both: productPct.both, pro: productPct.pro } },
+    { label: "Platform fee on class bookings (your tier)", cells: { bookings: bookingPct.bookings, shop: bookingPct.shop, both: bookingPct.both, pro: bookingPct.pro } },
     { label: "Advanced analytics & automation", cells: { bookings: "Add-ons", shop: "Add-ons", both: "Add-ons", pro: true } },
     { label: "Priority support", cells: { bookings: "—", shop: "—", both: "—", pro: true } },
   ];
@@ -46,12 +51,13 @@ function Cell({ value }: { value: string | boolean }) {
 
 export default async function PricingPage() {
   const commissionLabel = await getMarketingCheckoutCommissionPctLabel();
-  const [pricingConfig, commissionLabelByPlan] = await Promise.all([
+  const [pricingConfig, commissionLabelByPlan, tierPct] = await Promise.all([
     resolveStudioPlanPricingConfig(),
     getStudioPlanCommissionLabelMap(),
+    getTierCommissionLabelMapByItemType(),
   ]);
   const STUDIO_PLANS = buildStudioPlans(commissionLabelByPlan, pricingConfig);
-  const COMPARISON_ROWS = buildComparisonRows(commissionLabel);
+  const COMPARISON_ROWS = buildComparisonRows(tierPct.product, tierPct.booking);
   const pricingJsonLd = toJsonLdScript(
     softwareApplicationJsonLd({
       name: "PotteryMania",
@@ -171,7 +177,10 @@ export default async function PricingPage() {
           <dl className="mt-4 space-y-4 text-sm text-[var(--muted)]">
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Do I pay commission on sales?</dt>
-              <dd className="mt-1">{commissionLabel} platform commission on checkout — you keep your margin; Stripe fees still apply.</dd>
+              <dd className="mt-1">
+                Platform fees on product sales and class bookings depend on your plan tier (typically {commissionLabel} across
+                tiers — see the comparison table). You keep your margin; Stripe processing fees still apply.
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Can I start with only classes or only products?</dt>

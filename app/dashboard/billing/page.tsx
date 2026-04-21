@@ -81,7 +81,8 @@ export default async function DashboardBillingPage() {
       <div className={`${ui.card} space-y-3`}>
         <h2 className="text-lg font-semibold text-stone-900">Studio plans</h2>
         <p className="text-sm text-[var(--muted)]">
-          Plans are based on studio usage: experiences-only, catalog-only, both, or pro. Platform transaction fees stay at {commissionLabel}.
+          Plans are based on studio usage: experiences-only, catalog-only, both, or pro. Platform fees on product sales and class
+          bookings are set per tier (typically {commissionLabel} across tiers).
         </p>
         <p className="mt-3 text-sm font-medium text-[var(--foreground)]">
           This replaces multiple tools you may otherwise juggle — public page, reservations, catalog, and the glue between them.
