@@ -72,11 +72,13 @@ const landingPanels: LandingPanel[] = [
   },
   {
     key: "wearables",
-    title: "Shop Wearables",
+    title: "Sell/Shop Wearables",
     subtitle: "Sell them on your site, or buy for yourself.",
+    psychologicalLine:
+      "On the Identity page, one toggle switches between Sell and Shop — same place, two modes.",
     points: ["Sell branded apparel", "No inventory required", "Print-on-demand fulfillment", "Expand your identity beyond clay"],
-    cta: "Explore/buy Wearables",
-    href: "/wear/shop",
+    cta: "Go to Identity",
+    href: "/wear",
     image:
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1600&q=80",
     alt: "Minimal studio apparel for a pottery brand collection",
