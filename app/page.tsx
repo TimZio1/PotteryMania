@@ -24,8 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+type LandingPanelKey = "shop" | "bookings" | "wearables" | "marketplace_free";
+
 type LandingPanel = {
-  key: "shop" | "bookings" | "wearables";
+  key: LandingPanelKey;
   title: string;
   subtitle: string;
   points: readonly [string, string, string, string];
@@ -34,6 +36,15 @@ type LandingPanel = {
   href: string;
   image: string;
   alt: string;
+  /** Teaser card — shows “Coming soon” ribbon and softer CTA styling */
+  comingSoon?: boolean;
+};
+
+const LANDING_EYEBROWS: Record<LandingPanelKey, string> = {
+  shop: "Sell your work",
+  bookings: "Book your skills",
+  wearables: "Expand your brand",
+  marketplace_free: "Discover creators",
 };
 
 const landingPanels: LandingPanel[] = [
@@ -83,6 +94,24 @@ const landingPanels: LandingPanel[] = [
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1600&q=80",
     alt: "Minimal studio apparel for a pottery brand collection",
   },
+  {
+    key: "marketplace_free",
+    title: "Free public catalog",
+    subtitle: "Browse studios and ceramics in one place — fair discovery, no pay-to-list games.",
+    psychologicalLine: "Coming soon — free for everyone at launch.",
+    points: [
+      "Find makers and listings near you",
+      "Built for ceramics, not generic noise",
+      "Studios keep the relationship — we don’t play host",
+      "Launching free for buyers and sellers",
+    ],
+    cta: "Preview browse",
+    href: "/marketplace",
+    image:
+      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=1600&q=80",
+    alt: "Ceramic pieces and studio shelves suggesting a browsable catalog",
+    comingSoon: true,
+  },
 ];
 
 export default function Home() {
@@ -115,7 +144,7 @@ export default function Home() {
         </section>
 
         <section className={`${ui.pageContainer} pb-6 sm:pb-8`}>
-          <div className="hidden h-[calc(100svh-15.5rem)] min-h-[620px] grid-cols-3 gap-4 md:grid">
+          <div className="hidden h-[calc(100svh-15.5rem)] min-h-[560px] grid-cols-2 gap-4 md:grid md:min-h-[620px] xl:grid-cols-4">
             {landingPanels.map((panel) => (
               <LandingHeroPanel key={panel.key} panel={panel} />
             ))}
@@ -132,24 +161,39 @@ export default function Home() {
 }
 
 function LandingHeroPanel({ panel, compact = false }: { panel: LandingPanel; compact?: boolean }) {
+  const comingSoon = panel.comingSoon === true;
   return (
-    <article className={`relative isolate h-full overflow-hidden rounded-(--radius-card) border border-stone-300 bg-[#ebe3d8]`}>
+    <article
+      className={`relative isolate h-full overflow-hidden rounded-(--radius-card) border bg-[#ebe3d8] ${
+        comingSoon ? "border-amber-400/50 ring-1 ring-amber-300/35 shadow-[0_0_0_1px_rgba(251,191,36,0.12)]" : "border-stone-300"
+      }`}
+    >
+      {comingSoon ? (
+        <div className="absolute right-3 top-3 z-20 rounded-full border border-amber-300/80 bg-amber-950/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100 shadow-sm backdrop-blur-sm">
+          Coming soon
+        </div>
+      ) : null}
       <Image
         src={panel.image}
         alt={panel.alt}
         fill
         priority={!compact && panel.key === "shop"}
         fetchPriority={!compact && panel.key === "shop" ? "high" : undefined}
-        sizes="(min-width: 768px) 33vw, 100vw"
+        sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 50vw, 100vw"
         className="object-cover"
       />
       <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/55 to-black/75" aria-hidden />
       <div className={`relative z-10 flex h-full flex-col ${compact ? "p-4" : "p-6 lg:p-7"}`}>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-200">
-          {panel.key === "shop" ? "Sell your work" : panel.key === "bookings" ? "Book your skills" : "Expand your brand"}
-        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-200">{LANDING_EYEBROWS[panel.key]}</p>
         <h2 className={`mt-2 font-serif tracking-[-0.015em] text-white ${compact ? "text-2xl leading-tight" : "text-3xl leading-tight"}`}>
-          {panel.title}
+          {panel.key === "marketplace_free" ? (
+            <>
+              <span className="block text-white">Free</span>
+              <span className="block text-[#f4d5af]">public catalog</span>
+            </>
+          ) : (
+            panel.title
+          )}
         </h2>
         <p className={`mt-2 text-white/90 ${compact ? "text-xs leading-relaxed" : "text-sm leading-relaxed"}`}>{panel.subtitle}</p>
         {panel.psychologicalLine ? (
@@ -167,7 +211,11 @@ function LandingHeroPanel({ panel, compact = false }: { panel: LandingPanel; com
         </ul>
         <Link
           href={panel.href}
-          className="mt-auto inline-flex min-h-12 items-center justify-center rounded-(--radius-button) bg-[#f6ebde] px-5 py-3 text-sm font-semibold text-stone-950 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f6ebde]"
+          className={`mt-auto inline-flex min-h-12 items-center justify-center rounded-(--radius-button) px-5 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${
+            comingSoon
+              ? "border border-white/25 bg-white/10 text-white backdrop-blur-sm hover:bg-white/15 focus-visible:outline-white/40"
+              : "bg-[#f6ebde] text-stone-950 hover:bg-white focus-visible:outline-[#f6ebde]"
+          }`}
         >
           {panel.cta}
         </Link>

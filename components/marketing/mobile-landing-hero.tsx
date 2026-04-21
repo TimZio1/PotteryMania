@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export type MobileLandingPanel = {
-  key: "shop" | "bookings" | "wearables";
+  key: "shop" | "bookings" | "wearables" | "marketplace_free";
   title: string;
   subtitle: string;
   points: readonly [string, string, string, string];
@@ -14,6 +14,7 @@ export type MobileLandingPanel = {
   href: string;
   image: string;
   alt: string;
+  comingSoon?: boolean;
 };
 
 type Props = {
@@ -27,7 +28,13 @@ export function MobileLandingHero({ panels }: Props) {
   const labels = useMemo(
     () =>
       panels.map((panel) =>
-        panel.key === "shop" ? "Shop" : panel.key === "bookings" ? "Bookings" : "Wearables",
+        panel.key === "shop"
+          ? "Shop"
+          : panel.key === "bookings"
+            ? "Bookings"
+            : panel.key === "wearables"
+              ? "Wearables"
+              : "Browse",
       ),
     [panels],
   );
@@ -67,21 +74,21 @@ export function MobileLandingHero({ panels }: Props) {
           {activeIndex + 1}/{panels.length}
         </p>
       </div>
-      <div className="mb-2 grid grid-cols-3 gap-2">
-        {labels.map((label, idx) => (
+      <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {panels.map((panel, idx) => (
           <button
-            key={label}
+            key={panel.key}
             type="button"
             onClick={() => jumpTo(idx)}
-            className={`min-h-10 rounded-full border px-3 py-1 text-center text-[11px] font-semibold uppercase tracking-[0.08em] transition ${
+            className={`min-h-10 rounded-full border px-2 py-1 text-center text-[11px] font-semibold uppercase tracking-[0.08em] transition ${
               idx === activeIndex
                 ? "border-stone-900 bg-stone-900 text-white"
                 : "border-stone-300 bg-stone-100 text-stone-700"
             }`}
             aria-pressed={idx === activeIndex}
-            aria-label={`Show ${label}`}
+            aria-label={`Show ${labels[idx]}`}
           >
-            {label}
+            {labels[idx]}
           </button>
         ))}
       </div>
@@ -91,7 +98,18 @@ export function MobileLandingHero({ panels }: Props) {
       >
         {panels.map((panel) => (
           <div key={`mobile-${panel.key}`} className="min-w-full snap-start">
-            <article className="relative isolate h-full overflow-hidden rounded-(--radius-card) border border-stone-300 bg-[#ebe3d8]">
+            <article
+              className={`relative isolate h-full overflow-hidden rounded-(--radius-card) border bg-[#ebe3d8] ${
+                panel.comingSoon
+                  ? "border-amber-400/50 ring-1 ring-amber-300/35 shadow-[0_0_0_1px_rgba(251,191,36,0.12)]"
+                  : "border-stone-300"
+              }`}
+            >
+              {panel.comingSoon ? (
+                <div className="absolute right-3 top-3 z-20 rounded-full border border-amber-300/80 bg-amber-950/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100 shadow-sm backdrop-blur-sm">
+                  Coming soon
+                </div>
+              ) : null}
               <Image
                 src={panel.image}
                 alt={panel.alt}
@@ -108,10 +126,19 @@ export function MobileLandingHero({ panels }: Props) {
                     ? "Sell your work"
                     : panel.key === "bookings"
                       ? "Book your skills"
-                      : "Expand your brand"}
+                      : panel.key === "wearables"
+                        ? "Expand your brand"
+                        : "Discover creators"}
                 </p>
                 <h2 className="mt-2 font-serif text-[1.65rem] leading-tight tracking-[-0.015em] text-white">
-                  {panel.title}
+                  {panel.key === "marketplace_free" ? (
+                    <>
+                      <span className="block text-white">Free</span>
+                      <span className="block text-[#f4d5af]">public catalog</span>
+                    </>
+                  ) : (
+                    panel.title
+                  )}
                 </h2>
                 <p className="mt-2 text-[13px] leading-relaxed text-white/90">{panel.subtitle}</p>
                 {panel.psychologicalLine ? (
@@ -127,7 +154,11 @@ export function MobileLandingHero({ panels }: Props) {
                 </ul>
                 <Link
                   href={panel.href}
-                  className="mt-auto inline-flex min-h-12 items-center justify-center rounded-(--radius-button) bg-[#f6ebde] px-5 py-3 text-sm font-semibold text-stone-950 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f6ebde]"
+                  className={`mt-auto inline-flex min-h-12 items-center justify-center rounded-(--radius-button) px-5 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                    panel.comingSoon
+                      ? "border border-white/25 bg-white/10 text-white backdrop-blur-sm hover:bg-white/15 focus-visible:outline-white/40"
+                      : "bg-[#f6ebde] text-stone-950 hover:bg-white focus-visible:outline-[#f6ebde]"
+                  }`}
                 >
                   {panel.cta}
                 </Link>
