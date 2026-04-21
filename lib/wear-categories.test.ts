@@ -70,13 +70,21 @@ describe("wear category resolver", () => {
 });
 
 describe("wear tops / tee subcategories", () => {
-  it("resolves short sleeve vs long sleeve vs other", () => {
+  it("resolves organic tee line vs relaxed fit vs sleeve length vs other", () => {
     expect(resolveWearTopSubcategory({ name: "Studio Mark Tee" })).toBe("short_sleeve");
     expect(resolveWearTopSubcategory({ name: "Hands in the clay · longsleeve" })).toBe("long_sleeve");
     expect(resolveWearTopSubcategory({ subtitle: "Classic long sleeve tee" })).toBe("long_sleeve");
     expect(resolveWearTopSubcategory({ name: "Summer tank" })).toBe("tank");
     expect(resolveWearTopSubcategory({ name: "Studio polo" })).toBe("polo");
     expect(resolveWearTopSubcategory({ name: "Minimal top" })).toBe("other");
+    expect(resolveWearTopSubcategory({ name: "Stanley Organic Cotton T-Shirt" })).toBe("organic");
+    expect(
+      resolveWearTopSubcategory({
+        slug: "abstract-design-relaxed-fit-unisex-organic-t-shirt",
+        name: "Abstract design tee",
+      }),
+    ).toBe("relaxed_fit");
+    expect(resolveWearTopSubcategory({ name: "Relaxed fit unisex tee" })).toBe("relaxed_fit");
   });
 
   it("validates subcategory query literals and labels", () => {

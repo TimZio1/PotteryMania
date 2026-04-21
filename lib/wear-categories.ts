@@ -5,9 +5,20 @@ export const WEAR_CATEGORIES = ["tops", "hoodies", "headwear", "accessories", "o
 export type WearCategory = (typeof WEAR_CATEGORIES)[number];
 
 /** Inferred from copy when `resolveWearCategory` is `tops` (tees, polos, tanks, etc.). */
-export const WEAR_TOP_SUBCATEGORIES = ["short_sleeve", "long_sleeve", "tank", "polo", "other"] as const;
+export const WEAR_TOP_SUBCATEGORIES = [
+  "organic",
+  "relaxed_fit",
+  "short_sleeve",
+  "long_sleeve",
+  "tank",
+  "polo",
+  "other",
+] as const;
 
 export type WearTopSubcategory = (typeof WEAR_TOP_SUBCATEGORIES)[number];
+
+/** The two tee lines we surface first in shop nav (organic vs relaxed fit — not sleeve length). */
+export const WEAR_TSHIRT_SUBCATEGORIES = ["organic", "relaxed_fit"] as const satisfies readonly WearTopSubcategory[];
 
 export type WearProviderCategorySummary = {
   slug: string;
@@ -33,7 +44,9 @@ export const WEAR_CATEGORY_LABELS: Record<WearCategory, string> = {
 };
 
 export const WEAR_TOP_SUBCATEGORY_LABELS: Record<WearTopSubcategory, string> = {
-  short_sleeve: "Short sleeve tees",
+  organic: "Organic",
+  relaxed_fit: "Relaxed fit",
+  short_sleeve: "Short-sleeve tees",
   long_sleeve: "Long sleeve",
   tank: "Tanks & sleeveless",
   polo: "Polos",
@@ -71,11 +84,8 @@ type WearCategoryInput = {
   spreadconnectCategoryData?: unknown;
 };
 
+/** Order matters: first match wins. Tank/polo first; then relaxed fit / organic tee lines; then sleeve length; generic tee last. */
 const TOP_SUB_RULES: Array<{ sub: WearTopSubcategory; keywords: RegExp[] }> = [
-  {
-    sub: "long_sleeve",
-    keywords: [/\blongsleeve\b/i, /\blong[-\s]?sleeve\b/i, /\bls\s+tee\b/i],
-  },
   {
     sub: "tank",
     keywords: [/\btank\b/i, /\bracerback\b/i, /\bsleeveless\b/i, /\bvest\b/i],
@@ -83,6 +93,23 @@ const TOP_SUB_RULES: Array<{ sub: WearTopSubcategory; keywords: RegExp[] }> = [
   {
     sub: "polo",
     keywords: [/\bpolo\b/i, /\bgolf\s+shirt\b/i],
+  },
+  {
+    sub: "relaxed_fit",
+    keywords: [
+      /\brelaxed[-\s]?fit\b/i,
+      /\brelaxed\s+unisex\b/i,
+      /\brelaxed\s+tee\b/i,
+      /\brelaxed\s+t-?shirt\b/i,
+    ],
+  },
+  {
+    sub: "organic",
+    keywords: [/\borganic\b/i],
+  },
+  {
+    sub: "long_sleeve",
+    keywords: [/\blongsleeve\b/i, /\blong[-\s]?sleeve\b/i, /\bls\s+tee\b/i],
   },
   {
     sub: "short_sleeve",
