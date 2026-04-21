@@ -26,6 +26,8 @@ type ProductRow = {
   name: string;
   priceCents: number;
   currency: string;
+  /** Public catalog image URLs (same as shop). */
+  images?: string[];
   variants: VariantRow[];
 };
 
@@ -106,6 +108,12 @@ export function WearCartPageClient() {
   }, [loadCatalog]);
 
   const byId = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+
+  function lineImageUrl(line: WearCartLine): string | null {
+    const p = byId.get(line.productId);
+    const urls = p?.images;
+    return urls && urls.length > 0 ? urls[0]! : null;
+  }
 
   const persist = useCallback((next: WearCartLine[]) => {
     localStorage.setItem(WEAR_CART_STORAGE_KEY, serializeWearCart(next));
@@ -256,9 +264,25 @@ export function WearCartPageClient() {
               const key = cartLineKey(l);
               const r = resolveLine(l, byId);
               const lineCents = r.ok ? r.unitCents * l.quantity : 0;
+              const thumbUrl = lineImageUrl(l);
               return (
                 <li key={key} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
+                  <div className="flex min-w-0 gap-4">
+                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100">
+                      {thumbUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={thumbUrl}
+                          alt={r.title}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center px-1 text-center text-[10px] text-stone-400">
+                          No image
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
                     <p className="font-medium text-amber-950">{r.title}</p>
                     {r.ok ? (
                       <p className="mt-1 text-sm text-stone-600">
@@ -267,8 +291,9 @@ export function WearCartPageClient() {
                     ) : (
                       <p className="mt-1 text-sm text-amber-800">This item is no longer valid — remove it.</p>
                     )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-3 sm:justify-end">
                     <label className="sr-only" htmlFor={`qty-${key}`}>
                       Quantity for {r.title}
                     </label>

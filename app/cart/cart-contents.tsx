@@ -27,7 +27,12 @@ type Item = {
   variant?: { id: string; name: string } | null;
   wearProduct?: { name: string; slug: string; images: string[]; currency: string } | null;
   wearProductVariant?: { id: string; label: string } | null;
-  experience?: { title: string; bookingDepositBps: number; allowFullPaymentOption?: boolean } | null;
+  experience?: {
+    title: string;
+    bookingDepositBps: number;
+    allowFullPaymentOption?: boolean;
+    images?: { imageUrl: string }[];
+  } | null;
   slot?: {
     slotDate: string;
     startTime: string;
@@ -397,20 +402,30 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                 <li key={i.id} className={`${ui.card} !p-[var(--pm-space-4)] sm:!p-[var(--pm-space-5)]`}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <div className="flex min-w-0 gap-4">
-                      {i.itemType === "product" || i.itemType === "wear" ? (
+                      {i.itemType === "product" || i.itemType === "wear" || i.itemType === "booking" ? (
                         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[length:var(--pm-radius-control)] bg-[var(--surface-elevated)]">
-                          {(i.itemType === "product" ? i.product?.images[0]?.imageUrl : i.wearProduct?.images?.[0]) ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={i.itemType === "product" ? i.product!.images[0]!.imageUrl : i.wearProduct!.images[0]!}
-                              alt={i.itemType === "product" ? i.product!.title : i.wearProduct!.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center text-[11px] text-[var(--muted)]">
-                              No image
-                            </div>
-                          )}
+                          {(() => {
+                            const src =
+                              i.itemType === "product"
+                                ? i.product?.images[0]?.imageUrl
+                                : i.itemType === "wear"
+                                  ? i.wearProduct?.images?.[0]
+                                  : i.experience?.images?.[0]?.imageUrl;
+                            const altLabel =
+                              i.itemType === "product"
+                                ? i.product?.title
+                                : i.itemType === "wear"
+                                  ? i.wearProduct?.name
+                                  : i.experience?.title;
+                            return src ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={src} alt={altLabel ?? ""} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full items-center justify-center text-[11px] text-[var(--muted)]">
+                                No image
+                              </div>
+                            );
+                          })()}
                         </div>
                       ) : null}
                       <div className="min-w-0">
