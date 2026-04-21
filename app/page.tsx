@@ -85,8 +85,7 @@ const landingPanels: LandingPanel[] = [
     key: "wearables",
     title: "Sell/Shop Wearables",
     subtitle: "Sell them on your site, or buy for yourself.",
-    psychologicalLine:
-      "On Identity, open the wear shop from the hero and preview, or scroll to join the reseller program when you’re ready to sell.",
+    psychologicalLine: "Wear your work — shop the drop or earn from every sale.",
     points: ["Sell branded apparel", "No inventory required", "Print-on-demand fulfillment", "Expand your identity beyond clay"],
     cta: "Go to Identity",
     href: "/wear",
