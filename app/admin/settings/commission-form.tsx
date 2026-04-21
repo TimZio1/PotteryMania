@@ -164,7 +164,7 @@ export function CommissionForm() {
       const j = await r.json().catch(() => ({} as { error?: string }));
       if (!r.ok) throw new Error(j.error ?? "Failed to update wearables pricing");
       await load();
-      setMsg("Wearables pricing updated.");
+      setMsg("Reseller margin settings updated.");
     } catch (error) {
       setMsg(error instanceof Error ? error.message : "Could not save wearables pricing");
     } finally {
@@ -383,9 +383,9 @@ export function CommissionForm() {
         </button>
       </div>
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-[var(--foreground)]">Wearables — studio margin controls</p>
+        <p className="text-sm font-semibold text-[var(--foreground)]">Reseller margin (wearables)</p>
         <p className="mt-2 text-sm text-[var(--foreground)]">
-          Studios earn a margin on wearable sales. Control the default, allowed range, and whether studios can adjust their own margin.
+          Default margin applies to new studios and to marketing copy on the homepage, <code className="rounded bg-stone-100 px-1 text-xs">/wear</code>, and the studio wearables dashboard. Control the default, allowed range, and whether studios can adjust their own margin.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block">
@@ -440,7 +440,7 @@ export function CommissionForm() {
           disabled={saving}
           onClick={() => void saveWearPricing()}
         >
-          Save wearables pricing
+          Save reseller margin settings
         </button>
       </div>
     </div>

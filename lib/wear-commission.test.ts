@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   calculateWearPrice,
   calculateWearMarginCents,
+  formatWearMarginPercentFromBps,
   resolveStudioMarginBps,
   type WearGlobalPricingConfig,
 } from "./wear-commission";
@@ -37,6 +38,17 @@ describe("resolveStudioMarginBps", () => {
 
   it("returns exact max boundary", () => {
     expect(resolveStudioMarginBps(5000, GLOBAL)).toBe(5000);
+  });
+});
+
+describe("formatWearMarginPercentFromBps", () => {
+  it("formats basis points as a percent label", () => {
+    expect(formatWearMarginPercentFromBps(2000)).toBe("20.0%");
+    expect(formatWearMarginPercentFromBps(1750)).toBe("17.5%");
+  });
+
+  it("handles invalid input", () => {
+    expect(formatWearMarginPercentFromBps(Number.NaN)).toBe("0.0%");
   });
 });
 

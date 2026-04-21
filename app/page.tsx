@@ -6,6 +6,9 @@ import { MobileLandingHero } from "@/components/marketing/mobile-landing-hero";
 import { buildMetadata } from "@/lib/seo";
 import { organizationJsonLd, toJsonLdScript, websiteJsonLd } from "@/lib/structured-data";
 import { ui } from "@/lib/ui-styles";
+import { formatWearMarginPercentFromBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
+
+export const dynamic = "force-dynamic";
 
 const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
 
@@ -47,7 +50,8 @@ const LANDING_EYEBROWS: Record<LandingPanelKey, string> = {
   marketplace_free: "Discover creators",
 };
 
-const landingPanels: LandingPanel[] = [
+function buildLandingPanels(defaultResellerMarginLabel: string): LandingPanel[] {
+  return [
   {
     key: "shop",
     title: "Create Your Own Pottery Shop",
@@ -85,7 +89,7 @@ const landingPanels: LandingPanel[] = [
     key: "wearables",
     title: "Sell/Shop Wearables",
     subtitle: "Sell them on your site, or buy for yourself.",
-    psychologicalLine: "Wear your work — shop the drop or earn from every sale.",
+    psychologicalLine: `Wear your work — shop the drop or earn from every sale. Platform default reseller margin ${defaultResellerMarginLabel}.`,
     points: ["Sell branded apparel", "No inventory required", "Print-on-demand fulfillment", "Expand your identity beyond clay"],
     cta: "Go to Identity",
     href: "/wear",
@@ -112,8 +116,12 @@ const landingPanels: LandingPanel[] = [
     comingSoon: true,
   },
 ];
+}
 
-export default function Home() {
+export default async function Home() {
+  const pricing = await resolveWearGlobalPricing();
+  const defaultResellerMarginLabel = formatWearMarginPercentFromBps(pricing.defaultMarginBps);
+  const landingPanels = buildLandingPanels(defaultResellerMarginLabel);
   const jsonLd = toJsonLdScript([websiteJsonLd(), organizationJsonLd()]);
   return (
     <MarketingLayout>

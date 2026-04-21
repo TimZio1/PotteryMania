@@ -94,6 +94,12 @@ export function resolveStudioMarginBps(
   return Math.max(global.minMarginBps, Math.min(global.maxMarginBps, studioMarginBps));
 }
 
+/** Marketing / UI label: basis points → percent (e.g. 2000 → "20.0%"). */
+export function formatWearMarginPercentFromBps(bps: number): string {
+  if (!Number.isFinite(bps)) return "0.0%";
+  return `${(bps / 100).toFixed(1)}%`;
+}
+
 export function calculateWearPrice(basePriceCents: number, marginBps: number): number {
   const raw = basePriceCents + Math.round((basePriceCents * marginBps) / 10000);
   return smartRound(raw);

@@ -4,7 +4,11 @@ import { prisma } from "@/lib/db";
 import { ui } from "@/lib/ui-styles";
 import { dashboardStudioMeta } from "@/lib/dashboard-metadata";
 import { resolveCommissionBps } from "@/lib/commission";
-import { resolveWearGlobalPricing, resolveStudioMarginBps } from "@/lib/wear-commission";
+import {
+  formatWearMarginPercentFromBps,
+  resolveWearGlobalPricing,
+  resolveStudioMarginBps,
+} from "@/lib/wear-commission";
 
 export const dynamic = "force-dynamic";
 
@@ -103,7 +107,7 @@ export default async function StudioPanelHomePage({ params }: Props) {
     if (wearConfig?.enabled) {
       const global = await resolveWearGlobalPricing();
       const bps = resolveStudioMarginBps(wearConfig.marginBps, global);
-      wearMarginLabel = `${(bps / 100).toFixed(1)}%`;
+      wearMarginLabel = formatWearMarginPercentFromBps(bps);
     }
   } catch { /* wearables not configured */ }
 

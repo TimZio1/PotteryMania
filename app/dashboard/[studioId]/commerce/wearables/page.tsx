@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { SOCIAL_PROOF_BASE } from "@/lib/brand";
+import { formatWearMarginPercentFromBps } from "@/lib/wear-commission";
 import { useCallback, useEffect, useState } from "react";
 
 type CatalogProduct = {
@@ -124,7 +125,7 @@ export default function StudioWearablesPage() {
     );
   }
 
-  const marginPct = (marginBps / 100).toFixed(1);
+  const marginLabel = formatWearMarginPercentFromBps(marginBps);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 p-6">
@@ -176,13 +177,13 @@ export default function StudioWearablesPage() {
               const exampleEarning = (avgBase * marginBps) / 10000 / 100;
               return config.marginLocked ? (
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Your margin is set to <strong>{marginPct}%</strong> and locked by the platform.
+                  Your margin is set to <strong>{marginLabel}</strong> and locked by the platform.
                   {" "}You earn ~<strong>{formatEur(Math.round(avgBase * marginBps / 10000))}</strong> per sale.
                 </p>
               ) : (
                 <>
                   <p className="mt-1 text-xs text-[var(--muted)]">
-                    You earn {marginPct}% on every sale — roughly <strong>€{exampleEarning.toFixed(2)}</strong> per item.
+                    You earn {marginLabel} on every sale — roughly <strong>€{exampleEarning.toFixed(2)}</strong> per item.
                   </p>
                   <input
                     type="range"
@@ -194,9 +195,11 @@ export default function StudioWearablesPage() {
                     className="mt-3 w-full accent-amber-600"
                   />
                   <div className="mt-1 flex justify-between text-xs text-stone-400">
-                    <span>{(config.minMarginBps / 100).toFixed(0)}%</span>
-                    <span className="font-medium text-amber-900">{marginPct}% ≈ €{exampleEarning.toFixed(2)}/sale</span>
-                    <span>{(config.maxMarginBps / 100).toFixed(0)}%</span>
+                    <span>{formatWearMarginPercentFromBps(config.minMarginBps)}</span>
+                    <span className="font-medium text-amber-900">
+                      {marginLabel} ≈ €{exampleEarning.toFixed(2)}/sale
+                    </span>
+                    <span>{formatWearMarginPercentFromBps(config.maxMarginBps)}</span>
                   </div>
                 </>
               );

@@ -9,6 +9,7 @@ import {
 } from "@/lib/wear-config";
 import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
+import { WearResellerProgramLink } from "./wear-reseller-program-link";
 
 const heroCtaClass =
   "inline-flex min-h-12 items-center justify-center border border-amber-300/60 bg-white px-8 text-sm font-medium tracking-wide text-stone-900 transition hover:bg-amber-50/90";
@@ -26,6 +27,7 @@ function formatEur(amount: number) {
 export function WearPage({
   previewItems,
   resellerStats,
+  resellerProgramHref,
 }: {
   previewItems?: WearPreviewItem[];
   resellerStats: {
@@ -33,6 +35,7 @@ export function WearPage({
     marginPct: string;
     estimatedEarningPerSale: number;
   };
+  resellerProgramHref: string;
 }) {
   const spreadshopUrl = getWearSpreadshopUrl();
   const tiles = previewItems?.length ? previewItems : WEAR_PREVIEW_ITEMS;
@@ -209,9 +212,9 @@ export function WearPage({
               </div>
             </div>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/demo" className={sectionCtaClass}>
+              <WearResellerProgramLink href={resellerProgramHref} className={sectionCtaClass}>
                 Join reseller program
-              </Link>
+              </WearResellerProgramLink>
               <Link href="/wear/shop" className={bridgeLinkClass}>
                 View the live wear shop
               </Link>
