@@ -12,8 +12,8 @@ import ForgotPasswordInner from "./forgot-password-inner";
 export default function ForgotPasswordPage() {
   return (
     <AuthShell
-      title="Forgot password"
-      description="Enter the email you use for your account. If we find an account with a password, we’ll email you a secure link."
+      title="Reset your password"
+      description="Type your email. If we find you, we’ll send a reset link."
     >
       <ForgotPasswordInner />
     </AuthShell>

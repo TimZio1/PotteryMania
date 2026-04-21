@@ -5,9 +5,9 @@ import { platformUi } from "@/lib/ui-styles";
 import { MyBookingsClient } from "./my-bookings-client";
 
 export const metadata: Metadata = metaPublicPage(
-  "Session calendar",
+  "My bookings",
   "/my-bookings",
-  "Today and upcoming studio sessions, reschedules, and calendar links.",
+  "Your classes, tickets, and upcoming times.",
 );
 
 type Props = {
@@ -18,9 +18,9 @@ export default async function MyBookingsPage({ searchParams }: Props) {
   const sp = (await searchParams) ?? {};
   const statusMessage =
     typeof sp.remainder_paid === "string" && sp.remainder_paid
-      ? "Your remaining balance payment was received."
+      ? "We got the rest of your payment."
       : typeof sp.remainder_cancelled === "string" && sp.remainder_cancelled
-        ? "Remaining balance payment was cancelled."
+        ? "That payment was cancelled."
         : "";
   return (
     <PlatformChrome headerVariant="account">

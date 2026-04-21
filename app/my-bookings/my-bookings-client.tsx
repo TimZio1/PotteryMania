@@ -122,9 +122,9 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
     <div className="mx-auto max-w-3xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className={platformUi.overline}>Today / upcoming sessions</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Session calendar</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">Upcoming reservations, reschedules, and calendar links for your studio visits.</p>
+          <p className={platformUi.overline}>Your classes</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">My bookings</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">Classes you booked, plus calendar links.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center`}>
@@ -197,9 +197,9 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
       <div className="mt-8 space-y-4">
         {bookings.length === 0 ? (
           <div className={`${platformUi.cardMuted}`}>
-            <p className="font-medium text-[var(--foreground)]">No reservations yet</p>
+            <p className="font-medium text-[var(--foreground)]">Nothing booked yet</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Visit a studio page to browse their sessions and book.
+              Open a studio&rsquo;s page to see what they offer.
             </p>
           </div>
         ) : null}

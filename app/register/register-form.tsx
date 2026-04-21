@@ -90,23 +90,23 @@ export function RegisterForm() {
       {googleEnabled ? (
         <>
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignUp()} className={`${ui.buttonSecondary} w-full`}>
-            {googlePending ? "Connecting Google…" : "Continue with Google"}
+            {googlePending ? "Connecting…" : "Continue with Google"}
           </button>
           <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-[var(--muted)]`}>
             <span className="h-px flex-1 bg-[var(--border)]" />
-            <span>or register with email</span>
+            <span>or use email</span>
             <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
         </>
       ) : null}
       <div className={`${ui.cardMuted} border-[var(--border)]/80`}>
-        <p className="text-sm font-medium text-[var(--foreground)]">Create your customer account first.</p>
+        <p className="text-sm font-medium text-[var(--foreground)]">One account works for both.</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Creators and studio owners can set up their public page after signing in and will review the{" "}
+          Book and buy from studios today. Run a studio of your own anytime &mdash; you&rsquo;ll see the{" "}
           <Link href="/vendor-terms" className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
             studio terms
           </Link>{" "}
-          during setup.
+          when you set one up.
         </p>
       </div>
       <div>
@@ -133,9 +133,7 @@ export function RegisterForm() {
           onChange={(e) => setMarketingConsent(e.target.checked)}
           disabled={pending}
         />
-        <span>
-          Email me occasional product updates and abandoned-cart reminders (you can opt out anytime). Optional.
-        </span>
+        <span>Send me tips and updates by email. Optional &mdash; unsubscribe anytime.</span>
       </label>
       <div>
         <label className={ui.label} htmlFor="reg-password">
@@ -155,7 +153,7 @@ export function RegisterForm() {
         />
       </div>
       <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? "Creating…" : "Create account"}
       </button>
       <p className="text-center text-sm text-[var(--muted)]">
         Already have an account?{" "}

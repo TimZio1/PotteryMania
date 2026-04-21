@@ -13,7 +13,7 @@ import LoginInner from "./login-inner";
 
 export default function LoginPage() {
   return (
-    <AuthShell title="Sign in" description="Access your studio dashboard, bookings, and saved cart on this device.">
+    <AuthShell title="Sign in" description="Open your studio or your bookings.">
       <Suspense
         fallback={
           <div className="flex justify-center py-6">

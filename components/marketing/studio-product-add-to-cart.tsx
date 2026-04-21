@@ -58,7 +58,7 @@ export function StudioProductAddToCart({
         setMsg({ type: "err", text: typeof j.error === "string" ? j.error : "Could not add to cart" });
         return;
       }
-      setMsg({ type: "ok", text: "Added to your cart" });
+      setMsg({ type: "ok", text: "Added to your cart." });
     } finally {
       setBusy(false);
     }
@@ -67,7 +67,7 @@ export function StudioProductAddToCart({
   if (!checkoutEnabled) {
     return (
       <p className={studioThemed ? "st-muted text-xs" : "text-xs text-stone-500"}>
-        Checkout is temporarily unavailable for the shop.
+        You can&rsquo;t buy from this shop right now.
       </p>
     );
   }
@@ -76,7 +76,7 @@ export function StudioProductAddToCart({
     <div className="mt-3">
       {hasVariants ? (
         <label className="mb-2 block">
-          <span className={studioThemed ? "st-muted text-xs" : ui.label}>Variant</span>
+          <span className={studioThemed ? "st-muted text-xs" : ui.label}>Option</span>
           <select
             className={studioThemed ? "st-input mt-1 w-full text-sm" : `${ui.input} mt-1 w-full text-sm`}
             value={selectedVariantId}
@@ -116,7 +116,7 @@ export function StudioProductAddToCart({
           {msg.text}{" "}
           {msg.type === "ok" ? (
             <Link href="/cart" className={studioThemed ? "st-link font-medium" : "font-medium underline underline-offset-2"}>
-              View cart
+              Go to cart
             </Link>
           ) : null}
         </p>

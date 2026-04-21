@@ -138,6 +138,32 @@ body {
   color: var(--foreground);
 }
 
+/*
+ * Guided simple setup (`/dashboard/[id]/guided`) — light canvas inside the vendor shell.
+ * Without this, headings use `--brand-ink` (#EDEDED) and inputs use dark `--surface` on a cream page.
+ */
+.pm-guided-light-tokens {
+  --foreground: #1c1917;
+  --muted: #57534e;
+  --surface: #ffffff;
+  --surface-elevated: #fafaf9;
+  --border: #e7e5e4;
+  --divider: #e7e5e4;
+  --accent-muted: rgba(196, 122, 44, 0.12);
+  --background: #fcfaf7;
+  --brand-ink: #1c1917;
+  --brand-soft: #fafaf9;
+  --brand-line: #e7e5e4;
+  color-scheme: light;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.pm-guided-light-tokens ::selection {
+  background: rgba(196, 122, 44, 0.25);
+  color: var(--foreground);
+}
+
 /* ── Studio public storefront — variables from resolveStudioPublicTheme ── */
 .st-surface {
   background: var(--st-page-bg);

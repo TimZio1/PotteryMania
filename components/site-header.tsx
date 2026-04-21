@@ -146,7 +146,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               <button
                 type="button"
                 className={cn(ui.buttonGhost, "text-[var(--muted)]")}
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={() => signOut({ callbackUrl: "/login?signedOut=1" })}
               >
                 Sign out
               </button>
@@ -255,7 +255,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                   className={cn(ui.buttonGhost, "min-h-12 justify-start px-4 text-base text-[var(--muted)]")}
                   onClick={() => {
                     close();
-                    signOut({ callbackUrl: "/" });
+                    signOut({ callbackUrl: "/login?signedOut=1" });
                   }}
                 >
                   Sign out

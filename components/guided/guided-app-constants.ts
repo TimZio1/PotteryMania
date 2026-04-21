@@ -26,13 +26,13 @@ export function parseFlow(v: string | null): Flow {
 export function flowSummaryLabel(flow: Exclude<Flow, null>): string {
   switch (flow) {
     case "studio":
-      return "Studio page basics";
+      return "Your public page";
     case "sell":
-      return "A product for your catalog";
+      return "Add something to sell";
     case "class":
-      return "A bookable experience";
+      return "Add a class";
     case "paid":
-      return "Payments and payouts";
+      return "Get paid to your bank";
     default:
       return "Setup";
   }

@@ -403,34 +403,15 @@ export function GuidedApp({
   const hub = useMemo(
     () => (
       <div className="space-y-8">
-        {showWelcomeBanner ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-4 text-sm text-emerald-950">
-            <p className="font-semibold">You’re in. Nice work.</p>
-            <p className="mt-1 text-emerald-900/90">Pick one thing below — each path takes a few taps.</p>
-            <button
-              type="button"
-              className="mt-3 text-sm font-medium text-emerald-800 underline underline-offset-2"
-              onClick={() => {
-                const q = new URLSearchParams(searchParams.toString());
-                q.delete("welcome");
-                q.delete("stripe");
-                router.replace(`${pathname}?${q.toString()}`);
-              }}
-            >
-              Okay
-            </button>
-          </div>
-        ) : null}
-
         {resumeHint ? (
           <div
             className="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm text-amber-950"
             role="status"
             aria-live="polite"
           >
-            <p className="font-semibold">Pick up where you left off</p>
+            <p className="font-semibold">Continue where you stopped</p>
             <p className="mt-1 text-amber-900/90">
-              {flowSummaryLabel(resumeHint.flow)} — step {resumeHint.step}
+              {flowSummaryLabel(resumeHint.flow)} · step {resumeHint.step}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <button
@@ -447,15 +428,34 @@ export function GuidedApp({
                 Continue
               </button>
               <button type="button" className="text-sm font-medium text-stone-600 underline underline-offset-2" onClick={dismissResume}>
-                Dismiss
+                Not now
               </button>
             </div>
           </div>
         ) : null}
 
+        {showWelcomeBanner ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-4 text-sm text-emerald-950">
+            <p className="font-semibold">You’re in.</p>
+            <p className="mt-1 text-emerald-900/90">Pick one thing below. You can do the rest later.</p>
+            <button
+              type="button"
+              className="mt-3 text-sm font-medium text-emerald-800 underline underline-offset-2"
+              onClick={() => {
+                const q = new URLSearchParams(searchParams.toString());
+                q.delete("welcome");
+                q.delete("stripe");
+                router.replace(`${pathname}?${q.toString()}`);
+              }}
+            >
+              Got it
+            </button>
+          </div>
+        ) : null}
+
         <div>
-          <h1 className="font-serif text-2xl font-normal text-(--brand-ink)">What should your studio do next?</h1>
-          <p className="mt-2 text-sm leading-relaxed text-stone-600">One thing at a time. Nothing here is permanent.</p>
+          <h1 className="font-serif text-2xl font-medium leading-snug text-(--brand-ink)">What do you want to set up?</h1>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">Pick one. You can do the rest later.</p>
         </div>
 
         <div className="grid gap-3">
@@ -464,32 +464,33 @@ export function GuidedApp({
             onClick={() => setQuery({ flow: "studio", step: "1", stripe: null })}
             className="min-h-14 rounded-2xl border border-stone-200 bg-white px-4 py-4 text-left text-base font-medium text-stone-900 shadow-sm transition active:scale-[0.99] hover:border-amber-200"
           >
-            Set up my studio page
+            Finish my public page
           </button>
           <button type="button" onClick={startSellFlow} className="min-h-14 rounded-2xl border border-stone-200 bg-white px-4 py-4 text-left text-base font-medium text-stone-900 shadow-sm transition active:scale-[0.99] hover:border-amber-200">
-            Add a product to my catalog
+            Add something to sell
           </button>
           <button type="button" onClick={startClassFlow} className="min-h-14 rounded-2xl border border-stone-200 bg-white px-4 py-4 text-left text-base font-medium text-stone-900 shadow-sm transition active:scale-[0.99] hover:border-amber-200">
-            Add an experience people can reserve
+            Add a class people can book
           </button>
         </div>
 
-        <p className="text-center text-sm text-stone-500">
-          <button type="button" className="font-medium text-amber-900 underline underline-offset-2" onClick={openPaidFlow}>
-            Set up payments & payouts
-          </button>
-        </p>
-
-        <p className="text-center text-sm text-stone-500">
-          <Link
-            href={`/studios/${studioId}`}
-            className="font-medium text-amber-900 underline underline-offset-2"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Preview my public page
-          </Link>
-        </p>
+        <div className="space-y-3 border-t border-stone-200/80 pt-6 text-center">
+          <p>
+            <button type="button" className="text-sm font-medium text-amber-900 underline underline-offset-2" onClick={openPaidFlow}>
+              Get paid to your bank
+            </button>
+          </p>
+          <p>
+            <Link
+              href={`/studios/${studioId}`}
+              className="text-sm font-medium text-amber-900 underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
+              See my public page
+            </Link>
+          </p>
+        </div>
       </div>
     ),
     [
@@ -524,10 +525,14 @@ export function GuidedApp({
 
         {step === 1 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">What should people call you?</h2>
-            <label className="block">
-              <span className="text-sm text-stone-600">Your studio name</span>
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Name your studio</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">This is the name people see on your public page.</p>
+            </div>
+            <label className="block" htmlFor="guided-studio-name">
+              <span className="text-sm font-medium text-stone-700">Studio name</span>
               <input
+                id="guided-studio-name"
                 className={`${ui.input} mt-2`}
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -535,31 +540,37 @@ export function GuidedApp({
               />
             </label>
             <button type="button" disabled={busy || !displayName.trim()} onClick={() => setQuery({ step: "2" })} className={`${ui.buttonPrimary} w-full`}>
-              Continue
+              Next
             </button>
           </div>
         ) : null}
 
         {step === 2 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">One welcoming line</h2>
-            <p className="text-sm text-stone-600">This shows on your public page. You can change it anytime.</p>
-            <textarea
-              className={`${ui.input} min-h-28 resize-y`}
-              value={welcomeLine}
-              onChange={(e) => setWelcomeLine(e.target.value)}
-              placeholder="e.g. Small-batch pots from our studio in Lisbon."
-            />
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Say what you do in one line</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">This shows on your public page. You can change it anytime.</p>
+            </div>
+            <label className="block" htmlFor="guided-studio-welcome">
+              <span className="text-sm font-medium text-stone-700">One short line</span>
+              <textarea
+                id="guided-studio-welcome"
+                className={`${ui.input} mt-2 min-h-28 resize-y`}
+                value={welcomeLine}
+                onChange={(e) => setWelcomeLine(e.target.value)}
+                placeholder="For example: Small-batch pots from our studio in Lisbon."
+              />
+            </label>
             <button
               type="button"
               disabled={aiBusy}
               onClick={() => suggestCopy("welcome")}
               className={`${ui.buttonSecondary} w-full`}
             >
-              {aiBusy ? "…" : "Suggest a line for me"}
+              {aiBusy ? "…" : "Write one for me"}
             </button>
             <button type="button" disabled={busy} onClick={saveStudioStep} className={`${ui.buttonPrimary} w-full`}>
-              {busy ? "Saving…" : "Save & continue"}
+              {busy ? "Saving…" : "Save"}
             </button>
           </div>
         ) : null}
@@ -569,10 +580,10 @@ export function GuidedApp({
             <p className="text-4xl" aria-hidden>
               ✓
             </p>
-            <h2 className="font-serif text-xl text-(--brand-ink)">Saved</h2>
-            <p className="text-sm text-stone-600">Your page is a bit more human. Share it when you’re ready.</p>
+            <h2 className="font-serif text-xl font-medium text-(--brand-ink)">Saved</h2>
+            <p className="text-sm leading-relaxed text-stone-600">Your public page is updated. Share it when you’re ready.</p>
             <Link href={`/studios/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`} target="_blank" rel="noreferrer">
-              Preview my page
+              See my public page
             </Link>
             <button type="button" onClick={goHub} className={`${ui.buttonPrimary} w-full`}>
               Done
@@ -600,7 +611,10 @@ export function GuidedApp({
 
         {step === 1 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">What kind of piece?</h2>
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">What kind of thing are you selling?</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">Pick the closest match. You can change it later.</p>
+            </div>
             <div className="grid gap-3">
               {SELL_TYPES.map((t) => (
                 <button
@@ -621,19 +635,30 @@ export function GuidedApp({
 
         {step === 2 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">Name and price</h2>
-            <label className="block">
-              <span className="text-sm text-stone-600">What is it called?</span>
-              <input className={`${ui.input} mt-2`} value={productTitle} onChange={(e) => setProductTitle(e.target.value)} placeholder="e.g. Speckled breakfast bowl" />
-            </label>
-            <label className="block">
-              <span className="text-sm text-stone-600">Price in euros (whole numbers are fine)</span>
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Name it and set a price</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">What will people see and pay?</p>
+            </div>
+            <label className="block" htmlFor="guided-product-title">
+              <span className="text-sm font-medium text-stone-700">Name</span>
               <input
+                id="guided-product-title"
+                className={`${ui.input} mt-2`}
+                value={productTitle}
+                onChange={(e) => setProductTitle(e.target.value)}
+                placeholder="For example: Speckled breakfast bowl"
+                autoComplete="off"
+              />
+            </label>
+            <label className="block" htmlFor="guided-product-price">
+              <span className="text-sm font-medium text-stone-700">Price (€)</span>
+              <input
+                id="guided-product-price"
                 inputMode="decimal"
                 className={`${ui.input} mt-2`}
                 value={priceEur}
                 onChange={(e) => setPriceEur(e.target.value)}
-                placeholder="e.g. 38"
+                placeholder="For example: 38"
               />
             </label>
             <button
@@ -642,31 +667,43 @@ export function GuidedApp({
               onClick={() => setQuery({ step: "3" })}
               className={`${ui.buttonPrimary} w-full`}
             >
-              Continue
+              Next
             </button>
           </div>
         ) : null}
 
         {step === 3 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">A short line for guests</h2>
-            <p className="text-sm text-stone-600">Optional. Helps visitors understand the piece quickly.</p>
-            <textarea className={`${ui.input} min-h-24 resize-y`} value={productBlurb} onChange={(e) => setProductBlurb(e.target.value)} />
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Say one thing about it</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">Optional. A short line that helps people decide.</p>
+            </div>
+            <label className="block" htmlFor="guided-product-blurb">
+              <span className="text-sm font-medium text-stone-700">Short line</span>
+              <textarea
+                id="guided-product-blurb"
+                className={`${ui.input} mt-2 min-h-24 resize-y`}
+                value={productBlurb}
+                onChange={(e) => setProductBlurb(e.target.value)}
+              />
+            </label>
             <button type="button" disabled={aiBusy} onClick={() => suggestCopy("product")} className={`${ui.buttonSecondary} w-full`}>
-              {aiBusy ? "…" : "Suggest text for me"}
+              {aiBusy ? "…" : "Write one for me"}
             </button>
             <button type="button" onClick={() => setQuery({ step: "4" })} className={`${ui.buttonPrimary} w-full`}>
-              Continue
+              Next
             </button>
           </div>
         ) : null}
 
         {step === 4 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">Save your product draft</h2>
-            <p className="text-sm text-stone-600">We’ll save it as a draft. You can publish when payouts are ready.</p>
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Save this product</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">We start it as a draft. Nothing is public until you say so.</p>
+            </div>
             <button type="button" disabled={busy} onClick={createDraftProduct} className={`${ui.buttonPrimary} w-full`}>
-              {busy ? "Saving…" : "Save draft"}
+              {busy ? "Saving…" : "Save"}
             </button>
           </div>
         ) : null}
@@ -678,10 +715,10 @@ export function GuidedApp({
                 <p className="text-4xl" aria-hidden>
                   ✓
                 </p>
-                <h2 className="font-serif text-xl text-(--brand-ink)">It’s on your page</h2>
-                <p className="text-sm text-stone-600">Visitors can now see this product on your public studio page.</p>
+                <h2 className="font-serif text-xl font-medium text-(--brand-ink)">Your product is on your page</h2>
+                <p className="text-sm leading-relaxed text-stone-600">People can now see this on your public page.</p>
                 <Link href={`/studios/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`} target="_blank" rel="noreferrer">
-                  Preview my page
+                  See my public page
                 </Link>
                 <button type="button" onClick={startSellFlow} className={`${ui.buttonSecondary} w-full`}>
                   Add another product
@@ -695,10 +732,10 @@ export function GuidedApp({
                 <p className="text-4xl" aria-hidden>
                   ✓
                 </p>
-                <h2 className="font-serif text-xl text-(--brand-ink)">Saved as a draft</h2>
-                <p className="text-sm text-stone-600">Put it on your page after you connect how you get paid.</p>
+                <h2 className="font-serif text-xl font-medium text-(--brand-ink)">Saved as a draft</h2>
+                <p className="text-sm leading-relaxed text-stone-600">Put it on your page after you connect your bank.</p>
                 <button type="button" disabled={busy} onClick={publishProduct} className={`${ui.buttonPrimary} w-full`}>
-                  {busy ? "…" : "Put on my page now"}
+                  {busy ? "…" : "Put it on my page"}
                 </button>
                 {err ? (
                   <p className="text-sm text-amber-900" role="alert">
@@ -706,10 +743,10 @@ export function GuidedApp({
                   </p>
                 ) : null}
                 <button type="button" onClick={openPaidFlow} className={`${ui.buttonSecondary} w-full`}>
-                  Set up payments & payouts
+                  Get paid to your bank
                 </button>
                 <button type="button" onClick={startSellFlow} className={`${ui.buttonSecondary} w-full`}>
-                  Start another product draft
+                  Add another product
                 </button>
                 <button type="button" onClick={goHub} className="w-full text-sm font-medium text-stone-500 underline">
                   Back to menu
@@ -739,17 +776,38 @@ export function GuidedApp({
 
         {step === 1 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">What’s the class called?</h2>
-            <input className={ui.input} value={classTitle} onChange={(e) => setClassTitle(e.target.value)} placeholder="e.g. Saturday hand-building" />
-            <button type="button" disabled={!classTitle.trim()} onClick={() => setQuery({ step: "2" })} className={`${ui.buttonPrimary} w-full`}>
-              Continue
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Name your class</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">This is the title people see when they book.</p>
+            </div>
+            <label className="block" htmlFor="guided-class-title">
+              <span className="text-sm font-medium text-stone-700">Class name</span>
+              <input
+                id="guided-class-title"
+                className={`${ui.input} mt-2`}
+                value={classTitle}
+                onChange={(e) => setClassTitle(e.target.value)}
+                placeholder="For example: Saturday hand-building"
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={!classTitle.trim()}
+              onClick={() => setQuery({ step: "2" })}
+              className={`${ui.buttonPrimary} w-full`}
+            >
+              Next
             </button>
           </div>
         ) : null}
 
         {step === 2 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">How long is it?</h2>
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">How long is the class?</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">Pick the closest match. You can change this later.</p>
+            </div>
             <div className="grid gap-3">
               {CLASS_LENGTHS.map((L) => (
                 <button
@@ -770,16 +828,23 @@ export function GuidedApp({
 
         {step === 3 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">Price per person (euros)</h2>
-            <input
-              inputMode="decimal"
-              className={ui.input}
-              value={classPriceEur}
-              onChange={(e) => setClassPriceEur(e.target.value)}
-              placeholder="e.g. 45"
-            />
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">How much per person?</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">Amount in euros for one seat.</p>
+            </div>
+            <label className="block" htmlFor="guided-class-price">
+              <span className="text-sm font-medium text-stone-700">Price (€)</span>
+              <input
+                id="guided-class-price"
+                inputMode="decimal"
+                className={`${ui.input} mt-2`}
+                value={classPriceEur}
+                onChange={(e) => setClassPriceEur(e.target.value)}
+                placeholder="For example: 45"
+              />
+            </label>
             <button type="button" disabled={!classPriceEur.trim()} onClick={() => setQuery({ step: "4" })} className={`${ui.buttonPrimary} w-full`}>
-              Continue
+              Next
             </button>
           </div>
         ) : null}
@@ -788,23 +853,34 @@ export function GuidedApp({
           <div className="space-y-6 text-center">
             {createdExperienceId ? (
               <>
-                <p className="text-sm text-stone-600">Your class is saved. Next, pick times people can book.</p>
+                <h2 className="font-serif text-xl font-medium text-(--brand-ink)">Saved</h2>
+                <p className="text-sm leading-relaxed text-stone-600">Next, add times people can book.</p>
                 <button type="button" onClick={() => setQuery({ step: "5" })} className={`${ui.buttonPrimary} w-full`}>
-                  Continue
+                  Next
                 </button>
               </>
             ) : (
-              <button type="button" disabled={busy} onClick={createDraftClass} className={`${ui.buttonPrimary} w-full`}>
-                {busy ? "Saving…" : "Save class"}
-              </button>
+              <>
+                <div className="text-left">
+                  <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Save this class</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-600">We start it as a draft. Nothing is public until you say so.</p>
+                </div>
+                <button type="button" disabled={busy} onClick={createDraftClass} className={`${ui.buttonPrimary} w-full`}>
+                  {busy ? "Saving…" : "Save class"}
+                </button>
+              </>
             )}
           </div>
         ) : null}
 
         {step === 5 ? (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">When does it usually run?</h2>
-            <p className="text-sm text-stone-600">Pick one — we’ll add bookable times for the next several weeks. You can edit later.</p>
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">When do you run it?</h2>
+              <p className="text-sm leading-relaxed text-stone-600">
+                Pick one time pattern. We add bookable slots for the next few weeks. You can edit them anytime.
+              </p>
+            </div>
             <div className="grid gap-3">
               {SCHEDULE_PRESETS.map((s) => (
                 <button
@@ -837,15 +913,15 @@ export function GuidedApp({
                 <p className="text-4xl" aria-hidden>
                   ✓
                 </p>
-                <h2 className="font-serif text-xl text-(--brand-ink)">Class is live on your page</h2>
-                <p className="text-sm text-stone-600">
-                  Guests can reserve when there are upcoming times. Add or change times anytime in the planner.
+                <h2 className="font-serif text-xl font-medium text-(--brand-ink)">Your class is on your page</h2>
+                <p className="text-sm leading-relaxed text-stone-600">
+                  People can book when there are open times. Add or change times in your planner whenever you want.
                 </p>
                 <Link href={`/studios/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`} target="_blank" rel="noreferrer">
                   Preview my page
                 </Link>
                 <Link href={`/dashboard/${studioId}/programs/planner`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
-                  Open full class planner
+                  Open class planner
                 </Link>
                 <button type="button" onClick={startClassFlow} className={`${ui.buttonSecondary} w-full`}>
                   Add another class
@@ -859,18 +935,18 @@ export function GuidedApp({
                 <p className="text-4xl" aria-hidden>
                   ✓
                 </p>
-                <h2 className="font-serif text-xl text-(--brand-ink)">You’re set</h2>
-                <p className="text-sm text-stone-600">
-                  Your class is saved as a draft. Put it on your page after payouts are connected — then guests can reserve when there are times.
+                <h2 className="font-serif text-xl font-medium text-(--brand-ink)">Saved as a draft</h2>
+                <p className="text-sm leading-relaxed text-stone-600">
+                  Put it on your page after you connect your bank. Then people can book when there are open times.
                 </p>
                 <button type="button" disabled={busy} onClick={publishClass} className={`${ui.buttonPrimary} w-full`}>
-                  {busy ? "…" : "Put on my page now"}
+                  {busy ? "…" : "Put it on my page"}
                 </button>
                 <button type="button" onClick={openPaidFlow} className={`${ui.buttonSecondary} w-full`}>
-                  Set up payments & payouts
+                  Get paid to your bank
                 </button>
                 <Link href={`/dashboard/${studioId}/programs/planner`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
-                  Open full class planner
+                  Open class planner
                 </Link>
                 <button type="button" onClick={goHub} className="w-full text-sm font-medium text-stone-500 underline">
                   Back to menu
@@ -895,21 +971,21 @@ export function GuidedApp({
             <p className="text-4xl" aria-hidden>
               ✓
             </p>
-            <h2 className="font-serif text-xl text-(--brand-ink)">You’re connected</h2>
-            <p className="text-sm text-stone-600">
+            <h2 className="font-serif text-xl font-medium text-(--brand-ink)">You’re connected</h2>
+            <p className="text-sm leading-relaxed text-stone-600">
               {stripeSyncing
-                ? "Syncing your Stripe status…"
-                : "When Stripe finishes checking, you can take payments. This can take a few minutes."}
+                ? "Checking your status…"
+                : "You’ll be able to take payments once Stripe finishes checking. This usually takes a few minutes."}
             </p>
-            <p className="text-sm text-stone-600">Next, you can put drafts on your page or add more.</p>
+            <p className="text-sm text-stone-600">Next, put drafts on your page or add more.</p>
             <Link href={`/studios/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`} target="_blank" rel="noreferrer">
-              Preview my page
+              See my public page
             </Link>
             <button type="button" onClick={startSellFlow} className={`${ui.buttonSecondary} w-full`}>
-              Add a product to my catalog
+              Add something to sell
             </button>
             <button type="button" onClick={startClassFlow} className={`${ui.buttonSecondary} w-full`}>
-              Add an experience people can reserve
+              Add a class people can book
             </button>
             <button type="button" onClick={goHub} className={`${ui.buttonPrimary} w-full`}>
               Back to menu
@@ -917,18 +993,19 @@ export function GuidedApp({
           </div>
         ) : (
           <div className="space-y-6">
-            <h2 className="font-serif text-xl text-(--brand-ink)">Money</h2>
-            <p className="text-sm leading-relaxed text-stone-600">
-              We use a secure partner to send money to your bank. You’ll fill in a few details — name, bank, ID — the usual
-              once-only setup.
-            </p>
+            <div>
+              <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Get paid to your bank</h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                A secure partner (Stripe) sends the money to your bank. You’ll add a few details once — name, bank, ID.
+              </p>
+            </div>
             <ul className="list-disc space-y-2 pl-5 text-sm text-stone-600">
-              <li>Guests and buyers pay your studio through your page.</li>
-              <li>Money moves to your bank account.</li>
+              <li>People pay you through your public page.</li>
+              <li>The money lands in your bank.</li>
               <li>You can pause anytime.</li>
             </ul>
             <button type="button" disabled={busy} onClick={startStripe} className={`${ui.buttonPrimary} w-full`}>
-              {busy ? "Opening…" : "Continue to secure setup"}
+              {busy ? "Opening…" : "Continue"}
             </button>
             {err ? (
               <p className="text-sm text-red-600" role="alert">

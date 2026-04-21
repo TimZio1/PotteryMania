@@ -263,7 +263,7 @@ export default async function StudioPage({ params }: Props) {
                 <p className="st-body mt-4 text-base leading-relaxed">{studio.shortDescription}</p>
               ) : null}
               {!studio.activationPaidAt ? (
-                <p className="st-pill mt-4">This studio is setting up. Online booking and purchases will be available soon.</p>
+                <p className="st-pill mt-4">This studio is getting set up. You&rsquo;ll be able to book and buy soon.</p>
               ) : null}
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -387,17 +387,17 @@ export default async function StudioPage({ params }: Props) {
           {!classesHidden && upcomingSlots.length > 0 ? (
             <section id="upcoming-sessions" className="st-section">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <h2 className="st-h2">Upcoming sessions</h2>
+                <h2 className="st-h2">Open classes</h2>
                 {experiences.length > 0 ? (
                   <a href="#studio-classes" className="st-link text-sm">
-                    View this studio&apos;s classes
+                    See all classes
                   </a>
                 ) : null}
               </div>
               <p className="st-muted mt-1 text-sm">
                 {classesVisible
-                  ? "Schedule preview — online booking is not available for this studio yet."
-                  : "Open times with availability — reserve on the class page."}
+                  ? "Upcoming times — this studio doesn’t book online yet."
+                  : "Pick a time and book your seat."}
               </p>
               <ul className="st-list-shell st-divide-y mt-6">
                 {upcomingSlots.map((slot) => {
@@ -449,7 +449,7 @@ export default async function StudioPage({ params }: Props) {
                 <h2 className="st-h2">Classes</h2>
                 {upcomingSlots.length > 0 ? (
                   <a href="#upcoming-sessions" className="st-link text-sm">
-                    Jump to upcoming sessions
+                    See upcoming times
                   </a>
                 ) : null}
               </div>
@@ -474,7 +474,7 @@ export default async function StudioPage({ params }: Props) {
                         </p>
                         {experience.allowPayAtStudio && (
                           <span className="mt-1 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                            Pay at studio available
+                            Pay at the studio
                           </span>
                         )}
                       </div>
@@ -507,17 +507,14 @@ export default async function StudioPage({ params }: Props) {
                   );
                 })}
               </div>
-              {experiences.length === 0 ? <p className="st-muted mt-4 text-sm">No public classes yet.</p> : null}
+              {experiences.length === 0 ? <p className="st-muted mt-4 text-sm">No classes yet.</p> : null}
             </section>
           ) : null}
 
           {!shopHidden ? (
             <section id="studio-shop" className="st-section">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <h2 className="st-h2">Products</h2>
-                <a href="#studio-shop" className="st-link text-sm">
-                  Studio-owned shop
-                </a>
+                <h2 className="st-h2">Shop</h2>
               </div>
               <div className="st-grid md-2 lg-3 mt-6">
                 {products.map((product) => {
@@ -572,7 +569,7 @@ export default async function StudioPage({ params }: Props) {
                   );
                 })}
               </div>
-              {products.length === 0 ? <p className="st-muted mt-4 text-sm">No active products yet.</p> : null}
+              {products.length === 0 ? <p className="st-muted mt-4 text-sm">Nothing for sale yet.</p> : null}
             </section>
           ) : null}
 

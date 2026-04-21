@@ -349,24 +349,23 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
           ← Back
         </button>
       </div>
-      <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Cart</h1>
+      <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{isCheckoutMode ? "Pay" : "Your cart"}</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        {isCheckoutMode ? "Review totals and complete secure Stripe payment." : "Review your cart before checkout."}
+        {isCheckoutMode ? "Check your total, then pay." : "Check your items before you pay."}
       </p>
       {wasCancelled && (
         <div className="mt-4 rounded-xl border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-4 text-sm text-[var(--foreground)]">
-          Payment was cancelled — your cart is still here. Continue when you&apos;re ready.
+          Payment was cancelled. Your cart is still here.
         </div>
       )}
       {cartError && (
         <div className="mt-4 rounded-xl border border-red-800/40 bg-red-950/30 p-4 text-sm text-red-900">
-          Could not load your cart. Please refresh the page or try again in a moment.
+          Couldn&rsquo;t load your cart. Refresh the page or try again.
         </div>
       )}
       {multiVendor ? (
         <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-[var(--pm-space-4)] text-sm text-[var(--foreground)]">
-          Your cart includes <strong>more than one studio</strong>. Each studio is paid out separately via Stripe Connect, so you will complete{" "}
-          <strong>one secure checkout per studio</strong>. After paying for the first, return here to pay the rest.
+          Your cart has items from <strong>more than one studio</strong>. You&rsquo;ll pay each studio once. Come back here to pay the next one.
         </p>
       ) : null}
 
@@ -374,7 +373,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
         <div className={`${ui.cardMuted} mt-10`}>
           <p className="font-medium text-[var(--foreground)]">Your cart is empty</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Visit a studio page to browse their classes and products.
+            Open a studio page to see what they sell.
           </p>
         </div>
       ) : (
@@ -671,21 +670,21 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
             {!isCheckoutMode ? (
               <div className="space-y-4">
                 <p className="text-sm text-[var(--muted)]">
-                  Next step: review final totals, discounts, shipping, and cancellation terms before payment.
+                  Next, check your total and pay.
                 </p>
                 <Link href="/checkout" className={`${ui.buttonPrimary} inline-flex`}>
-                  Continue to checkout summary
+                  Continue
                 </Link>
               </div>
             ) : null}
             {isCheckoutMode ? (
               <>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">Checkout details</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">We use these details for your Stripe receipt and shipping when applicable.</p>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Your details</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">Used for your receipt, and shipping if you ordered something.</p>
             {err ? <p className={`${ui.errorText} mt-4`}>{err}</p> : null}
             {couponErr ? <p className={`${ui.errorText} mt-2`}>{couponErr}</p> : null}
             {!hasProducts ? (
-              <p className="mt-4 text-sm text-[var(--muted)]">Booking-only: no shipping address needed. Name and email are required.</p>
+              <p className="mt-4 text-sm text-[var(--muted)]">Just your name and email &mdash; nothing to ship.</p>
             ) : null}
             <div className="mt-6 space-y-4">
               <div>
@@ -717,12 +716,12 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
               </div>
               <div>
                 <label className={ui.label} htmlFor="cart-notes">
-                  Order notes
+                  Anything the studio should know? (optional)
                 </label>
                 <textarea
                   id="cart-notes"
                   className={`${ui.input} mt-1 min-h-24`}
-                  placeholder="General notes for this checkout"
+                  placeholder="Allergies, questions, special requests…"
                   value={generalNotes}
                   onChange={(e) => setGeneralNotes(e.target.value)}
                   maxLength={1000}
@@ -774,11 +773,11 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
               ) : null}
               <div className={`${ui.cardMuted} !p-[var(--pm-space-4)]`}>
                 <label className={ui.label} htmlFor="cart-promo">
-                  Promo code
+                  Have a code?
                 </label>
                 {multiVendor ? (
                   <p className="mt-2 text-sm text-[var(--muted)]">
-                    Promo codes apply to a single studio checkout. Use a code after your cart only contains items from one studio, or apply it on each studio&apos;s checkout one at a time.
+                    Codes work for one studio at a time. Add yours when you pay each studio.
                   </p>
                 ) : (
                   <>
@@ -809,8 +808,8 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                     </div>
                     <p className="mt-2 text-xs text-[var(--muted)]">
                       {hasProducts
-                        ? "Shipping and tax estimates use your address above."
-                        : "Discount applies to class deposits in this cart."}
+                        ? "Shipping and tax are estimated from your address."
+                        : "Discount applies to the amount due now."}
                     </p>
                     <div className="mt-4 border-t border-[var(--border)] pt-4">
                       <label className={ui.label} htmlFor="cart-gift-card">
@@ -831,11 +830,11 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                           onClick={() => applyAdjustment("gift_card")}
                           className={ui.buttonSecondary}
                         >
-                          Apply gift card
+                          Use gift card
                         </button>
                       </div>
                       <p className="mt-2 text-xs text-[var(--muted)]">
-                        Gift cards are studio-specific and reduce the amount charged at checkout.
+                        Gift cards work for one studio. They lower what you pay.
                       </p>
                     </div>
                   </>
@@ -854,12 +853,12 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                         {checkoutBusy ? (
                           <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
                         ) : (
-                          <>Continue to payment — {g.displayName}</>
+                          <>Pay {g.displayName}</>
                         )}
                       </button>
                       <p className="flex items-center justify-center gap-2 text-xs text-[var(--muted)]">
                         <span aria-hidden="true">🔒</span>
-                        Secure Stripe checkout
+                        Secure payment
                       </p>
                     </div>
                   ))}
@@ -870,12 +869,12 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                     {checkoutBusy ? (
                       <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
                     ) : (
-                      "Continue to payment"
+                      "Pay now"
                     )}
                   </button>
                   <p className="flex items-center justify-center gap-2 text-xs text-[var(--muted)]">
                     <span aria-hidden="true">🔒</span>
-                    Secure Stripe checkout
+                    Secure payment
                   </p>
                 </div>
               )}

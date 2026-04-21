@@ -26,12 +26,12 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
       variant === "dashboard"
         ? [
             { href: "/dashboard", label: "Studios" },
-            { href: "/dashboard/billing", label: "Billing & add-ons" },
+            { href: "/dashboard/billing", label: "Billing" },
             { href: "/account", label: "Account" },
           ]
         : [
-            { href: "/dashboard", label: "Studio control panel" },
-            { href: "/my-bookings", label: "Session calendar" },
+            { href: "/dashboard", label: "My studio" },
+            { href: "/my-bookings", label: "My bookings" },
             { href: "/my-orders", label: "My orders" },
             { href: "/account", label: "Account" },
           ],
@@ -116,7 +116,7 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
               {link.label}
             </Link>
           ))}
-          <button type="button" className={nav} onClick={() => signOut({ callbackUrl: "/" })}>
+          <button type="button" className={nav} onClick={() => signOut({ callbackUrl: "/login?signedOut=1" })}>
             Sign out
           </button>
         </nav>
@@ -170,7 +170,7 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
               className={cn(platformUi.buttonGhost, "min-h-12 justify-start px-4 text-base text-stone-600")}
               onClick={() => {
                 close();
-                signOut({ callbackUrl: "/" });
+                signOut({ callbackUrl: "/login?signedOut=1" });
               }}
             >
               Sign out

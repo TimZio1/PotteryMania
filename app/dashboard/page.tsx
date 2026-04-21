@@ -27,24 +27,18 @@ export default async function DashboardPage() {
     return (
       <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
         <p className={platformUi.overline}>Account</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Start your studio workspace</h1>
-        <p className="mt-3 text-[var(--muted)]">
-          Create your studio, manage your account, or review upcoming sessions from one place.
-        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Start your studio</h1>
+        <p className="mt-3 text-[var(--muted)]">Create a studio, or see your bookings.</p>
         <div className={`${platformUi.card} mt-8`}>
-          <p className="text-sm font-medium text-stone-900">Start here</p>
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <Link href="/dashboard/studio/new?setup=both" className={platformUi.buttonPrimary}>
-              Create your studio
+              Create my studio
             </Link>
-            <Link href="/dashboard/studio/new?setup=both" className={platformUi.buttonSecondary}>
-              Guided setup
+            <Link href="/my-bookings" className={platformUi.buttonSecondary}>
+              My bookings
             </Link>
             <Link href="/dashboard/billing" className={`${platformUi.buttonGhost} justify-center`}>
-              Workspace billing
-            </Link>
-            <Link href="/my-bookings" className={`${platformUi.buttonGhost} justify-center`}>
-              My bookings &amp; sessions
+              Billing
             </Link>
           </div>
         </div>
@@ -55,10 +49,8 @@ export default async function DashboardPage() {
   if (user.role !== "vendor") {
     return (
       <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
-        <h1 className="text-xl font-semibold text-[var(--foreground)]">Studio control panel</h1>
-        <p className="mt-3 text-[var(--muted)]">
-          This workspace is for studio operators. Public discovery and booking pages stay on the main site.
-        </p>
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">Studios</h1>
+        <p className="mt-3 text-[var(--muted)]">This area is for studio owners.</p>
         <Link href="/" className={`${platformUi.buttonSecondary} mt-6 inline-flex`}>
           Back to home
         </Link>
@@ -78,37 +70,17 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-center gap-3">
         <p className={platformUi.overline}>Studios</p>
       </div>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Studio control panel</h1>
-      <p className="mt-2 max-w-xl text-[var(--muted)]">
-        Run sessions, studio sales, public pages, and payouts from one place.
-      </p>
-
-      {latestStudio ? (
-        <div className={`${platformUi.card} mt-8`}>
-          <p className="text-sm font-medium text-stone-900">Subscriptions, packs & add-ons</p>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Buy feature packs, start add-on subscriptions, or review workspace billing for your studio workspace.
-          </p>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link href={`/dashboard/${latestStudio.id}/features`} className={platformUi.buttonPrimary}>
-              Buy packs & add-ons
-            </Link>
-            <Link href="/dashboard/billing" className={platformUi.buttonSecondary}>
-              Open workspace billing
-            </Link>
-          </div>
-        </div>
-      ) : null}
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Your studios</h1>
+      <p className="mt-2 max-w-xl text-[var(--muted)]">Open a studio to run classes, sales, and payouts.</p>
 
       {studios.length === 0 ? (
         <div className={`${platformUi.cardMuted} mt-10`}>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Create your studio</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Start your studio</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Start with studio basics, add your first experience or product, preview your page, and activate advanced features
-            whenever you are ready.
+            Name your studio, add a class or product, and share your public page.
           </p>
           <Link href="/dashboard/studio/new?setup=both" className={`${platformUi.buttonPrimary} mt-6 inline-flex`}>
-            Create your studio
+            Create my studio
           </Link>
         </div>
       ) : (
@@ -124,83 +96,42 @@ export default async function DashboardPage() {
                     <p className="mt-1 text-sm text-[var(--muted)] capitalize">Status: {s.status.replace(/_/g, " ")}</p>
 
                     <p className="mt-3 text-sm text-[var(--muted)]">
-                      <span className="font-medium text-stone-900">Direct payments:</span>{" "}
+                      <span className="font-medium text-stone-900">Taking payments:</span>{" "}
                       {activated ? (
-                        <span className="text-emerald-700">Live</span>
+                        <span className="text-emerald-700">Yes</span>
                       ) : (
-                        <span className="text-amber-800">Not live yet — connect payouts to activate direct bookings and sales</span>
+                        <span className="text-amber-800">Not yet &mdash; connect your bank to start</span>
                       )}
                     </p>
                     <p className="mt-1 text-sm text-[var(--muted)]">
-                      <span className="font-medium text-stone-900">Payouts:</span>{" "}
+                      <span className="font-medium text-stone-900">Bank connected:</span>{" "}
                       {stripeOk ? (
-                        <span className="text-emerald-700">Connected</span>
+                        <span className="text-emerald-700">Yes</span>
                       ) : (
-                        <span className="text-amber-800">Action needed — complete Stripe setup</span>
+                        <span className="text-amber-800">Not yet &mdash; finish your bank setup</span>
                       )}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                    <Link href={`/dashboard/${s.id}/guided`} className={`${platformUi.buttonPrimary} text-center sm:w-auto`}>
-                      Guided setup
+                    <Link href={`/dashboard/${s.id}`} className={`${platformUi.buttonPrimary} text-center sm:w-auto`}>
+                      Open studio
                     </Link>
                     <Link
-                      href={`/dashboard/${s.id}`}
+                      href={`/dashboard/${s.id}/guided`}
                       className={`${platformUi.buttonSecondary} text-center sm:w-auto`}
                     >
-                      Open control panel
+                      Simple setup
                     </Link>
                     <Link
-                      href={`/dashboard/studio/${s.id}`}
+                      href={`/studios/${s.id}`}
                       className="text-center text-xs text-[var(--muted)] underline hover:text-[var(--foreground)]"
+                      target="_blank"
+                      rel="noreferrer"
                     >
-                      Studio details &amp; payouts
-                    </Link>
-                    <Link
-                      href={`/dashboard/${s.id}/features`}
-                      className="text-center text-xs text-[var(--muted)] underline hover:text-[var(--foreground)]"
-                    >
-                      Packs, subscriptions &amp; add-ons
-                    </Link>
-                    <Link
-                      href={`/dashboard/${s.id}/settings`}
-                      className="text-center text-xs text-[var(--muted)] underline hover:text-[var(--foreground)]"
-                    >
-                      Storefront domain
+                      See public page
                     </Link>
                   </div>
                 </div>
-                {activated ? (
-                  <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-stone-200/80 pt-4 text-sm">
-                    <Link href={`/dashboard/${s.id}/schedule/sessions`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Sessions
-                    </Link>
-                    <Link href={`/dashboard/${s.id}/programs`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Programs
-                    </Link>
-                    <Link href={`/dashboard/${s.id}/commerce/catalog`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Catalog
-                    </Link>
-                    <Link href={`/dashboard/${s.id}/money/overview`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Money
-                    </Link>
-                    <Link href={`/dashboard/${s.id}/guests`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Guests
-                    </Link>
-                    <Link href={`/dashboard/${s.id}/money/reports`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Reports
-                    </Link>
-                    <Link href={`/dashboard/${s.id}/features`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Packs & add-ons
-                    </Link>
-                    <Link href={`/studios/${s.id}`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Public page
-                    </Link>
-                    <Link href={`/dashboard/${s.id}/settings`} className="font-medium text-[var(--foreground)] hover:text-[var(--foreground)] hover:underline">
-                      Storefront domain
-                    </Link>
-                  </div>
-                ) : null}
               </li>
             );
           })}

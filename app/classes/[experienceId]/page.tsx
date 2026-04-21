@@ -242,18 +242,17 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         </p>
         {experience.bookingDepositBps > 0 && (
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            A deposit may be charged at checkout ({(experience.bookingDepositBps / 100).toFixed(1)}% of the booking
-            total). The remainder follows the studio&apos;s policy.
+            You can pay a {(experience.bookingDepositBps / 100).toFixed(1)}% deposit now. The studio collects the rest per their policy.
           </p>
         )}
         {experience.bookingApprovalRequired && (
           <p className="mt-2 max-w-2xl rounded-xl border border-[var(--accent)]/50 bg-[var(--accent-muted)] px-4 py-3 text-sm text-[var(--foreground)]">
-            This studio confirms bookings after payment — you may see &quot;pending approval&quot; until they accept.
+            The studio confirms your booking after you pay. You&rsquo;ll see &ldquo;pending&rdquo; until they say yes.
           </p>
         )}
         {(experience.bookingCutoffHours ?? 0) > 0 && (
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            Bookings close {experience.bookingCutoffHours}h before the session starts.
+            Booking closes {experience.bookingCutoffHours}h before the class.
           </p>
         )}
         {primary?.imageUrl ? (
@@ -289,8 +288,8 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
             </>
           ) : (
             <>
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Book a session</h2>
-              <p className="mt-1 text-sm text-[var(--muted)]">Choose a time, party size, and seat type when offered.</p>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Book your spot</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">Pick a time and how many people.</p>
               <ClassBookingForm
                 studioId={experience.studio.id}
                 experienceId={experience.id}

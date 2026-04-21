@@ -14,8 +14,8 @@ export const metadata: Metadata = metaPublicPage(
 export default function RegisterPage() {
   return (
     <AuthShell
-      title="Create account"
-      description="Choose a creator account to set up your shop or studio, or a customer account to browse and book."
+      title="Create your account"
+      description="Run a studio, or book classes and buy work from studios."
     >
       <Suspense fallback={<div className="flex justify-center py-8"><Spinner /></div>}>
         <RegisterForm />

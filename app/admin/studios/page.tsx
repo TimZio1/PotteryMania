@@ -94,8 +94,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Directory</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Studios</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Search and open any studio record: shop counts, Stripe Connect, activation, internal rank weight, and status
-        actions live on the detail page.
+        Find a studio, then open it to review status, Stripe, activation, and ranking.
       </p>
 
       <form method="get" className={`${ui.cardMuted} mt-8 space-y-4`}>
@@ -132,7 +131,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
           </div>
         </div>
         <button type="submit" className={ui.buttonPrimary}>
-          Run filters
+          Search
         </button>
       </form>
 
@@ -148,7 +147,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
 
       <div className="mt-4">
         <DataTable<Row>
-          empty="No studios match these filters."
+          empty="No studios found."
           rows={studios}
           columns={[
             {

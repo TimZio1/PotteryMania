@@ -31,6 +31,9 @@ export function ImpersonationBanner() {
       <span className="font-medium">Viewing as {session?.user?.email}</span>
       <span className="mx-2 text-amber-200/80">·</span>
       <span className="text-amber-100/90">Signed in as admin {adminEmail}</span>
+      <span className="mt-1 block text-xs text-amber-200/90 sm:mt-0 sm:ml-2 sm:inline">
+        Hyperadmin (/admin) stays off while impersonating — exit to operate the platform console again.
+      </span>
       <button
         type="button"
         disabled={busy}

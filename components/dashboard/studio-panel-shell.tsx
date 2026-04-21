@@ -104,7 +104,7 @@ export default function StudioPanelShell({
 
   if (guidedMode) {
     return (
-      <div className="min-h-[calc(100vh-3.5rem)] w-full bg-[#fcfaf7] text-stone-900 sm:min-h-[calc(100vh-4rem)]">
+      <div className="pm-guided-light-tokens min-h-[calc(100vh-3.5rem)] w-full sm:min-h-[calc(100vh-4rem)]">
         <header className="sticky top-0 z-20 border-b border-stone-200/90 bg-white/95 backdrop-blur-md">
           <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-4 py-3">
             <Link
@@ -221,7 +221,7 @@ export default function StudioPanelShell({
               type="button"
               onClick={() => {
                 setMobileOpen(false);
-                signOut({ callbackUrl: "/" });
+                signOut({ callbackUrl: "/login?signedOut=1" });
               }}
               className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-stone-500 hover:bg-white hover:text-amber-950"
             >
@@ -254,7 +254,7 @@ export default function StudioPanelShell({
           </Link>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: "/login?signedOut=1" })}
             className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-stone-500 hover:bg-white hover:text-amber-950"
           >
             Sign out

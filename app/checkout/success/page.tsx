@@ -104,12 +104,12 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
             </svg>
           </div>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-            {paymentVerified ? "Payment received" : "Payment processing"}
+            {paymentVerified ? "You’re paid up" : "Almost done…"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
             {paymentVerified
-              ? "Thank you for your order! If a confirmation email is configured, it should arrive in your inbox shortly."
-              : "We are still verifying your checkout. Refresh in a moment, or check your account bookings/orders."}
+              ? "Thanks! A confirmation is on its way to your inbox."
+              : "Confirming your payment. Refresh in a moment."}
           </p>
 
           {hasBookings && (
@@ -222,18 +222,15 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
               <ol className="mt-3 space-y-3 text-sm text-[var(--muted)]">
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">1</span>
-                  <span>The studio receives your order and begins preparing it.</span>
+                  <span>The studio gets your order and starts preparing it.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">2</span>
-                  <span>For bookings, check your email for date and time details.</span>
+                  <span>If you booked a class, check your email for the date and time.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">3</span>
-                  <span>
-                    Track everything from your bookings page — including <strong>Add to Google / Outlook / Apple</strong> once you&apos;re
-                    signed in.
-                  </span>
+                  <span>Sign in to see everything under My bookings.</span>
                 </li>
               </ol>
             </div>
@@ -242,7 +239,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
             {hasBookings && (
               <Link href="/my-bookings" className={ui.buttonPrimary}>
-                View my bookings
+                My bookings
               </Link>
             )}
             <Link href="/" className={hasBookings ? ui.buttonSecondary : ui.buttonPrimary}>

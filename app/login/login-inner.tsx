@@ -8,22 +8,22 @@ import { ui } from "@/lib/ui-styles";
 
 function messageForAuthError(error: string | undefined, code: string | undefined): string | null {
   if (code === "suspended" || error === "AccessDenied") {
-    return "This account has been suspended. Contact support if you think this is a mistake.";
+    return "This account is suspended. Contact support if that’s a mistake.";
   }
   if (code === "email_not_verified") {
-    return "Verify your email before signing in. Use a fresh verification link or register again if the link expired.";
+    return "Please verify your email first. Check your inbox for the link.";
   }
   if (code === "rate_limited") {
-    return "Too many sign-in attempts. Wait a few minutes and try again.";
+    return "Too many tries. Wait a few minutes and try again.";
   }
   if (error === "Configuration") {
-    return "Sign-in is temporarily unavailable. Please try again later.";
+    return "Sign-in isn’t available right now. Please try again later.";
   }
   if (error === "CredentialsSignin" || error === "CallbackRouteError") {
-    return "Invalid email or password.";
+    return "Wrong email or password.";
   }
   if (error) {
-    return "Unable to sign in. Please try again.";
+    return "We couldn’t sign you in. Please try again.";
   }
   return null;
 }
@@ -34,6 +34,7 @@ export default function LoginInner() {
   const suspendedNotice = sp.get("reason") === "suspended";
   const verifiedOk = sp.get("verified") === "1";
   const verifiedBad = sp.get("verified") === "invalid";
+  const signedOutNotice = sp.get("signedOut") === "1";
   const urlAuthError = sp.get("error") ?? undefined;
   const urlAuthCode = sp.get("code") ?? undefined;
   const urlDerivedErr = useMemo(
@@ -104,15 +105,20 @@ export default function LoginInner() {
     try {
       await signIn("google", { callbackUrl });
     } catch {
-      setErr("Google sign-in is unavailable right now.");
+      setErr("Google sign-in isn’t available right now.");
       setGooglePending(false);
     }
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
+      {signedOutNotice ? (
+        <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
+          <p className={ui.successText}>You’re signed out.</p>
+        </div>
+      ) : null}
       {suspendedNotice ? (
-        <p className={ui.errorText}>This account has been suspended. Contact support if you think this is a mistake.</p>
+        <p className={ui.errorText}>This account is suspended. Contact support if that’s a mistake.</p>
       ) : null}
       {verifiedOk ? (
         <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
@@ -121,19 +127,18 @@ export default function LoginInner() {
       ) : null}
       {verifiedBad ? (
         <p className={ui.errorText}>
-          This verification link is invalid or has expired. Sign in and use &quot;Resend email&quot; from your dashboard,
-          or register again.
+          That verification link didn’t work — it may have expired. Please register again to get a new one.
         </p>
       ) : null}
       {displayErr ? <p className={ui.errorText}>{displayErr}</p> : null}
       {googleEnabled ? (
         <>
           <button type="button" disabled={pending || googlePending} onClick={() => void onGoogleSignIn()} className={`${ui.buttonSecondary} w-full`}>
-            {googlePending ? "Connecting Google…" : "Continue with Google"}
+            {googlePending ? "Connecting…" : "Continue with Google"}
           </button>
           <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-[var(--muted)]`}>
             <span className="h-px flex-1 bg-[var(--border)]" />
-            <span>or sign in with email</span>
+            <span>or use email</span>
             <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
         </>
@@ -183,9 +188,6 @@ export default function LoginInner() {
         <Link href={callbackUrl && callbackUrl !== "/dashboard" ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"} className="font-medium text-[var(--accent)] hover:underline">
           Create an account
         </Link>
-      </p>
-      <p className="text-center text-xs text-[var(--muted)]">
-        Early-access interest alone doesn&apos;t create a password — you need a full account when registration is open.
       </p>
     </form>
   );

@@ -86,7 +86,7 @@ export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
       label: "Settings",
       items: [
         { href: b(studioId, "/settings"), label: "Settings" },
-        { href: b(studioId, "/guided"), label: "Guided setup" },
+        { href: b(studioId, "/guided"), label: "Simple setup" },
         { href: b(studioId, "/features"), label: "Packs & add-ons" },
       ],
     },

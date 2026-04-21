@@ -17,7 +17,7 @@ const demoNav = [
     section: "Overview",
     items: [
       { label: "Home", href: "#demo-today" },
-      { label: "Guided setup", href: "#demo-actions" },
+      { label: "Simple setup", href: "#demo-actions" },
       { label: "Reports", href: "#demo-metrics" },
     ],
   },
@@ -247,7 +247,7 @@ export default function DashboardDemoPage() {
                   </p>
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                     <span className={`${platformUi.buttonPrimary} pointer-events-none`}>Open session calendar</span>
-                    <span className={`${platformUi.buttonSecondary} pointer-events-none`}>Continue guided setup</span>
+                    <span className={`${platformUi.buttonSecondary} pointer-events-none`}>Continue simple setup</span>
                     <span className={`${platformUi.buttonSecondary} pointer-events-none`}>View public page</span>
                   </div>
                 </div>
