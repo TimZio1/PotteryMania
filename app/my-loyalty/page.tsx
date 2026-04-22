@@ -8,8 +8,8 @@ import { buildMetadata } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "My loyalty",
-  description: "Private loyalty dashboard for perks from studios you've purchased from.",
+  title: "My points",
+  description: "Points you’ve earned per studio.",
   path: "/my-loyalty",
   robots: {
     index: false,

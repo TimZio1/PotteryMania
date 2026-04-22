@@ -39,7 +39,7 @@ export default function StudioReviewsClient({
         body: JSON.stringify({ reviewId, ...patch }),
       });
       const data = (await res.json()) as { error?: string; review?: { isVisible: boolean; isFeatured: boolean } };
-      if (!res.ok || !data.review) throw new Error(data.error ?? "Could not update review.");
+      if (!res.ok || !data.review) throw new Error(data.error ?? "We couldn’t update that review. Try again.");
       setReviews((current) =>
         current.map((entry) =>
           entry.id === reviewId
@@ -53,7 +53,7 @@ export default function StudioReviewsClient({
       );
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Update failed.");
+      setError(e instanceof Error ? e.message : "We couldn’t update that review. Try again.");
     } finally {
       setBusyId(null);
     }
@@ -61,7 +61,7 @@ export default function StudioReviewsClient({
 
   return (
     <section className={ui.card}>
-      <h2 className="text-lg font-semibold text-[var(--foreground)]">Incoming reviews</h2>
+      <h2 className="text-lg font-semibold text-[var(--foreground)]">All reviews</h2>
       {error ? <p className={`${ui.errorText} mt-3`}>{error}</p> : null}
       {reviews.length === 0 ? (
         <p className="mt-3 text-sm text-[var(--muted)]">No reviews yet.</p>
@@ -102,8 +102,8 @@ export default function StudioReviewsClient({
               </div>
               {review.body ? <p className="mt-3 whitespace-pre-wrap text-sm text-[var(--foreground)]">{review.body}</p> : null}
               <p className="mt-2 text-xs text-stone-400">
-                {review.isVisible ? "Visible" : "Hidden"} · {review.isFeatured ? "Featured" : "Standard"} ·{" "}
-                {new Date(review.createdAt).toLocaleString()}
+                {review.isVisible ? "Visible on your page" : "Hidden"}
+                {review.isFeatured ? " · Featured" : ""} · {new Date(review.createdAt).toLocaleString()}
               </p>
             </article>
           ))}

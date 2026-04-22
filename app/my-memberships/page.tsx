@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export function generateMetadata(): Metadata {
   return buildMetadata({
     title: "My memberships",
-    description: "Track your active studio memberships and remaining sessions.",
+    description: "Your studio memberships and sessions left.",
     path: "/my-memberships",
   });
 }
@@ -37,11 +37,11 @@ export default async function MyMembershipsPage() {
       <div>
         <p className={ui.overline}>Account</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">My memberships</h1>
-        <p className="mt-2 text-sm text-stone-600">Your active and historical membership plans across studios.</p>
+        <p className="mt-2 text-sm text-stone-600">Active and past memberships, with sessions used and left.</p>
       </div>
       {memberships.length === 0 ? (
         <div className={ui.card}>
-          <p className="text-sm text-stone-600">You do not have any memberships yet.</p>
+          <p className="text-sm text-stone-600">No memberships yet. Pick one on any studio&apos;s page.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -57,8 +57,8 @@ export default async function MyMembershipsPage() {
                 </p>
                 <p className="mt-1 text-sm text-stone-700">Status: {purchase.status.replaceAll("_", " ")}</p>
                 <p className="mt-1 text-sm text-stone-700">
-                  Sessions: {purchase.sessionsUsed}
-                  {sessionsRemaining != null ? ` used · ${sessionsRemaining} remaining` : " used · unlimited plan"}
+                  {purchase.sessionsUsed} used
+                  {sessionsRemaining != null ? ` · ${sessionsRemaining} left` : " · unlimited"}
                 </p>
               </article>
             );

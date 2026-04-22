@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!studio) {
     return buildMetadata({
       title: "Studio not found",
-      description: "This pottery studio could not be found.",
+      description: "We couldn’t find this studio.",
       path: `/studios/${studioId}`,
     });
   }
@@ -93,45 +93,123 @@ function collectGalleryUrls(
   return out.slice(0, 12);
 }
 
+type StudioProductRow = Awaited<ReturnType<typeof loadStudioProducts>>[number];
+type StudioExperienceRow = Awaited<ReturnType<typeof loadStudioExperiences>>[number];
+type StudioReviewRow = Awaited<ReturnType<typeof loadStudioReviews>>[number];
+type StudioUpcomingSlotRow = Awaited<ReturnType<typeof loadStudioUpcomingSlots>>[number];
+
+async function loadStudioProducts(studioId: string) {
+  return prisma.product.findMany({
+    where: { studioId, status: "active" },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    include: {
+      images: { orderBy: { sortOrder: "asc" }, take: 4 },
+      variants: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
+    },
+  });
+}
+
+async function loadStudioExperiences(studioId: string) {
+  return prisma.experience.findMany({
+    where: { studioId, status: "active", visibility: "public" },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    include: { images: { orderBy: { sortOrder: "asc" }, take: 4 } },
+  });
+}
+
+async function loadStudioReviews(studioId: string) {
+  return prisma.review.findMany({
+    where: { studioId, isVisible: true },
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    include: {
+      author: { select: { customerProfile: { select: { fullName: true } } } },
+      product: { select: { title: true } },
+      experience: { select: { title: true } },
+    },
+    take: 8,
+  });
+}
+
+async function loadStudioUpcomingSlots(experienceIds: string[], from: Date) {
+  return prisma.bookingSlot.findMany({
+    where: {
+      experienceId: { in: experienceIds },
+      slotDate: { gte: from },
+      status: { in: ["open", "full"] },
+    },
+    include: {
+      experience: { select: { id: true, title: true, minimumParticipants: true, bookingCutoffHours: true } },
+    },
+    orderBy: [{ slotDate: "asc" }, { startTime: "asc" }],
+    take: 48,
+  });
+}
+
+function logStudioPageError(studioId: string, stage: string, error: unknown): void {
+  // Emit a single, grep-friendly log line so production logs can pinpoint which
+  // stage of the studio detail page failed without crashing the render.
+  console.error(`[studio-page] ${stage} failed for studioId=${studioId}`, error);
+}
+
 export default async function StudioPage({ params }: Props) {
   const { studioId } = await params;
-  const studio = await prisma.studio.findFirst({
-    where: { id: studioId, status: "approved" },
-  });
+
+  let studio: Awaited<ReturnType<typeof prisma.studio.findFirst>> = null;
+  try {
+    studio = await prisma.studio.findFirst({
+      where: { id: studioId, status: "approved" },
+    });
+  } catch (error) {
+    logStudioPageError(studioId, "studio-lookup", error);
+    notFound();
+  }
   if (!studio) notFound();
 
-  const [products, experiences, reviews, marketplaceCheckoutEnabled] = await Promise.all([
-    prisma.product.findMany({
-      where: { studioId, status: "active" },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: {
-        images: { orderBy: { sortOrder: "asc" }, take: 4 },
-        variants: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
-      },
-    }),
-    prisma.experience.findMany({
-      where: { studioId, status: "active", visibility: "public" },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 4 } },
-    }),
-    prisma.review.findMany({
-      where: { studioId, isVisible: true },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-      include: {
-        author: { select: { customerProfile: { select: { fullName: true } } } },
-        product: { select: { title: true } },
-        experience: { select: { title: true } },
-      },
-      take: 8,
-    }),
+  const [productsSettled, experiencesSettled, reviewsSettled, checkoutSettled] = await Promise.allSettled([
+    loadStudioProducts(studioId),
+    loadStudioExperiences(studioId),
+    loadStudioReviews(studioId),
     isRuntimeFlagEnabled(RUNTIME_FLAG_KEYS.marketplaceCheckoutEnabled),
   ]);
 
+  let products: StudioProductRow[] = [];
+  if (productsSettled.status === "fulfilled") {
+    products = productsSettled.value;
+  } else {
+    logStudioPageError(studioId, "products", productsSettled.reason);
+  }
+
+  let experiences: StudioExperienceRow[] = [];
+  if (experiencesSettled.status === "fulfilled") {
+    experiences = experiencesSettled.value;
+  } else {
+    logStudioPageError(studioId, "experiences", experiencesSettled.reason);
+  }
+
+  let reviews: StudioReviewRow[] = [];
+  if (reviewsSettled.status === "fulfilled") {
+    reviews = reviewsSettled.value;
+  } else {
+    logStudioPageError(studioId, "reviews", reviewsSettled.reason);
+  }
+
+  let marketplaceCheckoutEnabled = false;
+  if (checkoutSettled.status === "fulfilled") {
+    marketplaceCheckoutEnabled = checkoutSettled.value;
+  } else {
+    logStudioPageError(studioId, "checkout-flag", checkoutSettled.reason);
+  }
+
   const avgRating = reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
 
-  const studioWearItems = await getStudioWearProducts(studioId);
+  let studioWearItems: Awaited<ReturnType<typeof getStudioWearProducts>> = null;
+  try {
+    studioWearItems = await getStudioWearProducts(studioId);
+  } catch (error) {
+    logStudioPageError(studioId, "wear-products", error);
+  }
 
   const session = await auth();
   const allowEmptyPublicProfile = !studio.activationPaidAt;
@@ -148,69 +226,87 @@ export default async function StudioPage({ params }: Props) {
   const from = new Date();
   from.setHours(0, 0, 0, 0);
 
-  const upcomingSlots =
-    experienceIds.length > 0
-      ? (
-          await prisma.bookingSlot.findMany({
-            where: {
-              experienceId: { in: experienceIds },
-              slotDate: { gte: from },
-              status: { in: ["open", "full"] },
-            },
-            include: {
-              experience: { select: { id: true, title: true, minimumParticipants: true, bookingCutoffHours: true } },
-            },
-            orderBy: [{ slotDate: "asc" }, { startTime: "asc" }],
-            take: 48,
-          })
-        )
-          .filter((s) => {
-            if (s.status !== "open") return false;
-            const rem = s.capacityTotal - s.capacityReserved;
-            return rem >= s.experience.minimumParticipants;
-          })
-          .filter((s) => {
-            const cutoffMs = (s.experience.bookingCutoffHours ?? 0) * 3600_000;
-            if (cutoffMs <= 0) return true;
+  let upcomingSlots: StudioUpcomingSlotRow[] = [];
+  if (experienceIds.length > 0) {
+    try {
+      const rawSlots = await loadStudioUpcomingSlots(experienceIds, from);
+      upcomingSlots = rawSlots
+        .filter((s) => {
+          if (s.status !== "open") return false;
+          const rem = s.capacityTotal - s.capacityReserved;
+          return rem >= s.experience.minimumParticipants;
+        })
+        .filter((s) => {
+          const cutoffMs = (s.experience.bookingCutoffHours ?? 0) * 3600_000;
+          if (cutoffMs <= 0) return true;
+          try {
             const dateStr = s.slotDate.toISOString().slice(0, 10);
             const slotStart = new Date(`${dateStr}T${s.startTime}:00`).getTime();
+            if (!Number.isFinite(slotStart)) return true;
             return slotStart - Date.now() >= cutoffMs;
-          })
-          .slice(0, 16)
-      : [];
+          } catch {
+            return true;
+          }
+        })
+        .slice(0, 16);
+    } catch (error) {
+      logStudioPageError(studioId, "upcoming-slots", error);
+    }
+  }
 
   const toolbar = (
     <Breadcrumbs
       items={[
-        { label: "Studio website" },
+        { label: "Studios", href: "/studios" },
         { label: studio.displayName },
       ]}
     />
   );
-  const jsonLd = toJsonLdScript([
-    localBusinessJsonLd({
-      id: studio.id,
-      name: studio.displayName,
-      description: studio.shortDescription || studio.longDescription,
-      image: studio.coverImageUrl || studio.logoUrl,
-      city: studio.city,
-      country: studio.country,
-      addressLine1: studio.addressLine1,
-      postalCode: studio.postalCode,
-      phone: studio.whatsappNumber,
-      email: studio.email,
-      websiteUrl: studio.websiteUrl,
-      aggregateRating: reviews.length ? { ratingValue: avgRating, reviewCount: reviews.length } : undefined,
-    }),
-    breadcrumbJsonLd([
-      { name: "Home", path: "/" },
-      { name: "Studios", path: "/studios" },
-      { name: studio.displayName, path: `/studios/${studio.id}` },
-    ]),
-  ]);
+  let jsonLd = "[]";
+  try {
+    jsonLd = toJsonLdScript([
+      localBusinessJsonLd({
+        id: studio.id,
+        name: studio.displayName,
+        description: studio.shortDescription || studio.longDescription,
+        image: studio.coverImageUrl || studio.logoUrl,
+        city: studio.city,
+        country: studio.country,
+        addressLine1: studio.addressLine1,
+        postalCode: studio.postalCode,
+        phone: studio.whatsappNumber,
+        email: studio.email,
+        websiteUrl: studio.websiteUrl,
+        aggregateRating: reviews.length ? { ratingValue: avgRating, reviewCount: reviews.length } : undefined,
+      }),
+      breadcrumbJsonLd([
+        { name: "Home", path: "/" },
+        { name: "Studios", path: "/studios" },
+        { name: studio.displayName, path: `/studios/${studio.id}` },
+      ]),
+    ]);
+  } catch (error) {
+    logStudioPageError(studioId, "json-ld", error);
+  }
 
-  const resolvedTheme = resolveStudioPublicTheme(studio);
-  const svc = parsePublicServiceModes(studio.publicServiceModes);
+  let resolvedTheme: ReturnType<typeof resolveStudioPublicTheme>;
+  try {
+    resolvedTheme = resolveStudioPublicTheme(studio);
+  } catch (error) {
+    logStudioPageError(studioId, "theme-resolve", error);
+    resolvedTheme = resolveStudioPublicTheme({
+      ...studio,
+      publicTheme: null,
+    });
+  }
+
+  let svc: ReturnType<typeof parsePublicServiceModes>;
+  try {
+    svc = parsePublicServiceModes(studio.publicServiceModes);
+  } catch (error) {
+    logStudioPageError(studioId, "service-modes", error);
+    svc = parsePublicServiceModes(null);
+  }
 
   const classesHidden = svc.classes.mode === "hidden";
   const classesVisible = svc.classes.mode === "visible";
@@ -218,18 +314,13 @@ export default async function StudioPage({ params }: Props) {
   const classesActive = svc.classes.mode === "active";
 
   const shopHidden = svc.shop.mode === "hidden";
-  const shopVisible = svc.shop.mode === "visible";
   const shopLink = svc.shop.mode === "visible_link" && svc.shop.linkUrl;
   const shopActive = svc.shop.mode === "active";
 
-  const contactHidden = svc.contact.mode === "hidden";
   const contactLink = svc.contact.mode === "visible_link" && svc.contact.linkUrl;
   const contactActive = svc.contact.mode === "active";
 
   const hasClassBookableContent = upcomingSlots.length > 0 || experiences.length > 0;
-  const showClassHeroCta =
-    !classesHidden && (hasClassBookableContent || classesVisible || Boolean(classesLink));
-  const showShopHeroCta = !shopHidden && (products.length > 0 || shopVisible || Boolean(shopLink));
 
   return (
     <MarketingLayout toolbar={toolbar}>
@@ -263,69 +354,42 @@ export default async function StudioPage({ params }: Props) {
                 <p className="st-body mt-4 text-base leading-relaxed">{studio.shortDescription}</p>
               ) : null}
               {!studio.activationPaidAt ? (
-                <p className="st-pill mt-4">This studio is getting set up. You&rsquo;ll be able to book and buy soon.</p>
+                <p className="st-pill mt-4">This studio isn&rsquo;t accepting bookings or orders just yet — check back soon.</p>
               ) : null}
 
               <div className="mt-6 flex flex-wrap gap-2">
-                {showClassHeroCta ? (
-                  classesActive && hasClassBookableContent ? (
-                    <a
-                      href={upcomingSlots.length > 0 ? "#upcoming-sessions" : "#studio-classes"}
-                      className="st-btn-primary"
-                    >
-                      Book a class
-                    </a>
-                  ) : classesLink && svc.classes.linkUrl ? (
-                    <a href={svc.classes.linkUrl} target="_blank" rel="noreferrer" className="st-btn-primary">
-                      Book a class
-                    </a>
-                  ) : classesVisible ? (
-                    <span
-                      className="st-btn-primary inline-flex cursor-not-allowed items-center opacity-65"
-                      aria-disabled="true"
-                    >
-                      Book a class
-                    </span>
-                  ) : null
+                {classesActive && hasClassBookableContent ? (
+                  <a
+                    href={upcomingSlots.length > 0 ? "#upcoming-sessions" : "#studio-classes"}
+                    className="st-btn-primary"
+                  >
+                    Book a class
+                  </a>
+                ) : classesLink && svc.classes.linkUrl ? (
+                  <a href={svc.classes.linkUrl} target="_blank" rel="noreferrer" className="st-btn-primary">
+                    Book a class
+                  </a>
                 ) : null}
-                {showShopHeroCta ? (
-                  shopActive && products.length > 0 ? (
-                    <a href="#studio-shop" className="st-btn-secondary">
-                      Visit shop
-                    </a>
-                  ) : shopLink && svc.shop.linkUrl ? (
-                    <a href={svc.shop.linkUrl} target="_blank" rel="noreferrer" className="st-btn-secondary">
-                      Visit shop
-                    </a>
-                  ) : shopVisible ? (
-                    <span
-                      className="st-btn-secondary inline-flex cursor-not-allowed items-center opacity-65"
-                      aria-disabled="true"
-                    >
-                      Visit shop
-                    </span>
-                  ) : null
+                {shopActive && products.length > 0 ? (
+                  <a href="#studio-shop" className="st-btn-secondary">
+                    Visit shop
+                  </a>
+                ) : shopLink && svc.shop.linkUrl ? (
+                  <a href={svc.shop.linkUrl} target="_blank" rel="noreferrer" className="st-btn-secondary">
+                    Visit shop
+                  </a>
                 ) : null}
-                {!contactHidden ? (
-                  contactActive ? (
-                    <a
-                      href={`mailto:${encodeURIComponent(studio.email)}?subject=${encodeURIComponent(`Question about ${studio.displayName}`)}`}
-                      className="st-btn-secondary"
-                    >
-                      Contact
-                    </a>
-                  ) : contactLink && svc.contact.linkUrl ? (
-                    <a href={svc.contact.linkUrl} target="_blank" rel="noreferrer" className="st-btn-secondary">
-                      Contact
-                    </a>
-                  ) : (
-                    <span
-                      className="st-btn-secondary inline-flex cursor-not-allowed items-center opacity-65"
-                      aria-disabled="true"
-                    >
-                      Contact
-                    </span>
-                  )
+                {contactActive ? (
+                  <a
+                    href={`mailto:${encodeURIComponent(studio.email)}?subject=${encodeURIComponent(`Question about ${studio.displayName}`)}`}
+                    className="st-btn-secondary"
+                  >
+                    Contact
+                  </a>
+                ) : contactLink && svc.contact.linkUrl ? (
+                  <a href={svc.contact.linkUrl} target="_blank" rel="noreferrer" className="st-btn-secondary">
+                    Contact
+                  </a>
                 ) : null}
               </div>
 
@@ -367,21 +431,40 @@ export default async function StudioPage({ params }: Props) {
               )}
             </div>
 
-            {Array.isArray(studio.openingHours) && (studio.openingHours as { day: string; from: string; to: string; closed: boolean }[]).length > 0 && (
-              <div className="st-card mt-6 p-5">
-                <h3 className="st-h3 text-sm font-semibold uppercase tracking-wide">Opening hours</h3>
-                <dl className="mt-3 space-y-1 text-sm">
-                  {(studio.openingHours as { day: string; from: string; to: string; closed: boolean }[]).map((h) => (
-                    <div key={h.day} className="flex justify-between">
-                      <dt className="st-body font-medium">{h.day}</dt>
-                      <dd className={h.closed ? "st-muted" : "st-body"}>
-                        {h.closed ? "Closed" : `${h.from} – ${h.to}`}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            )}
+            {(() => {
+              const rawHours = studio.openingHours;
+              if (!Array.isArray(rawHours)) return null;
+              const rows = rawHours.flatMap((h): { day: string; from: string; to: string; closed: boolean }[] => {
+                if (!h || typeof h !== "object") return [];
+                const obj = h as Record<string, unknown>;
+                const day = typeof obj.day === "string" ? obj.day : null;
+                if (!day) return [];
+                return [
+                  {
+                    day,
+                    from: typeof obj.from === "string" ? obj.from : "",
+                    to: typeof obj.to === "string" ? obj.to : "",
+                    closed: obj.closed === true,
+                  },
+                ];
+              });
+              if (rows.length === 0) return null;
+              return (
+                <div className="st-card mt-6 p-5">
+                  <h3 className="st-h3 text-sm font-semibold uppercase tracking-wide">Opening hours</h3>
+                  <dl className="mt-3 space-y-1 text-sm">
+                    {rows.map((h) => (
+                      <div key={h.day} className="flex justify-between">
+                        <dt className="st-body font-medium">{h.day}</dt>
+                        <dd className={h.closed ? "st-muted" : "st-body"}>
+                          {h.closed ? "Closed" : `${h.from} – ${h.to}`}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              );
+            })()}
           </div>
 
           {!classesHidden && upcomingSlots.length > 0 ? (
@@ -396,7 +479,7 @@ export default async function StudioPage({ params }: Props) {
               </div>
               <p className="st-muted mt-1 text-sm">
                 {classesVisible
-                  ? "Upcoming times — this studio doesn’t book online yet."
+                  ? "Upcoming times — book directly with the studio."
                   : "Pick a time and book your seat."}
               </p>
               <ul className="st-list-shell st-divide-y mt-6">
@@ -421,7 +504,7 @@ export default async function StudioPage({ params }: Props) {
                         Book
                       </a>
                     ) : (
-                      <span className="st-muted shrink-0 self-start text-sm sm:self-center">Not bookable here</span>
+                      <span className="st-muted shrink-0 self-start text-sm sm:self-center">Book in person</span>
                     );
                   return (
                     <li key={slot.id} className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -431,7 +514,7 @@ export default async function StudioPage({ params }: Props) {
                           {dateLabel} · {slot.startTime}–{slot.endTime}
                           <span>
                             {" "}
-                            · {rem <= 2 ? `Only ${rem} spot${rem === 1 ? "" : "s"} left` : `${rem} spots left`}
+                            · {rem <= 2 ? `Only ${rem} seat${rem === 1 ? "" : "s"} left` : `${rem} seats left`}
                           </span>
                         </p>
                       </div>
@@ -507,7 +590,9 @@ export default async function StudioPage({ params }: Props) {
                   );
                 })}
               </div>
-              {experiences.length === 0 ? <p className="st-muted mt-4 text-sm">No classes yet.</p> : null}
+              {experiences.length === 0 ? (
+                <p className="st-muted mt-4 text-sm">No classes listed right now. Check back soon.</p>
+              ) : null}
             </section>
           ) : null}
 
@@ -569,7 +654,9 @@ export default async function StudioPage({ params }: Props) {
                   );
                 })}
               </div>
-              {products.length === 0 ? <p className="st-muted mt-4 text-sm">Nothing for sale yet.</p> : null}
+              {products.length === 0 ? (
+                <p className="st-muted mt-4 text-sm">Nothing in the shop right now. Check back soon.</p>
+              ) : null}
             </section>
           ) : null}
 

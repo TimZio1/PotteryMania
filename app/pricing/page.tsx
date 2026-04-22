@@ -16,9 +16,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Plans and pricing for studio shop and bookings",
+  title: "Plans and pricing",
   description:
-    "Free until 1 May 2026. No payment required. One system replaces scattered tools to sell products, book classes, and run your studio from EUR 19 per month after launch.",
+    "Simple plans from €19/month. Shop, bookings, or both — in one place.",
   path: "/pricing",
 });
 
@@ -77,15 +77,13 @@ export default async function PricingPage() {
         <div className="max-w-3xl">
           <p className={ui.overline}>Pricing</p>
           <h1 className="mt-3 font-serif text-4xl tracking-tight text-[var(--foreground)] sm:text-5xl">
-            One tool that makes you money
+            One place for your shop and your classes
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-[var(--muted)]">
-            This replaces multiple tools you are currently using — site, bookings, shop, and the messy glue between them.
+            Your public page, bookings, and product sales stay under one roof.
           </p>
-          <p className="mt-3 text-base font-semibold text-[var(--foreground)]">Free until 1 May 2026. No payment required.</p>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Your studio is free until official launch on 1 May 2026. After that, choose a plan to continue. No credit card
-            needed to start.
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            Pick the plan that fits how you work. Switch anytime.
           </p>
         </div>
 
@@ -126,26 +124,25 @@ export default async function PricingPage() {
                     : "border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
                 }`}
               >
-                {plan.recommended ? "Get Studio" : `Choose ${plan.name}`}
+                {plan.recommended ? "Get started" : `Choose ${plan.name}`}
               </Link>
             </article>
           ))}
         </div>
 
         <p className="mt-6 text-sm text-[var(--muted)]">
-          <strong className="text-[var(--foreground)]">Bookings</strong> and <strong className="text-[var(--foreground)]">Shop</strong> each
-          start at €19/month when you only need one side of the business. <strong className="text-[var(--foreground)]">Studio</strong>{" "}
-          (€29) is the best value when you run both — that&apos;s why most owners land here.
+          <strong className="text-[var(--foreground)]">Bookings</strong> or <strong className="text-[var(--foreground)]">Shop</strong> alone: from €19/month.
+          Both together: <strong className="text-[var(--foreground)]">Studio</strong> (€29).
         </p>
 
         <div className="mt-14">
           <h2 className="font-serif text-2xl text-[var(--foreground)] sm:text-3xl">Compare plans</h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">Simple view of what each tier unlocks.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">What each plan includes.</p>
           <div className="mt-6 overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
             <table className="w-full min-w-[640px] border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--surface-elevated)]">
-                  <th className="px-4 py-3 font-semibold text-[var(--foreground)]">Capability</th>
+                  <th className="px-4 py-3 font-semibold text-[var(--foreground)]">What you get</th>
                   {STUDIO_PLANS.map((p) => (
                     <th key={p.key} className="px-3 py-3 text-center font-semibold text-[var(--foreground)]">
                       {p.name}
@@ -173,13 +170,12 @@ export default async function PricingPage() {
         </div>
 
         <div id="faq" className="mt-12 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-8">
-          <h2 className="font-serif text-xl text-[var(--foreground)] sm:text-2xl">Questions studios actually ask</h2>
+          <h2 className="font-serif text-xl text-[var(--foreground)] sm:text-2xl">Common questions</h2>
           <dl className="mt-4 space-y-4 text-sm text-[var(--muted)]">
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Do I pay commission on sales?</dt>
               <dd className="mt-1">
-                Platform fees on product sales and class bookings depend on your plan tier (typically {commissionLabel} across
-                tiers — see the comparison table). You keep your margin; Stripe processing fees still apply.
+                Fees depend on your plan (often around {commissionLabel} — see the table). Card fees from Stripe still apply.
               </dd>
             </div>
             <div>
@@ -188,37 +184,33 @@ export default async function PricingPage() {
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Can I cancel anytime?</dt>
-              <dd className="mt-1">Yes. You can change or cancel your paid plan from your studio settings based on the billing terms in effect at that time.</dd>
+              <dd className="mt-1">Yes. Change or cancel from your studio settings.</dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">What happens after the free period ends?</dt>
-              <dd className="mt-1">You will choose the plan that matches your studio setup. If you do nothing, paid features may be limited until a plan is selected.</dd>
+              <dd className="mt-1">Pick a plan that fits your studio. Some features turn on once you subscribe.</dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">How is VAT handled?</dt>
-              <dd className="mt-1">Applicable taxes may be added where required by law. Your studio remains responsible for its own tax setup and obligations.</dd>
+              <dd className="mt-1">Taxes may apply. Each studio handles its own tax setup.</dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Which countries are supported?</dt>
               <dd className="mt-1">
-                Studios worldwide — any studio in a Stripe-supported country can accept payments from customers anywhere.
-                Shipping, taxes, and local regulations remain the studio&apos;s responsibility.
+                Studios in countries Stripe supports can take payments from buyers worldwide. You handle shipping and local rules.
               </dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">Can I use my own domain?</dt>
-              <dd className="mt-1">
-                Yes. Your studio-owned public page is first-class here, with a path toward using your own domain as you
-                grow.
-              </dd>
+              <dd className="mt-1">Yes. Your studio page can use your own domain as you grow.</dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--foreground)]">What payment methods do my customers see?</dt>
-              <dd className="mt-1">Customer payment methods depend on your Stripe setup and the checkout options supported in your region.</dd>
+              <dd className="mt-1">Buyers see the payment methods your Stripe account allows in your region.</dd>
             </div>
           </dl>
           <Link
-            href="/demo"
+            href="/dashboard/studio/new?setup=both"
             className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--accent)] px-8 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)]"
           >
             Create your studio

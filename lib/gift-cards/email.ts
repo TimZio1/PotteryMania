@@ -26,9 +26,9 @@ export function giftCardEmailCopy(input: {
     : "";
 
   return renderEmailShell({
-    eyebrow: "Gift card",
-    title: "You received a gift card",
-    intro: `Hi ${introName}, ${input.studioName} sent you a gift card for their studio.`,
+    eyebrow: "You got a gift card",
+    title: "Enjoy your gift card",
+    intro: `Hi ${introName}, ${input.studioName} sent you a gift card.`,
     bodyHtml: `
       <p style="margin:0 0 8px;">Code: <strong>${escapeHtml(input.code)}</strong></p>
       <p style="margin:0 0 8px;">Value: <strong>${escapeHtml(money(input.valueCents))}</strong></p>
@@ -38,7 +38,7 @@ export function giftCardEmailCopy(input: {
     `,
     ctaLabel: "Check balance",
     ctaUrl: input.balanceUrl,
-    footerNote: "Bring this code to checkout to redeem it against future bookings or purchases.",
+    footerNote: "Paste this code at checkout to use it on a class or product.",
   });
 }
 

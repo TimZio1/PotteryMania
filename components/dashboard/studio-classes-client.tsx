@@ -140,18 +140,18 @@ export default function StudioClassesClient({
     if (!selected) return;
     const price = parseFloat(form.priceEur.replace(",", "."));
     if (!Number.isFinite(price) || price < 0) {
-      setErr("Invalid price");
+      setErr("Enter a valid price.");
       return;
     }
     const priceCents = Math.round(price * 100);
     const recurringPrice = parseFloat(form.recurringPriceEur.replace(",", "."));
     const recurringPriceCents = Number.isFinite(recurringPrice) ? Math.round(recurringPrice * 100) : 0;
     if (form.maximumParticipants < form.minimumParticipants) {
-      setErr("Max participants must be ≥ min");
+      setErr("Max guests can’t be lower than the minimum.");
       return;
     }
     if (form.pricingType === "recurring" && recurringPriceCents < 50) {
-      setErr("Recurring price must be at least €0.50");
+      setErr("Recurring price must be at least €0.50.");
       return;
     }
     setSaving(true);
@@ -194,10 +194,10 @@ export default function StudioClassesClient({
         }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Save failed");
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t save this class. Try again.");
       router.refresh();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Save failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t save this class. Try again.");
     } finally {
       setSaving(false);
     }
@@ -208,7 +208,7 @@ export default function StudioClassesClient({
       <div className="space-y-4">
         <div className="flex flex-wrap gap-3">
           <Link href={`/dashboard/${studioId}/programs/planner`} className={ui.buttonPrimary}>
-            Class planner &amp; schedules
+            Open the planner
           </Link>
         </div>
 
@@ -254,17 +254,17 @@ export default function StudioClassesClient({
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Type</th>
                 <th className="px-4 py-3">Next session</th>
-                <th className="px-4 py-3">Fill</th>
-                <th className="px-4 py-3">Rules</th>
+                <th className="px-4 py-3">Seats filled</th>
+                <th className="px-4 py-3">Schedules</th>
                 <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Public</th>
+                <th className="px-4 py-3">Public page</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-[var(--muted)]">
-                    No classes match filters.
+                    Nothing matches your search and filters.
                   </td>
                 </tr>
               ) : (
@@ -405,7 +405,7 @@ export default function StudioClassesClient({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label>
-              <span className={ui.label}>Min pax</span>
+              <span className={ui.label}>Min guests</span>
               <input
                 type="number"
                 min={1}
@@ -415,7 +415,7 @@ export default function StudioClassesClient({
               />
             </label>
             <label>
-              <span className={ui.label}>Max pax</span>
+              <span className={ui.label}>Max guests</span>
               <input
                 type="number"
                 min={1}
@@ -435,7 +435,7 @@ export default function StudioClassesClient({
             />
           </label>
           <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Monetization</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Pricing</p>
             <div className="mt-2 flex flex-wrap gap-4 text-sm">
               <label className="inline-flex items-center gap-2">
                 <input
@@ -563,14 +563,14 @@ export default function StudioClassesClient({
                   />
                 </label>
                 <label>
-                  <span className={ui.label}>On failed payment</span>
+                  <span className={ui.label}>If payment fails</span>
                   <select
                     className={cn(ui.input, "mt-1")}
                     value={form.failedPaymentAction}
                     onChange={(e) => setForm((f) => ({ ...f, failedPaymentAction: e.target.value }))}
                   >
-                    <option value="pause">Pause</option>
-                    <option value="cancel">Cancel</option>
+                    <option value="pause">Pause membership</option>
+                    <option value="cancel">Cancel membership</option>
                   </select>
                 </label>
               </div>
@@ -608,7 +608,7 @@ export default function StudioClassesClient({
               checked={form.bookingApprovalRequired}
               onChange={(e) => setForm((f) => ({ ...f, bookingApprovalRequired: e.target.checked }))}
             />
-            Require vendor approval
+            Approve each booking manually
           </label>
           <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
@@ -616,7 +616,7 @@ export default function StudioClassesClient({
               checked={form.waitlistEnabled}
               onChange={(e) => setForm((f) => ({ ...f, waitlistEnabled: e.target.checked }))}
             />
-            Waitlist when full
+            Keep a waitlist when full
           </label>
           <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
@@ -624,7 +624,7 @@ export default function StudioClassesClient({
               checked={form.allowPayAtStudio}
               onChange={(e) => setForm((f) => ({ ...f, allowPayAtStudio: e.target.checked }))}
             />
-            Allow pay at studio (no online payment)
+            Let guests pay in person (skip online payment)
           </label>
           <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
             <input
@@ -632,10 +632,10 @@ export default function StudioClassesClient({
               checked={form.allowFullPaymentOption}
               onChange={(e) => setForm((f) => ({ ...f, allowFullPaymentOption: e.target.checked }))}
             />
-            Let customers pay full price online instead of only the deposit
+            Let guests pay the full price online (not just the deposit)
           </label>
           <label>
-            <span className={ui.label}>Booking cutoff (hours before start)</span>
+            <span className={ui.label}>Stop taking bookings (hours before class)</span>
             <input
               type="number"
               min={0}
@@ -645,11 +645,11 @@ export default function StudioClassesClient({
               onChange={(e) => setForm((f) => ({ ...f, bookingCutoffHours: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
             />
             <span className="mt-1 block text-xs text-[var(--muted)]">
-              0 = no cutoff. Recommended: 3h.
+              0 means people can book right up to start time. 3 hours is a safe default.
             </span>
           </label>
           <label>
-            <span className={ui.label}>Buffer after class (minutes)</span>
+            <span className={ui.label}>Gap after each class (minutes)</span>
             <input
               type="number"
               min={0}
@@ -661,7 +661,7 @@ export default function StudioClassesClient({
               }
             />
             <span className="mt-1 block text-xs text-[var(--muted)]">
-              Extra cleanup/reset time kept free after each generated session.
+              Time kept free after each class to clean up and reset.
             </span>
           </label>
 
@@ -670,9 +670,9 @@ export default function StudioClassesClient({
           </button>
 
           <p className="border-t border-stone-100 pt-3 text-xs text-[var(--muted)]">
-            Images, long description, location, deposits, and slot generation live in{" "}
+            Need to add times for this class?{" "}
             <Link href={`/dashboard/${studioId}/programs/planner`} className="font-medium text-amber-900 underline">
-              class builder
+              Open the planner
             </Link>
             .
           </p>

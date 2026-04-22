@@ -52,8 +52,7 @@ export function WearPage({
               Wear the work you actually ship.
             </p>
             <p className="mt-8 font-serif text-xl text-stone-600 sm:text-2xl">
-              Studio grade merch without handing your story to generic platforms. Built for makers who outgrew
-              templates.
+              Branded shirts and hoodies for your studio. Printed when someone orders. No boxes in your garage.
             </p>
             <p className="mt-6 text-sm font-medium text-amber-900">
               Join the reseller program and earn {resellerStats.marginPct} on every sale, roughly{" "}
@@ -62,10 +61,9 @@ export function WearPage({
             <p className="mt-2 text-xs uppercase tracking-[0.18em] text-stone-500">
               {displayedCreators.toLocaleString()} creators already selling wearables
             </p>
-            <p className="mt-12 text-sm font-medium uppercase tracking-[0.35em] text-stone-500">Wear what you build.</p>
             <div className="mt-10 flex flex-col items-center gap-4">
               <Link href="/wear/shop" className={heroCtaClass}>
-                Enter shop
+                Shop now
               </Link>
               {spreadshopUrl ? (
                 <WearOutboundLink
@@ -73,7 +71,7 @@ export function WearPage({
                   className="text-xs text-stone-500 underline decoration-stone-500/50 underline-offset-4 transition hover:text-amber-950"
                   eventName="wear_hero_spreadshop_fallback"
                 >
-                  Open legacy Spreadshop
+                  Older shop
                 </WearOutboundLink>
               ) : null}
             </div>
@@ -143,7 +141,7 @@ export function WearPage({
             </div>
             <div className="mt-12 text-center">
               <Link href="/wear/shop" className={sectionCtaClass}>
-                View full collection
+                See the full collection
               </Link>
             </div>
             {spreadshopUrl ? (
@@ -153,7 +151,7 @@ export function WearPage({
                   className="text-xs text-stone-600 underline decoration-stone-400/60 underline-offset-4"
                   eventName="wear_preview_spreadshop_fallback"
                 >
-                  Prefer the old Spreadshop storefront
+                  Open the older store
                 </WearOutboundLink>
               </p>
             ) : null}
@@ -177,27 +175,25 @@ export function WearPage({
               Reseller program
             </p>
             <h2 className="mt-4 text-center font-serif text-3xl text-amber-950 sm:text-4xl">
-              Join and sell wearables from your studio brand
+              Sell wearables under your studio brand
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-relaxed text-stone-600">
-              Storefront, checkout, fulfilment routing, and product sync run in one place. You choose the pieces,
-              publish them on your studio page, and keep your margin on every sale.
+              Storefront, checkout, and fulfilment in one place. Pick what you sell, publish it on your studio page,
+              and keep your margin on every sale.
             </p>
             <div className="mt-10 grid gap-4 md:grid-cols-3">
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">1. Join</p>
-                <p className="mt-3 text-lg font-semibold text-stone-900">Enable your reseller shop</p>
+                <p className="mt-3 text-lg font-semibold text-stone-900">Turn on your shop</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  Turn on wearables in your studio dashboard, choose your products, and set your active margin when it
-                  is not locked by the platform.
+                  From your dashboard, turn on wearables and pick what you sell.
                 </p>
               </div>
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">2. Sell</p>
                 <p className="mt-3 text-lg font-semibold text-stone-900">Share your studio identity</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  Your wearables appear inside your public studio story and reseller embeds, so customers buy
-                  from a branded flow instead of a random marketplace.
+                  Items show on your studio page, so people buy from you — not a random third-party store.
                 </p>
               </div>
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
@@ -206,17 +202,16 @@ export function WearPage({
                   {resellerStats.marginPct} margin, about {formatEur(resellerStats.estimatedEarningPerSale)} per sale
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  Earnings are dynamic and depend on the live reseller margin configuration and the catalog base price.
-                  Fulfilment partner routing after checkout is handled for you.
+                  Your earnings depend on your margin and the item price. Printing and shipping are handled for you.
                 </p>
               </div>
             </div>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <WearResellerProgramLink href={resellerProgramHref} className={sectionCtaClass}>
-                Join reseller program
+                Join the program
               </WearResellerProgramLink>
               <Link href="/wear/shop" className={bridgeLinkClass}>
-                View the live wear shop
+                Browse the shop
               </Link>
             </div>
           </div>
@@ -227,20 +222,17 @@ export function WearPage({
           <div className="mx-auto max-w-xl text-center">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Studio platform</p>
             <p className="mt-4 text-sm leading-relaxed text-stone-600">
-              Bookings, ceramics, and a website built for studios — not algorithms.
+              Run classes, sell work, and host this wear line from one studio home.
             </p>
             <nav
               className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8"
               aria-label="Continue setting up your studio"
             >
-              <Link href="/dashboard/studio/new?setup=bookings" className={bridgeLinkClass}>
-                Start bookings setup
-              </Link>
-              <Link href="/dashboard/studio/new?setup=shop" className={bridgeLinkClass}>
-                Start shop setup
-              </Link>
               <Link href="/dashboard/studio/new?setup=both" className={bridgeLinkClass}>
-                Create studio website
+                Set up your studio
+              </Link>
+              <Link href="/pricing" className={bridgeLinkClass}>
+                See pricing
               </Link>
             </nav>
           </div>

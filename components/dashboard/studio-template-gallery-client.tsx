@@ -114,7 +114,7 @@ export default function StudioTemplateGalleryClient({
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "Could not activate template.");
+        setError(data.error ?? "We couldn’t apply that template. Try again.");
         setBusy(false);
         return;
       }
@@ -135,9 +135,9 @@ export default function StudioTemplateGalleryClient({
   if (templates.length === 0) {
     return (
       <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-amber-50/60 px-6 py-8 text-center">
-        <p className="text-lg font-semibold text-[var(--foreground)]">Templates are not available yet</p>
+        <p className="text-lg font-semibold text-[var(--foreground)]">No templates yet</p>
         <p className="mt-2 text-sm text-[var(--foreground)]">
-          The platform is still configuring studio templates. Check back soon or contact support.
+          We’re still setting up templates. Check back soon.
         </p>
       </div>
     );
@@ -148,10 +148,10 @@ export default function StudioTemplateGalleryClient({
       <header className="mb-8 max-w-2xl">
         <p className={ui.overline}>Studio template</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
-          Choose how your studio grows
+          Pick your studio template
         </h1>
         <p className="mt-3 text-sm text-[var(--muted)] sm:text-base">
-          Each option matches a different business model — pick one focus. Your classes, students, and sales stay intact.
+          Each template fits a different way of running a studio. Pick one — your classes, students, and sales stay the same.
         </p>
       </header>
 
@@ -305,10 +305,9 @@ export default function StudioTemplateGalleryClient({
                   </section>
 
                   <section className="py-6">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Safety</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Safe to switch</p>
                     <p className="mt-2 text-sm text-[var(--foreground)]">
-                      Your data stays intact. No classes or students are removed — we only change how your dashboard guides
-                      you.
+                      Your data is safe. No classes or students are removed — only the way your dashboard guides you changes.
                     </p>
                   </section>
 
@@ -321,11 +320,10 @@ export default function StudioTemplateGalleryClient({
                   ) : (
                     <div className="space-y-4">
                       <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-800">
-                        <p className="font-semibold text-[var(--foreground)]">Confirm activation</p>
+                        <p className="font-semibold text-[var(--foreground)]">Confirm</p>
                         <p className="mt-2">
-                          Activate <strong>{selected.name}</strong> at{" "}
-                          <strong>{money(selected.priceCents, selected.currency)}</strong> per month (list price). Your choice
-                          applies immediately; platform billing for templates follows your vendor agreement when enabled.
+                          Turn on <strong>{selected.name}</strong> for{" "}
+                          <strong>{money(selected.priceCents, selected.currency)}</strong>/month. It applies right away. Billing follows your platform agreement.
                         </p>
                       </div>
                       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -353,10 +351,10 @@ export default function StudioTemplateGalleryClient({
                 <div className="space-y-8">
                   <div>
                     <p className="text-xl font-semibold text-[var(--foreground)]">
-                      Your studio is now optimized for {selected.successGoalPhrase}
+                      Your studio is now set up for {selected.successGoalPhrase}
                     </p>
                     <p className="mt-2 text-sm text-[var(--muted)]">
-                      Let’s complete your setup so you see results faster.
+                      Finish setup so you see results faster.
                     </p>
                   </div>
                   <div>

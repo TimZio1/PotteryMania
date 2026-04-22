@@ -62,14 +62,14 @@ export function RescheduleBookingPanel({
       const res = await fetch(`/api/bookings/${bookingId}/reschedule-options`);
       const j = (await res.json()) as OptionsJson & { error?: string };
       if (!res.ok) {
-        setError(j.error || "Could not load sessions");
+        setError(j.error || "We couldn't load available sessions. Try again.");
         setData(null);
         return;
       }
       setData(j);
       setSelectedId("");
     } catch {
-      setError("Network error");
+      setError("Network problem. Check your connection and try again.");
       setData(null);
     } finally {
       setLoading(false);
@@ -107,16 +107,16 @@ export function RescheduleBookingPanel({
       });
       const j = await res.json();
       if (!res.ok) {
-        setError(typeof j.error === "string" ? j.error : "Reschedule failed");
+        setError(typeof j.error === "string" ? j.error : "We couldn't reschedule. Try again.");
         return;
       }
-      setMsg("Session updated. Confirmation email is on the way.");
+      setMsg("Moved. A confirmation email is on the way.");
       setOpen(false);
       setData(null);
       if (onSuccess) onSuccess();
       else router.refresh();
     } catch {
-      setError("Network error");
+      setError("Network problem. Check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -126,12 +126,12 @@ export function RescheduleBookingPanel({
     <div className={`border-t border-stone-200/80 pt-4 ${className}`}>
       {!open ? (
         <button type="button" onClick={handleOpen} className={platformUi.buttonSecondary}>
-          Reschedule to another session
+          Move to another date
         </button>
       ) : (
         <div className="rounded-xl border border-stone-200/80 bg-white p-4 shadow-(--pm-shadow-rest)">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-medium text-stone-900">Pick a new open session</p>
+            <p className="text-sm font-medium text-stone-900">Pick a new date</p>
             <button
               type="button"
               className="text-xs font-medium text-stone-500 hover:text-amber-950"
@@ -149,15 +149,15 @@ export function RescheduleBookingPanel({
           </div>
           {participantCount > 1 ? (
             <p className="mt-2 text-xs text-stone-500">
-              {participantCount} spots must be available on the new session
-              {seatType ? ` (${seatType})` : ""}.
+              Needs {participantCount} open {participantCount === 1 ? "seat" : "seats"}
+              {seatType ? ` (${seatType})` : ""} on the new date.
             </p>
           ) : null}
 
           {loading ? (
             <div className="mt-3 flex items-center gap-2 text-sm text-stone-500" role="status" aria-busy="true">
               <Spinner size="sm" />
-              <span className="sr-only">Loading sessions</span>
+              <span className="sr-only">Loading dates</span>
             </div>
           ) : null}
 
@@ -165,45 +165,45 @@ export function RescheduleBookingPanel({
           {msg ? <p className="mt-3 text-sm text-emerald-800">{msg}</p> : null}
 
           {data && !data.reschedulable ? (
-            <p className="mt-3 text-sm text-stone-600">{data.reason ?? "This booking cannot be rescheduled."}</p>
+            <p className="mt-3 text-sm text-stone-600">{data.reason ?? "This booking can't be moved."}</p>
           ) : null}
 
           {data?.reschedulable && !loading ? (
             <form onSubmit={handleSubmit} className="mt-4 space-y-3">
               {data.slots.length === 0 ? (
                 <p className="text-sm text-stone-600">
-                  No open sessions with enough capacity in the next 90 days. Ask the studio to add dates or free capacity.
+                  No open dates with enough seats in the next 90 days. Ask the studio to add dates.
                 </p>
               ) : (
                 <label className="block">
-                  <span className={platformUi.label}>Available sessions</span>
+                  <span className={platformUi.label}>New date</span>
                   <select
                     className={`${platformUi.input} mt-1`}
                     value={selectedId}
                     onChange={(e) => setSelectedId(e.target.value)}
                     required
                   >
-                    <option value="">Select a session…</option>
+                    <option value="">Choose a date…</option>
                     {data.slots.map((s) => (
                       <option key={s.id} value={s.id}>
-                        {s.slotDate} · {s.startTime}–{s.endTime} ({s.spotsLeft} left)
+                        {s.slotDate} · {s.startTime}–{s.endTime} ({s.spotsLeft} open)
                       </option>
                     ))}
                   </select>
                 </label>
               )}
               <label className="block">
-                <span className={platformUi.label}>Note (optional)</span>
+                <span className={platformUi.label}>Reason (optional)</span>
                 <input
                   className={`${platformUi.input} mt-1`}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Reason for change"
+                  placeholder="Why you're moving this"
                 />
               </label>
               {data.slots.length > 0 ? (
                 <button type="submit" disabled={submitting || !selectedId} className={platformUi.buttonPrimary}>
-                  {submitting ? "Saving…" : "Confirm new session"}
+                  {submitting ? "Saving…" : "Confirm new date"}
                 </button>
               ) : null}
             </form>

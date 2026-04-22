@@ -62,7 +62,7 @@ export default function StudioPublicServicesClient({
   return (
     <form onSubmit={(e) => void save(e)} className={cn(ui.card, "space-y-5")}>
       <div>
-        <h2 className="text-lg font-semibold text-stone-900">Public page services</h2>
+        <h2 className="text-lg font-semibold text-stone-900">What customers can do on your page</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
           Control how experiences, catalog, and contact appear on your public studio page (<code className="text-xs">/studios/…</code>).{" "}
           <strong>Off</strong> hides the block; <strong>Visible</strong> shows it without direct booking or cart;{" "}

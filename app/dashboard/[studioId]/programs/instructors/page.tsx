@@ -11,7 +11,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Instructors", "programs/instructors", "Manage instructors and class assignments.");
+  return dashboardStudioMeta(studioId, "Instructors", "programs/instructors", "Add teachers and assign them to classes.");
 }
 
 export default async function StudioInstructorsPage({ params }: Props) {
@@ -60,19 +60,19 @@ export default async function StudioInstructorsPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <p className={ui.overline}>Operations</p>
+        <p className={ui.overline}>Classes</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Instructors</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Assign instructors to classes and use them in schedule planning and booking analytics.
+          Add a teacher and pick which classes they run. Their upcoming sessions show below.
         </p>
       </div>
       <section className={ui.card}>
         <StudioInstructorsClient studioId={studioId} initialInstructors={instructors} />
       </section>
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">Upcoming schedule by instructor</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Upcoming classes by instructor</h2>
         {bookingsByInstructor.size === 0 ? (
-          <p className="mt-2 text-sm text-[var(--muted)]">No upcoming instructor-assigned bookings yet.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Nothing booked yet. Once bookings come in with an instructor, you&apos;ll see them here.</p>
         ) : (
           <div className="mt-4 space-y-4">
             {[...bookingsByInstructor.values()].map((group) => (
@@ -81,8 +81,8 @@ export default async function StudioInstructorsPage({ params }: Props) {
                 <ul className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
                   {group.bookings.map((booking) => (
                     <li key={booking.id} className="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2">
-                      {booking.slot.slotDate.toISOString().slice(0, 10)} · {booking.slot.startTime}-{booking.slot.endTime} ·{" "}
-                      {booking.experience.title} · {booking.participantCount} guests
+                      {booking.slot.slotDate.toISOString().slice(0, 10)} · {booking.slot.startTime}–{booking.slot.endTime} ·{" "}
+                      {booking.experience.title} · {booking.participantCount} {booking.participantCount === 1 ? "person" : "people"}
                     </li>
                   ))}
                 </ul>

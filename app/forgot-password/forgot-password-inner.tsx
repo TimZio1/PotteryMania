@@ -21,18 +21,18 @@ export default function ForgotPasswordInner() {
         body: JSON.stringify({ email }),
       });
       if (r.status === 429) {
-        setErr("Too many attempts. Please wait a few minutes and try again.");
+        setErr("Too many tries. Wait a few minutes.");
         setPending(false);
         return;
       }
       if (!r.ok) {
-        setErr("Something went wrong. Please try again.");
+        setErr("We couldn’t send the email. Try again.");
         setPending(false);
         return;
       }
       setDone(true);
     } catch {
-      setErr("Something went wrong. Please try again.");
+      setErr("We couldn’t send the email. Try again.");
     }
     setPending(false);
   }
@@ -41,7 +41,7 @@ export default function ForgotPasswordInner() {
     return (
       <div className="space-y-5">
         <p className="text-sm leading-relaxed text-stone-700">
-          If that email has an account, we just sent a reset link. Check your inbox (and spam).
+          If that email has an account, we sent a reset link. Check your inbox and spam.
         </p>
         <Link href="/login" className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
           Back to sign in

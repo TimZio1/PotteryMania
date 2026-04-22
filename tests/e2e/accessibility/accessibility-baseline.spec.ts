@@ -15,7 +15,17 @@ async function expectNoSeriousOrCriticalViolations(page: Page, route: string) {
 }
 
 test.describe("A11y baseline (Axe)", () => {
-  const publicRoutes = ["/", "/early-access", "/classes", "/marketplace", "/login"];
+  const publicRoutes = [
+    "/",
+    "/early-access",
+    "/classes",
+    "/studios",
+    "/marketplace",
+    "/cart",
+    "/login",
+    "/register",
+    "/pricing",
+  ];
 
   for (const route of publicRoutes) {
     test(`public route ${route} has no serious/critical violations`, async ({ page }) => {

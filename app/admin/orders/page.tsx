@@ -9,9 +9,9 @@ import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
 
 export const metadata: Metadata = metaAdminPage(
-  "Orders",
+  "Sales",
   "/admin/orders",
-  "Checkout orders across studios.",
+  "Studio product sales across the platform.",
 );
 
 export const dynamic = "force-dynamic";
@@ -46,11 +46,10 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Orders</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Sales</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Studio sales</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Recent checkout orders across all studios. Filter by studio ID or order status; open a row for line items,
-        payments, and addresses.
+        Recent product orders across every studio. Filter by studio or status, open a row for details.
       </p>
 
       <form className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">

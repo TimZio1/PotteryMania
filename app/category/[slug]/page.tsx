@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!fallback) {
     return buildMetadata({
       title: "Category not found",
-      description: "This ceramic category could not be found.",
+      description: "This category doesn’t exist or was removed.",
       path: `/category/${slug}`,
     });
   }
@@ -205,7 +205,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   };
   const breadcrumbs = breadcrumbJsonLd([
     { name: "Home", path: "/" },
-    { name: "Marketplace", path: "/marketplace" },
+    { name: "Shop", path: "/marketplace" },
     { name: categoryData.title, path: `/category/${slug}` },
   ]);
 
@@ -222,7 +222,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/55 to-black/10" />
           <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
-            <p className="text-xs uppercase tracking-[0.16em] text-white/75">Shop by Category</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-white/75">Shop category</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{categoryData.title}</h1>
             <p className="mt-2 max-w-2xl text-sm text-white/90 sm:text-base">{categoryData.shortDescription}</p>
           </div>
@@ -281,10 +281,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
               <div className="flex gap-2">
                 <button className={ui.buttonPrimary} type="submit">
-                  Apply
+                  Update results
                 </button>
                 <Link href={`/category/${slug}`} className={ui.buttonSecondary}>
-                  Reset
+                  Clear filters
                 </Link>
               </div>
             </form>
@@ -314,8 +314,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
             {listing.products.length === 0 ? (
               <div className={`${ui.cardMuted} py-10`}>
-                <p className="font-medium text-stone-800">No products match these filters.</p>
-                <p className="mt-2 text-sm text-stone-600">Try broadening price range, studio, or availability.</p>
+                <p className="font-medium text-stone-800">Nothing matches those filters</p>
+                <p className="mt-2 text-sm text-stone-600">Widen the price range, pick a different studio, or clear filters.</p>
+                <div className="mt-4">
+                  <Link href={`/category/${slug}`} className={ui.buttonSecondary}>Clear filters</Link>
+                </div>
               </div>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

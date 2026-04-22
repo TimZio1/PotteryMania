@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
@@ -14,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Catalog", "commerce/catalog", "Products, fulfillment, and direct studio sales.");
+  return dashboardStudioMeta(studioId, "Products", "commerce/catalog", "Add products, set prices, and update stock.");
 }
 
 export default async function StudioCommerceCatalogPage({ params }: Props) {
@@ -29,23 +28,16 @@ export default async function StudioCommerceCatalogPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <p className={ui.overline}>Commerce</p>
-        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Catalog</h1>
+        <p className={ui.overline}>Shop</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Products</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Inventory quick edits, low-stock cues, and fulfillment in one place. Deep editing stays in the product workspace.
+          Add products, update stock, and flag what&apos;s running low.
         </p>
       </div>
 
       {unavailable ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Catalog data is temporarily unavailable while product schema updates finish deploying. Existing configuration is safe;
-          try again after the deployment completes.
-          {" "}
-          <Link href={`/dashboard/products/${studioId}`} className="font-medium underline underline-offset-2">
-            Open the product workspace
-          </Link>
-          {" "}
-          if you need to review listings meanwhile.
+          Your products are briefly unavailable while a recent change finishes saving. Nothing is lost — refresh in a moment.
         </div>
       ) : null}
 

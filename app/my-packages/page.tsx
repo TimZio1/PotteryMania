@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export function generateMetadata(): Metadata {
   return buildMetadata({
     title: "My packages",
-    description: "Track your purchased class packages and remaining credits.",
+    description: "Your class credits, per studio.",
     path: "/my-packages",
   });
 }
@@ -27,7 +27,7 @@ export default async function MyPackagesPage({ searchParams }: Props) {
   const qs = (await searchParams) ?? {};
   const packagePurchaseStatus = typeof qs.package_purchase === "string" ? qs.package_purchase : "";
   const initialMessage =
-    packagePurchaseStatus === "success" ? "Package purchase completed. Your credits are now available." : "";
+    packagePurchaseStatus === "success" ? "Package ready. Your credits are good to use." : "";
 
   const purchases = await prisma.classPackagePurchase.findMany({
     where: { userId: user.id },
@@ -57,7 +57,7 @@ export default async function MyPackagesPage({ searchParams }: Props) {
       <div>
         <p className={ui.overline}>Account</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">My packages</h1>
-        <p className="mt-2 text-sm text-stone-600">See active package credits and validity windows across studios.</p>
+        <p className="mt-2 text-sm text-stone-600">Your class credits and when they expire, grouped by studio.</p>
       </div>
       <MyPackagesPanel packagePurchases={serialized} initialMessage={initialMessage} />
     </div>

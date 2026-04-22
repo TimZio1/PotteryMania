@@ -36,17 +36,17 @@ export function orderConfirmationCopy(input: {
   return {
     customer: renderEmailShell({
       eyebrow: "Order confirmed",
-      title: "Your order is confirmed",
-      intro: `Hi ${input.customerName}, your order from ${input.studioName} is confirmed.`,
+      title: "Thanks for your order",
+      intro: `Hi ${input.customerName}, ${input.studioName} got your order.`,
       bodyHtml: `${list}<p style="margin:16px 0 8px;">Total: €${escapeHtml(input.totalEur)}</p>${shipping}${tracking}`,
-      ctaLabel: "View your order",
-      ctaUrl: siteUrl,
+      ctaLabel: "View my orders",
+      ctaUrl: `${siteUrl}/my-orders`,
     }),
     vendor: renderEmailShell({
       eyebrow: "New order",
-      title: "A new order has arrived",
-      intro: `A new order has been placed for ${input.studioName}.`,
-      bodyHtml: `${list}<p style="margin:16px 0 0;">Total charged: €${escapeHtml(input.totalEur)}</p>`,
+      title: "You have a new order",
+      intro: `A new order just came in for ${input.studioName}.`,
+      bodyHtml: `${list}<p style="margin:16px 0 0;">Total: €${escapeHtml(input.totalEur)}</p>`,
       ctaLabel: "Open dashboard",
       ctaUrl: `${siteUrl}/dashboard`,
     }),
@@ -55,12 +55,13 @@ export function orderConfirmationCopy(input: {
 
 export function abandonedCartCopy(input: { recoveryUrl: string; itemCount: number }) {
   const site = siteUrl;
+  const itemLabel = input.itemCount === 1 ? "item" : "items";
   return renderEmailShell({
-    eyebrow: "Cart reminder",
-    title: "Your cart is still waiting",
-    intro: `You still have ${input.itemCount} item(s) in your cart.`,
-    bodyHtml: `<p>Return whenever you are ready and complete your order.</p><p style="margin-top:20px;font-size:13px;color:#8b7a6d;">You received this because you opted in to cart reminders. To opt out, sign in at ${escapeHtml(site.replace(/\/+$/, ""))} and disable marketing email in your account (or contact support).</p>`,
-    ctaLabel: "Return to your cart",
+    eyebrow: "Still in your cart",
+    title: "You left something behind",
+    intro: `${input.itemCount} ${itemLabel} are still in your cart.`,
+    bodyHtml: `<p>Finish your order whenever you're ready.</p><p style="margin-top:20px;font-size:13px;color:#8b7a6d;">You opted in to cart reminders. To stop, sign in at ${escapeHtml(site.replace(/\/+$/, ""))} and turn off marketing email in your account.</p>`,
+    ctaLabel: "Finish my order",
     ctaUrl: input.recoveryUrl,
   });
 }
@@ -79,15 +80,15 @@ export function orderShippedCopy(input: {
     ? `<p style="margin:0 0 8px;">Carrier: ${escapeHtml(input.trackingCarrier)}</p>`
     : "";
   const trackingIntro = input.trackingUrl
-    ? "Your studio shared a tracking link for this shipment."
-    : "Your studio marked the order as shipped.";
+    ? "Here's your tracking link."
+    : "The studio marked your order as shipped.";
 
   return renderEmailShell({
-    eyebrow: "Order update",
-    title: "Your order is on the way",
-    intro: `Hi ${input.customerName}, your order from ${input.studioName} has shipped.`,
+    eyebrow: "On the way",
+    title: "Your order shipped",
+    intro: `Hi ${input.customerName}, your order from ${input.studioName} is on its way.`,
     bodyHtml: `<p style="margin:0 0 12px;">${trackingIntro}</p>${carrierLine}${trackingLine}`,
-    ctaLabel: input.trackingUrl ? "Track shipment" : "View order details",
+    ctaLabel: input.trackingUrl ? "Track my package" : "View order",
     ctaUrl:
       input.trackingUrl ||
       process.env.NEXT_PUBLIC_SITE_URL ||
@@ -106,11 +107,11 @@ export function orderPaymentFailedCopy(input: {
     process.env.AUTH_URL ||
     "http://localhost:3000";
   return renderEmailShell({
-    eyebrow: "Payment issue",
-    title: "We could not complete your payment",
-    intro: `Hi ${input.customerName}, we could not complete payment for your order from ${input.studioName}.`,
-    bodyHtml: `<p style="margin:0 0 8px;">Order reference: ${escapeHtml(input.orderId)}</p><p style="margin:0;">Please return to checkout and try again with another card if needed.</p>`,
-    ctaLabel: "Open cart",
+    eyebrow: "Payment didn't go through",
+    title: "Your payment didn't go through",
+    intro: `Hi ${input.customerName}, we couldn't complete payment for your order from ${input.studioName}.`,
+    bodyHtml: `<p style="margin:0 0 8px;">Order reference: ${escapeHtml(input.orderId)}</p><p style="margin:0;">Go back to your cart and try again — a different card usually does the trick.</p>`,
+    ctaLabel: "Back to cart",
     ctaUrl: `${fallbackUrl.replace(/\/+$/, "")}/cart`,
   });
 }

@@ -16,7 +16,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Bookings",
   "/admin/bookings",
-  "Class and experience bookings.",
+  "Class bookings across all studios.",
 );
 
 export const dynamic = "force-dynamic";

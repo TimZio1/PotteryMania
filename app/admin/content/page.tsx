@@ -10,7 +10,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Content",
   "/admin/content",
-  "CMS and public content tooling.",
+  "Catalog health across studios.",
 );
 
 export const dynamic = "force-dynamic";
@@ -44,17 +44,19 @@ export default async function AdminContentPage() {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Content</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Catalog & studios</h1>
-      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">Supply-side inventory health across products, classes, and studio records.</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Catalog health</h1>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
+        Products, classes, and studio records across the platform.
+      </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Active products" value={String(productsActive)} hint={`${productsDraft} draft`} />
-        <StatCard label="Active experiences" value={String(experiencesActive)} hint={`${experiencesDraft} draft`} />
-        <StatCard label="Studios approved" value={String(studiosApproved)} hint={`${pendingStudios} pending review`} />
+        <StatCard label="Active classes" value={String(experiencesActive)} hint={`${experiencesDraft} draft`} />
+        <StatCard label="Approved studios" value={String(studiosApproved)} hint={`${pendingStudios} awaiting review`} />
       </div>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">Recently updated products</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Latest product edits</h2>
         <div className="mt-4">
           <DataTable
             rows={recentProducts}

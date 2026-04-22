@@ -17,7 +17,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Calendar", "schedule/calendar", "Studio calendar and slot availability.");
+  return dashboardStudioMeta(studioId, "Calendar", "schedule/calendar", "See the week at a glance — classes and open seats.");
 }
 
 function startOfWeekMondayUtc(d: Date): Date {
@@ -96,8 +96,7 @@ export default async function StudioScheduleCalendarPage({ params, searchParams 
         <p className={ui.overline}>Schedule</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Calendar</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Week / day views, capacity bars, and time-overlap warnings. Drag-and-drop reschedule is not enabled yet — adjust
-          rules and slots from Programs.
+          Your week at a glance — each class with how many seats are left. To add or change times, go to Classes → Planner.
         </p>
       </div>
 

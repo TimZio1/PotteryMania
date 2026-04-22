@@ -131,7 +131,7 @@ export function WearProductGallery({
           href={backHref}
           className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500 transition hover:text-amber-950"
         >
-          ← Shop
+          ← Back to shop
         </Link>
         <h1 className="mt-6 font-serif text-3xl leading-tight tracking-tight text-amber-950 sm:text-4xl">{productName}</h1>
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">

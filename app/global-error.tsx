@@ -11,9 +11,9 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   return (
     <html lang="en">
       <body style={{ fontFamily: "system-ui, sans-serif", background: "#faf9f7", color: "#1c1917", padding: "4rem 2rem", textAlign: "center" }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Something went wrong</h1>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Something broke on our side</h1>
         <p style={{ marginTop: "1rem", color: "#78716c" }}>
-          An unexpected error occurred. Our team has been notified.
+          We&apos;ve been notified. Try again in a moment.
         </p>
         <button
           onClick={reset}

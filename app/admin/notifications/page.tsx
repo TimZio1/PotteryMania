@@ -8,9 +8,9 @@ import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
 
 export const metadata: Metadata = metaAdminPage(
-  "Notifications",
+  "Inbox",
   "/admin/notifications",
-  "Platform and admin notifications.",
+  "Platform notifications and alerts.",
 );
 
 export const dynamic = "force-dynamic";
@@ -27,14 +27,13 @@ export default async function AdminNotificationsPage() {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Inbox</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Admin notifications</h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Notifications</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Operational notes and alerts. Create via <code className="text-xs">POST /api/admin/notifications</code> (auth) or
-        seed scripts.
+        Platform alerts and operational notes. New items appear here as they arrive.
       </p>
       <p className="mt-4 text-sm">
         <Link href="/admin" className="font-medium text-amber-900 underline">
-          ← Control center
+          ← Home
         </Link>
       </p>
 

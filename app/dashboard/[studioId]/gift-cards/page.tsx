@@ -6,7 +6,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Gift cards", "gift-cards", "Sell, issue, and manage branded gift cards for your studio.");
+  return dashboardStudioMeta(studioId, "Gift cards", "gift-cards", "Sell and track gift cards for your studio.");
 }
 
 /** @deprecated Use `/dashboard/[studioId]/commerce/gift-cards` */

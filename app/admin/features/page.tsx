@@ -24,9 +24,9 @@ import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
 
 export const metadata: Metadata = metaAdminPage(
-  "Features",
+  "Plans & features",
   "/admin/features",
-  "Platform feature flags and add-on catalog.",
+  "Plans, flags, and studio feature entitlements.",
 );
 
 export const dynamic = "force-dynamic";

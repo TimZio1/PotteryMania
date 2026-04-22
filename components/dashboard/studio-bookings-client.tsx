@@ -16,15 +16,15 @@ import {
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "All statuses" },
-  { value: "awaiting_vendor_approval", label: "Awaiting approval" },
+  { value: "awaiting_vendor_approval", label: "Waiting for your approval" },
   { value: "pending", label: "Pending" },
   { value: "confirmed", label: "Confirmed" },
   { value: "cancellation_requested", label: "Cancellation requested" },
-  { value: "completed", label: "Completed" },
+  { value: "completed", label: "Attended" },
   { value: "no_show", label: "No-show" },
-  { value: "cancelled_by_customer", label: "Cancelled (participant)" },
-  { value: "cancelled_by_vendor", label: "Cancelled (studio)" },
-  { value: "cancelled_by_admin", label: "Cancelled (admin)" },
+  { value: "cancelled_by_customer", label: "Cancelled by guest" },
+  { value: "cancelled_by_vendor", label: "Cancelled by you" },
+  { value: "cancelled_by_admin", label: "Cancelled by admin" },
   { value: "refunded", label: "Refunded" },
   { value: "partially_refunded", label: "Partially refunded" },
 ];
@@ -105,7 +105,8 @@ export default function StudioBookingsClient({
       return b?.bookingStatus === "confirmed";
     });
     if (ids.length === 0) return;
-    if (!confirm(`Mark ${ids.length} booking(s) as attended / completed?`)) return;
+    const word = ids.length === 1 ? "booking" : "bookings";
+    if (!confirm(`Mark ${ids.length} ${word} as attended?`)) return;
     setBatchBusy(true);
     setBatchMsg(null);
     try {
@@ -115,8 +116,8 @@ export default function StudioBookingsClient({
         body: JSON.stringify({ bookingIds: ids }),
       });
       const data = (await res.json()) as { error?: string; marked?: number };
-      if (!res.ok) throw new Error(data.error ?? "Batch failed");
-      setBatchMsg(`Marked ${data.marked ?? 0} as completed.`);
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t update these bookings. Try again.");
+      setBatchMsg(`Marked ${data.marked ?? 0} as attended.`);
       clearSelection();
       setSelected((cur) => {
         if (!cur) return null;
@@ -125,7 +126,7 @@ export default function StudioBookingsClient({
       });
       router.refresh();
     } catch (e) {
-      setBatchMsg(e instanceof Error ? e.message : "Batch failed");
+      setBatchMsg(e instanceof Error ? e.message : "We couldn’t update these bookings. Try again.");
     } finally {
       setBatchBusy(false);
     }
@@ -147,7 +148,9 @@ export default function StudioBookingsClient({
       <div className="space-y-4">
         {pendingApprovalCount > 0 && (
           <p className="text-sm text-amber-900">
-            {pendingApprovalCount} reservation(s) awaiting your approval (payment captured; slot reserved).
+            {pendingApprovalCount === 1
+              ? "1 booking is waiting for your approval. The seat is held and the payment is authorised."
+              : `${pendingApprovalCount} bookings are waiting for your approval. Seats are held and payments are authorised.`}
           </p>
         )}
 
@@ -159,7 +162,7 @@ export default function StudioBookingsClient({
                 className={cn(ui.input, "mt-1")}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Participant, email, experience, ref…"
+                placeholder="Name, email, class, or reference…"
               />
             </label>
             <label className="block w-full min-w-[140px] lg:w-48">
@@ -212,9 +215,9 @@ export default function StudioBookingsClient({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 border-t border-stone-200 pt-3">
-            <span className="text-xs font-medium text-[var(--muted)]">Batch (confirmed only)</span>
+            <span className="text-xs font-medium text-[var(--muted)]">Mark several at once (confirmed bookings only)</span>
             <button type="button" className={ui.buttonGhost} onClick={selectAllConfirmed} disabled={selectableConfirmed.length === 0}>
-              Select all in view
+              Select all shown
             </button>
             <button type="button" className={ui.buttonGhost} onClick={clearSelection} disabled={selectedIds.size === 0}>
               Clear
@@ -225,7 +228,7 @@ export default function StudioBookingsClient({
               disabled={batchBusy || selectedIds.size === 0}
               onClick={() => void runBatchAttended()}
             >
-              {batchBusy ? "Working…" : `Mark ${selectedIds.size || "…"} attended`}
+              {batchBusy ? "Saving…" : `Mark ${selectedIds.size || "…"} attended`}
             </button>
             {batchMsg ? <span className="text-xs text-[var(--muted)]">{batchMsg}</span> : null}
           </div>
@@ -236,9 +239,9 @@ export default function StudioBookingsClient({
             <thead className="border-b border-stone-200 bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-500">
               <tr>
                 <th className="w-10 px-2 py-3" aria-label="Select" />
-                <th className="px-4 py-3">Experience</th>
+                <th className="px-4 py-3">Class</th>
                 <th className="px-4 py-3">When</th>
-                <th className="px-4 py-3">Participant</th>
+                <th className="px-4 py-3">Guest</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Amount</th>
               </tr>
@@ -247,7 +250,7 @@ export default function StudioBookingsClient({
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted)]">
-                    No reservations match these filters.
+                    Nothing matches your search and filters.
                   </td>
                 </tr>
               ) : (
@@ -343,7 +346,7 @@ export default function StudioBookingsClient({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-xs font-semibold uppercase text-[var(--muted)]">Reservation</p>
+              <p className="text-xs font-semibold uppercase text-[var(--muted)]">Booking</p>
               <p className="mt-1 text-sm font-medium text-[var(--foreground)]">{selected.experience.title}</p>
             </div>
             <button type="button" className={ui.buttonGhost} onClick={() => setSelected(null)}>
@@ -359,7 +362,7 @@ export default function StudioBookingsClient({
               </dd>
             </div>
             <div>
-              <dt className={ui.label}>Participant</dt>
+              <dt className={ui.label}>Guest</dt>
               <dd>
                 {selected.customerName}
                 <br />
@@ -415,7 +418,7 @@ export default function StudioBookingsClient({
             </div>
             {selected.notes ? (
               <div>
-                <dt className={ui.label}>Participant notes</dt>
+                <dt className={ui.label}>Note from the guest</dt>
                 <dd className="whitespace-pre-wrap">{selected.notes}</dd>
               </div>
             ) : null}
@@ -437,7 +440,7 @@ export default function StudioBookingsClient({
             ) : null}
             {selected.intakeResponses.length > 0 ? (
               <div>
-                <dt className={ui.label}>Booking answers</dt>
+                <dt className={ui.label}>Questions answered at booking</dt>
                 <dd>
                   <dl className="space-y-2">
                     {selected.intakeResponses.map((entry, index) => (
@@ -474,7 +477,7 @@ export default function StudioBookingsClient({
             ) : null}
             {selected.remainderPaymentLink ? (
               <div className="text-xs text-sky-700">
-                Remaining-balance link ready
+                Link ready to collect the remaining balance.
               </div>
             ) : null}
             {selected.lastCancellation ? (

@@ -129,12 +129,12 @@ export function EarlyAccessForm({
       }
       const j = await r.json();
       if (!r.ok) {
-        setErr(j.error || "Something went wrong");
+        setErr(j.error || "We couldn’t send that. Try again.");
         setPending(false);
         return;
       }
       if (uploadsSkipped) {
-        setUploadNotice("Photo uploads are temporarily unavailable, so we saved your details without photos.");
+        setUploadNotice("Photo uploads are down for now — we saved your details without photos.");
       }
       try {
         const cr = await fetch("/api/early-access/count");
@@ -148,11 +148,11 @@ export function EarlyAccessForm({
       trackMetaPixelEvent("Lead", { content_name: "studio_lead" }, { eventID: metaEventId });
     } catch (error) {
       if (error instanceof Error && error.message === "Hosted uploads are not configured") {
-        setErr("Photo uploads are temporarily unavailable. You can still submit without photos.");
+        setErr("Photo uploads are down for now. You can still send without photos.");
       } else if (error instanceof Error && error.name === "AbortError") {
-        setErr("Request timed out. Please try again.");
+        setErr("That took too long. Try again.");
       } else {
-        setErr("Network error. Please try again.");
+        setErr("Network error. Try again.");
       }
       setPending(false);
     }
@@ -169,7 +169,7 @@ export function EarlyAccessForm({
         </div>
         <h2 className="mt-5 font-serif text-2xl text-amber-950 sm:text-3xl">Welcome.</h2>
         <p className="mt-3 text-sm leading-7 text-stone-600">
-          Thanks — you can set up your public page in the app whenever you are ready.
+          Thanks — set up your public page whenever you&rsquo;re ready.
         </p>
         {uploadNotice && <p className="mt-3 text-sm font-medium text-amber-800">{uploadNotice}</p>}
         <p className="mt-4 text-base font-semibold text-stone-700 sm:text-lg">
@@ -277,7 +277,7 @@ export function EarlyAccessForm({
           <div>
             <span className={ui.label}>Upload up to 3 photos</span>
             <p className={`mt-1 ${ui.helper}`}>
-              Show us your work. Max {MAX_FILE_MB}MB each. Optional.
+              Show your work. Up to {MAX_FILE_MB}MB each.
             </p>
 
             {photos.length > 0 && (

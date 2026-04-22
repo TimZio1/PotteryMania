@@ -42,8 +42,8 @@ export function MyPackagesPanel({
       {initialMessage ? <p className={ui.successText}>{initialMessage}</p> : null}
       {packagePurchases.length === 0 ? (
         <div className={`${ui.cardMuted}`}>
-          <p className="font-medium text-stone-800">No package purchases yet</p>
-          <p className="mt-2 text-sm text-stone-600">Buy a class package from any studio to unlock prepaid credit bookings.</p>
+          <p className="font-medium text-stone-800">No packages yet</p>
+          <p className="mt-2 text-sm text-stone-600">Buy a class package from any studio — pay once, book classes against the credits.</p>
         </div>
       ) : (
         byStudio.map((group) => (
@@ -51,7 +51,7 @@ export function MyPackagesPanel({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold text-amber-950">{group.studio.displayName}</h2>
               <Link href={`/studios/${group.studio.id}/packages`} className="text-sm font-medium text-amber-900 hover:underline">
-                Browse studio packages
+                See this studio’s packages
               </Link>
             </div>
             <div className="space-y-3">
@@ -71,7 +71,7 @@ export function MyPackagesPanel({
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-stone-700">
-                      Remaining credits: <strong>{remaining}</strong> / {purchase.creditsTotal}
+                      <strong>{remaining}</strong> of {purchase.creditsTotal} credits left
                     </p>
                     <ul className="mt-2 space-y-1 text-xs text-stone-600">
                       {purchase.package.items.map((item) => (

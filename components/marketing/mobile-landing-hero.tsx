@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type MobileLandingPanel = {
   key: "shop" | "bookings" | "wearables" | "marketplace_free";
@@ -21,23 +21,21 @@ type Props = {
   panels: MobileLandingPanel[];
 };
 
+/**
+ * Keep this in sync with `LANDING_EYEBROWS` in `app/page.tsx`.
+ * Must NOT reintroduce "Discover creators" or similar — AGENTS.md forbids
+ * positioning the product as a discovery platform / marketplace.
+ */
+const MOBILE_EYEBROWS: Record<MobileLandingPanel["key"], string> = {
+  shop: "Sell your work",
+  bookings: "Book your classes",
+  wearables: "Expand your brand",
+  marketplace_free: "Public catalog",
+};
+
 export function MobileLandingHero({ panels }: Props) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-
-  const labels = useMemo(
-    () =>
-      panels.map((panel) =>
-        panel.key === "shop"
-          ? "Shop"
-          : panel.key === "bookings"
-            ? "Bookings"
-            : panel.key === "wearables"
-              ? "Wearables"
-              : "Browse",
-      ),
-    [panels],
-  );
 
   useEffect(() => {
     const node = scrollerRef.current;
@@ -58,43 +56,11 @@ export function MobileLandingHero({ panels }: Props) {
     };
   }, [panels.length]);
 
-  function jumpTo(index: number) {
-    const node = scrollerRef.current;
-    if (!node) return;
-    const width = node.clientWidth || 1;
-    node.scrollTo({ left: width * index, behavior: "smooth" });
-    setActiveIndex(index);
-  }
-
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-stone-700">Swipe or tap to compare</p>
-        <p className="text-xs text-stone-600">
-          {activeIndex + 1}/{panels.length}
-        </p>
-      </div>
-      <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {panels.map((panel, idx) => (
-          <button
-            key={panel.key}
-            type="button"
-            onClick={() => jumpTo(idx)}
-            className={`min-h-10 rounded-full border px-2 py-1 text-center text-[11px] font-semibold uppercase tracking-[0.08em] transition ${
-              idx === activeIndex
-                ? "border-stone-900 bg-stone-900 text-white"
-                : "border-stone-300 bg-stone-100 text-stone-700"
-            }`}
-            aria-pressed={idx === activeIndex}
-            aria-label={`Show ${labels[idx]}`}
-          >
-            {labels[idx]}
-          </button>
-        ))}
-      </div>
       <div
         ref={scrollerRef}
-        className="flex h-[calc(100svh-16.5rem)] snap-x snap-mandatory gap-3 overflow-x-auto pb-[max(env(safe-area-inset-bottom),0.5rem)]"
+        className="flex h-[calc(100svh-14rem)] snap-x snap-mandatory gap-3 overflow-x-auto pb-[max(env(safe-area-inset-bottom),0.5rem)]"
       >
         {panels.map((panel) => (
           <div key={`mobile-${panel.key}`} className="min-w-full snap-start">
@@ -122,13 +88,7 @@ export function MobileLandingHero({ panels }: Props) {
               <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/55 to-black/75" aria-hidden />
               <div className="relative z-10 flex h-full flex-col p-4">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-200">
-                  {panel.key === "shop"
-                    ? "Sell your work"
-                    : panel.key === "bookings"
-                      ? "Book your skills"
-                      : panel.key === "wearables"
-                        ? "Expand your brand"
-                        : "Discover creators"}
+                  {MOBILE_EYEBROWS[panel.key]}
                 </p>
                 <h2 className="mt-2 font-serif text-[1.65rem] leading-tight tracking-[-0.015em] text-white">
                   {panel.key === "marketplace_free" ? (

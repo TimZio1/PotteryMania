@@ -69,7 +69,7 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
     if (!r.ok) {
       setErr(typeof j.error === "string" ? j.error : "Save failed");
     } else {
-      setMsg("Saved. Public page updates within a few seconds.");
+      setMsg("Saved. Your page updates in a few seconds.");
       if (j.theme) setDraft(j.theme as StudioPublicThemeV1);
     }
     setSaving(false);
@@ -93,7 +93,7 @@ export function StudioAppearanceClient({ studioId }: { studioId: string }) {
       <Link href={`/dashboard/studio/${studioId}`} className={`text-sm ${platformUi.buttonGhost} inline-flex px-0`}>
         ← Studio profile
       </Link>
-      <p className={`${platformUi.overline} mt-6`}>Public page</p>
+      <p className={`${platformUi.overline} mt-6`}>Studio page</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Appearance</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
         Curated looks for your public studio page only. No custom hex or fonts — presets stay readable and on-brand across

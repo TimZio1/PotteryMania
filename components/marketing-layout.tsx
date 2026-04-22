@@ -35,8 +35,11 @@ export function MarketingLayout({ children, toolbar }: Props) {
             <div className="grid gap-x-12 gap-y-6 text-sm text-[var(--muted)] sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Product</p>
+                <Link href="/pricing" className="block transition hover:text-[var(--foreground)]">
+                  Pricing
+                </Link>
                 <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
-                  Get started
+                  See a demo
                 </Link>
                 <Link href="/dashboard/studio/new?setup=bookings" className="block transition hover:text-[var(--foreground)]">
                   Start with bookings
@@ -44,15 +47,9 @@ export function MarketingLayout({ children, toolbar }: Props) {
                 <Link href="/dashboard/studio/new?setup=shop" className="block transition hover:text-[var(--foreground)]">
                   Start with shop
                 </Link>
-                <Link href="/pricing" className="block transition hover:text-[var(--foreground)]">
-                  Pricing
-                </Link>
               </div>
               <div className="space-y-2.5">
-                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Resources</p>
-                <Link href="/blog" className="block transition hover:text-[var(--foreground)]">
-                  Blog
-                </Link>
+                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Explore</p>
                 <Link href="/marketplace" className="block transition hover:text-[var(--foreground)]">
                   Marketplace
                 </Link>
@@ -63,17 +60,28 @@ export function MarketingLayout({ children, toolbar }: Props) {
                   Studios
                 </Link>
                 <Link href="/wear/shop" className="block transition hover:text-[var(--foreground)]">
-                  Wear shop
+                  Wearables shop
                 </Link>
-                <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
-                  See a demo
+                <Link href="/blog" className="block transition hover:text-[var(--foreground)]">
+                  Blog
                 </Link>
-                <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
-                  How it works
-                </Link>
+              </div>
+              <div className="space-y-2.5">
+                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Help</p>
                 <Link href="/pricing#faq" className="block transition hover:text-[var(--foreground)]">
                   FAQ
                 </Link>
+                <Link href="/suggest-feature" className="block transition hover:text-[var(--foreground)]">
+                  Suggest a feature
+                </Link>
+                <Link href="/early-access" className="block transition hover:text-[var(--foreground)]">
+                  Join early access
+                </Link>
+                {!isPreregistrationOnly() ? (
+                  <Link href="/login" className="block transition hover:text-[var(--foreground)]">
+                    Sign in
+                  </Link>
+                ) : null}
               </div>
               <div className="space-y-2.5">
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Legal</p>
@@ -91,28 +99,10 @@ export function MarketingLayout({ children, toolbar }: Props) {
                 </Link>
                 <CookieSettingsButton className="block text-left transition hover:text-[var(--foreground)]" />
               </div>
-              <div className="space-y-2.5">
-                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Contact</p>
-                <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
-                  Book a demo
-                </Link>
-                <Link href="/early-access" className="block transition hover:text-[var(--foreground)]">
-                  Join early access
-                </Link>
-                {!isPreregistrationOnly() ? (
-                  <Link href="/login" className="block transition hover:text-[var(--foreground)]">
-                    Sign in
-                  </Link>
-                ) : null}
-                <Link href="/pricing#faq" className="block transition hover:text-[var(--foreground)]">
-                  Pricing questions
-                </Link>
-              </div>
             </div>
           </div>
-          <div className="mt-8 flex flex-col gap-3 border-t border-[var(--border)] pt-6 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-8 border-t border-[var(--border)] pt-6 text-sm text-[var(--muted)]">
             <p>&copy; PotteryMania. All rights reserved.</p>
-            <p>Free until 1 May 2026. No payment required.</p>
           </div>
         </div>
       </footer>

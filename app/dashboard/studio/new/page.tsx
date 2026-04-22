@@ -26,20 +26,20 @@ function setupCopy(path: SetupPath) {
   if (path === "bookings") {
     return {
       title: "Step 2 · Quick setup",
-      helper: "Two fields to start — then you’ll add your first experience and preview your page.",
+      helper: "Two fields to start. You’ll add your first class and preview your page next.",
       cta: "Create studio & continue",
     };
   }
   if (path === "shop") {
     return {
       title: "Step 2 · Quick setup",
-      helper: "Two fields to start — then you’ll add your first product and preview your page.",
+      helper: "Two fields to start. You’ll add your first product and preview your page next.",
       cta: "Create studio & continue",
     };
   }
   return {
     title: "Step 2 · Quick setup",
-    helper: "Two fields to start — then add your first experience or product and preview your public page.",
+    helper: "Two fields to start. You’ll add your first class or product and preview your page next.",
     cta: "Create studio & continue",
   };
 }
@@ -171,13 +171,13 @@ export default function NewStudioPage() {
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr(typeof j.error === "string" ? j.error : "Failed");
+        setErr(typeof j.error === "string" ? j.error : "We couldn’t create your studio. Try again.");
         applyMissingFromResponse(j.missing);
         return;
       }
       const studioId = j?.studio?.id as string;
       if (!studioId) {
-        setErr("Studio was created but no dashboard destination was returned.");
+        setErr("Studio created, but we couldn’t open it. Refresh and try again.");
         return;
       }
       pushAfterCreate(studioId, true);
@@ -199,7 +199,7 @@ export default function NewStudioPage() {
       const next: Record<string, string> = {};
       for (const m of missing) next[m] = "Required";
       setFieldErrors(next);
-      setErr("Please fill in every field marked with *.");
+      setErr("Fill in every field marked with *.");
       return;
     }
     setSubmitting(true);
@@ -211,13 +211,13 @@ export default function NewStudioPage() {
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr(typeof j.error === "string" ? j.error : "Failed");
+        setErr(typeof j.error === "string" ? j.error : "We couldn’t create your studio. Try again.");
         applyMissingFromResponse(j.missing);
         return;
       }
       const studioId = j?.studio?.id as string;
       if (!studioId) {
-        setErr("Studio was created but no dashboard destination was returned.");
+        setErr("Studio created, but we couldn’t open it. Refresh and try again.");
         return;
       }
       pushAfterCreate(studioId, false);
@@ -270,7 +270,7 @@ export default function NewStudioPage() {
         Step 1 · What do you want to do?
       </p>
       <h1 className="mt-2 font-serif text-3xl font-normal tracking-[-0.02em] text-(--brand-ink)">Start selling your work</h1>
-      <p className="mt-1 text-xs text-[var(--muted)]">Whether you&apos;re a solo potter or running a full studio, pick what fits you best right now. You can always add more later.</p>
+      <p className="mt-1 text-xs text-[var(--muted)]">Solo potter or full studio — pick what fits right now. You can add more later.</p>
       <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{pathCopy.helper}</p>
       <div className="mt-5 grid gap-2 sm:grid-cols-3">
         <Link
@@ -281,7 +281,7 @@ export default function NewStudioPage() {
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
-          Programs &amp; sessions
+          Run classes
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=shop${fullForm ? "&full=1" : ""}`}
@@ -291,7 +291,7 @@ export default function NewStudioPage() {
               : "border-stone-200 bg-white text-stone-700 shadow-sm hover:border-amber-200/80"
           }`}
         >
-          Shop products
+          Sell products
         </Link>
         <Link
           href={`/dashboard/studio/new?setup=both${fullForm ? "&full=1" : ""}`}
@@ -339,7 +339,7 @@ export default function NewStudioPage() {
               {fieldErrors.displayName ? (
                 <p className="mt-1 text-xs text-rose-600">{fieldErrors.displayName}</p>
               ) : (
-                <span className="mt-1 block text-xs text-[var(--muted)]">This is what customers see. Use your artist name or studio name.</span>
+                <span className="mt-1 block text-xs text-[var(--muted)]">This is what customers see. Your name or your studio name.</span>
               )}
             </label>
             <label className="block text-sm">
@@ -365,7 +365,7 @@ export default function NewStudioPage() {
                 className={`${inputBaseClass} border-stone-200`}
                 value={quick.city}
                 onChange={(e) => setQuick({ ...quick, city: e.target.value })}
-                placeholder="Add now or later"
+                placeholder="Add it now or later"
                 autoComplete="address-level2"
                 disabled={submitting}
               />
@@ -388,7 +388,7 @@ export default function NewStudioPage() {
               {fieldErrors.email ? (
                 <p className="mt-1 text-xs text-rose-600">{fieldErrors.email}</p>
               ) : (
-                <span className="mt-1 block text-xs text-[var(--muted)]">We pre-fill from your account; change if needed.</span>
+                <span className="mt-1 block text-xs text-[var(--muted)]">Filled in from your account. Change it if needed.</span>
               )}
             </label>
             <button
@@ -418,7 +418,7 @@ export default function NewStudioPage() {
           </p>
           <form onSubmit={submitFull} className="mt-6 space-y-3">
             {err ? <p className="text-sm text-red-600">{err}</p> : null}
-            <p className="text-xs text-[var(--muted)]">Fields marked with * are required before you can create the studio.</p>
+            <p className="text-xs text-[var(--muted)]">Fields with * are required.</p>
             {field("displayName", "Display name", true)}
             {field("legalBusinessName", "Legal business name", true)}
             {field("vatNumber", "VAT / tax number", true)}

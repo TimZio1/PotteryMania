@@ -41,22 +41,18 @@ export function RegisterForm() {
       });
       const j = (await r.json()) as { ok?: boolean; error?: string; user?: unknown };
       if (!r.ok) {
-        setErr(j.error || "Registration failed");
+        setErr(j.error || "We couldn’t create your account. Try again.");
         setPending(false);
         return;
       }
       if (j.user) {
-        setOk(
-          "Account created. We sent a verification link to your email. Confirm it before you sign in.",
-        );
+        setOk("Check your email. Open the link to confirm, then sign in.");
       } else {
-        setOk(
-          "If this email is new, check your inbox for a verification link. If you already have an account, sign in instead.",
-        );
+        setOk("If this email is new, check your inbox. Already have an account? Sign in instead.");
       }
       setPending(false);
     } catch {
-      setErr("Something went wrong. Please try again.");
+      setErr("Sign-up failed. Try again.");
       setPending(false);
     }
   }
@@ -67,7 +63,7 @@ export function RegisterForm() {
     try {
       await signIn("google", { callbackUrl });
     } catch {
-      setErr("Google sign-up is unavailable right now.");
+      setErr("Google sign-up isn’t available right now.");
       setGooglePending(false);
     }
   }
@@ -83,7 +79,7 @@ export function RegisterForm() {
         <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
           <p className={ui.successText}>{ok}</p>
           <Link href={callbackUrl !== "/dashboard" ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"} className="mt-2 inline-block text-sm font-medium text-[var(--accent)] hover:underline">
-            Go to sign in →
+            Sign in
           </Link>
         </div>
       ) : null}
@@ -94,19 +90,19 @@ export function RegisterForm() {
           </button>
           <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-[var(--muted)]`}>
             <span className="h-px flex-1 bg-[var(--border)]" />
-            <span>or use email</span>
+            <span>or email</span>
             <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
         </>
       ) : null}
       <div className={`${ui.cardMuted} border-[var(--border)]/80`}>
-        <p className="text-sm font-medium text-[var(--foreground)]">One account works for both.</p>
+        <p className="text-sm font-medium text-[var(--foreground)]">Same login for shopping and for your studio.</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Book and buy from studios today. Run a studio of your own anytime &mdash; you&rsquo;ll see the{" "}
+          When you open a studio, you agree to the{" "}
           <Link href="/vendor-terms" className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
             studio terms
-          </Link>{" "}
-          when you set one up.
+          </Link>
+          .
         </p>
       </div>
       <div>
@@ -133,7 +129,7 @@ export function RegisterForm() {
           onChange={(e) => setMarketingConsent(e.target.checked)}
           disabled={pending}
         />
-        <span>Send me tips and updates by email. Optional &mdash; unsubscribe anytime.</span>
+        <span>Email me tips. Unsubscribe anytime.</span>
       </label>
       <div>
         <label className={ui.label} htmlFor="reg-password">
@@ -153,7 +149,7 @@ export function RegisterForm() {
         />
       </div>
       <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
-        {pending ? "Creating…" : "Create account"}
+        {pending ? "Creating…" : "Continue"}
       </button>
       <p className="text-center text-sm text-[var(--muted)]">
         Already have an account?{" "}

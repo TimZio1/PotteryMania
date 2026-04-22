@@ -38,7 +38,7 @@ export function CookieConsentBanner() {
     <div className="fixed inset-x-0 bottom-0 z-200 border-t border-[var(--border)] bg-[var(--surface)]/95 px-4 py-4 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--muted)]">
-          We use analytics cookies to improve how this site works. Essential cookies for login and checkout always stay on.
+          We use analytics cookies to see what&apos;s working. Login and checkout cookies stay on no matter what.
         </p>
         <div className="flex items-center gap-2">
           <button
@@ -49,7 +49,7 @@ export function CookieConsentBanner() {
               setVisible(false);
             }}
           >
-            Decline
+            Only essential
           </button>
           <button
             type="button"
@@ -59,7 +59,7 @@ export function CookieConsentBanner() {
               setVisible(false);
             }}
           >
-            Accept analytics
+            Allow analytics
           </button>
         </div>
       </div>

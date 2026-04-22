@@ -5,9 +5,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { GiftCardSuccessClient } from "@/components/gift-cards/gift-card-success-client";
 
 export const metadata: Metadata = metaPublicPage(
-  "Gift card purchase complete",
+  "Gift card purchased",
   "/gift-cards/success",
-  "Your gift card purchase completed successfully.",
+  "Your gift card is on its way.",
 );
 
 function SuccessFallback() {

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
     studioId,
     "Reviews",
     "site/reviews",
-    "Moderate visibility, feature top reviews, and keep social proof quality high.",
+    "Read feedback, hide what’s off-topic, and feature your best reviews.",
   );
 }
 
@@ -44,10 +44,10 @@ export default async function StudioReviewsPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <p className={ui.overline}>Site</p>
+        <p className={ui.overline}>Website</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Reviews</h1>
         <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-          Review incoming feedback, hide low-quality entries when needed, and feature the best testimonials.
+          Read what people say. Hide anything off-topic. Feature your best ones on your studio page.
         </p>
       </div>
       <StudioReviewsClient studioId={studioId} initialReviews={reviews} />

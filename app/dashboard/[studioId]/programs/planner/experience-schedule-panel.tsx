@@ -57,6 +57,18 @@ type ScheduleKind =
   | "manually_added_dates"
   | "flexible_window";
 
+const SCHEDULE_LABELS: Record<string, string> = {
+  one_time: "One-off date",
+  recurring_weekly: "Repeats every week",
+  recurring_custom_days: "Repeats on the days you pick",
+  manually_added_dates: "Specific dates only",
+  flexible_window: "Every day in a date range",
+};
+
+function scheduleLabel(type: string) {
+  return SCHEDULE_LABELS[type] ?? type.replace(/_/g, " ");
+}
+
 export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitle, rules, onRefresh }: Props) {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -95,14 +107,14 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
         (scheduleType === "recurring_weekly" || scheduleType === "recurring_custom_days") &&
         selectedDays.length === 0
       ) {
-        setErr("Select at least one weekday for recurring rules.");
+        setErr("Pick at least one day of the week.");
         setBusy(false);
         return;
       }
       if (scheduleType === "manually_added_dates") {
         const dates = [...new Set(manualDates.map((d) => d.trim()).filter((d) => ISO_DAY.test(d)))];
         if (dates.length === 0) {
-          setErr("Add at least one date (YYYY-MM-DD).");
+          setErr("Add at least one date.");
           setBusy(false);
           return;
         }
@@ -138,14 +150,14 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr(j.error || "Could not save rule");
+        setErr(j.error || "We couldn’t save this schedule. Try again.");
         setBusy(false);
         return;
       }
       setOpen(false);
       await runRefresh();
     } catch {
-      setErr("Request failed");
+      setErr("We couldn’t save this schedule. Try again.");
     }
     setBusy(false);
   }
@@ -166,14 +178,19 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr(j.error || "Generate failed");
+        setErr(j.error || "We couldn’t create the class times. Try again.");
         setBusy(false);
         return;
       }
-      setGenMsg(`Created ${j.created ?? 0} new open slots (existing slots were left unchanged).`);
+      const created = j.created ?? 0;
+      setGenMsg(
+        created === 0
+          ? "Nothing to add — every class time in that range already exists."
+          : `Added ${created} new class ${created === 1 ? "time" : "times"}. Existing ones were left as they are.`,
+      );
       await runRefresh();
     } catch {
-      setErr("Request failed");
+      setErr("We couldn’t create the class times. Try again.");
     }
     setBusy(false);
   }
@@ -187,21 +204,21 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
     });
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      setErr((j as { error?: string }).error || "Update failed");
+      setErr((j as { error?: string }).error || "We couldn’t update this schedule. Try again.");
       return;
     }
     await runRefresh();
   }
 
   async function removeRule(ruleId: string) {
-    if (!window.confirm("Delete this schedule rule? Existing slots stay; new generates won’t use this rule.")) return;
+    if (!window.confirm("Delete this schedule? Class times you already created will stay; new ones won’t be made from this schedule anymore.")) return;
     setErr("");
     const r = await fetch(`/api/studios/${studioId}/experiences/${experienceId}/rules/${ruleId}`, {
       method: "DELETE",
     });
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      setErr((j as { error?: string }).error || "Delete failed");
+      setErr((j as { error?: string }).error || "We couldn’t delete this schedule. Try again.");
       return;
     }
     await runRefresh();
@@ -210,18 +227,18 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
   return (
     <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50/80 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-[var(--foreground)]">Schedule &amp; slots — {experienceTitle}</h3>
+        <h3 className="text-sm font-semibold text-[var(--foreground)]">When {experienceTitle} runs</h3>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           className="text-sm font-medium text-amber-900 underline"
         >
-          {open ? "Close" : "Add rule"}
+          {open ? "Close" : "+ Add a schedule"}
         </button>
       </div>
       <p className="mt-1 text-xs text-[var(--muted)]">
-        Rules describe when this class can run. Then generate booking slots for a date range. Studio-wide closed days
-        are managed above (whole studio).
+        First tell us when this class runs (a one-off date, weekly, or a range). Then hit <strong>Create class times</strong>
+        {" "}below to open those times up for booking.
       </p>
       {err ? <p className="mt-2 text-xs text-red-600">{err}</p> : null}
 
@@ -236,8 +253,8 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
               disabled={busy}
             >
               <option value="one_time">One-off date</option>
-              <option value="recurring_weekly">Recurring (weekly pattern)</option>
-              <option value="recurring_custom_days">Recurring (pick weekdays)</option>
+              <option value="recurring_weekly">Repeats every week</option>
+              <option value="recurring_custom_days">Repeats on the days I pick</option>
               <option value="manually_added_dates">Specific dates only</option>
               <option value="flexible_window">Every day in a date range</option>
             </select>
@@ -358,17 +375,17 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
           ) : null}
           {scheduleType === "flexible_window" ? (
             <p className="text-xs text-[var(--muted)]">
-              Creates one slot on <strong>every calendar day</strong> from &quot;From&quot; through &quot;To&quot;
-              (inclusive), at the times above — useful for open-studio windows.
+              Opens one time slot every single day from <strong>From</strong> to <strong>To</strong>, at the same
+              start/end time. Good for open-studio sessions.
             </p>
           ) : null}
           <label className="block text-xs font-medium text-[var(--foreground)]">
-            Capacity override (optional)
+            Different seat limit for this schedule? (optional)
             <input
               type="number"
               min={1}
               className="mt-1 w-full rounded border border-stone-300 bg-white px-2 py-2 text-sm"
-              placeholder="Use class default if empty"
+              placeholder="Leave empty to use the class default"
               value={capOverride}
               onChange={(e) => setCapOverride(e.target.value)}
               disabled={busy}
@@ -379,14 +396,14 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
             disabled={busy}
             className="rounded bg-amber-800 px-3 py-2 text-sm text-white disabled:opacity-50"
           >
-            {busy ? "Saving…" : "Save rule"}
+            {busy ? "Saving…" : "Save schedule"}
           </button>
         </form>
       ) : null}
 
       <ul className="mt-4 space-y-2 border-t border-stone-200 pt-3">
         {rules.length === 0 ? (
-          <li className="text-xs text-[var(--muted)]">No rules yet — add one to generate slots.</li>
+          <li className="text-xs text-[var(--muted)]">No schedule yet. Add one above so you can create bookable class times.</li>
         ) : (
           rules.map((rule) => (
             <li
@@ -394,7 +411,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
               className="flex flex-col gap-2 rounded border border-stone-200 bg-white px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <span className="font-medium text-[var(--foreground)]">{rule.scheduleType.replace(/_/g, " ")}</span>
+                <span className="font-medium text-[var(--foreground)]">{scheduleLabel(rule.scheduleType)}</span>
                 <span className="text-[var(--muted)]">
                   {" "}
                   · {rule.startTime ?? "?"}–{rule.endTime ?? "?"}
@@ -414,7 +431,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
                   </span>
                 )}
                 {rule.capacityPerSlot != null ? (
-                  <span className="block text-[var(--muted)]">Cap {rule.capacityPerSlot}/session</span>
+                  <span className="block text-[var(--muted)]">{rule.capacityPerSlot} seats per class</span>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -424,7 +441,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
                     checked={rule.isActive}
                     onChange={(e) => setRuleActive(rule.id, e.target.checked)}
                   />
-                  Active
+                  In use
                 </label>
                 <button type="button" className="text-red-700 underline" onClick={() => removeRule(rule.id)}>
                   Delete
@@ -436,10 +453,10 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
       </ul>
 
       <form onSubmit={generateSlots} className="mt-4 space-y-2 border-t border-stone-200 pt-4">
-        <p className="text-xs font-semibold text-[var(--foreground)]">Generate open slots</p>
+        <p className="text-xs font-semibold text-[var(--foreground)]">Create bookable class times</p>
         <p className="text-xs text-[var(--muted)]">
-          Uses <strong>active</strong> rules only. Does not remove existing slots; adds missing ones. Respects studio
-          closed days.
+          Opens the actual times people can book, based on the schedules above that are <strong>in use</strong>. We
+          skip your closed days and never touch times you&apos;ve already created.
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
           <label className="block text-xs font-medium text-[var(--foreground)]">
@@ -468,7 +485,7 @@ export function ExperienceSchedulePanel({ studioId, experienceId, experienceTitl
           disabled={busy}
           className="rounded border border-amber-900 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-950 disabled:opacity-50"
         >
-          {busy ? "Working…" : "Generate slots"}
+          {busy ? "Creating…" : "Create class times"}
         </button>
         {genMsg ? <p className="text-xs text-emerald-800">{genMsg}</p> : null}
       </form>

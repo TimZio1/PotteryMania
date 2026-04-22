@@ -43,7 +43,7 @@ export default function EditStudioPage() {
     });
     if (!r.ok) {
       const j = await r.json();
-      setErr(j.error || "Failed");
+      setErr(j.error || "We couldn't save. Try again.");
       return;
     }
     router.refresh();
@@ -54,7 +54,7 @@ export default function EditStudioPage() {
     const r = await fetch(`/api/studios/${studioId}/submit`, { method: "POST" });
     if (!r.ok) {
       const j = await r.json();
-      setErr(j.error || "Failed");
+      setErr(j.error || "We couldn't publish. Try again.");
       return;
     }
     router.push("/dashboard");
@@ -72,7 +72,7 @@ export default function EditStudioPage() {
     } else if (j.url) {
       window.location.href = j.url;
     } else {
-      setErr(j.error || "Could not start activation");
+      setErr(j.error || "We couldn't start activation. Try again.");
       setActivating(false);
     }
   }
@@ -81,7 +81,7 @@ export default function EditStudioPage() {
     const r = await fetch(`/api/studios/${studioId}/stripe/onboard`, { method: "POST" });
     const j = await r.json();
     if (j.url) window.location.href = j.url;
-    else setErr(j.error || "Stripe error");
+    else setErr(j.error || "We couldn't reach Stripe. Try again.");
   }
 
   async function stripeSync() {
@@ -122,19 +122,19 @@ export default function EditStudioPage() {
   return (
     <div className="mx-auto max-w-xl px-4 py-10">
       <Link href="/dashboard" className="text-sm text-amber-800">
-        ← Studio control panel
+        ← Back to dashboard
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold">Studio workspace</h1>
+      <h1 className="mt-4 text-2xl font-semibold">Studio details</h1>
       <p className="text-sm text-[var(--muted)]">
         {studio.status === "active"
-          ? "Your studio is live and accepting bookings."
+          ? "Your studio is live."
           : studio.status === "draft"
-            ? "Your studio is in draft mode — finish setup to go live."
+            ? "In draft. Finish setup to go live."
             : studio.status === "suspended"
-              ? "Your studio is currently suspended. Contact support for details."
+              ? "Suspended. Contact support for details."
               : studio.status === "pending_review"
-                ? "Your studio is under review. We'll notify you once it's approved."
-                : "Setup in progress"}
+                ? "Under review. We'll email you when it's approved."
+                : "Setup in progress."}
       </p>
       {studio.rejectionReason && (
         <p className="mt-2 text-sm text-red-600">Reason: {studio.rejectionReason}</p>
@@ -142,16 +142,15 @@ export default function EditStudioPage() {
 
       {justActivated && (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          Studio activated successfully. You can now take direct reservations and product sales.
+          Studio activated. You can now take bookings and sell products.
         </div>
       )}
 
-      {/* ── Activation gate ── */}
       {!activated && (
         <div className="mt-6 rounded-2xl border-2 border-emerald-300 bg-emerald-50/60 p-5">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Activate direct payments</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Turn on payments</h2>
           <p className="mt-2 text-sm text-[var(--foreground)]">
-            Connect Stripe first. Once payouts are enabled, direct product sales and reservations activate automatically.
+            Connect your bank via Stripe. Once that&apos;s done, sales and bookings go live automatically.
           </p>
           <button
             type="button"
@@ -159,7 +158,7 @@ export default function EditStudioPage() {
             disabled={activating}
             className={`${ui.buttonPrimary} mt-5`}
           >
-            {activating ? "Checking Stripe status…" : "Check setup & activate"}
+            {activating ? "Checking…" : "Check and activate"}
           </button>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
         </div>
@@ -203,7 +202,7 @@ export default function EditStudioPage() {
           href={`/dashboard/studio/${studioId}/appearance`}
           className="rounded border border-stone-300 py-2 text-center text-amber-900"
         >
-          Public page appearance
+          Studio page design
         </Link>
         {activated ? (
           <>
@@ -211,7 +210,7 @@ export default function EditStudioPage() {
               href={`/dashboard/${studioId}/programs/planner`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
-              Class planner
+              Planner
             </Link>
             <Link
               href={`/dashboard/${studioId}/schedule/sessions`}
@@ -223,22 +222,22 @@ export default function EditStudioPage() {
               href={`/dashboard/${studioId}/schedule/waitlist`}
               className="rounded border border-stone-300 py-2 text-center text-amber-900"
             >
-              Session waitlist
+              Waitlist
             </Link>
           </>
         ) : (
           <p className="rounded-lg bg-stone-100 p-3 text-center text-sm text-stone-500">
-            Connect payouts to unlock products, experiences, and reservations.
+            Connect your bank to start taking bookings and selling products.
           </p>
         )}
         <button type="button" onClick={publishProfile} className="rounded border border-amber-800 py-2 text-amber-900">
           Publish studio page
         </button>
         <button type="button" onClick={stripeOnboard} className="rounded bg-stone-800 py-2 text-white">
-          Connect payouts
+          Connect bank (Stripe)
         </button>
         <button type="button" onClick={stripeSync} className="text-sm text-[var(--muted)] underline">
-          Refresh Stripe status
+          Refresh bank status
         </button>
       </div>
     </div>

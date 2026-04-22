@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
     studioId,
     "Promotions",
     "commerce/promotions",
-    "Create studio-specific discount codes with usage limits and minimum spend rules.",
+    "Run discount codes with use limits and minimum spend.",
   );
 }
 
@@ -54,7 +54,7 @@ export default async function StudioPromotionsPage({ params }: Props) {
         <p className={ui.overline}>Revenue tools</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Promotions</h1>
         <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-          Run studio-specific discount campaigns with code limits and minimum checkout thresholds.
+          Create a discount code. Set how many times it works and a minimum cart total.
         </p>
       </div>
 

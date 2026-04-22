@@ -77,26 +77,26 @@ export default async function StudioSettingsPage({ params, searchParams }: Props
       ) : null}
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-stone-900">Settings hub</h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">Central access to profile, storefront, scheduling, and billing setup.</p>
+        <h2 className="text-lg font-semibold text-stone-900">Settings</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">Profile, your page, schedule, and payouts.</p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <Link href={`/dashboard/${studioId}/site/page`} className={ui.buttonSecondary}>
-            Public page
+            Studio page
           </Link>
           <Link href={`/dashboard/${studioId}/schedule/calendar`} className={ui.buttonSecondary}>
-            Schedule settings
+            Schedule
           </Link>
           <Link href={`/dashboard/${studioId}/money/overview`} className={ui.buttonSecondary}>
-            Money overview
+            Earnings
           </Link>
           <Link href={`/dashboard/studio/${studioId}`} className={ui.buttonSecondary}>
-            Legal profile and Stripe
+            Business & bank (Stripe)
           </Link>
         </div>
         <div className="mt-5 border-t border-stone-200 pt-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Advanced tools</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">More tools</p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Less-frequent controls moved out of primary navigation to keep the dashboard focused.
+            Deeper options live here so the sidebar stays short.
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <Link href={`/dashboard/${studioId}/site/integrations`} className={ui.buttonGhost}>

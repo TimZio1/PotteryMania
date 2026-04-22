@@ -79,18 +79,18 @@ export async function POST(req: Request, ctx: Ctx) {
     const oldDate = booking.slot.slotDate.toISOString().slice(0, 10);
     const newDate = newSlot?.slotDate.toISOString().slice(0, 10) ?? "unknown";
     const newTime = newSlot?.startTime ?? "";
-    const subject = `Booking rescheduled: ${booking.experience.title}`;
-    const info = `<p>Experience: <strong>${booking.experience.title}</strong></p>
-      <p>Old slot: ${oldDate} at ${booking.slot.startTime}</p>
-      <p>New slot: ${newDate} at ${newTime}</p>
-      <p>Rescheduled by: ${role}</p>`;
+    const subject = `Moved: ${booking.experience.title} → ${newDate}`;
+    const info = `<p>Class: <strong>${booking.experience.title}</strong></p>
+      <p>Was: ${oldDate} at ${booking.slot.startTime}</p>
+      <p>Now: ${newDate} at ${newTime}</p>
+      <p>Moved by: ${role}</p>`;
     if (booking.studio.email) {
       await sendBookingEmails({
         customerEmail: booking.customerEmail,
         studioEmail: booking.studio.email,
         subject,
-        customerHtml: `<h1>Booking rescheduled</h1>${info}`,
-        studioHtml: `<h1>Booking rescheduled</h1>${info}`,
+        customerHtml: `<h1>Your booking moved</h1>${info}`,
+        studioHtml: `<h1>Booking moved</h1>${info}`,
       });
     }
   } catch (e) {

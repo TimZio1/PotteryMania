@@ -19,8 +19,8 @@ import { findWearPublicProductsWithVariantsRetrying, type WearPublicListingRow }
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Wear Shop",
-  description: "Wear shop — limited drops and studio-aligned pieces.",
+  title: "Wear shop",
+  description: "Limited wear drops — shirts, hoodies, headwear, and accessories.",
   path: "/wear/shop",
 });
 
@@ -159,7 +159,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
         <h1 className="mt-3 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-stone-700">
-          Secure checkout and fulfilment-partner shipping after purchase. Pieces are curated for creators who ship real work.
+          Limited pieces. Printed and shipped after you order.
         </p>
         {hasTopsInCatalog ? (
           <div className="mx-auto mt-5 max-w-4xl">
@@ -222,29 +222,20 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
           </div>
         </div>
 
-        {visible.length > 0 ? (
-          <p className="mx-auto mt-4 flex max-w-xl items-center justify-center gap-2 text-center text-xs text-stone-600">
-            <span className="inline-block translate-y-px text-stone-400" aria-hidden>
-              ↓
-            </span>
-            <span>Pieces start below — scroll to browse.</span>
-          </p>
-        ) : null}
-
         {visible.length === 0 ? (
           <div className="mx-auto mt-12 max-w-md text-center">
             <p className="text-sm leading-relaxed text-stone-600">
               {dbUnavailable
-                ? "We couldn’t load the wear catalog from the server. This is usually a brief connection issue — try again in a moment."
+                ? "We couldn’t load the wear catalog. Try again in a moment."
                 : activeCategory
                 ? activeTopSub
-                  ? `No items currently in ${wearTopSubcategoryLabel(activeTopSub)}.`
-                  : `No items currently in this category.`
-                : "We are between drops or restocking the shelf. Check back soon. New pieces always land here first."}
+                  ? `Nothing in ${wearTopSubcategoryLabel(activeTopSub)} right now.`
+                  : `Nothing in this category right now.`
+                : "We’re between drops. New pieces land here first — check back soon."}
             </p>
             <p className="mt-6 text-sm text-stone-500">
               <Link href="/wear" className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline">
-                Identity
+                Wear home
               </Link>
               <span className="mx-2 text-stone-600">/</span>
               <Link

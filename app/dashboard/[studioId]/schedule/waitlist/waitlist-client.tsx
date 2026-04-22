@@ -18,15 +18,22 @@ type Entry = {
 export function WaitlistClient({ studioId, entries: initial }: { studioId: string; entries: Entry[] }) {
   const [entries, setEntries] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState("");
 
-  async function dismiss(id: string) {
+  async function dismiss(id: string, name: string) {
     if (busy) return;
+    if (!window.confirm(`Remove ${name} from the waitlist?`)) return;
     setBusy(id);
+    setErr("");
     try {
       const res = await fetch(`/api/studios/${studioId}/waitlist/${id}`, { method: "DELETE" });
       if (res.ok) {
         setEntries((prev) => prev.filter((e) => e.id !== id));
+      } else {
+        setErr("We couldn’t remove this entry. Try again.");
       }
+    } catch {
+      setErr("We couldn’t remove this entry. Try again.");
     } finally {
       setBusy(null);
     }
@@ -35,15 +42,18 @@ export function WaitlistClient({ studioId, entries: initial }: { studioId: strin
   if (entries.length === 0) {
     return (
       <div className="rounded-2xl border border-stone-200 bg-white px-5 py-8 text-center">
-        <p className="text-sm text-[var(--muted)]">No active waitlist entries right now.</p>
-        <p className="mt-1 text-xs text-stone-400">When your classes fill up, customers can join the waitlist and they will appear here.</p>
+        <p className="text-sm text-[var(--muted)]">Nobody is waiting right now.</p>
+        <p className="mt-1 text-xs text-stone-400">When a class fills up, guests can join the waitlist here. You&apos;ll be able to reach out as soon as a seat opens.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[var(--muted)]">{entries.length} active {entries.length === 1 ? "entry" : "entries"}</p>
+      {err ? <p className={ui.errorText}>{err}</p> : null}
+      <p className="text-sm text-[var(--muted)]">
+        {entries.length === 1 ? "1 person waiting" : `${entries.length} people waiting`}
+      </p>
       <div className="divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white">
         {entries.map((e) => (
           <div key={e.id} className="flex flex-wrap items-start gap-4 px-5 py-4">
@@ -62,13 +72,13 @@ export function WaitlistClient({ studioId, entries: initial }: { studioId: strin
             </div>
             <div className="flex gap-2">
               <a
-                href={`mailto:${e.customerEmail}?subject=A spot opened up!&body=Hi ${encodeURIComponent(e.customerName)},%0A%0AA spot has opened in ${encodeURIComponent(e.experienceTitle)}. Would you like to book?`}
+                href={`mailto:${e.customerEmail}?subject=${encodeURIComponent(`A seat opened in ${e.experienceTitle}`)}&body=${encodeURIComponent(`Hi ${e.customerName},\n\nA seat just opened in ${e.experienceTitle}. If you'd still like to join, reply to this email or book directly and we'll hold it for you.\n\nThanks!`)}`}
                 className={ui.buttonPrimary}
               >
-                Email
+                Email this guest
               </a>
               <button
-                onClick={() => dismiss(e.id)}
+                onClick={() => dismiss(e.id, e.customerName)}
                 disabled={busy === e.id}
                 className={ui.buttonGhost}
               >

@@ -14,7 +14,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Operations",
   "/admin/operations",
-  "Operational queues, retries, and platform tasks.",
+  "Queues, refunds, and scheduled jobs.",
 );
 
 export const dynamic = "force-dynamic";
@@ -141,39 +141,38 @@ export default async function AdminOperationsPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Operations</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Queues & recovery</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Review velocity, refund risk, and live booking traffic. Cron jobs cover reminders and abandoned carts;
-        this view is for human intervention. <strong>Legacy studio lead captures</strong> from{" "}
-        <code className="text-xs">/early-access</code> are listed near the top (below the stat cards), not under Users.
+        Work the queues: reviews, refunds, stuck payments, and booking approvals. Legacy studio leads from{" "}
+        <code className="text-xs">/early-access</code> sit in a list below.
       </p>
 
       <div id="ops-stats" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Studios pending review" value={String(pending.length)} hint="Approve or reject to grow supply" />
+        <StatCard label="Studios awaiting review" value={String(pending.length)} hint="Approve or reject" />
         <StatCard
-          label="Bookings awaiting vendor"
+          label="Bookings waiting on a studio"
           value={String(bookingsAwaitingApprovalCount)}
-          hint="SLA risk if this piles up"
+          hint="Risk if this piles up"
         />
         <StatCard
-          label="Manual refund queue"
+          label="Manual refunds"
           value={String(manualRefundQueueCount)}
           hint="Stripe or policy edge cases"
         />
-        <StatCard label="Stale pending orders" value={String(stalePendingOrdersCount)} hint=">24h in pending" />
+        <StatCard label="Stuck pending sales" value={String(stalePendingOrdersCount)} hint="Over 24 hours" />
         <StatCard
-          label="Stale carts (no recovery mail)"
+          label="Abandoned carts"
           value={String(staleCartsCount)}
-          hint="Abandoned cart cron picks these up"
+          hint="Cron picks these up"
         />
-        <StatCard label="Calendar sync errors (30d)" value={String(calendarErrorsLast30)} hint="Reliability signal" />
+        <StatCard label="Calendar errors (30d)" value={String(calendarErrorsLast30)} hint="Reliability signal" />
         <StatCard
           label="Cron auth"
-          value={process.env.CRON_SECRET ? "Scheduled jobs authenticated" : "Missing authentication"}
-          hint="Railway cron must send Authorization: Bearer …"
+          value={process.env.CRON_SECRET ? "Configured" : "Missing"}
+          hint="Cron requires Authorization header"
         />
         <StatCard
-          label="Studio leads (legacy form, all time)"
+          label="Studio leads (all time)"
           value={String(earlyAccessTotal)}
-          hint="From /early-access — full list is the next section (newest 200)"
+          hint="From the legacy /early-access form"
         />
       </div>
 
@@ -184,8 +183,7 @@ export default async function AdminOperationsPage() {
       <section id="manual-refund-queue" className="mt-10">
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Manual refund queue</h2>
         <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-          Cancellations where Stripe automation could not finish the refund. Complete in Stripe Dashboard, then update
-          records or leave notes in{" "}
+          Stripe could not refund these automatically. Finish in the Stripe dashboard and log it in{" "}
           <Link href="/admin/audit" className="font-medium text-amber-900 underline-offset-2 hover:underline">
             Audit
           </Link>
@@ -262,8 +260,8 @@ export default async function AdminOperationsPage() {
       <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Scheduled jobs</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          HTTP GET endpoints (secure with <code className="text-xs">CRON_SECRET</code>). Each successful run writes to the
-          audit log as <code className="text-xs">cron.run</code>.
+          HTTP GET endpoints, protected by <code className="text-xs">CRON_SECRET</code>. Each run is audit-logged as{" "}
+          <code className="text-xs">cron.run</code>.
         </p>
         <ul className="mt-4 space-y-2 text-sm text-[var(--foreground)]">
           {cronEndpoints.map((j) => (
@@ -319,11 +317,10 @@ export default async function AdminOperationsPage() {
       <section id="booking-queue" className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Bookings</h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Search, filter by studio and session date, and open full booking detail (orders, cancellations, reschedules) on
-          the dedicated console.
+          Search, filter, and open full booking details (orders, cancellations, reschedules).
         </p>
         <Link href="/admin/bookings" className={`${ui.buttonPrimary} mt-4 inline-flex`}>
-          Open booking console
+          Open bookings
         </Link>
       </section>
     </div>

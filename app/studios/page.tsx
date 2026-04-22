@@ -33,6 +33,27 @@ type StudioDiscoverRow = Prisma.StudioGetPayload<{
   include: { rankingScore: { select: { compositeScore: true } } };
 }>;
 
+/**
+ * Collapse near-identical public studio rows that occasionally accumulate in the DB
+ * (e.g. duplicate onboarding submissions). We preserve the first occurrence so the
+ * caller's ordering (ranking / A–Z / near-me) still wins. Key is normalized display
+ * name + city + country — same studio, different imports.
+ */
+function dedupeStudios(rows: StudioDiscoverRow[]): StudioDiscoverRow[] {
+  const seen = new Set<string>();
+  const out: StudioDiscoverRow[] = [];
+  for (const row of rows) {
+    const name = (row.displayName ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+    const city = (row.city ?? "").trim().toLowerCase();
+    const country = (row.country ?? "").trim().toLowerCase();
+    const key = name ? `${name}|${city}|${country}` : `id:${row.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
+}
+
 function hasActiveStudioFilters(sp: Record<string, string | string[] | undefined>): boolean {
   const keys = ["q", "country", "city", "offer"];
   if (
@@ -80,6 +101,8 @@ export default async function StudiosPage({ searchParams }: Props) {
     studios = sortStudiosByMarketplaceRanking(studios);
   }
 
+  studios = dedupeStudios(studios);
+
   const hrefRecommended = (() => {
     const q = buildStudiosSearchString(filters, undefined);
     return q ? `/studios?${q}` : "/studios";
@@ -109,11 +132,10 @@ export default async function StudiosPage({ searchParams }: Props) {
     <MarketingLayout>
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
-          <p className={ui.overline}>Studios</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Independent makers</h1>
+          <p className={ui.overline}>Browse</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Studios</h1>
           <p className="mt-3 text-[var(--muted)]">
-            Every studio here is verified. Open a profile to see classes and products in one place. Studios are shown by
-            relevance; switch to A–Z if you prefer.
+            Pick a studio to see their classes and products.
           </p>
         </div>
 
@@ -178,15 +200,15 @@ export default async function StudiosPage({ searchParams }: Props) {
               initialRadius={radiusDefault}
               description={
                 <>
-                  Studios need latitude/longitude on their profile. Use the button to fill from your device, or paste
-                  from a map. We scan up to {GEO_SCAN_LIMIT} studios, filter by radius, then sort nearest first.
+                  Use the button to fill from your device, or paste a point from a map. We scan up to {GEO_SCAN_LIMIT}{" "}
+                  studios and sort by distance.
                 </>
               }
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={ui.buttonPrimary}>
-              Apply filters
+              Update results
             </button>
             {filtered ? (
               <Link
@@ -229,7 +251,7 @@ export default async function StudiosPage({ searchParams }: Props) {
               Map
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Amber circle: your search radius. Pins match the list below — click a pin to open the studio.
+              The circle is your search radius. Tap a pin to open that studio.
             </p>
             <div className="mt-4">
               <NearResultsMap
@@ -247,7 +269,7 @@ export default async function StudiosPage({ searchParams }: Props) {
             <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
               <p className="font-medium text-[var(--foreground)]">No studios match these filters</p>
               <p className="mt-2 text-sm text-[var(--muted)]">
-                Try clearing your filters or adjusting your search.
+                Try fewer filters or a broader search.
               </p>
               <Link
                 href={byName ? "/studios?sort=name" : "/studios"}
@@ -257,9 +279,22 @@ export default async function StudiosPage({ searchParams }: Props) {
               </Link>
             </div>
           ) : dbUnavailable ? (
-            <p className="mt-10 text-[var(--muted)]">Studios are temporarily unavailable. Please try again shortly.</p>
+            <p className="mt-10 text-[var(--muted)]">Studios aren&rsquo;t loading right now. Try again in a minute.</p>
           ) : (
-            <p className="mt-10 text-[var(--muted)]">No live studios yet.</p>
+            <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
+              <p className="font-medium text-[var(--foreground)]">No studios live yet</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                The first studios are coming online. See the demo in the meantime, or start your own.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link href="/demo" className={ui.buttonSecondary}>
+                  See the demo
+                </Link>
+                <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>
+                  Create your studio
+                </Link>
+              </div>
+            </div>
           )
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-2">

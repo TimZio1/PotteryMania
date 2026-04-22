@@ -49,15 +49,15 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
     <div className="mb-6 space-y-3">
       {profileIncomplete ? (
         <div className="rounded-(--pm-radius-card) border border-amber-300/70 bg-amber-50/90 p-(--pm-space-4) text-sm text-stone-700 sm:p-(--pm-space-5)">
-          <p className="font-semibold text-[var(--foreground)]">Add your business details</p>
+          <p className="font-semibold text-[var(--foreground)]">Finish your business profile</p>
           <p className="mt-1 text-[var(--muted)]">
-            Add your address, tax ID, and legal name before you connect your bank.
+            Add address, tax ID, and legal name before you connect your bank.
           </p>
           <Link
             href={`/dashboard/studio/${studioId}`}
             className="mt-2 inline-block text-sm font-semibold text-[var(--foreground)] underline underline-offset-2 hover:text-amber-800"
           >
-            Add details →
+            Add profile →
           </Link>
         </div>
       ) : null}
@@ -67,12 +67,12 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700">
               Your studio is live
             </p>
-            <p className="mt-1 text-sm font-medium text-stone-900">Your public page is online. Share the link to get your first bookings.</p>
+            <p className="mt-1 text-sm font-medium text-stone-900">Share this link so people can find and book you.</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
               <span className="font-mono text-xs break-all sm:text-sm">{publicUrl}</span>
             </p>
             <p className="mt-3 text-sm text-[var(--muted)]">
-              Use simple setup to add a class, a product, or connect your bank — step by step.
+              Simple setup guides you through a class, a product, or your bank — one step at a time.
             </p>
             <Link
               href={`/dashboard/${studioId}/guided`}
@@ -81,10 +81,10 @@ export function OnboardingShareBanner({ studioId }: { studioId: string }) {
               Open simple setup →
             </Link>
             <Link
-              href={`/dashboard/${studioId}/settings`}
+              href={`/dashboard/${studioId}/site/domains`}
               className="mt-2 ml-0 inline-block text-sm font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-800 sm:ml-4"
             >
-              Use my own web address →
+              Custom domain →
             </Link>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:items-end">

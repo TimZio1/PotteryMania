@@ -43,7 +43,7 @@ export default function StudioPanelShell({
   const breadcrumbItems = useMemo(() => {
     const items: { label: string; href?: string }[] = [
       { label: "Home", href: "/" },
-      { label: "Dashboard", href: "/dashboard" },
+      { label: "Your studios", href: "/dashboard" },
     ];
     if (pathname === studioBase) {
       items.push({ label: studioName });
@@ -208,7 +208,7 @@ export default function StudioPanelShell({
               onClick={() => setMobileOpen(false)}
               className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
             >
-              All studios
+              Your studios
             </Link>
             <Link
               href={`/studios/${studioId}`}
@@ -244,7 +244,7 @@ export default function StudioPanelShell({
             href="/dashboard"
             className="block rounded-lg px-3 py-2 text-sm text-stone-600 hover:bg-white hover:text-amber-950"
           >
-            All studios
+            Your studios
           </Link>
           <Link
             href={`/studios/${studioId}`}

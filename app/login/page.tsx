@@ -5,7 +5,7 @@ import { metaPublicPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaPublicPage(
   "Sign in",
   "/login",
-  "Sign in to your studio dashboard or customer account.",
+  "Sign in to your studio or your customer account.",
 );
 import { AuthShell } from "@/components/auth-shell";
 import { Spinner } from "@/components/ui/spinner";
@@ -13,7 +13,7 @@ import LoginInner from "./login-inner";
 
 export default function LoginPage() {
   return (
-    <AuthShell title="Sign in" description="Open your studio or your bookings.">
+    <AuthShell title="Sign in" description="Your studio tools, orders, and class bookings.">
       <Suspense
         fallback={
           <div className="flex justify-center py-6">

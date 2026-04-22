@@ -12,9 +12,9 @@ export default function NotFound() {
       </header>
       <main className="flex flex-1 flex-col items-center justify-center px-(--pm-space-4) py-(--pm-space-16) text-center">
         <p className="text-6xl font-bold text-[var(--border)]">404</p>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Page not found</h1>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[var(--foreground)]">This page doesn&apos;t exist</h1>
         <p className="mt-3 max-w-sm text-sm leading-6 text-[var(--muted)]">
-          The page you are looking for does not exist or has been moved. Let us help you find what you need.
+          The link might be wrong, or the page was moved.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link href="/" className={ui.buttonPrimary}>

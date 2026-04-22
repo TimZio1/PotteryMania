@@ -51,9 +51,9 @@ export function AdminOverview(props: Props) {
     <section className="mt-8 space-y-8">
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Executive overview</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Overview</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">
-            Run platform operations from one screen.
+            How the platform is doing today.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600 sm:text-base">{props.founderSummary}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -82,12 +82,12 @@ export function AdminOverview(props: Props) {
         </div>
 
         <div className="rounded-3xl border border-stone-200 bg-[linear-gradient(180deg,#fffaf5_0%,#f8f1e8_100%)] p-6 shadow-sm sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Financial command center</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Money this month</p>
           <dl className="mt-6 space-y-5">
-            <MetricRow label="Gross revenue this month" value={`€${props.grossRevenueMonthEur}`} />
-            <MetricRow label="Platform commission this month" value={`€${props.platformCommissionMonthEur}`} />
-            <MetricRow label="Reservation cash collected" value={`€${props.bookingCashMonthEur}`} />
-            <MetricRow label="Paid studio sales this month" value={String(props.paidOrdersThisMonth)} />
+            <MetricRow label="Gross revenue" value={`€${props.grossRevenueMonthEur}`} />
+            <MetricRow label="Platform commission" value={`€${props.platformCommissionMonthEur}`} />
+            <MetricRow label="Booking cash collected" value={`€${props.bookingCashMonthEur}`} />
+            <MetricRow label="Paid studio sales" value={String(props.paidOrdersThisMonth)} />
             <MetricRow label="Active studios" value={String(props.activeStudios)} />
             <MetricRow label="Leads in pipeline" value={String(props.leadCount)} />
           </dl>
@@ -95,14 +95,14 @@ export function AdminOverview(props: Props) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <TrendCard title="Revenue trend (last 30 days)" subtitle="Studio-order GMV" data={props.revenueTrend} prefix="€" />
-        <TrendCard title="Sales flow" subtitle="Studio sales created per day" data={props.orderTrend} />
-        <TrendCard title="Reservation flow" subtitle="Reservations created per day" data={props.bookingTrend} />
+        <TrendCard title="Revenue (last 30 days)" subtitle="Studio sales volume" data={props.revenueTrend} prefix="€" />
+        <TrendCard title="Sales" subtitle="Studio sales per day" data={props.orderTrend} />
+        <TrendCard title="Bookings" subtitle="Reservations per day" data={props.bookingTrend} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr_1fr]">
         <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">What needs attention now</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Needs attention</p>
           <div className="mt-5 space-y-3">
             {props.alerts.map((alert) => (
               <article key={alert.title} className={`rounded-2xl border p-4 ${severityClass[alert.severity]}`}>
@@ -114,7 +114,7 @@ export function AdminOverview(props: Props) {
         </section>
 
         <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Big opportunities</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">Opportunities</p>
           <div className="mt-5 grid gap-3">
             {props.opportunities.map((item) => (
               <article key={item.title} className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
@@ -126,12 +126,12 @@ export function AdminOverview(props: Props) {
         </section>
 
         <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Operational pressure points</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Pressure points</p>
           <div className="mt-5 grid gap-3">
             <SnapshotCard label="Studios awaiting review" value={props.pendingStudios} tone="warn" />
-            <SnapshotCard label="Reservations awaiting studio approval" value={props.awaitingApprovalBookings} tone="warn" />
+            <SnapshotCard label="Bookings awaiting studio approval" value={props.awaitingApprovalBookings} tone="warn" />
             <SnapshotCard label="Manual refund queue" value={props.manualRefundQueue} tone="danger" />
-            <SnapshotCard label="Early-access pipeline" value={props.leadCount} tone="good" />
+            <SnapshotCard label="Leads in pipeline" value={props.leadCount} tone="good" />
           </div>
         </section>
       </div>

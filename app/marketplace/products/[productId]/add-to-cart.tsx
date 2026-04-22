@@ -29,19 +29,19 @@ export function AddToCart({
   async function add() {
     setMsg("");
     if (hasVariants && !selectedVariant) {
-      setMsg("Please choose a variant.");
+      setMsg("Please pick an option.");
       return;
     }
     if (unavailable) {
-      setMsg("This product is currently unavailable.");
+      setMsg("This item is sold out right now.");
       return;
     }
     if (hasVariants && variantStock != null && qty > variantStock) {
-      setMsg(`Only ${variantStock} available for this variant right now.`);
+      setMsg(`Only ${variantStock} left of this option.`);
       return;
     }
     if (!hasVariants && qty > stockQuantity && stockStatus !== "backorder") {
-      setMsg(`Only ${stockQuantity} available right now.`);
+      setMsg(`Only ${stockQuantity} left in stock.`);
       return;
     }
     setPending(true);
@@ -53,10 +53,10 @@ export function AddToCart({
     const j = await r.json();
     setPending(false);
     if (!r.ok) {
-      setMsg(j.error || "Could not add");
+      setMsg(j.error || "We couldn’t add this to your cart. Try again.");
       return;
     }
-    setMsg("Added to cart");
+    setMsg("Added to your cart");
   }
 
   return (
@@ -64,7 +64,7 @@ export function AddToCart({
       {hasVariants ? (
         <div className="w-full sm:max-w-sm">
           <label className={ui.label} htmlFor="variant">
-            Variant
+            Option
           </label>
           <select
             id="variant"
@@ -109,11 +109,11 @@ export function AddToCart({
         />
       </div>
       <button type="button" onClick={add} className={ui.buttonPrimary} disabled={unavailable || pending}>
-        {pending ? "Adding…" : unavailable ? "Unavailable" : "Add to cart"}
+        {pending ? "Adding…" : unavailable ? "Sold out" : "Add to cart"}
       </button>
-      {!hasVariants && stockStatus === "backorder" ? <p className="text-sm text-stone-500">Available on backorder.</p> : null}
+      {!hasVariants && stockStatus === "backorder" ? <p className="text-sm text-stone-500">Made to order — shipped once it&rsquo;s ready.</p> : null}
       {msg ? (
-        <p className={`text-sm ${msg === "Added to cart" ? ui.successText : ui.errorText}`}>{msg}</p>
+        <p className={`text-sm ${msg === "Added to your cart" ? ui.successText : ui.errorText}`}>{msg}</p>
       ) : null}
     </div>
   );

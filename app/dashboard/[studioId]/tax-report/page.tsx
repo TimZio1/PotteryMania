@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     studioId,
     "Tax",
     "tax-report",
-    "Track booking and product tax totals for accounting periods.",
+    "Tax totals for bookings and products (last 30 days).",
   );
 }
 

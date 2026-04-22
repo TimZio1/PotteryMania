@@ -5,7 +5,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Terms of service",
-  description: "Terms governing use of the PotteryMania platform for studios, customers, and visitors.",
+  description: "The rules for using PotteryMania — for studios, customers, and visitors.",
   path: "/terms",
 });
 

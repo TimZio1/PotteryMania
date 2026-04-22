@@ -16,7 +16,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "AI advisor", "studio-tools/ai", "Studio AI assistant.");
+  return dashboardStudioMeta(studioId, "AI advisor", "studio-tools/ai", "Ideas and insights from your studio's own data.");
 }
 
 export default async function StudioAiPage({ params }: Props) {
@@ -33,19 +33,17 @@ export default async function StudioAiPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <div>
-        <p className={ui.overline}>Intelligence</p>
-        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">AI Advisor</h1>
+        <p className={ui.overline}>Tools</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">AI advisor</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Pay-per-insight cards use your real booking and listing data (rule-based analysis). The chat below is separate
-          — it requires the AI Advisor add-on and OpenAI.
+          Insight cards use your real bookings and listings. The chat below is separate — add-on required.
         </p>
       </div>
 
       <div>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Data insights</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Preview the signal for free; unlock the full diagnosis, benchmark, and recommendations with a one-time
-          payment.
+          Preview for free. Unlock the full breakdown for a one-time payment.
         </p>
         <div className="mt-4">
           <StudioMonetizedInsightsPanel studioId={studioId} initialInsights={monetizedInsights} variant="full" />
@@ -57,16 +55,16 @@ export default async function StudioAiPage({ params }: Props) {
       {entitled ? (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-3">
           <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-[var(--foreground)]">Pricing & positioning</p>
-            <p className="mt-2 text-xs text-[var(--muted)]">Compare your mix of classes and products to what tends to work for small studios.</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Pricing ideas</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">How your mix of classes and products compares to similar studios.</p>
           </div>
           <div className={ui.cardMuted}>
             <p className="text-sm font-semibold text-[var(--foreground)]">Fill quiet slots</p>
-            <p className="mt-2 text-xs text-[var(--muted)]">Brainstorm promos, bundles, or schedule tweaks using your booking pipeline counts.</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">Promo, bundle, and schedule suggestions based on your booking trend.</p>
           </div>
           <div className={ui.cardMuted}>
-            <p className="text-sm font-semibold text-[var(--foreground)]">Retention ideas</p>
-            <p className="mt-2 text-xs text-[var(--muted)]">Turn completed-class volume into concrete follow-up habits.</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Keep guests coming back</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">Follow-up ideas tied to the classes people just finished.</p>
           </div>
         </div>
       ) : null}
@@ -77,7 +75,7 @@ export default async function StudioAiPage({ params }: Props) {
         </Link>
         {" · "}
         <Link href={`/dashboard/${studioId}/features`} className="text-amber-900 underline">
-          Packs & add-ons
+          Add-ons
         </Link>
       </p>
     </div>

@@ -5,36 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { platformUi } from "@/lib/ui-styles";
-
-const adminLinks = [
-  { href: "/admin/my-business", label: "My business" },
-  { href: "/admin", label: "Executive overview" },
-  { href: "/admin/war-room", label: "War room" },
-  { href: "/admin/notifications", label: "Notifications" },
-  { href: "/admin/audit", label: "Audit" },
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/studios", label: "Studios" },
-  { href: "/admin/revenue", label: "Revenue" },
-  { href: "/admin/features", label: "Features" },
-  { href: "/admin/coupons", label: "Coupons" },
-  { href: "/admin/wear-products", label: "Wear products" },
-  { href: "/admin/wear-orders", label: "Wear sales" },
-  { href: "/admin/wear-analytics", label: "Wear analytics" },
-  { href: "/admin/orders", label: "Studio sales" },
-  { href: "/admin/bookings", label: "Bookings" },
-  { href: "/admin/operations", label: "Operations" },
-  { href: "/admin/content", label: "Content" },
-  { href: "/admin/platform-features", label: "Platform add-ons" },
-  { href: "/admin/feature-bundles", label: "Feature bundles" },
-  { href: "/admin/business-templates", label: "Business templates" },
-  { href: "/admin/storefront-domains", label: "Storefront domains" },
-  { href: "/admin/marketplace", label: "Discovery controls (off)" },
-  { href: "/admin/categories", label: "Ceramic categories" },
-  { href: "/admin/reports", label: "Reports" },
-  { href: "/admin/system", label: "System" },
-  { href: "/admin/settings", label: "Settings" },
-  { href: "/admin/finance", label: "Finance engine" },
-] as const;
+import { adminLinks } from "./admin-links";
 
 function MenuIcon({ className }: { className?: string }) {
   return (

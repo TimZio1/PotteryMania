@@ -43,27 +43,31 @@ type LandingPanel = {
   comingSoon?: boolean;
 };
 
+/**
+ * Eyebrow labels shown above each hero panel title.
+ * IMPORTANT: `marketplace_free` must NOT use "Discover creators" or similar —
+ * AGENTS.md forbids positioning the product as a marketplace / discovery platform.
+ */
 const LANDING_EYEBROWS: Record<LandingPanelKey, string> = {
   shop: "Sell your work",
-  bookings: "Book your skills",
+  bookings: "Book your classes",
   wearables: "Expand your brand",
-  marketplace_free: "Discover creators",
+  marketplace_free: "Public catalog",
 };
 
 function buildLandingPanels(defaultResellerMarginLabel: string): LandingPanel[] {
   return [
   {
     key: "shop",
-    title: "Create Your Own Pottery Shop",
-    subtitle: "Sell your ceramics - whether you're a solo artist or a full studio.",
+    title: "Open your own pottery shop",
+    subtitle: "Sell your ceramics. Solo maker or full studio.",
     points: [
       "Start with one piece or a full collection",
-      "Sell directly to your audience",
+      "Sell straight to your customers",
       "Set your own prices",
-      "Get paid instantly",
+      "Get paid fast",
     ],
-    psychologicalLine: "From your first piece to a full collection.",
-    cta: "Create Your Shop",
+    cta: "Start selling",
     href: "/register?callbackUrl=%2Fdashboard%2Fstudio%2Fnew%3Fsetup%3Dshop",
     image:
       "https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?auto=format&fit=crop&w=1600&q=80",
@@ -71,15 +75,15 @@ function buildLandingPanels(defaultResellerMarginLabel: string): LandingPanel[] 
   },
   {
     key: "bookings",
-    title: "Create Your Booking Site",
-    subtitle: "Turn your space - or your skills - into bookable experiences.",
+    title: "Take class bookings online",
+    subtitle: "Turn your space or your skills into bookable classes.",
     points: [
       "Offer classes or private sessions",
-      "Accept bookings 24/7",
-      "Manage availability easily",
-      "Get confirmed instantly",
+      "Take bookings 24/7",
+      "Set your schedule and prices",
+      "Customers pay up front",
     ],
-    cta: "Start Taking Bookings",
+    cta: "Start booking",
     href: "/register?callbackUrl=%2Fdashboard%2Fstudio%2Fnew%3Fsetup%3Dbookings",
     image:
       "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1600&q=80",
@@ -87,11 +91,16 @@ function buildLandingPanels(defaultResellerMarginLabel: string): LandingPanel[] 
   },
   {
     key: "wearables",
-    title: "Sell/Shop Wearables",
-    subtitle: "Sell them on your site, or buy for yourself.",
-    psychologicalLine: `Wear your work — shop the drop or earn from every sale. Platform default reseller margin ${defaultResellerMarginLabel}.`,
-    points: ["Sell branded apparel", "No inventory required", "Print-on-demand fulfillment", "Expand your identity beyond clay"],
-    cta: "Go to Identity",
+    title: "Add branded wearables",
+    subtitle: "Sell apparel with your studio name. No stock, no risk.",
+    psychologicalLine: `Print-on-demand. Default reseller margin ${defaultResellerMarginLabel}.`,
+    points: [
+      "Branded apparel for your studio",
+      "No stock to hold",
+      "Printed and shipped for you",
+      "Earn on every sale",
+    ],
+    cta: "Shop wearables",
     href: "/wear",
     image:
       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1600&q=80",
@@ -100,15 +109,15 @@ function buildLandingPanels(defaultResellerMarginLabel: string): LandingPanel[] 
   {
     key: "marketplace_free",
     title: "Free public catalog",
-    subtitle: "Browse studios and ceramics in one place — fair discovery, no pay-to-list games.",
-    psychologicalLine: "Coming soon — free for everyone at launch.",
+    subtitle: "Browse studios and ceramics in one place. Free for everyone.",
+    psychologicalLine: "Coming soon.",
     points: [
-      "Find makers and listings near you",
-      "Built for ceramics, not generic noise",
-      "Studios keep the relationship — we don’t play host",
-      "Launching free for buyers and sellers",
+      "Find makers near you",
+      "Built for ceramics",
+      "You stay in charge of your customers",
+      "No listing fees",
     ],
-    cta: "Preview browse",
+    cta: "See the catalog",
     href: "/marketplace",
     image:
       "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=1600&q=80",
@@ -126,26 +135,16 @@ export default async function Home() {
   return (
     <MarketingLayout>
       <main className="bg-[#f6f1e8] text-[#1f1a17]">
-        <section className="border-b border-stone-200 bg-[#f9f5ed]">
-          <div className={`${ui.pageContainer} flex items-center justify-between py-3`}>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-600">Built for ceramic makers</p>
-            <Link href="/demo" className="inline-flex min-h-10 items-center text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-900 underline decoration-stone-400 underline-offset-4 hover:decoration-stone-700">
-              Open demo
-            </Link>
-          </div>
-        </section>
-
-        <section className={`${ui.pageContainer} py-6 sm:py-8`}>
+        <section className={`${ui.pageContainer} py-6 sm:py-10`}>
           <div className="max-w-3xl">
             <h1 className="font-serif text-3xl leading-[1.02] tracking-[-0.02em] text-stone-950 sm:text-5xl">
               Sell your work. Run your studio. Own your craft.
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-stone-700 sm:text-base">
-              Built for potters, ceramic artists, and studios.
+              Built for potters, ceramic artists, and studios. Start small. Grow into a studio.
             </p>
-            <p className="mt-2 text-sm font-medium text-stone-900">Your craft, your business. Start small, grow into a studio.</p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-[0.08em] text-stone-600">
-              From your first piece... to your full studio.
+            <p className="mt-2 max-w-2xl text-xs text-stone-600 sm:text-sm">
+              Connect your own domain in minutes.
             </p>
           </div>
         </section>

@@ -13,7 +13,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell
       title="Reset your password"
-      description="Type your email. If we find you, we’ll send a reset link."
+      description="We email a reset link if this address has an account."
     >
       <ForgotPasswordInner />
     </AuthShell>

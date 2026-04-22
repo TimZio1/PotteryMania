@@ -509,7 +509,7 @@ export async function runCheckoutCompletionSideEffects(input: {
       await sendBookingEmails({
         customerEmail: b.customerEmail,
         studioEmail: it.vendor.email,
-        subject: `Booking confirmed: ${b.experience.title}`,
+        subject: `You're booked: ${b.experience.title}`,
         customerHtml: enriched.customerHtmlWithCalendar,
         customerAttachments: enriched.customerAttachments,
         studioHtml: studio,
@@ -534,7 +534,7 @@ export async function runCheckoutCompletionSideEffects(input: {
       await sendBookingEmails({
         customerEmail: b.customerEmail,
         studioEmail: it.vendor.email,
-        subject: `Booking received — approval pending: ${b.experience.title}`,
+        subject: `Waiting for studio: ${b.experience.title}`,
         customerHtml: customer,
         studioHtml: studio,
       });
@@ -550,8 +550,8 @@ export async function runCheckoutCompletionSideEffects(input: {
         customerEmail: b.customerEmail,
         studioEmail: it.vendor?.email ?? "",
         subject: `Booking cancelled — ${b.experience.title}`,
-        customerHtml: `<p>Hi ${b.customerName},</p><p>Unfortunately your booking for <strong>${b.experience.title}</strong> was automatically cancelled because the session reached capacity before your payment could be confirmed.</p><p>A refund of €${((b.depositAmountCents || b.totalAmountCents) / 100).toFixed(2)} will be processed. If you have questions, contact the studio directly.</p>`,
-        studioHtml: `<p>Booking for <strong>${b.customerName}</strong> (${b.customerEmail}) was auto-cancelled for <strong>${b.experience.title}</strong> due to capacity. A refund review is required.</p>`,
+        customerHtml: `<p>Hi ${b.customerName},</p><p>The class <strong>${b.experience.title}</strong> filled up before we could confirm your payment, so your booking was cancelled.</p><p>We're refunding €${((b.depositAmountCents || b.totalAmountCents) / 100).toFixed(2)}. Questions? Contact the studio.</p>`,
+        studioHtml: `<p><strong>${b.customerName}</strong> (${b.customerEmail}) was auto-cancelled for <strong>${b.experience.title}</strong> — class was already full. Please review the refund.</p>`,
       });
     });
   }

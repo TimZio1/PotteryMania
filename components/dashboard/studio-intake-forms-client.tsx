@@ -120,13 +120,13 @@ export default function StudioIntakeFormsClient({
 
   async function save() {
     if (!form.title.trim()) {
-      setErr("Question title is required.");
+      setErr("Give the question a title.");
       return;
     }
 
     const options = normalizeOptions(form.optionsText);
     if (needsOptions && options.length === 0) {
-      setErr("Dropdown questions need at least one option.");
+      setErr("Add at least one dropdown option.");
       return;
     }
 
@@ -152,13 +152,13 @@ export default function StudioIntakeFormsClient({
         });
         const data = (await res.json()) as { error?: string; form?: IntakeFormItem };
         if (!res.ok || !data.form) {
-          throw new Error(data.error ?? "Could not create booking question.");
+          throw new Error(data.error ?? "We couldn't save. Try again.");
         }
         const nextItems = sortItems([...items, data.form]);
         setItems(nextItems);
         setSelectedId(data.form.id);
         setForm(formFromItem(data.form));
-        setMsg("Booking question created.");
+        setMsg("Question added.");
         router.refresh();
         return;
       }
@@ -170,7 +170,7 @@ export default function StudioIntakeFormsClient({
       });
       const patchData = (await patchRes.json()) as { error?: string; form?: IntakeFormItem };
       if (!patchRes.ok || !patchData.form) {
-        throw new Error(patchData.error ?? "Could not update booking question.");
+        throw new Error(patchData.error ?? "We couldn't save. Try again.");
       }
 
       const linkRes = await fetch(`/api/studios/${studioId}/intake-forms/${selectedId}/link`, {
@@ -180,16 +180,16 @@ export default function StudioIntakeFormsClient({
       });
       const linkData = (await linkRes.json()) as { error?: string; form?: IntakeFormItem };
       if (!linkRes.ok || !linkData.form) {
-        throw new Error(linkData.error ?? "Could not update class assignments.");
+        throw new Error(linkData.error ?? "We couldn't update class assignments. Try again.");
       }
 
       const nextItems = sortItems(items.map((item) => (item.id === selectedId ? linkData.form! : item)));
       setItems(nextItems);
       setForm(formFromItem(linkData.form));
-      setMsg("Booking question updated.");
+      setMsg("Saved.");
       router.refresh();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Save failed.");
+      setErr(error instanceof Error ? error.message : "We couldn't save. Try again.");
     } finally {
       setBusy(false);
     }
@@ -208,7 +208,7 @@ export default function StudioIntakeFormsClient({
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        throw new Error(data.error ?? "Could not delete booking question.");
+        throw new Error(data.error ?? "We couldn't delete. Try again.");
       }
 
       const nextItems = items.filter((item) => item.id !== selectedId);
@@ -219,10 +219,10 @@ export default function StudioIntakeFormsClient({
       } else {
         openNew();
       }
-      setMsg("Booking question deleted.");
+      setMsg("Deleted.");
       router.refresh();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Delete failed.");
+      setErr(error instanceof Error ? error.message : "We couldn't delete. Try again.");
     } finally {
       setBusy(false);
     }
@@ -233,10 +233,10 @@ export default function StudioIntakeFormsClient({
       <section className={`${ui.card} space-y-4`}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className={ui.overline}>Question bank</p>
+            <p className={ui.overline}>Questions</p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Booking questions</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Collect notes, waivers, dates, selections, and file links during class booking.
+              Ask guests anything at checkout — dietary needs, waivers, sizes, uploads.
             </p>
           </div>
           <button type="button" className={ui.buttonPrimary} onClick={openNew}>
@@ -246,7 +246,7 @@ export default function StudioIntakeFormsClient({
 
         {items.length === 0 ? (
           <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
-            No booking questions yet. Add the questions you want customers to answer before checkout.
+            No questions yet. Add what you want guests to answer at checkout.
           </div>
         ) : (
           <div className="space-y-3">
@@ -286,15 +286,15 @@ export default function StudioIntakeFormsClient({
           <div>
             <p className={ui.overline}>{selected ? "Edit" : "Create"}</p>
             <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-              {selected ? selected.title : "New booking question"}
+              {selected ? selected.title : "New question"}
             </h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Questions appear on the booking form and are saved on the booking record for staff follow-up.
+              Shown at checkout. The answer is saved to the booking so you can follow up.
             </p>
           </div>
           {selected ? (
             <button type="button" className={ui.buttonGhost} onClick={openNew}>
-              New form
+              New question
             </button>
           ) : null}
         </div>
@@ -329,10 +329,10 @@ export default function StudioIntakeFormsClient({
               <option value="text_single">Short text</option>
               <option value="text_multi">Long text</option>
               <option value="number">Number</option>
-              <option value="checkbox">Checkbox / consent</option>
+              <option value="checkbox">Checkbox (consent)</option>
               <option value="dropdown">Dropdown</option>
               <option value="date">Date</option>
-              <option value="file_upload">File link</option>
+              <option value="file_upload">File upload</option>
             </select>
           </label>
         </div>
@@ -352,7 +352,7 @@ export default function StudioIntakeFormsClient({
               checked={form.includeInInvoice}
               onChange={(e) => setForm((current) => ({ ...current, includeInInvoice: e.target.checked }))}
             />
-            Include on invoice snapshot
+            Show on invoice
           </label>
           <label className="block text-sm">
             <span className={ui.label}>Sort order</span>
@@ -384,19 +384,18 @@ export default function StudioIntakeFormsClient({
           </label>
         ) : form.fieldType === "file_upload" ? (
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
-            Customers can upload a JPG, PNG, or WebP image during booking, and they can still paste a hosted file URL if
-            needed.
+            Guests can upload a JPG, PNG, or WebP, or paste a link.
           </div>
         ) : null}
 
         <div>
           <p className={ui.label}>Ask on these classes</p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            If you leave this empty, the question is available to assign later but will not show on public bookings yet.
+            Leave empty to set up now and assign later.
           </p>
           {experiences.length === 0 ? (
             <p className="mt-3 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
-              Create at least one class before assigning booking questions.
+              Create a class first, then come back to assign questions.
             </p>
           ) : (
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -419,7 +418,7 @@ export default function StudioIntakeFormsClient({
 
         <div className="flex flex-wrap gap-3 border-t border-stone-100 pt-4">
           <button type="button" className={ui.buttonPrimary} disabled={busy} onClick={save}>
-            {busy ? "Saving..." : selected ? "Save question" : "Create question"}
+            {busy ? "Saving…" : selected ? "Save question" : "Create question"}
           </button>
           {selected ? (
             <button type="button" className={ui.buttonGhost} disabled={busy} onClick={removeSelected}>

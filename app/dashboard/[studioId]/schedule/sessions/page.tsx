@@ -14,7 +14,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Sessions", "schedule/sessions", "Review and manage studio reservations.");
+  return dashboardStudioMeta(studioId, "Sessions", "schedule/sessions", "Every booking in one place. Approve, check in, reschedule.");
 }
 
 export default async function StudioScheduleSessionsPage({ params }: Props) {
@@ -98,7 +98,7 @@ export default async function StudioScheduleSessionsPage({ params }: Props) {
         <p className={ui.overline}>Schedule</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Sessions</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Filter by status, experience, and session date. Open a row for approvals, reschedules, participant details, and calendar exports.
+          Every booking in one list. Open any row to approve, check in, reschedule, or export.
         </p>
       </div>
 

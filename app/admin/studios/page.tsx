@@ -13,7 +13,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Studios",
   "/admin/studios",
-  "Approve and manage ceramic studios.",
+  "Approve and manage studios.",
 );
 
 export const dynamic = "force-dynamic";
@@ -91,10 +91,10 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Directory</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Studios</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Studios</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">All studios</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Find a studio, then open it to review status, Stripe, activation, and ranking.
+        Search, then open a studio to review status, Stripe, and ranking.
       </p>
 
       <form method="get" className={`${ui.cardMuted} mt-8 space-y-4`}>
@@ -184,7 +184,7 @@ export default async function AdminStudiosPage({ searchParams }: Props) {
             },
             {
               key: "cat",
-              header: "Catalog",
+              header: "Activity",
               cell: (r) => (
                 <span className="text-xs text-[var(--muted)]">
                   {r._count.experiences} classes · {r._count.products} products · {r._count.bookings} bookings

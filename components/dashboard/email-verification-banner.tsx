@@ -14,16 +14,16 @@ export function EmailVerificationBanner({ email }: { email: string }) {
       const r = await fetch("/api/auth/resend-verification", { method: "POST" });
       const j = (await r.json().catch(() => ({}))) as { alreadyVerified?: boolean; error?: string };
       if (r.status === 429) {
-        setMsg("Please wait a few minutes before trying again.");
+        setMsg("Wait a few minutes, then try again.");
       } else if (j.alreadyVerified) {
-        setMsg("Your email is already verified — refresh the page.");
+        setMsg("Already verified. Refresh the page.");
       } else if (r.ok) {
-        setMsg("Check your inbox (and spam) for a new verification link.");
+        setMsg("Check your inbox for a new link.");
       } else {
-        setMsg(typeof j.error === "string" ? j.error : "We couldn’t send your verification email. Please try again.");
+        setMsg(typeof j.error === "string" ? j.error : "We couldn’t send the email. Try again.");
       }
     } catch {
-      setMsg("Could not send. Try again later.");
+      setMsg("We couldn’t send the email. Try again.");
     }
     setPending(false);
   }
@@ -33,10 +33,8 @@ export function EmailVerificationBanner({ email }: { email: string }) {
       <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="leading-relaxed text-[var(--foreground)]">
           <strong className="font-semibold text-[var(--foreground)]">Verify your email</strong> — We sent a link to{" "}
-          <span className="rounded bg-white px-1 font-mono text-xs text-stone-900 shadow-(--pm-shadow-rest)">{email}</span>. Confirm it so we can
-          reliably reach you about orders and bookings.{" "}
-          <span className="text-[var(--muted)]">Didn&apos;t receive it?</span> Use the button — we rate-limit resends to
-          protect your inbox.
+          <span className="rounded bg-white px-1 font-mono text-xs text-stone-900 shadow-(--pm-shadow-rest)">{email}</span>. Confirm it so we can reach
+          you about orders and bookings.
         </p>
         <button type="button" onClick={resend} disabled={pending} className={`${platformUi.buttonSecondary} shrink-0`}>
           {pending ? "Sending…" : "Resend email"}

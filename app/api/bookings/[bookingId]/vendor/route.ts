@@ -132,7 +132,7 @@ export async function POST(req: Request, ctx: Ctx) {
       await sendBookingEmails({
         customerEmail: booking.customerEmail,
         studioEmail: booking.studio.email,
-        subject: `Booking confirmed: ${booking.experience.title}`,
+        subject: `You're booked: ${booking.experience.title}`,
         customerHtml: enriched.customerHtmlWithCalendar,
         customerAttachments: enriched.customerAttachments,
         studioHtml: copy.studio,
@@ -205,10 +205,10 @@ export async function POST(req: Request, ctx: Ctx) {
     await sendBookingEmails({
       customerEmail: booking.customerEmail,
       studioEmail: booking.studio.email ?? undefined,
-      subject: `Booking not approved: ${booking.experience.title}`,
+      subject: `Booking declined: ${booking.experience.title}`,
       customerHtml: rejectedHtml,
       studioHtml: booking.studio.email
-        ? `<h1>You declined a booking</h1><p>${booking.experience.title} — ${booking.customerEmail}</p>`
+        ? `<h1>Booking declined</h1><p>${booking.experience.title} — ${booking.customerEmail}</p>`
         : undefined,
     });
   } catch (e) {

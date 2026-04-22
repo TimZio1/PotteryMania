@@ -328,7 +328,7 @@ export function ClassBookingForm(props: {
       const raw = clientFieldValues[field.id];
       const value = field.fieldType === "checkbox" ? (Boolean(raw) ? "true" : "") : typeof raw === "string" ? raw.trim() : "";
       if (field.isRequired && !value) {
-        setErr(`Please complete required profile field: ${field.title}`);
+        setErr(`Please fill in “${field.title}” to continue.`);
         return false;
       }
     }
@@ -343,7 +343,7 @@ export function ClassBookingForm(props: {
     }
     if (!res.ok) {
       const data = await res.json().catch(() => ({} as { error?: string }));
-      setErr(data.error || "Could not save profile fields.");
+      setErr(data.error || "We couldn’t save your profile. Try again.");
       return false;
     }
     return true;
@@ -396,7 +396,7 @@ export function ClassBookingForm(props: {
         ...current,
         [formId]: {
           busy: false,
-          error: error instanceof Error ? error.message : "Upload failed.",
+          error: error instanceof Error ? error.message : "Upload failed. Try again.",
           uploadedUrl: current[formId]?.uploadedUrl ?? "",
         },
       }));
@@ -430,7 +430,7 @@ export function ClassBookingForm(props: {
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr(j.error || "Could not add class");
+        setErr(j.error || "We couldn’t add this class. Try again.");
         return;
       }
       setAdded(true);
@@ -459,13 +459,13 @@ export function ClassBookingForm(props: {
       });
       const j = await r.json();
       if (!r.ok) {
-        setWlErr(j.error || "Could not join waitlist");
+        setWlErr(j.error || "We couldn’t add you to the waitlist. Try again.");
         return;
       }
       setWlOk(
         j.message === "Added to waitlist"
-          ? "You've been added to the waitlist. You can check your status from your account."
-          : j.message || "You've been added to the waitlist. You can check your status from your account."
+          ? "You’re on the waitlist. We’ll email you the moment a seat opens up."
+          : j.message || "You’re on the waitlist. We’ll email you the moment a seat opens up."
       );
     } finally {
       setWlLoading(false);
@@ -499,11 +499,11 @@ export function ClassBookingForm(props: {
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr(j.error || "Could not reserve booking");
+        setErr(j.error || "We couldn’t hold your seat. Try again.");
         return;
       }
       setPasOk(
-        `Spot held. Your reference: ${j.ticketRef}. Pay €${(fullLineCents / 100).toFixed(2)} when you arrive.`,
+        `Seat held! Your booking code is ${j.ticketRef}. Pay €${(fullLineCents / 100).toFixed(2)} when you arrive.`,
       );
     } finally {
       setPasLoading(false);
@@ -513,21 +513,23 @@ export function ClassBookingForm(props: {
   return (
     <div className="mt-6 space-y-8">
       {props.slots.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">No open times with enough seats right now.</p>
+        <p className="text-sm text-[var(--muted)]">
+          No open times with enough seats right now.{props.waitlistSlots.length > 0 ? " Join the waitlist below and we’ll email you when a seat opens up." : " Check back soon."}
+        </p>
       ) : (
         <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
-          <h2 className="text-lg font-medium text-[var(--foreground)]">Book your spot</h2>
+          <h2 className="text-lg font-medium text-[var(--foreground)]">Book your seat</h2>
           {err && <p ref={errRef} className="text-sm text-red-400">{err}</p>}
           {added && (
             <p className="text-sm text-[var(--muted)]">
-              Added to cart.{" "}
+              Added to your cart.{" "}
               <Link href="/cart" className="text-[var(--accent)] underline">
                 Go to cart
               </Link>
             </p>
           )}
           <label className="block text-sm">
-            <span className="text-[var(--muted)]">When</span>
+            <span className="text-[var(--muted)]">Date &amp; time</span>
             <select
               className={`${ui.input} mt-1`}
               value={slotId}
@@ -539,7 +541,7 @@ export function ClassBookingForm(props: {
                 const urgency = left <= 2 ? `only ${left} left` : `${left} seats left`;
                 return (
                   <option key={s.id} value={s.id}>
-                    {day} {s.startTime}–{s.endTime} ({urgency})
+                    {day} · {s.startTime}–{s.endTime} ({urgency})
                   </option>
                 );
               })}
@@ -547,14 +549,14 @@ export function ClassBookingForm(props: {
           </label>
           {seatKeys.length > 0 && (
             <label className="block text-sm">
-              <span className="text-[var(--muted)]">Seat type</span>
+              <span className="text-[var(--muted)]">Seat option</span>
               <select
                 className={`${ui.input} mt-1`}
                 value={seatType}
                 onChange={(e) => setSeatType(e.target.value)}
                 required
               >
-                <option value="">Choose a seat…</option>
+                <option value="">Pick one…</option>
                 {seatKeys.map((k) => (
                   <option key={k} value={k}>
                     {k.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
@@ -565,7 +567,7 @@ export function ClassBookingForm(props: {
           )}
           <label className="block text-sm">
             <span className="text-[var(--muted)]">
-              How many people? ({props.minP}–{props.maxP})
+              Guests ({props.minP}–{props.maxP})
             </span>
             <input
               type="number"
@@ -577,18 +579,18 @@ export function ClassBookingForm(props: {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-[var(--muted)]">Notes for the studio (optional)</span>
+            <span className="text-[var(--muted)]">Note for the studio (optional)</span>
             <textarea
               className={`${ui.input} mt-1 min-h-24`}
               value={bookingNotes}
               onChange={(e) => setBookingNotes(e.target.value)}
               maxLength={1000}
-              placeholder="Anything the studio should know before your session?"
+              placeholder="Anything they should know before your class?"
             />
           </label>
           {instructorOptions.length > 1 ? (
             <label className="block text-sm">
-              <span className="text-[var(--muted)]">Instructor</span>
+              <span className="text-[var(--muted)]">Teacher</span>
               <select
                 className={`${ui.input} mt-1`}
                 value={selectedInstructorId}
@@ -604,31 +606,31 @@ export function ClassBookingForm(props: {
             </label>
           ) : null}
           {instructorOptions.length === 1 ? (
-            <p className="text-xs text-[var(--muted)]">Instructor: {instructorOptions[0].name}</p>
+            <p className="text-xs text-[var(--muted)]">Taught by {instructorOptions[0].name}</p>
           ) : null}
           <div className="space-y-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
-            <p className="text-sm font-medium text-[var(--foreground)]">Use package credits</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">Use a class package</p>
             {packageLoading ? (
-              <p className="text-sm text-[var(--muted)]">Checking your active credits…</p>
+              <p className="text-sm text-[var(--muted)]">Checking your credits…</p>
             ) : packageOptions.length === 0 ? (
               <p className="text-sm text-[var(--muted)]">
-                No active package credits found for this class.{" "}
+                You don&rsquo;t have any credits for this class.{" "}
                 <Link href={`/studios/${props.studioId}/packages`} className="text-[var(--accent)] underline">
-                  Browse packages
+                  See this studio&rsquo;s packages
                 </Link>
               </p>
             ) : (
               <label className="block text-sm">
-                <span className="text-[var(--muted)]">Package purchase</span>
+                <span className="text-[var(--muted)]">Use a package</span>
                 <select
                   className={`${ui.input} mt-1`}
                   value={selectedPackagePurchaseId}
                   onChange={(e) => setSelectedPackagePurchaseId(e.target.value)}
                 >
-                  <option value="">Do not use package credits</option>
+                  <option value="">Pay the full price</option>
                   {packageOptions.map((entry) => (
                     <option key={entry.id} value={entry.id}>
-                      {entry.package.name} · {entry.creditsRemaining} credits left · expires {entry.expiresAt.slice(0, 10)}
+                      {entry.package.name} · {entry.creditsRemaining} {entry.creditsRemaining === 1 ? "credit" : "credits"} left · expires {entry.expiresAt.slice(0, 10)}
                     </option>
                   ))}
                 </select>
@@ -640,8 +642,8 @@ export function ClassBookingForm(props: {
           ) : addOns.length > 0 ? (
             <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
               <div>
-                <p className="text-sm font-medium text-[var(--foreground)]">Optional extras</p>
-                <p className="text-xs text-[var(--muted)]">Add premium materials, upgrades, or extras to this booking.</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">Add-ons (optional)</p>
+                <p className="text-xs text-[var(--muted)]">Extra materials or upgrades for your class.</p>
               </div>
               <div className="space-y-3">
                 {addOns.map((addOn) => {
@@ -703,12 +705,12 @@ export function ClassBookingForm(props: {
             </div>
           ) : null}
           {intakeLoading ? (
-            <p className="text-sm text-[var(--muted)]">Loading booking questions…</p>
+            <p className="text-sm text-[var(--muted)]">Loading questions…</p>
           ) : intakeForms.length > 0 ? (
             <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
               <div>
-                <p className="text-sm font-medium text-[var(--foreground)]">Booking questions</p>
-                <p className="text-xs text-[var(--muted)]">Answer these before you complete your reservation.</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">A few questions from the studio</p>
+                <p className="text-xs text-[var(--muted)]">These help the teacher prep for your class.</p>
               </div>
               {intakeForms.map((form) => {
                 const options = Array.isArray(form.options)
@@ -791,7 +793,7 @@ export function ClassBookingForm(props: {
                             onChange={(e) => void onFileUpload(form.id, e.target.files?.[0] ?? null)}
                           />
                           <span>
-                            {uploadStates[form.id]?.busy ? "Uploading..." : "Upload image"}
+                            {uploadStates[form.id]?.busy ? "Uploading…" : "Upload a photo"}
                           </span>
                         </label>
                         <input
@@ -826,12 +828,12 @@ export function ClassBookingForm(props: {
             </div>
           ) : null}
           {clientFieldsLoading ? (
-            <p className="text-sm text-[var(--muted)]">Loading client profile fields…</p>
+            <p className="text-sm text-[var(--muted)]">Loading profile…</p>
           ) : clientFields.length > 0 ? (
             <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
               <div>
-                <p className="text-sm font-medium text-[var(--foreground)]">Client profile fields</p>
-                <p className="text-xs text-[var(--muted)]">These details are saved to your profile for future bookings.</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">Your profile</p>
+                <p className="text-xs text-[var(--muted)]">Saved to your profile so you don&rsquo;t fill this in next time.</p>
               </div>
               {clientFields.map((field) => {
                 const options = Array.isArray(field.options)
@@ -920,23 +922,23 @@ export function ClassBookingForm(props: {
             </div>
           ) : null}
           <p className="text-sm text-[var(--muted)]">
-            Experience total: €{(fullLineCents / 100).toFixed(2)}
+            Total: €{(fullLineCents / 100).toFixed(2)}
             {props.bookingDepositBps > 0 || packageCoversClassBase ? (
               <>
                 {" "}
-                · Due at checkout: €{(chargeNowCents / 100).toFixed(2)}
+                · Pay now: €{(chargeNowCents / 100).toFixed(2)}
               </>
             ) : null}
           </p>
           {props.bookingDepositBps > 0 || packageCoversClassBase ? (
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
-              <p className="text-sm font-medium text-[var(--foreground)]">Payment options</p>
+              <p className="text-sm font-medium text-[var(--foreground)]">How would you like to pay?</p>
               {packageCoversClassBase ? (
                 <p className="mt-2 text-xs text-emerald-700">
-                  Package credit applied to class price (€{((props.priceCents * participantCount) / 100).toFixed(2)}).
+                  Your package covers the class price (€{((props.priceCents * participantCount) / 100).toFixed(2)}).
                   {addOnTotalCents > 0
-                    ? ` Only add-ons (€${(addOnTotalCents / 100).toFixed(2)}) are charged at checkout.`
-                    : " No charge is due now for this class."}
+                    ? ` You’ll only pay for add-ons (€${(addOnTotalCents / 100).toFixed(2)}) at checkout.`
+                    : " Nothing to pay now."}
                 </p>
               ) : null}
               <div className="mt-3 space-y-2">
@@ -950,10 +952,10 @@ export function ClassBookingForm(props: {
                   />
                   <span>
                     <span className="block font-medium text-[var(--foreground)]">
-                      Pay deposit now
+                      Pay a deposit now
                     </span>
                     <span className="block text-xs text-[var(--muted)]">
-                      €{(dueNowCents / 100).toFixed(2)} now ({depositPct.toFixed(1)}%) · €{((payableLineCents - dueNowCents) / 100).toFixed(2)} later
+                      €{(dueNowCents / 100).toFixed(2)} today ({Number.isInteger(depositPct) ? depositPct : depositPct.toFixed(1)}%), €{((payableLineCents - dueNowCents) / 100).toFixed(2)} when you arrive.
                     </span>
                   </span>
                 </label>
@@ -971,10 +973,10 @@ export function ClassBookingForm(props: {
                     />
                     <span>
                       <span className="block font-medium text-[var(--foreground)]">
-                        Pay full price now
+                        Pay the full amount now
                       </span>
                       <span className="block text-xs text-[var(--muted)]">
-                        €{(payableLineCents / 100).toFixed(2)} charged today
+                        €{(payableLineCents / 100).toFixed(2)} today, nothing on arrival.
                       </span>
                     </span>
                   </label>
@@ -986,14 +988,14 @@ export function ClassBookingForm(props: {
             <p className="text-xs text-[var(--muted)]">
               {(() => {
                 const left = selectedSlot.capacityTotal - selectedSlot.capacityReserved;
-                if (left <= 2) return `Only ${left} spot${left === 1 ? "" : "s"} left on this session.`;
-                return `${left} spot${left === 1 ? "" : "s"} currently available.`;
+                if (left <= 2) return `Only ${left} ${left === 1 ? "seat" : "seats"} left.`;
+                return `${left} ${left === 1 ? "seat" : "seats"} left.`;
               })()}
             </p>
           ) : null}
           {props.cancellationPolicyLabel ? (
             <p className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--muted)]">
-              Cancellation policy: {props.cancellationPolicyLabel}
+              Cancellations: {props.cancellationPolicyLabel}
             </p>
           ) : null}
           <label className="flex items-start gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--muted)]">
@@ -1019,11 +1021,11 @@ export function ClassBookingForm(props: {
                   checked={payAtStudioMode}
                   onChange={(e) => { setPayAtStudioMode(e.target.checked); setAdded(false); setPasOk(""); }}
                 />
-                Pay at the studio instead
+                I&rsquo;ll pay in person at the studio
               </label>
               {payAtStudioMode && (
                 <p className="mt-1 text-xs text-[var(--muted)]">
-                  No online payment required. Pay €{(fullLineCents / 100).toFixed(2)} when you arrive.
+                  We&rsquo;ll hold your seat. Bring €{(fullLineCents / 100).toFixed(2)} on the day.
                 </p>
               )}
             </div>
@@ -1039,14 +1041,14 @@ export function ClassBookingForm(props: {
                 {loading ? (
                   <span className="inline-flex items-center justify-center gap-2">
                     <Spinner size="sm" className="text-white" />
-                    Booking…
+                    Adding to cart…
                   </span>
                 ) : (
-                  "Book and pay"
+                  "Add to cart"
                 )}
               </button>
               <p className="mt-2 text-center text-xs text-[var(--muted)]">
-                Secure payment. Add more items before you pay if you want.
+                You&rsquo;ll pay on the next step. Browse a bit more first if you like.
               </p>
             </div>
           ) : (
@@ -1079,10 +1081,10 @@ export function ClassBookingForm(props: {
                 {pasLoading ? (
                   <span className="inline-flex items-center justify-center gap-2">
                     <Spinner size="sm" className="text-white" />
-                    Reserving…
+                    Holding your seat…
                   </span>
                 ) : (
-                  "Hold my spot — pay at the studio"
+                  "Hold my seat — I’ll pay at the studio"
                 )}
               </button>
             </div>
@@ -1094,23 +1096,22 @@ export function ClassBookingForm(props: {
         <form onSubmit={onWaitlist} className="space-y-4 rounded-lg border border-dashed border-amber-300 bg-[var(--accent-muted)]/40 p-4">
           <h2 className="text-lg font-medium text-[var(--foreground)]">Join the waitlist</h2>
           <p className="text-sm text-[var(--muted)]">
-            No seats open for your group. Join the waitlist — no payment, no seat held. We&rsquo;ll let you know if one opens.
+            All seats are taken. Leave your details — we&rsquo;ll email you the moment a seat opens up. No payment, no seat held.
           </p>
           {wlErr && <p className="text-sm text-red-400">{wlErr}</p>}
           {wlOk && <p className="text-sm text-green-800">{wlOk}</p>}
           <label className="block text-sm">
-            <span className="text-[var(--muted)]">Session</span>
+            <span className="text-[var(--muted)]">Which class?</span>
             <select
               className={`${ui.input} mt-1`}
               value={wlSlotId}
               onChange={(e) => setWlSlotId(e.target.value)}
             >
               {props.waitlistSlots.map((s) => {
-                const left = s.capacityTotal - s.capacityReserved;
                 const day = s.slotDate.slice(0, 10);
                 return (
                   <option key={s.id} value={s.id}>
-                    {day} {s.startTime}–{s.endTime} ({left} left)
+                    {day} · {s.startTime}–{s.endTime} (full)
                   </option>
                 );
               })}
@@ -1118,24 +1119,24 @@ export function ClassBookingForm(props: {
           </label>
           {wlSeatKeys.length > 0 && (
             <label className="block text-sm">
-              <span className="text-[var(--muted)]">Seat type</span>
+              <span className="text-[var(--muted)]">Seat option</span>
               <select
                 className={`${ui.input} mt-1`}
                 value={wlSeatType}
                 onChange={(e) => setWlSeatType(e.target.value)}
                 required
               >
-                <option value="">Select…</option>
+                <option value="">Pick one…</option>
                 {wlSeatKeys.map((k) => (
                   <option key={k} value={k}>
-                    {k}
+                    {k.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                   </option>
                 ))}
               </select>
             </label>
           )}
           <label className="block text-sm">
-            <span className="text-[var(--muted)]">Participants</span>
+            <span className="text-[var(--muted)]">Guests</span>
             <input
               type="number"
               min={props.minP}
@@ -1146,7 +1147,7 @@ export function ClassBookingForm(props: {
             />
           </label>
           <label className="block text-sm">
-            <span className="text-[var(--muted)]">Name</span>
+            <span className="text-[var(--muted)]">Your name</span>
             <input
               className={`${ui.input} mt-1`}
               value={wlName}
@@ -1178,10 +1179,10 @@ export function ClassBookingForm(props: {
             {wlLoading ? (
               <span className="inline-flex items-center justify-center gap-2">
                 <Spinner size="sm" />
-                Joining…
+                Adding you…
               </span>
             ) : (
-              "Join waitlist"
+              "Add me to the waitlist"
             )}
           </button>
         </form>

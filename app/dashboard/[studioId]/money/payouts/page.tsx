@@ -6,7 +6,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Payouts & account", "money/payouts", "Stripe Connect and legal studio profile.");
+  return dashboardStudioMeta(studioId, "Payouts & bank", "money/payouts", "Bank payouts and your studio profile.");
 }
 
 /** Inlines into shell later; canonical entry today is the full studio workspace. */

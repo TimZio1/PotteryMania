@@ -130,7 +130,7 @@ export default async function ProductPage({ params }: Props) {
     }),
     breadcrumbJsonLd([
       { name: "Home", path: "/" },
-      { name: "Marketplace", path: "/marketplace" },
+      { name: "Shop", path: "/marketplace" },
       { name: product.studio.displayName, path: `/studios/${product.studio.id}` },
       { name: product.title, path: `/marketplace/products/${product.id}` },
     ]),
@@ -174,7 +174,7 @@ export default async function ProductPage({ params }: Props) {
               <span className="rounded-full bg-stone-100 px-3 py-1">{ceramicCategoryMetaByValue(product.category).title}</span>
               {hasVariants ? (
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
-                  {product.variants.length} variant{product.variants.length === 1 ? "" : "s"}
+                  {product.variants.length} {product.variants.length === 1 ? "option" : "options"}
                   {totalVariantStock > 0 ? ` · ${totalVariantStock} in stock` : ""}
                 </span>
               ) : product.stockQuantity > 0 ? (
@@ -182,27 +182,31 @@ export default async function ProductPage({ params }: Props) {
                   {product.stockQuantity} in stock
                 </span>
               ) : (
-                <span className="rounded-full bg-red-50 px-3 py-1 text-red-700">Out of stock</span>
+                <span className="rounded-full bg-red-50 px-3 py-1 text-red-700">Sold out</span>
               )}
-              {product.isFeatured ? <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-800">Featured</span> : null}
+              {product.isFeatured ? <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-800">Studio pick</span> : null}
             </div>
             {product.shortDescription ? <p className="mt-4 text-stone-700">{product.shortDescription}</p> : null}
             <p className={`mt-3 text-sm font-medium ${shipsToUser ? "text-emerald-700" : "text-rose-700"}`}>
-              {shipsToUser ? "Ships to your location" : "Not available in your region"}
+              {shipsToUser ? "Ships to your country" : "This studio doesn’t ship here yet"}
             </p>
             <div className="mt-8">
               {recurring ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-                  <p className="text-sm font-medium text-amber-950">Recurring plan</p>
+                  <p className="text-sm font-medium text-amber-950">Subscription</p>
                   <ul className="mt-2 space-y-1 text-xs text-amber-900">
-                    <li>Billing cycle: {billingIntervalLabel(product.billingInterval!, product.billingIntervalCount ?? 1)}</li>
-                    <li>Auto-renew: {product.autoRenew ? "On" : "Off"}</li>
-                    {product.minimumCommitmentCycles ? <li>Minimum commitment: {product.minimumCommitmentCycles} cycles</li> : null}
-                    {product.trialPeriodDays ? <li>Trial period: {product.trialPeriodDays} days</li> : null}
-                    {product.cancellationPolicyText ? <li>Cancellation: {product.cancellationPolicyText}</li> : null}
+                    <li>Billed: {billingIntervalLabel(product.billingInterval!, product.billingIntervalCount ?? 1)}</li>
+                    <li>Renews automatically: {product.autoRenew ? "Yes" : "No"}</li>
+                    {product.minimumCommitmentCycles ? (
+                      <li>Minimum commitment: {product.minimumCommitmentCycles} {product.minimumCommitmentCycles === 1 ? "cycle" : "cycles"}</li>
+                    ) : null}
+                    {product.trialPeriodDays ? (
+                      <li>Free trial: {product.trialPeriodDays} {product.trialPeriodDays === 1 ? "day" : "days"}</li>
+                    ) : null}
+                    {product.cancellationPolicyText ? <li>How to cancel: {product.cancellationPolicyText}</li> : null}
                   </ul>
                   <div className="mt-3">
-                    <SubscribeButton offeringType="product" offeringId={product.id} cta="Start subscription" />
+                    <SubscribeButton offeringType="product" offeringId={product.id} cta="Subscribe" />
                   </div>
                 </div>
               ) : (
@@ -215,7 +219,7 @@ export default async function ProductPage({ params }: Props) {
                   />
                 ) : (
                   <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-                    This product is currently unavailable for your shipping region.
+                    This studio doesn&rsquo;t ship to your country yet. Try messaging them — they may be able to arrange it.
                   </div>
                 )
               )}
@@ -266,18 +270,18 @@ export default async function ProductPage({ params }: Props) {
               </p>
               <p className="mt-3">
                 <Link href={`/studios/${product.studio.id}`} className="font-medium text-amber-900 hover:underline">
-                  View studio profile
+                  Visit {product.studio.displayName}
                 </Link>
               </p>
-              {product.shippingNotes ? <p className="mt-3 text-xs">Shipping: {product.shippingNotes}</p> : null}
+              {product.shippingNotes ? <p className="mt-3 text-xs">Shipping notes: {product.shippingNotes}</p> : null}
               <div className="mt-3">
-                <p className="text-xs font-medium text-stone-800">Shipping availability</p>
+                <p className="text-xs font-medium text-stone-800">Shipping rates</p>
                 <ul className="mt-1 space-y-1 text-xs">
                   {shippingZoneLabels.map(({ zone, label }) => {
                     const cents = zonePriceCents(product, zone);
                     return (
                       <li key={zone} className={cents == null ? "text-stone-500" : "text-stone-700"}>
-                        {label}: {cents == null ? "Not available" : `€${(cents / 100).toFixed(2)}`}
+                        {label}: {cents == null ? "Doesn’t ship here" : `€${(cents / 100).toFixed(2)}`}
                       </li>
                     );
                   })}
@@ -290,7 +294,7 @@ export default async function ProductPage({ params }: Props) {
 
         {related.length > 0 ? (
           <section className="mt-14">
-            <h2 className="text-xl font-semibold text-amber-950">More from this studio</h2>
+            <h2 className="text-xl font-semibold text-amber-950">More from {product.studio.displayName}</h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {related.map((item) => (
                 <Link key={item.id} href={`/marketplace/products/${item.id}`} className={ui.tile}>

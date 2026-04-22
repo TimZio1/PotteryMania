@@ -37,7 +37,7 @@ export default function VendorBookingActions({
   const canSendRemainderLink = (remainingBalanceCents ?? 0) > 0;
 
   async function handleCancel() {
-    if (!confirm("Cancel this reservation? The participant will be notified.")) return;
+    if (!confirm("Cancel this booking? The guest will be emailed.")) return;
     setMsg("");
     setBusyAction("cancel");
     const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
@@ -50,7 +50,7 @@ export default function VendorBookingActions({
       setMsg(`Cancelled. Refund: ${data.refundOutcome}`);
       router.refresh();
     } else {
-      setMsg(`Error: ${data.error}`);
+      setMsg(data.error || "We couldn't cancel. Try again.");
     }
     setBusyAction(null);
   }
@@ -65,16 +65,16 @@ export default function VendorBookingActions({
     });
     const data = await res.json();
     if (res.ok) {
-      setMsg("Approved.");
+      setMsg("Approved. Guest emailed.");
       router.refresh();
     } else {
-      setMsg(`Error: ${data.error}`);
+      setMsg(data.error || "We couldn't approve. Try again.");
     }
     setBusyAction(null);
   }
 
   async function handleReject() {
-    const reason = prompt("Optional note to the participant (decline reason):") ?? "";
+    const reason = prompt("Optional note to the guest (why you're declining):") ?? "";
     if (reason === null) return;
     setMsg("");
     setBusyAction("reject");
@@ -85,10 +85,10 @@ export default function VendorBookingActions({
     });
     const data = await res.json();
     if (res.ok) {
-      setMsg("Declined. Participant notified.");
+      setMsg("Declined. Guest emailed.");
       router.refresh();
     } else {
-      setMsg(`Error: ${data.error}`);
+      setMsg(data.error || "We couldn't decline. Try again.");
     }
     setBusyAction(null);
   }
@@ -101,7 +101,7 @@ export default function VendorBookingActions({
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok && data.ok) {
-      setMsg("Calendar sync OK.");
+      setMsg("Calendar synced.");
       router.refresh();
     } else {
       setMsg(`Calendar sync: ${data.message ?? data.error ?? res.statusText}`);
@@ -110,7 +110,7 @@ export default function VendorBookingActions({
   }
 
   async function handleMarkCompleted() {
-    if (!confirm("Mark this reservation as completed (attended)?")) return;
+    if (!confirm("Mark this booking as attended?")) return;
     setMsg("");
     setBusyAction("complete");
     const res = await fetch(`/api/bookings/${bookingId}/vendor`, {
@@ -120,16 +120,16 @@ export default function VendorBookingActions({
     });
     const data = await res.json();
     if (res.ok) {
-      setMsg("Marked completed.");
+      setMsg("Marked attended.");
       router.refresh();
     } else {
-      setMsg(`Error: ${data.error}`);
+      setMsg(data.error || "We couldn't save. Try again.");
     }
     setBusyAction(null);
   }
 
   async function handleMarkRemainderPaid() {
-    if (!confirm("Mark the remaining balance as paid in person?")) return;
+    if (!confirm("Mark the balance as paid in person?")) return;
     setMsg("");
     setBusyAction("mark_remainder_paid");
     const res = await fetch(`/api/bookings/${bookingId}/vendor`, {
@@ -139,10 +139,10 @@ export default function VendorBookingActions({
     });
     const data = await res.json();
     if (res.ok) {
-      setMsg("Remaining balance marked paid.");
+      setMsg("Balance marked paid.");
       router.refresh();
     } else {
-      setMsg(`Error: ${data.error}`);
+      setMsg(data.error || "We couldn't save. Try again.");
     }
     setBusyAction(null);
   }
@@ -157,13 +157,13 @@ export default function VendorBookingActions({
     if (res.ok && data.url) {
       try {
         await navigator.clipboard.writeText(data.url);
-        setMsg("Payment link copied to clipboard.");
+        setMsg("Payment link copied.");
       } catch {
-        setMsg(`Payment link ready: ${data.url}`);
+        setMsg(`Payment link: ${data.url}`);
       }
       router.refresh();
     } else {
-      setMsg(`Error: ${data.error}`);
+      setMsg(data.error || "We couldn't create a payment link. Try again.");
     }
     setBusyAction(null);
   }
@@ -186,7 +186,7 @@ export default function VendorBookingActions({
           {calendarSync ? (
             <>
               <span>
-                Google Calendar sync: {calendarSync.status === "success" ? "OK" : "Failed or pending"}
+                Google Calendar: {calendarSync.status === "success" ? "synced" : "pending or failed"}
                 {calendarSync.message ? ` — ${calendarSync.message}` : null}
               </span>
               {calendarSync.status !== "success" ? (
@@ -209,7 +209,7 @@ export default function VendorBookingActions({
             </>
           ) : (
             <>
-              <span>No Google Calendar sync logged yet for this reservation.</span>
+              <span>Not synced to Google Calendar yet.</span>
               <button
                 type="button"
                 disabled={busyAction !== null}
@@ -278,7 +278,7 @@ export default function VendorBookingActions({
                   Saving…
                 </span>
               ) : (
-                "Mark as attended / completed"
+                "Mark attended"
               )}
             </button>
           )}
@@ -295,7 +295,7 @@ export default function VendorBookingActions({
                   Saving…
                 </span>
               ) : (
-                "Mark remaining balance paid"
+                "Mark balance paid"
               )}
             </button>
           )}
@@ -312,7 +312,7 @@ export default function VendorBookingActions({
                   Preparing…
                 </span>
               ) : (
-                "Copy remaining-balance link"
+                "Copy balance payment link"
               )}
             </button>
           )}
@@ -329,7 +329,7 @@ export default function VendorBookingActions({
                   Cancelling…
                 </span>
               ) : (
-                "Cancel reservation"
+                "Cancel booking"
               )}
             </button>
           )}

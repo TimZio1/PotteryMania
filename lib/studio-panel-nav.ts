@@ -29,9 +29,9 @@ export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
     },
     {
       id: "programs",
-      label: "Programs",
+      label: "Classes",
       items: [
-        { href: b(studioId, "/programs"), label: "All programs" },
+        { href: b(studioId, "/programs"), label: "All classes" },
         { href: b(studioId, "/programs/planner"), label: "Planner" },
         { href: b(studioId, "/programs/instructors"), label: "Instructors" },
       ],
@@ -43,9 +43,9 @@ export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
     },
     {
       id: "commerce",
-      label: "Commerce",
+      label: "Shop",
       items: [
-        { href: b(studioId, "/commerce/catalog"), label: "Catalog" },
+        { href: b(studioId, "/commerce/catalog"), label: "Products" },
         { href: b(studioId, "/commerce/orders"), label: "Orders" },
         { href: b(studioId, "/commerce/gift-cards"), label: "Gift cards" },
         { href: b(studioId, "/commerce/promotions"), label: "Promotions" },
@@ -58,24 +58,24 @@ export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
       items: [
         { href: b(studioId, "/money/overview"), label: "Overview" },
         { href: b(studioId, "/money/activity"), label: "Activity" },
-        { href: b(studioId, "/money/payouts"), label: "Payouts & account" },
+        { href: b(studioId, "/money/payouts"), label: "Payouts & bank" },
         { href: b(studioId, "/money/tax"), label: "Tax" },
         { href: b(studioId, "/money/reports"), label: "Reports" },
       ],
     },
     {
       id: "site",
-      label: "Site",
+      label: "Website",
       items: [
-        { href: b(studioId, "/site/page"), label: "Public page" },
-        { href: b(studioId, "/site/domains"), label: "Domains" },
+        { href: b(studioId, "/site/page"), label: "Studio page" },
+        { href: b(studioId, "/site/domains"), label: "Domain" },
         { href: b(studioId, "/site/reviews"), label: "Reviews" },
         { href: b(studioId, "/site/integrations"), label: "Integrations" },
       ],
     },
     {
       id: "tools",
-      label: "Studio tools",
+      label: "Tools",
       items: [
         { href: b(studioId, "/studio-tools/kiln"), label: "Kiln" },
         { href: b(studioId, "/studio-tools/ai"), label: "AI" },
@@ -87,7 +87,7 @@ export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
       items: [
         { href: b(studioId, "/settings"), label: "Settings" },
         { href: b(studioId, "/guided"), label: "Simple setup" },
-        { href: b(studioId, "/features"), label: "Packs & add-ons" },
+        { href: b(studioId, "/features"), label: "Add-ons" },
       ],
     },
   ];

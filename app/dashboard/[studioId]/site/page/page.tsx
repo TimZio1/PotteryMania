@@ -16,7 +16,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Public page", "site/page", "Choose your business template.");
+  return dashboardStudioMeta(studioId, "Studio page", "site/page", "Pick how your studio page looks.");
 }
 
 export default async function StudioTemplatePage({ params }: Props) {

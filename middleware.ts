@@ -24,7 +24,6 @@ const LOGIN_REQUIRED = [
   "/my-packages",
   "/my-waitlist",
   "/reviews/new",
-  "/cart",
   "/account",
 ];
 /** Public core pages; legacy catalog entry URLs redirect separately. */
@@ -56,6 +55,14 @@ function publicAllowlist(): string[] {
     "/category",
     "/marketplace",
     "/wear",
+    /**
+     * `/cart` and `/checkout` are intentionally public: guests can review items,
+     * adjust quantities, and see totals before being prompted to sign in.
+     * The checkout API itself (`/api/checkout`) still enforces authentication
+     * so no purchase completes without an account.
+     */
+    "/cart",
+    "/checkout",
   ];
 }
 

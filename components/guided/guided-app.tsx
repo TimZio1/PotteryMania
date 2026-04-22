@@ -213,13 +213,13 @@ export function GuidedApp({
           ),
         });
         const j = (await res.json()) as { text?: string; error?: string };
-        if (!res.ok) throw new Error(j.error ?? "Could not suggest");
+        if (!res.ok) throw new Error(j.error ?? "We couldn’t write that. Try again.");
         if (j.text) {
           if (kind === "welcome") setWelcomeLine(j.text);
           else setProductBlurb(j.text);
         }
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Suggestion failed");
+        setErr(e instanceof Error ? e.message : "We couldn’t write that. Try again.");
       } finally {
         setAiBusy(false);
       }
@@ -240,10 +240,10 @@ export function GuidedApp({
         }),
       });
       const j = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(j.error ?? "Could not save");
+      if (!res.ok) throw new Error(j.error ?? "We couldn’t save. Try again.");
       setQuery({ step: String(step + 1) });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Save failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t save. Try again.");
     } finally {
       setBusy(false);
     }
@@ -271,11 +271,11 @@ export function GuidedApp({
         }),
       });
       const j = (await res.json()) as { product?: { id: string }; error?: string };
-      if (!res.ok) throw new Error(j.error ?? "Could not create");
+      if (!res.ok) throw new Error(j.error ?? "We couldn’t save that. Try again.");
       if (j.product?.id) setCreatedProductId(j.product.id);
       setQuery({ step: "5" });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t save that. Try again.");
     } finally {
       setBusy(false);
     }
@@ -292,10 +292,10 @@ export function GuidedApp({
         body: JSON.stringify({ status: "active" }),
       });
       const j = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(j.error ?? "Could not publish");
+      if (!res.ok) throw new Error(j.error ?? "We couldn’t put it on your page. Try again.");
       setProductPublished(true);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Publish failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t put it on your page. Try again.");
     } finally {
       setBusy(false);
     }
@@ -312,10 +312,10 @@ export function GuidedApp({
         body: JSON.stringify({ status: "active" }),
       });
       const j = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(j.error ?? "Could not publish");
+      if (!res.ok) throw new Error(j.error ?? "We couldn’t put it on your page. Try again.");
       setClassPublished(true);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Publish failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t put it on your page. Try again.");
     } finally {
       setBusy(false);
     }
@@ -348,13 +348,13 @@ export function GuidedApp({
         }),
       });
       const j = (await res.json()) as { experience?: { id: string }; error?: string };
-      if (!res.ok) throw new Error(j.error ?? "Could not create");
+      if (!res.ok) throw new Error(j.error ?? "We couldn’t save that. Try again.");
       if (j.experience?.id) {
         setCreatedExperienceId(j.experience.id);
         setQuery({ step: "5" });
       }
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t save that. Try again.");
     } finally {
       setBusy(false);
     }
@@ -373,10 +373,10 @@ export function GuidedApp({
           body: JSON.stringify({ experienceId: createdExperienceId, preset }),
         });
         const j = (await res.json()) as { error?: string; slotsCreated?: number };
-        if (!res.ok) throw new Error(j.error ?? "Could not add times");
+        if (!res.ok) throw new Error(j.error ?? "We couldn’t add times. Try again.");
         setQuery({ step: "6" });
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Failed");
+        setErr(e instanceof Error ? e.message : "We couldn’t add times. Try again.");
       } finally {
         setBusy(false);
         quickScheduleSubmitLock.current = false;
@@ -391,10 +391,10 @@ export function GuidedApp({
     try {
       const res = await fetch(`/api/studios/${studioId}/stripe/onboard`, { method: "POST" });
       const j = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok) throw new Error(j.error ?? "Could not start");
+      if (!res.ok) throw new Error(j.error ?? "We couldn’t open bank setup. Try again.");
       if (j.url) window.location.href = j.url;
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not connect");
+      setErr(e instanceof Error ? e.message : "We couldn’t open bank setup. Try again.");
     } finally {
       setBusy(false);
     }
@@ -676,7 +676,7 @@ export function GuidedApp({
           <div className="space-y-6">
             <div>
               <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Say one thing about it</h2>
-              <p className="mt-2 text-sm leading-relaxed text-stone-600">Optional. A short line that helps people decide.</p>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">A short line that shows next to it. You can skip this.</p>
             </div>
             <label className="block" htmlFor="guided-product-blurb">
               <span className="text-sm font-medium text-stone-700">Short line</span>
@@ -830,7 +830,7 @@ export function GuidedApp({
           <div className="space-y-6">
             <div>
               <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">How much per person?</h2>
-              <p className="mt-2 text-sm leading-relaxed text-stone-600">Amount in euros for one seat.</p>
+              <p className="mt-2 text-sm leading-relaxed text-stone-600">Price in euros for one seat.</p>
             </div>
             <label className="block" htmlFor="guided-class-price">
               <span className="text-sm font-medium text-stone-700">Price (€)</span>
@@ -975,9 +975,9 @@ export function GuidedApp({
             <p className="text-sm leading-relaxed text-stone-600">
               {stripeSyncing
                 ? "Checking your status…"
-                : "You’ll be able to take payments once Stripe finishes checking. This usually takes a few minutes."}
+                : "You can take payments once the bank check finishes. This usually takes a few minutes."}
             </p>
-            <p className="text-sm text-stone-600">Next, put drafts on your page or add more.</p>
+            <p className="text-sm text-stone-600">Next, publish a draft or add something new.</p>
             <Link href={`/studios/${studioId}`} className={`${ui.buttonSecondary} inline-flex w-full justify-center`} target="_blank" rel="noreferrer">
               See my public page
             </Link>
@@ -996,7 +996,7 @@ export function GuidedApp({
             <div>
               <h2 className="font-serif text-xl font-medium leading-snug text-(--brand-ink)">Get paid to your bank</h2>
               <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                A secure partner (Stripe) sends the money to your bank. You’ll add a few details once — name, bank, ID.
+                Our payments partner (Stripe) sends the money to your bank. You’ll add a few details once — name, bank, ID.
               </p>
             </div>
             <ul className="list-disc space-y-2 pl-5 text-sm text-stone-600">

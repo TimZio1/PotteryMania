@@ -12,7 +12,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Money overview", "money/overview", "Payouts, direct sales, and studio payment history.");
+  return dashboardStudioMeta(studioId, "Money overview", "money/overview", "What you earned — at a glance.");
 }
 
 export default async function StudioMoneyOverviewPage({ params }: Props) {
@@ -86,12 +86,12 @@ export default async function StudioMoneyOverviewPage({ params }: Props) {
         <p className={ui.overline}>Money</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Overview</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Owner-facing totals and settlement signals. Payouts run through Stripe Connect — these numbers are for
-          reconciliation, not bank deposits line-for-line. Raw payment rows and order lines live under{" "}
+          Totals at a glance. Payouts land in your bank via Stripe — these are for tracking, not bank deposits
+          line-for-line. See every row in{" "}
           <Link href={`/dashboard/${studioId}/money/activity`} className="font-medium text-amber-900 underline">
             Activity
           </Link>
-          . Trends and page readiness are under{" "}
+          {" "}· trends in{" "}
           <Link href={`/dashboard/${studioId}/money/reports`} className="font-medium text-amber-900 underline">
             Reports
           </Link>
@@ -101,29 +101,29 @@ export default async function StudioMoneyOverviewPage({ params }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={ui.card}>
-          <p className="text-sm text-[var(--muted)]">Product sales (your share)</p>
+          <p className="text-sm text-[var(--muted)]">Your share of product sales</p>
           <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(orderVendor / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-[var(--muted)]">Experiences (collected)</p>
+          <p className="text-sm text-[var(--muted)]">Collected from classes</p>
           <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(bookingPaid / 100).toFixed(2)}</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-[var(--muted)]">Stripe captured (product sales)</p>
+          <p className="text-sm text-[var(--muted)]">Paid (product sales)</p>
           <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(stripeSucceededCents / 100).toFixed(2)}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">{stripeSucceeded.length} succeeded · €{(stripePendingCents / 100).toFixed(2)} pending</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{stripeSucceeded.length} paid · €{(stripePendingCents / 100).toFixed(2)} pending</p>
         </div>
         <div className={ui.card}>
-          <p className="text-sm text-[var(--muted)]">Refunded / partial (records)</p>
+          <p className="text-sm text-[var(--muted)]">Refunded</p>
           <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">€{(stripeRefundedCents / 100).toFixed(2)}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">{stripeRefunded.length} payment row(s)</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{stripeRefunded.length} payment{stripeRefunded.length === 1 ? "" : "s"}</p>
         </div>
       </div>
 
       <div className={`${ui.card} flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`}>
         <div>
-          <p className="text-sm font-semibold text-[var(--foreground)]">Payment activity</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">Stripe captures, product lines, and class payment rows.</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">See every payment</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Row-by-row: charges, product lines, and class payments.</p>
         </div>
         <Link href={`/dashboard/${studioId}/money/activity`} className={ui.buttonPrimary}>
           Open activity

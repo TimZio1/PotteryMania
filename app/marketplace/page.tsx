@@ -14,8 +14,8 @@ import { resolveShippingZoneForDestination, shipsToZone } from "@/lib/shipping-z
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
-  title: "Shop products from studios",
-  description: "Browse products sold directly by studios — shop ceramics and book classes from makers near you.",
+  title: "Shop ceramics",
+  description: "Buy ceramics directly from independent studios. Every piece tells you who made it.",
   path: "/marketplace",
 });
 
@@ -116,12 +116,13 @@ export default async function MarketplacePage({ searchParams }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
           <p className={ui.overline}>Shop</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Products from studios</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Shop ceramics</h1>
           <p className="mt-3 text-[var(--muted)]">
-            Pieces from live studios — each listing shows who made it and where they are based.
+            Handmade by independent studios. Each piece tells you who made it.
           </p>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Region: <strong className="uppercase">{resolvedRegion.region}</strong> {resolvedRegion.country ? `(${resolvedRegion.country})` : ""}
+            Showing items that ship to{" "}
+            <strong>{resolvedRegion.country ? resolvedRegion.country : resolvedRegion.region.toUpperCase()}</strong>.
           </p>
         </div>
 
@@ -177,20 +178,28 @@ export default async function MarketplacePage({ searchParams }: Props) {
           </label>
           <div className="flex items-end gap-3 lg:col-span-1">
             <button className={ui.buttonPrimary} type="submit">
-              Apply
+              Update results
             </button>
             <Link href="/marketplace" className={ui.buttonSecondary}>
-              Reset
+              Clear filters
             </Link>
           </div>
         </form>
 
         {products.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-            <p className="font-medium text-[var(--foreground)]">No listings yet</p>
+            <p className="font-medium text-[var(--foreground)]">Nothing to show yet</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Studios are onboarding their products. Check back soon.
+              Try fewer filters, or browse studios — some of them may ship to you even if nothing is listed here yet.
             </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href="/marketplace" className={ui.buttonSecondary}>
+                Clear filters
+              </Link>
+              <Link href="/studios" className={ui.buttonSecondary}>
+                Browse studios
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -237,7 +246,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
                       <p className="mt-2 line-clamp-2 text-sm text-[var(--muted)]">{p.shortDescription}</p>
                     ) : null}
                     <p className={`mt-2 text-xs font-medium ${ships ? "text-emerald-700" : "text-rose-700"}`}>
-                      {ships ? "Ships to your location" : "Not available in your region"}
+                      {ships ? "Ships to your country" : "Doesn’t ship here"}
                     </p>
                     <p className="mt-2 text-lg font-medium text-[var(--foreground)]">
                       {recurring

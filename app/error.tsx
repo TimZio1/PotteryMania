@@ -20,9 +20,9 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
       </div>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-amber-950">Something went wrong</h1>
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-amber-950">Something broke on our side</h1>
       <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
-        We hit an unexpected error. You can try again, or head back to a safe page.
+        Try again. If it keeps happening, head back home.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button type="button" onClick={reset} className={ui.buttonPrimary}>

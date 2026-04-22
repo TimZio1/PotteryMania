@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!studio) return buildMetadata({ title: "Gallery", description: "Studio gallery.", path: `/studios/${studioId}/gallery` });
   return buildMetadata({
     title: `${studio.displayName} — Gallery`,
-    description: `Browse the photo gallery for ${studio.displayName}.`,
+    description: `Photos from ${studio.displayName}.`,
     path: `/studios/${studioId}/gallery`,
   });
 }
@@ -49,13 +49,13 @@ export default async function StudioPublicGalleryPage({ params }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <h1 className="text-3xl font-semibold tracking-tight text-amber-950">{studio.displayName} gallery</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Photos from the studio and its work.
+          Photos of the studio and its work.
         </p>
         {items.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-            <p className="font-medium text-stone-800">No gallery images yet</p>
+            <p className="font-medium text-stone-800">No photos yet</p>
             <p className="mt-2 text-sm text-stone-600">
-              Check back soon — the studio may add photos at any time.
+              The studio hasn’t added photos yet. Check back soon.
             </p>
           </div>
         ) : (

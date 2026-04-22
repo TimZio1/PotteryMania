@@ -105,7 +105,7 @@ test.describe.serial("Vendor live production smoke via admin impersonation", () 
 
     await expect(page.getByRole("heading", { name: /Appearance/i })).toBeVisible({ timeout: 20_000 });
     await page.getByRole("button", { name: /Save public appearance/i }).click();
-    await expect(page.getByText(/Saved\. Public page updates within a few seconds\./i)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Saved\. Your page updates in a few seconds\./i)).toBeVisible({ timeout: 20_000 });
   });
 
   test("guided setup can save the studio copy flow and draft product creation works", async ({ page }) => {

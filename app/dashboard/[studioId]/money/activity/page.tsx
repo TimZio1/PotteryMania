@@ -13,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Activity", "money/activity", "Payment rows, Stripe records, and order lines.");
+  return dashboardStudioMeta(studioId, "Activity", "money/activity", "Every payment row, in one place.");
 }
 
 export default async function StudioMoneyActivityPage({ params }: Props) {
@@ -29,12 +29,11 @@ export default async function StudioMoneyActivityPage({ params }: Props) {
         <p className={ui.overline}>Money</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Activity</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Raw ledger-style rows — every charge, share, and class payment line we can show. For headline totals and payout
-          context, use{" "}
+          Every payment row — charges, your share, and class payments. For headline totals see{" "}
           <Link href={`/dashboard/${studioId}/money/overview`} className="font-medium text-amber-900 underline">
             Overview
           </Link>
-          . For demand trends, use{" "}
+          {" "}· for trends, see{" "}
           <Link href={`/dashboard/${studioId}/money/reports`} className="font-medium text-amber-900 underline">
             Reports
           </Link>

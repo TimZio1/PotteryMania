@@ -62,9 +62,9 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     const routes = [
       { path: `/dashboard/${studioId}`, label: "Home" },
       { path: `/dashboard/${studioId}/schedule/sessions`, label: "Sessions" },
-      { path: `/dashboard/${studioId}/programs`, label: "Programs" },
+      { path: `/dashboard/${studioId}/programs`, label: "Classes" },
       { path: `/dashboard/${studioId}/schedule/calendar`, label: "Calendar" },
-      { path: `/dashboard/${studioId}/commerce/catalog`, label: "Catalog" },
+      { path: `/dashboard/${studioId}/commerce/catalog`, label: "Products" },
       { path: `/dashboard/${studioId}/settings`, label: "Settings" },
       { path: `/dashboard/${studioId}/money/reports`, label: "Reports" },
       { path: `/dashboard/${studioId}/features`, label: "Features" },
@@ -90,7 +90,7 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     test.skip(!studioId, "Could not discover studio ID");
 
     await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/programs`);
-    await expect(page.getByRole("heading", { name: /All programs/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: /All classes/i })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("link", { name: /New class/i })).toBeVisible();
   });
 
@@ -101,7 +101,7 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     test.skip(!studioId, "Could not discover studio ID");
 
     await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/programs/planner`);
-    await expect(page.getByRole("heading", { name: /Class planner/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: /^Planner$/i })).toBeVisible({ timeout: 15_000 });
 
     const body = await page.textContent("body");
     expect(body).not.toContain("NEXT_REDIRECT");

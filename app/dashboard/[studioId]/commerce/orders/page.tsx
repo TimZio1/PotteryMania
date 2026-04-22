@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { ui } from "@/lib/ui-styles";
@@ -14,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Orders", "commerce/orders", "Customer orders and fulfillment.");
+  return dashboardStudioMeta(studioId, "Orders", "commerce/orders", "See every sale and mark orders shipped.");
 }
 
 export default async function StudioCommerceOrdersPage({ params }: Props) {
@@ -29,20 +28,16 @@ export default async function StudioCommerceOrdersPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <p className={ui.overline}>Commerce</p>
+        <p className={ui.overline}>Shop</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Orders</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Order history and fulfillment. Product catalog and inventory live under Catalog.
+          See every sale, add tracking, and mark orders shipped.
         </p>
       </div>
 
       {unavailable ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Catalog data is temporarily unavailable while product schema updates finish deploying.
-          {" "}
-          <Link href={`/dashboard/products/${studioId}`} className="font-medium underline underline-offset-2">
-            Legacy product workspace link
-          </Link>
+          Your orders are briefly unavailable while a recent change finishes saving. Refresh in a moment.
         </div>
       ) : null}
 

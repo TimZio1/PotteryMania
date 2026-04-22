@@ -76,10 +76,10 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
       shopUrl,
       bookingsUrl,
       resellerFrameUrl,
-      shopButton: buildButtonSnippet(shopUrl, "Shop ceramics"),
+      shopButton: buildButtonSnippet(shopUrl, "Shop pottery"),
       shopIframe: buildIframeSnippet(shopUrl, "Studio shop", 900),
       bookingsButton: buildButtonSnippet(bookingsUrl, "Book a class"),
-      bookingsIframe: buildIframeSnippet(bookingsUrl, "Studio bookings", 960),
+      bookingsIframe: buildIframeSnippet(bookingsUrl, "Book a class", 960),
       resellerWidget: `<div id="potterymania-wearables" data-studio="${studioId}"></div>\n<script src="${resellerScriptUrl}" defer></script>`,
       resellerIframe: buildIframeSnippet(resellerFrameUrl, "Wearables shop", 420),
     };
@@ -88,22 +88,22 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <p className={ui.overline}>Shortlists</p>
-        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Web page integration shortlists</h1>
+        <p className={ui.overline}>Add to your website</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Put PotteryMania on your own website</h1>
         <p className="mt-2 max-w-3xl text-sm text-[var(--muted)]">
-          One place for the three website integration paths you asked for: shop, bookings, and e shop reseller.
+          Three ready-made ways to connect: your shop, your bookings, and your wearables reseller shop.
         </p>
         <p className="mt-2 max-w-3xl text-sm text-[var(--muted)]">
-          Shop and bookings integrate best through your hosted studio pages on this site. The wear reseller supports both a JavaScript widget and an iframe embed.
+          Shop and bookings work by linking to your studio page here. Wearables can be a widget or an iframe inside your site.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <section className={ui.card}>
           <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">1. Shop</p>
-          <h2 className="mt-2 text-lg font-semibold text-stone-900">Sell ceramics from your site</h2>
+          <h2 className="mt-2 text-lg font-semibold text-stone-900">Sell your pottery from your site</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Best when you want a clean button or an embedded hosted shop section on your own website.
+            A simple button, or your shop embedded straight into one of your pages.
           </p>
           <div className="mt-4 flex flex-col gap-2">
             <a href={values.shopUrl || `/studios/${studioId}#studio-shop`} target="_blank" rel="noreferrer" className={ui.buttonPrimary}>
@@ -117,9 +117,9 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
 
         <section className={ui.card}>
           <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">2. Bookings</p>
-          <h2 className="mt-2 text-lg font-semibold text-stone-900">Send visitors into live class booking</h2>
+          <h2 className="mt-2 text-lg font-semibold text-stone-900">Take class bookings from your site</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Best when your external site needs a direct way into your upcoming sessions and bookable classes.
+            Send visitors straight into your upcoming classes, or show them on your page.
           </p>
           <div className="mt-4 flex flex-col gap-2">
             <a href={values.bookingsUrl || `/studios/${studioId}#upcoming-sessions`} target="_blank" rel="noreferrer" className={ui.buttonPrimary}>
@@ -132,14 +132,14 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
         </section>
 
         <section className={ui.card}>
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">3. E shop reseller</p>
-          <h2 className="mt-2 text-lg font-semibold text-stone-900">Embed your reseller wear shop</h2>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">3. Wearables</p>
+          <h2 className="mt-2 text-lg font-semibold text-stone-900">Sell your wearables shop on your site</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Best when you want a real embedded storefront for branded apparel on WordPress, Wix, Squarespace, or any HTML site.
+            Drop your branded apparel shop into WordPress, Wix, Squarespace, or any HTML page.
           </p>
           <div className="mt-4 flex flex-col gap-2">
             <Link href={`/dashboard/${studioId}/wearables`} className={ui.buttonPrimary}>
-              Open reseller setup
+              Set up wearables
             </Link>
             <a href={values.resellerFrameUrl || `/embed/${studioId}/wearables`} target="_blank" rel="noreferrer" className={ui.buttonSecondary}>
               Preview embed
@@ -151,9 +151,9 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
       <section className={ui.card}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-stone-900">Website snippets</h2>
+            <h2 className="text-lg font-semibold text-stone-900">Copy-paste snippets</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Copy the version that fits your website builder. Keep it simple: button link for fast setup, iframe if you want the hosted studio page inside your site, reseller widget for the full wear integration.
+              Pick the one that fits your website. A button for a quick link, an iframe to show the page inside yours, or a widget for wearables.
             </p>
           </div>
         </div>
@@ -162,13 +162,13 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
           <div className="space-y-4">
             <p className="text-sm font-semibold text-[var(--foreground)]">Shop</p>
             <CodeCard
-              title="Hosted button"
-              description="Best default for Shopify, WordPress, Squarespace, Wix, or any custom site."
+              title="Button"
+              description="The simplest option. Works on Shopify, WordPress, Squarespace, Wix, and any custom site."
               code={values.shopButton}
             />
             <CodeCard
-              title="Hosted iframe"
-              description="Embeds your public studio shop section inside another page."
+              title="Iframe"
+              description="Shows your shop right inside one of your pages."
               code={values.shopIframe}
             />
           </div>
@@ -176,27 +176,27 @@ export function StudioWebIntegrationsClient({ studioId }: { studioId: string }) 
           <div className="space-y-4">
             <p className="text-sm font-semibold text-[var(--foreground)]">Bookings</p>
             <CodeCard
-              title="Booking button"
-              description="Sends visitors straight to your upcoming sessions section."
+              title="Button"
+              description="Takes visitors straight to your upcoming classes."
               code={values.bookingsButton}
             />
             <CodeCard
-              title="Booking iframe"
-              description="Embeds your hosted booking area inside another page."
+              title="Iframe"
+              description="Shows your classes right inside one of your pages."
               code={values.bookingsIframe}
             />
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">E shop reseller</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Wearables</p>
             <CodeCard
-              title="Widget"
-              description="Recommended. Inline reseller storefront that feels native to your page."
+              title="Widget (recommended)"
+              description="Looks like part of your page. Best for most websites."
               code={values.resellerWidget}
             />
             <CodeCard
               title="Iframe"
-              description="Fastest fallback if your builder prefers iframe blocks."
+              description="A quick fallback if your builder only allows iframes."
               code={values.resellerIframe}
             />
           </div>

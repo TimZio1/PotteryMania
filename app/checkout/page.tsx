@@ -5,19 +5,24 @@ import { Spinner } from "@/components/ui/spinner";
 import { ui } from "@/lib/ui-styles";
 import { metaPublicPage } from "@/lib/seo-routes";
 import { CartContents } from "@/app/cart/cart-contents";
+import { auth } from "@/auth";
 
 export const metadata: Metadata = metaPublicPage(
-  "Checkout",
+  "Review and pay",
   "/checkout",
-  "Review line items, shipping, discounts, and policies before secure Stripe payment.",
+  "One last check of your total, then pay securely.",
 );
 
-export default function CheckoutPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CheckoutPage() {
+  const session = await auth();
+  const isAuthed = Boolean(session?.user);
   return (
     <MarketingLayout>
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <Suspense fallback={<div className="flex justify-center py-16"><Spinner /></div>}>
-          <CartContents mode="checkout" />
+          <CartContents mode="checkout" isAuthed={isAuthed} />
         </Suspense>
       </main>
     </MarketingLayout>

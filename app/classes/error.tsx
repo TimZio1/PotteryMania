@@ -11,16 +11,16 @@ export default function ClassesError({ error, reset }: { error: Error & { digest
 
   return (
     <main className={`${ui.pageContainer} flex min-h-[60vh] flex-col items-center justify-center py-16 text-center`}>
-      <h1 className="text-2xl font-semibold tracking-tight text-amber-950">Could not load classes</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-amber-950">We couldn&apos;t load classes</h1>
       <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
-        Something went wrong. Please try again or return to studio setup.
+        Try again in a moment.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button type="button" onClick={reset} className={ui.buttonPrimary}>
           Try again
         </button>
-        <Link href="/dashboard/studio/new?setup=bookings" className={ui.buttonSecondary}>
-          Open bookings setup
+        <Link href="/studios" className={ui.buttonSecondary}>
+          Browse studios instead
         </Link>
       </div>
     </main>

@@ -94,7 +94,7 @@ export default async function StudioMarketplaceVisibility({ studioId }: { studio
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className={ui.overline}>Studio health</p>
-          <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Public page readiness</h2>
+          <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Studio page checklist</h2>
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
             These internal signals help you keep your studio page complete, easy to trust, and ready for direct bookings.
           </p>

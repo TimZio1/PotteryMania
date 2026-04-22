@@ -6,8 +6,8 @@ export const EARLY_ACCESS_PROOF = {
     "PotteryMania is in live rollout for ceramic studios that want one calm system for their website, shop, and bookings.",
   bullets: [
     "See the product before you sign up.",
-    "Free until 1 May 2026. No payment required.",
-    "Studio owners can start with bookings, shop, or both.",
+    "Start with bookings, shop, or both — switch anytime.",
+    "Real studios, real feedback, no fake case studies.",
   ],
   ctaLabel: "View the demo studio",
   ctaHref: "/demo",

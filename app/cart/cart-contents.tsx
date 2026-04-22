@@ -53,7 +53,19 @@ type CouponPreview = {
   estimatedTotal: number;
 };
 
-export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) {
+export function CartContents({
+  mode = "cart",
+  isAuthed = true,
+}: {
+  mode?: "cart" | "checkout";
+  /**
+   * Controls whether checkout actions require the user to sign in first.
+   * When false, the cart still fully works (items, totals, promo codes), but
+   * the payment step shows a sign-in / create-account CTA. Defaults to true
+   * so legacy call sites that assume an authenticated visitor keep working.
+   */
+  isAuthed?: boolean;
+}) {
   const searchParams = useSearchParams();
   const wasCancelled = searchParams.get("cancelled") === "1";
   const [items, setItems] = useState<Item[]>([]);
@@ -116,7 +128,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
     });
     if (!res.ok) {
       const payload = await res.json().catch(() => ({} as { error?: string }));
-      throw new Error(payload.error || "Could not update cart");
+      throw new Error(payload.error || "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -126,7 +138,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       await mutateCart({ itemId, quantity });
       await load();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update cart");
+      setErr(error instanceof Error ? error.message : "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -136,7 +148,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       await mutateCart({ itemId, ...(itemType === "booking" ? { participantCount: 0 } : { quantity: 0 }) });
       await load();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update cart");
+      setErr(error instanceof Error ? error.message : "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -165,7 +177,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
 
   async function applyAdjustment(method: "coupon" | "gift_card") {
     if (multiVendor) {
-      setCouponErr("Promo codes apply to one studio at a time. Check out each studio separately, or empty the cart to a single studio first.");
+      setCouponErr("Codes work for one studio at a time. Pay each studio separately, or keep items from just one studio.");
       return;
     }
     const code = method === "gift_card" ? giftCardInput.trim() : promoInput.trim();
@@ -189,7 +201,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       setCouponPreview(null);
       setAppliedCode("");
       setAppliedMethod(null);
-      setCouponErr(typeof j.error === "string" ? j.error : "Could not apply code");
+      setCouponErr(typeof j.error === "string" ? j.error : "That code didn’t work. Check the spelling and try again.");
       return;
     }
     setCouponPreview(j as CouponPreview);
@@ -228,11 +240,11 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
     if (!r.ok) {
       setCheckoutBusy(false);
       if (r.status === 409 && j?.priceChanged) {
-        setErr("Prices were updated — refresh your cart and review line totals, then try again.");
+        setErr("Prices changed. Check your totals, then try again.");
         load();
         return;
       }
-      setErr(j.error || "Checkout failed");
+      setErr(j.error || "We couldn’t start your payment. Try again.");
       return;
     }
     if (j.url) window.location.href = j.url;
@@ -244,7 +256,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       await mutateCart({ itemId, participantCount });
       await load();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update cart");
+      setErr(error instanceof Error ? error.message : "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -254,7 +266,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       await mutateCart({ itemId, seatType });
       await load();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update cart");
+      setErr(error instanceof Error ? error.message : "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -264,7 +276,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       await mutateCart({ itemId, notes });
       await load();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update cart");
+      setErr(error instanceof Error ? error.message : "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -274,7 +286,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       await mutateCart({ itemId, bookingPaymentPreference });
       await load();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update cart");
+      setErr(error instanceof Error ? error.message : "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -284,7 +296,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
       await mutateCart({ itemId, classPackagePurchaseId });
       await load();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update cart");
+      setErr(error instanceof Error ? error.message : "We couldn’t update your cart. Try again.");
     }
   }
 
@@ -349,32 +361,61 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
           ← Back
         </button>
       </div>
-      <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{isCheckoutMode ? "Pay" : "Your cart"}</h1>
+      <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{isCheckoutMode ? "Review and pay" : "Your cart"}</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        {isCheckoutMode ? "Check your total, then pay." : "Check your items before you pay."}
+        {isCheckoutMode ? "One last check of your total, then pay." : "Review your items, then head to payment."}
       </p>
       {wasCancelled && (
         <div className="mt-4 rounded-xl border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-4 text-sm text-[var(--foreground)]">
-          Payment was cancelled. Your cart is still here.
+          Payment cancelled. Your cart is still here.
         </div>
       )}
       {cartError && (
         <div className="mt-4 rounded-xl border border-red-800/40 bg-red-950/30 p-4 text-sm text-red-900">
-          Couldn&rsquo;t load your cart. Refresh the page or try again.
+          We couldn&rsquo;t load your cart. Refresh the page.
         </div>
       )}
       {multiVendor ? (
         <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-[var(--pm-space-4)] text-sm text-[var(--foreground)]">
-          Your cart has items from <strong>more than one studio</strong>. You&rsquo;ll pay each studio once. Come back here to pay the next one.
+          Your cart has items from <strong>more than one studio</strong>. You&rsquo;ll pay each studio separately — come back here for the next one.
         </p>
+      ) : null}
+      {!isAuthed && items.length > 0 ? (
+        <div
+          role="status"
+          className="mt-4 rounded-[length:var(--pm-radius-card)] border border-[var(--border)] bg-[var(--surface)] p-[var(--pm-space-4)] text-sm text-[var(--foreground)]"
+        >
+          <p className="font-medium">You&rsquo;re shopping as a guest.</p>
+          <p className="mt-1 text-[var(--muted)]">
+            Edit your cart as much as you want. You&rsquo;ll need a free account at payment so the studio can send your receipt.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href={`/login?callbackUrl=${encodeURIComponent(isCheckoutMode ? "/checkout" : "/cart")}`}
+              className={ui.buttonSecondary}
+            >
+              Sign in
+            </Link>
+            <Link
+              href={`/register?callbackUrl=${encodeURIComponent(isCheckoutMode ? "/checkout" : "/cart")}`}
+              className={ui.buttonSecondary}
+            >
+              Create account
+            </Link>
+          </div>
+        </div>
       ) : null}
 
       {items.length === 0 ? (
         <div className={`${ui.cardMuted} mt-10`}>
           <p className="font-medium text-[var(--foreground)]">Your cart is empty</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Open a studio page to see what they sell.
+            Visit a studio to see their classes and shop.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/studios" className={ui.buttonSecondary}>Browse studios</Link>
+            <Link href="/classes" className={ui.buttonSecondary}>Find a class</Link>
+          </div>
         </div>
       ) : (
         <>
@@ -441,7 +482,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                         <p className="mt-1 text-xs text-[var(--muted)]">Option: {i.wearProductVariant.label}</p>
                       ) : null}
                       {i.itemType === "booking" && i.classPackagePurchaseId ? (
-                        <p className="mt-1 text-xs font-medium text-emerald-700">Package credit applied</p>
+                        <p className="mt-1 text-xs font-medium text-emerald-700">Using a package credit</p>
                       ) : null}
                       {i.itemType === "booking" && i.slot ? (
                         <p className="mt-1 text-xs text-[var(--muted)]">
@@ -467,14 +508,14 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                           className="min-h-11 w-20 rounded-[length:var(--pm-radius-control)] border border-[var(--border)] px-2 text-center text-sm shadow-[var(--pm-shadow-rest)]"
                           value={i.participantCount ?? 1}
                           onChange={(e) => updateParticipants(i.id, parseInt(e.target.value, 10) || 1)}
-                          aria-label="Participants"
+                          aria-label="Guests"
                         />
                       )}
                       <div className="text-right text-sm">
                         {i.itemType === "booking" && hasDeposit ? (
                           <>
                             <span className="font-medium text-[var(--foreground)]">Total €{fullEur}</span>
-                            <span className="mt-0.5 block text-xs text-[var(--muted)]">Due now €{dueEur}</span>
+                            <span className="mt-0.5 block text-xs text-[var(--muted)]">Pay now €{dueEur}</span>
                           </>
                         ) : (
                           <span className="font-medium text-[var(--foreground)]">€{dueEur}</span>
@@ -492,14 +533,14 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                   </div>
                   {seatKeys.length > 0 && (
                     <div className="mt-4">
-                      <label className={ui.label} htmlFor={`seat-type-${i.id}`}>Seat type</label>
+                      <label className={ui.label} htmlFor={`seat-type-${i.id}`}>Seat option</label>
                       <select
                         id={`seat-type-${i.id}`}
                         className={`${ui.input} mt-1 max-w-xs`}
                         value={i.seatType ?? ""}
                         onChange={(e) => updateSeatType(i.id, e.target.value)}
                       >
-                        <option value="">Choose a seat…</option>
+                        <option value="">Pick one…</option>
                         {seatKeys.map((k) => (
                           <option key={k} value={k}>
                             {k.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
@@ -514,14 +555,14 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                         <div className="mb-4 rounded-lg border border-emerald-800/40 bg-emerald-950/30 p-3">
                           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Package credit</p>
                           <p className="mt-1 text-sm text-emerald-400">
-                            Class price is covered by your package. Only add-ons are charged at checkout.
+                            Your package covers the class price. Only extras are paid at checkout.
                           </p>
                           <button
                             type="button"
                             className="mt-2 text-xs font-medium text-emerald-400 underline"
                             onClick={() => updatePackageCredit(i.id, null)}
                           >
-                            Remove package credit
+                            Don&rsquo;t use package credit
                           </button>
                         </div>
                       ) : null}
@@ -537,9 +578,9 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                                 onChange={() => updateBookingPaymentPreference(i.id, "deposit")}
                               />
                               <span>
-                                <span className="block font-medium text-[var(--foreground)]">Pay deposit now</span>
+                                <span className="block font-medium text-[var(--foreground)]">Pay a deposit now</span>
                                 <span className="block text-xs text-[var(--muted)]">
-                                  Due now €{(
+                                  Pay €{(
                                     bookingChargeNowCents(
                                       lineDisplayFullCents(i),
                                       {
@@ -564,9 +605,9 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                                   onChange={() => updateBookingPaymentPreference(i.id, "full")}
                                 />
                                 <span>
-                                  <span className="block font-medium text-[var(--foreground)]">Pay full price now</span>
+                                  <span className="block font-medium text-[var(--foreground)]">Pay the full price now</span>
                                   <span className="block text-xs text-[var(--muted)]">
-                                    Charge €{(lineDisplayFullCents(i) / 100).toFixed(2)} today
+                                    Pay €{(lineDisplayFullCents(i) / 100).toFixed(2)} today, nothing on arrival
                                   </span>
                                 </span>
                               </label>
@@ -575,14 +616,14 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                         </div>
                       ) : null}
                       <label className={ui.label} htmlFor={`booking-notes-${i.id}`}>
-                        Notes for the studio
+                        Note for the studio (optional)
                       </label>
                       <textarea
                         id={`booking-notes-${i.id}`}
                         className={`${ui.input} mt-1 min-h-24`}
                         defaultValue={i.notes ?? ""}
                         maxLength={1000}
-                        placeholder="Anything the studio should know for this booking?"
+                        placeholder="Anything they should know about this booking?"
                         onBlur={(e) => updateBookingNotes(i.id, e.target.value)}
                       />
                       {i.addOnSelections && i.addOnSelections.length > 0 ? (
@@ -601,7 +642,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                       ) : null}
                       {i.intakeResponsePayload && i.intakeResponsePayload.length > 0 ? (
                         <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Booking answers</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Your answers</p>
                           <dl className="mt-2 space-y-2 text-sm text-[var(--muted)]">
                             {i.intakeResponsePayload.map((response) => (
                               <div key={`${i.id}-${response.formId}`}>
@@ -623,7 +664,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
           </div>
           <div className="mt-6 space-y-1 text-right text-sm text-[var(--muted)]">
             <p>
-              Subtotal (due now){" "}
+              Pay now{" "}
               <span className="text-base font-semibold text-[var(--foreground)]">€{sub.toFixed(2)}</span>
             </p>
             {couponPreview ? (
@@ -644,11 +685,11 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                 {hasProducts ? (
                   <>
                     <p className="text-xs text-[var(--muted)]">
-                      Est. shipping €{(couponPreview.shippingCents / 100).toFixed(2)} · Est. tax €
-                      {(couponPreview.taxCents / 100).toFixed(2)}
+                      Shipping €{(couponPreview.shippingCents / 100).toFixed(2)} · Tax €
+                      {(couponPreview.taxCents / 100).toFixed(2)} (estimates)
                     </p>
                     <p>
-                      Est. total{" "}
+                      Estimated total{" "}
                       <span className="text-base font-semibold text-[var(--foreground)]">
                         €{(couponPreview.estimatedTotal / 100).toFixed(2)}
                       </span>
@@ -656,7 +697,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                   </>
                 ) : (
                   <p>
-                    Estimated total at checkout{" "}
+                    Estimated total{" "}
                     <span className="text-base font-semibold text-[var(--foreground)]">
                       €{(couponPreview.estimatedTotal / 100).toFixed(2)}
                     </span>
@@ -670,21 +711,21 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
             {!isCheckoutMode ? (
               <div className="space-y-4">
                 <p className="text-sm text-[var(--muted)]">
-                  Next, check your total and pay.
+                  Happy with everything? Next, you&rsquo;ll add your details and pay.
                 </p>
                 <Link href="/checkout" className={`${ui.buttonPrimary} inline-flex`}>
-                  Continue
+                  Continue to payment
                 </Link>
               </div>
             ) : null}
             {isCheckoutMode ? (
               <>
             <h2 className="text-lg font-semibold text-[var(--foreground)]">Your details</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">Used for your receipt, and shipping if you ordered something.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">For your receipt{hasProducts ? " and shipping" : ""}.</p>
             {err ? <p className={`${ui.errorText} mt-4`}>{err}</p> : null}
             {couponErr ? <p className={`${ui.errorText} mt-2`}>{couponErr}</p> : null}
             {!hasProducts ? (
-              <p className="mt-4 text-sm text-[var(--muted)]">Just your name and email &mdash; nothing to ship.</p>
+              <p className="mt-4 text-sm text-[var(--muted)]">Just name and email &mdash; nothing to ship.</p>
             ) : null}
             <div className="mt-6 space-y-4">
               <div>
@@ -716,7 +757,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
               </div>
               <div>
                 <label className={ui.label} htmlFor="cart-notes">
-                  Anything the studio should know? (optional)
+                  Note for the studio (optional)
                 </label>
                 <textarea
                   id="cart-notes"
@@ -777,7 +818,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                 </label>
                 {multiVendor ? (
                   <p className="mt-2 text-sm text-[var(--muted)]">
-                    Codes work for one studio at a time. Add yours when you pay each studio.
+                    Codes work for one studio at a time. Add yours when you pay that studio.
                   </p>
                 ) : (
                   <>
@@ -797,7 +838,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                           onClick={() => applyAdjustment("coupon")}
                           className={ui.buttonSecondary}
                         >
-                          Use code
+                          Apply
                         </button>
                         {appliedCode ? (
                           <button type="button" onClick={clearPromo} className={ui.buttonGhost}>
@@ -809,7 +850,7 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                     <p className="mt-2 text-xs text-[var(--muted)]">
                       {hasProducts
                         ? "Shipping and tax are estimated from your address."
-                        : "Discount applies to the amount due now."}
+                        : "Discount comes off what you pay now."}
                     </p>
                     <div className="mt-4 border-t border-[var(--border)] pt-4">
                       <label className={ui.label} htmlFor="cart-gift-card">
@@ -830,17 +871,35 @@ export function CartContents({ mode = "cart" }: { mode?: "cart" | "checkout" }) 
                           onClick={() => applyAdjustment("gift_card")}
                           className={ui.buttonSecondary}
                         >
-                          Use gift card
+                          Apply
                         </button>
                       </div>
                       <p className="mt-2 text-xs text-[var(--muted)]">
-                        Gift cards work for one studio. They lower what you pay.
+                        Gift cards work for one studio at a time and come off what you pay.
                       </p>
                     </div>
                   </>
                 )}
               </div>
-              {multiVendor ? (
+              {!isAuthed ? (
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm text-[var(--muted)]">
+                    Sign in or make a free account to pay. Your cart stays as is.
+                  </p>
+                  <Link
+                    href={`/login?callbackUrl=${encodeURIComponent("/checkout")}`}
+                    className={`${ui.buttonPrimary} mt-2 w-full text-center`}
+                  >
+                    Sign in to pay
+                  </Link>
+                  <Link
+                    href={`/register?callbackUrl=${encodeURIComponent("/checkout")}`}
+                    className={`${ui.buttonSecondary} w-full text-center`}
+                  >
+                    Create free account
+                  </Link>
+                </div>
+              ) : multiVendor ? (
                 <div className="mt-4 space-y-3">
                   {vendorGroups.map((g) => (
                     <div key={g.studioId} className="space-y-2">

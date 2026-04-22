@@ -37,7 +37,7 @@ export function DashboardRouteBreadcrumbs() {
     const segs = pathname.split("/").filter(Boolean);
     if (segs[0] !== "dashboard") return null;
     if (segs.length === 1) {
-      return [{ label: "Home", href: "/" }, { label: "Studio control panel" }];
+      return [{ label: "Home", href: "/" }, { label: "Your studios" }];
     }
     const a = segs[1];
     if (!RESERVED.has(a)) {
@@ -46,21 +46,21 @@ export function DashboardRouteBreadcrumbs() {
 
     const base = [
       { label: "Home", href: "/" },
-      { label: "Studio control panel", href: "/dashboard" },
+      { label: "Your studios", href: "/dashboard" },
     ] as const;
 
     if (a === "billing") {
-      return [...base, { label: "Billing & add-ons" }];
+      return [...base, { label: "Billing" }];
     }
     if (a === "studio") {
       if (segs[2] === "new") return [...base, { label: "Create studio" }];
-      if (segs[2]) return [...base, { label: "Studio workspace" }];
+      if (segs[2]) return [...base, { label: "Studio profile" }];
       return [...base, { label: "Studio" }];
     }
     if (LISTING_LABELS[a] && segs[2]) {
       return [...base, { label: LISTING_LABELS[a] }];
     }
-    return [...base, { label: "Studio control panel" }];
+    return [...base, { label: "Your studios" }];
   }, [pathname]);
 
   if (!items) return null;

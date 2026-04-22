@@ -53,9 +53,9 @@ function moneyLines(p: BookingEmailFields): string {
     Number.parseFloat(p.balanceEur) > 0;
   if (hasDeposit) {
     return `
-    <p>Total (experience): €${escapeHtml(p.totalEur)}</p>
-    <p>Paid online now: €${escapeHtml(p.paidEur!)}</p>
-    <p>Balance due (e.g. at studio): €${escapeHtml(p.balanceEur!)}</p>
+    <p>Total: €${escapeHtml(p.totalEur)}</p>
+    <p>Paid today: €${escapeHtml(p.paidEur!)}</p>
+    <p>Pay on arrival: €${escapeHtml(p.balanceEur!)}</p>
   `;
   }
   return `<p>Total: €${escapeHtml(p.totalEur)}</p>`;
@@ -77,7 +77,7 @@ function extrasBlock(p: BookingEmailFields): string {
 
   const intakeHtml = intake.length
     ? `<div style="margin:12px 0 0;">
-        <p style="margin:0 0 6px;"><strong>Booking answers</strong></p>
+        <p style="margin:0 0 6px;"><strong>Your answers</strong></p>
         ${intake
           .map(
             (line) =>
@@ -92,17 +92,17 @@ function extrasBlock(p: BookingEmailFields): string {
 
 export function bookingConfirmationCopy(p: BookingEmailFields): { customer: string; studio: string } {
   const ticket = p.ticketRef
-    ? `<p style="margin:0 0 8px;">Ticket / reference: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
+    ? `<p style="margin:0 0 8px;">Ticket: <strong>${escapeHtml(p.ticketRef)}</strong></p>`
     : "";
   const seat = p.seatType ? `<p style="margin:0 0 8px;">Seat type: ${escapeHtml(p.seatType)}</p>` : "";
   const instructor = p.instructorName
     ? `<p style="margin:0 0 8px;">Instructor: ${escapeHtml(p.instructorName)}</p>`
     : "";
-  const block = `
-    <p style="margin:0 0 8px;">Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
+  const customerBlock = `
+    <p style="margin:0 0 8px;">Class: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
     <p style="margin:0 0 8px;">Studio: ${escapeHtml(p.studioName)}</p>
-    <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
-    <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
+    <p style="margin:0 0 8px;">Date & time: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
+    <p style="margin:0 0 8px;">Guests: ${p.participants}</p>
     ${seat}
     ${instructor}
     ${extrasBlock(p)}
@@ -111,18 +111,18 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
   `;
   return {
     customer: renderEmailShell({
-      eyebrow: "Booking confirmed",
+      eyebrow: "You're booked",
       title: "Your booking is confirmed",
-      intro: `Your place for ${p.experienceTitle} is now confirmed.`,
-      bodyHtml: block,
-      ctaLabel: "View booking details",
-      ctaUrl: siteUrl,
+      intro: `See you at ${p.experienceTitle}.`,
+      bodyHtml: customerBlock,
+      ctaLabel: "View my bookings",
+      ctaUrl: `${siteUrl}/my-bookings`,
     }),
     studio: renderEmailShell({
-      eyebrow: "New confirmed booking",
-      title: "A booking has been confirmed",
-      intro: `You have a confirmed booking for ${p.experienceTitle}.`,
-      bodyHtml: block,
+      eyebrow: "New booking",
+      title: "A new booking just came in",
+      intro: `${p.experienceTitle} — confirmed.`,
+      bodyHtml: customerBlock,
       ctaLabel: "Open dashboard",
       ctaUrl: `${siteUrl}/dashboard`,
     }),
@@ -131,38 +131,38 @@ export function bookingConfirmationCopy(p: BookingEmailFields): { customer: stri
 
 export function bookingPendingStudioConfirmationCopy(p: BookingEmailFields): { customer: string; studio: string } {
   const ticket = p.ticketRef
-    ? `<p style="margin:0 0 8px;">Your reference: <strong>${escapeHtml(p.ticketRef)}</strong> (save this email)</p>`
+    ? `<p style="margin:0 0 8px;">Ticket: <strong>${escapeHtml(p.ticketRef)}</strong> (save this email)</p>`
     : "";
   const seat = p.seatType ? `<p style="margin:0 0 8px;">Seat type: ${escapeHtml(p.seatType)}</p>` : "";
   const instructor = p.instructorName
     ? `<p style="margin:0 0 8px;">Instructor: ${escapeHtml(p.instructorName)}</p>`
     : "";
   const block = `
-    <p style="margin:0 0 8px;">Experience: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
+    <p style="margin:0 0 8px;">Class: <strong>${escapeHtml(p.experienceTitle)}</strong></p>
     <p style="margin:0 0 8px;">Studio: ${escapeHtml(p.studioName)}</p>
-    <p style="margin:0 0 8px;">When: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
-    <p style="margin:0 0 8px;">Participants: ${p.participants}</p>
+    <p style="margin:0 0 8px;">Date & time: ${escapeHtml(p.slotDate)} at ${escapeHtml(p.startTime)}</p>
+    <p style="margin:0 0 8px;">Guests: ${p.participants}</p>
     ${seat}
     ${instructor}
     ${extrasBlock(p)}
     ${moneyLines(p)}
     ${ticket}
-    <p style="margin:16px 0 0;">Your payment was received. The studio will confirm or decline this booking shortly.</p>
+    <p style="margin:16px 0 0;">Payment received. The studio will confirm soon.</p>
   `;
   return {
     customer: renderEmailShell({
-      eyebrow: "Booking received",
-      title: "Your booking is pending studio confirmation",
-      intro: "Your payment was received and the studio has been notified.",
+      eyebrow: "Waiting for studio",
+      title: "Your booking is almost confirmed",
+      intro: "We've got your payment. The studio will confirm soon.",
       bodyHtml: block,
-      ctaLabel: "View booking details",
-      ctaUrl: siteUrl,
+      ctaLabel: "View my bookings",
+      ctaUrl: `${siteUrl}/my-bookings`,
     }),
     studio: renderEmailShell({
-      eyebrow: "Confirmation needed",
-      title: "A new booking needs your review",
-      intro: `Please confirm or decline the booking for ${p.experienceTitle}.`,
-      bodyHtml: `${block}<p style="margin:16px 0 0;">Please confirm or decline in your studio dashboard.</p>`,
+      eyebrow: "Action needed",
+      title: "A booking is waiting for you",
+      intro: `Confirm or decline: ${p.experienceTitle}.`,
+      bodyHtml: `${block}<p style="margin:16px 0 0;">Open your dashboard to confirm or decline.</p>`,
       ctaLabel: "Open dashboard",
       ctaUrl: `${siteUrl}/dashboard`,
     }),
@@ -176,11 +176,11 @@ export function bookingRejectedCopy(p: BookingEmailFields & { reason?: string | 
   const reason = p.reason ? `<p style="margin:0 0 8px;">Note from studio: ${escapeHtml(p.reason)}</p>` : "";
   return renderEmailShell({
     eyebrow: "Booking update",
-    title: "Your booking was not confirmed",
-    intro: `Your booking for ${p.experienceTitle} at ${p.studioName} could not be confirmed.`,
-    bodyHtml: `${ticket}${reason}<p style="margin:16px 0 0;">If you were charged, contact the studio for a refund.</p>`,
-    ctaLabel: "View booking details",
-    ctaUrl: siteUrl,
+    title: "Your booking couldn't be confirmed",
+    intro: `${p.studioName} wasn't able to confirm your booking for ${p.experienceTitle}.`,
+    bodyHtml: `${ticket}${reason}<p style="margin:16px 0 0;">If you were charged, contact the studio and they'll refund you.</p>`,
+    ctaLabel: "View my bookings",
+    ctaUrl: `${siteUrl}/my-bookings`,
   });
 }
 
@@ -191,10 +191,10 @@ export function reviewRequestCopy(input: {
   reviewUrl: string;
 }): string {
   return renderEmailShell({
-    eyebrow: "How was your session?",
+    eyebrow: "How was it?",
     title: `Leave a review for ${input.experienceTitle}`,
-    intro: `Thanks for attending ${input.experienceTitle} at ${input.studioName}.`,
-    bodyHtml: `<p style="margin:0 0 12px;">Hi ${escapeHtml(input.customerName)},</p><p style="margin:0;">Your feedback helps other customers choose the right class and helps the studio improve. It only takes a minute.</p>`,
+    intro: `Thanks for coming to ${input.studioName}.`,
+    bodyHtml: `<p style="margin:0 0 12px;">Hi ${escapeHtml(input.customerName)},</p><p style="margin:0;">A quick review helps other guests pick the right class, and helps the studio. It only takes a minute.</p>`,
     ctaLabel: "Leave a review",
     ctaUrl: input.reviewUrl,
   });
@@ -207,11 +207,11 @@ export function bookSoonCopy(input: {
   ctaUrl: string;
 }): string {
   return renderEmailShell({
-    eyebrow: "Book your next class",
+    eyebrow: "Ready for another?",
     title: input.subject,
-    intro: `Hi ${input.customerName}, ready for your next pottery session?`,
+    intro: `Hi ${input.customerName}, want to book your next class?`,
     bodyHtml: input.bodyHtml,
-    ctaLabel: "Browse classes",
+    ctaLabel: "Find a class",
     ctaUrl: input.ctaUrl,
   });
 }

@@ -50,10 +50,10 @@ export function MyOrdersClient() {
       try {
         const res = await fetch("/api/my-orders");
         const data = (await res.json()) as { error?: string; orders?: MyOrder[] };
-        if (!res.ok) throw new Error(data.error ?? "Could not load orders");
+        if (!res.ok) throw new Error(data.error ?? "We couldn’t load your orders. Try again.");
         if (!cancelled) setOrders(data.orders ?? []);
       } catch (error) {
-        if (!cancelled) setErr(error instanceof Error ? error.message : "Could not load orders");
+        if (!cancelled) setErr(error instanceof Error ? error.message : "We couldn’t load your orders. Try again.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -86,8 +86,12 @@ export function MyOrdersClient() {
     <div className="mx-auto max-w-4xl space-y-4">
       {orders.length === 0 ? (
         <div className={`${platformUi.cardMuted}`}>
-          <p className="font-medium text-[var(--foreground)]">No product orders yet</p>
-          <p className="mt-2 text-sm text-[var(--muted)]">Visit a studio page to browse products and place your first order.</p>
+          <p className="font-medium text-[var(--foreground)]">Nothing ordered yet</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Shop a studio to place your first order.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href="/studios" className={platformUi.buttonSecondary}>Browse studios</Link>
+            <Link href="/marketplace" className={platformUi.buttonSecondary}>Shop products</Link>
+          </div>
         </div>
       ) : (
         orders.map((order) => (
@@ -109,7 +113,7 @@ export function MyOrdersClient() {
                   </span>
                 </p>
                 <p className="text-[var(--muted)]">
-                  Fulfillment:{" "}
+                  Delivery:{" "}
                   <span className={statusTone[order.fulfillmentStatus] ?? "text-[var(--foreground)]"}>
                     {order.fulfillmentStatus.replace(/_/g, " ")}
                   </span>
@@ -131,7 +135,7 @@ export function MyOrdersClient() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-[var(--foreground)]">{item.title}</p>
                     <p className="text-xs text-[var(--muted)]">
-                      Qty {item.quantity} · {(item.priceSnapshotCents / 100).toFixed(2)} each
+                      {item.quantity} × {(item.priceSnapshotCents / 100).toFixed(2)}
                     </p>
                   </div>
                 </li>
@@ -146,11 +150,11 @@ export function MyOrdersClient() {
                   rel="noreferrer"
                   className="font-medium text-[var(--accent)] underline underline-offset-2"
                 >
-                  Track shipment
+                  Track my package
                 </a>
               ) : null}
               <Link href={`/api/orders/${order.id}/invoice`} className="font-medium text-[var(--accent)] underline underline-offset-2">
-                Download invoice
+                Get receipt
               </Link>
             </div>
           </article>

@@ -33,10 +33,10 @@ export function MyLoyaltyClient() {
     try {
       const res = await fetch("/api/loyalty/my");
       const data = (await res.json()) as { error?: string; balances?: Balance[] };
-      if (!res.ok) throw new Error(data.error ?? "Could not load loyalty balances.");
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t load your points. Try again.");
       setRows(data.balances ?? []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load loyalty balances.");
+      setError(e instanceof Error ? e.message : "We couldn’t load your points. Try again.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export function MyLoyaltyClient() {
   async function redeem(studioId: string, availablePoints: number) {
     const points = Math.floor(availablePoints / 100) * 100;
     if (points < 500) {
-      setError("At least 500 points are required for redemption.");
+      setError("You need 500 points to redeem.");
       return;
     }
     setBusyStudio(studioId);
@@ -75,41 +75,41 @@ export function MyLoyaltyClient() {
         body: JSON.stringify({ studioId, points }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Could not redeem points.");
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t redeem your points. Try again.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Redemption failed.");
+      setError(e instanceof Error ? e.message : "We couldn’t redeem your points. Try again.");
     } finally {
       setBusyStudio(null);
     }
   }
 
-  if (loading) return <p className="text-sm text-stone-600">Loading loyalty balances...</p>;
+  if (loading) return <p className="text-sm text-stone-600">Loading…</p>;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-amber-950">My loyalty points</h1>
-        <p className="mt-2 text-sm text-stone-600">Track earned points across studios and redeem them into gift cards.</p>
+        <h1 className="text-2xl font-semibold text-amber-950">My points</h1>
+        <p className="mt-2 text-sm text-stone-600">Points you earn per studio. Cash them in for a gift card.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-xs text-stone-500">Active balance</p>
+          <p className="text-xs text-stone-500">Available</p>
           <p className="mt-1 text-xl font-semibold text-stone-900">{totals.balance}</p>
         </div>
         <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-xs text-stone-500">Total earned</p>
+          <p className="text-xs text-stone-500">Earned</p>
           <p className="mt-1 text-xl font-semibold text-stone-900">{totals.earned}</p>
         </div>
         <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-xs text-stone-500">Total spent</p>
+          <p className="text-xs text-stone-500">Spent</p>
           <p className="mt-1 text-xl font-semibold text-stone-900">{totals.spent}</p>
         </div>
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {rows.length === 0 ? (
         <p className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">
-          No loyalty points yet. Complete classes at participating studios to start earning.
+          No points yet. Book a class at a participating studio to start earning.
         </p>
       ) : (
         rows.map((row) => (
@@ -117,7 +117,7 @@ export function MyLoyaltyClient() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-stone-900">{row.studio.displayName}</h2>
-                <p className="mt-1 text-sm text-stone-500">Balance: {row.pointsBalance} points</p>
+                <p className="mt-1 text-sm text-stone-500">{row.pointsBalance} points available</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -126,10 +126,10 @@ export function MyLoyaltyClient() {
                   disabled={busyStudio === row.studio.id || row.pointsBalance < 500}
                   onClick={() => redeem(row.studio.id, row.pointsBalance)}
                 >
-                  {busyStudio === row.studio.id ? "Redeeming..." : "Redeem to gift card"}
+                  {busyStudio === row.studio.id ? "Redeeming…" : "Cash in for gift card"}
                 </button>
                 <Link href={`/studios/${row.studio.id}`} className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">
-                  View studio
+                  Open studio
                 </Link>
               </div>
             </div>

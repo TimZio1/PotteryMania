@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!experience) {
     return buildMetadata({
       title: "Class not found",
-      description: "This pottery class or experience could not be found.",
+      description: "We couldn’t find this class.",
       path: `/classes/${experienceId}`,
     });
   }
@@ -242,17 +242,17 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         </p>
         {experience.bookingDepositBps > 0 && (
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            You can pay a {(experience.bookingDepositBps / 100).toFixed(1)}% deposit now. The studio collects the rest per their policy.
+            Pay a {(experience.bookingDepositBps / 100).toFixed(1)}% deposit now. You&rsquo;ll pay the rest when you arrive.
           </p>
         )}
         {experience.bookingApprovalRequired && (
           <p className="mt-2 max-w-2xl rounded-xl border border-[var(--accent)]/50 bg-[var(--accent-muted)] px-4 py-3 text-sm text-[var(--foreground)]">
-            The studio confirms your booking after you pay. You&rsquo;ll see &ldquo;pending&rdquo; until they say yes.
+            The studio approves each booking by hand. Your seat is held and your card authorised — you&rsquo;re only charged once they confirm.
           </p>
         )}
         {(experience.bookingCutoffHours ?? 0) > 0 && (
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            Booking closes {experience.bookingCutoffHours}h before the class.
+            Bookings close {experience.bookingCutoffHours}h before the class starts.
           </p>
         )}
         {primary?.imageUrl ? (
@@ -265,22 +265,24 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         {experience.fullDescription && (
           <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">{experience.fullDescription}</div>
         )}
-        {cancellationPolicyLabel ? <p className="mt-6 text-xs text-[var(--muted)]">Cancellation: {cancellationPolicyLabel}</p> : null}
+        {cancellationPolicyLabel ? <p className="mt-6 text-xs text-[var(--muted)]">Cancellations: {cancellationPolicyLabel}</p> : null}
         <div className="mt-10 border-t border-[var(--border)] pt-10">
           {recurring ? (
             <>
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Start recurring membership</h2>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Start your membership</h2>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                Clear renewal terms are shown before checkout. Cancelation and trial terms apply as listed below.
+                You&rsquo;ll see the full renewal and trial terms at checkout before you pay.
               </p>
               <ul className="mt-3 space-y-1 text-xs text-[var(--muted)]">
-                <li>Billing cycle: {billingIntervalLabel(experience.billingInterval!, experience.billingIntervalCount ?? 1)}</li>
-                <li>Auto-renew: {experience.autoRenew ? "On" : "Off"}</li>
+                <li>Billed: {billingIntervalLabel(experience.billingInterval!, experience.billingIntervalCount ?? 1)}</li>
+                <li>Renews automatically: {experience.autoRenew ? "Yes" : "No"}</li>
                 {experience.minimumCommitmentCycles ? (
-                  <li>Minimum commitment: {experience.minimumCommitmentCycles} cycles</li>
+                  <li>Minimum commitment: {experience.minimumCommitmentCycles} {experience.minimumCommitmentCycles === 1 ? "cycle" : "cycles"}</li>
                 ) : null}
-                {experience.trialPeriodDays ? <li>Trial period: {experience.trialPeriodDays} days</li> : null}
-                {experience.cancellationPolicyText ? <li>Cancellation: {experience.cancellationPolicyText}</li> : null}
+                {experience.trialPeriodDays ? (
+                  <li>Free trial: {experience.trialPeriodDays} {experience.trialPeriodDays === 1 ? "day" : "days"}</li>
+                ) : null}
+                {experience.cancellationPolicyText ? <li>How to cancel: {experience.cancellationPolicyText}</li> : null}
               </ul>
               <div className="mt-4">
                 <SubscribeButton offeringType="experience" offeringId={experience.id} cta="Start membership" />
@@ -288,8 +290,8 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
             </>
           ) : (
             <>
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Book your spot</h2>
-              <p className="mt-1 text-sm text-[var(--muted)]">Pick a time and how many people.</p>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Book your seat</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">Pick a time, then tell us how many of you are coming.</p>
               <ClassBookingForm
                 studioId={experience.studio.id}
                 experienceId={experience.id}

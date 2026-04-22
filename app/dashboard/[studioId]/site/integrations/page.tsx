@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     studioId,
     "Integrations",
     "site/integrations",
-    "Website integration shortcuts for shop, bookings, and reseller e shop embeds.",
+    "Add your shop, bookings, and wearables to any website.",
   );
 }
 

@@ -112,16 +112,16 @@ export async function POST(req: Request, ctx: Ctx) {
 
   try {
     const slotDate = booking.slot.slotDate.toISOString().slice(0, 10);
-    const subject = `Booking cancelled: ${booking.experience.title} on ${slotDate}`;
-    const info = `<p>Experience: <strong>${booking.experience.title}</strong></p>
-      <p>Date: ${slotDate} at ${booking.slot.startTime}</p>
+    const subject = `Booking cancelled: ${booking.experience.title} (${slotDate})`;
+    const info = `<p>Class: <strong>${booking.experience.title}</strong></p>
+      <p>Date & time: ${slotDate} at ${booking.slot.startTime}</p>
       <p>Cancelled by: ${role}</p>
-      <p>Refund outcome: ${result.refundOutcome}</p>`;
+      <p>Refund: ${result.refundOutcome}</p>`;
     await sendBookingEmails({
       customerEmail: booking.customerEmail,
       studioEmail: booking.studio.email || undefined,
       subject,
-      customerHtml: `<h1>Booking cancelled</h1>${info}`,
+      customerHtml: `<h1>Your booking was cancelled</h1>${info}`,
       studioHtml: booking.studio.email ? `<h1>Booking cancelled</h1>${info}` : undefined,
     });
   } catch (e) {

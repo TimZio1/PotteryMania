@@ -13,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Kiln", "studio-tools/kiln", "Kiln firings and production queue.");
+  return dashboardStudioMeta(studioId, "Kiln", "studio-tools/kiln", "Track firings and pieces in the queue.");
 }
 
 export default async function StudioKilnPage({ params }: Props) {
@@ -30,9 +30,9 @@ export default async function StudioKilnPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <p className={ui.overline}>Studio tools</p>
-        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Kiln / Production</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Track firings and pieces. Status is for your studio operations only.</p>
+        <p className={ui.overline}>Tools</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Kiln</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">Track firings and pieces. Internal only — customers don&apos;t see this.</p>
       </div>
       <KilnManager studioId={studioId} />
     </div>

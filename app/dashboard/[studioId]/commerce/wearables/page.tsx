@@ -56,7 +56,7 @@ export default function StudioWearablesPage() {
       setSelected(new Set(data.selectedProductIds));
       if (typeof data.activeCreators === "number") setActiveCreators(data.activeCreators);
     } catch {
-      setError("Could not load wearables configuration.");
+      setError("We couldn't load your wearables settings. Refresh the page.");
     } finally {
       setLoading(false);
     }
@@ -80,12 +80,12 @@ export default function StudioWearablesPage() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        throw new Error(j.error || "Save failed");
+        throw new Error(j.error || "We couldn't save. Try again.");
       }
-      setSuccess("Settings saved.");
+      setSuccess("Saved.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
+      setError(e instanceof Error ? e.message : "We couldn't save. Try again.");
     } finally {
       setSaving(false);
     }
@@ -112,7 +112,7 @@ export default function StudioWearablesPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <p className="text-sm text-[var(--muted)]">Loading wearables settings...</p>
+        <p className="text-sm text-[var(--muted)]">Loading…</p>
       </div>
     );
   }
@@ -120,7 +120,7 @@ export default function StudioWearablesPage() {
   if (!config) {
     return (
       <div className="p-6">
-        <p className="text-sm text-red-600">{error || "Configuration unavailable."}</p>
+        <p className="text-sm text-red-600">{error || "We couldn't load your wearables settings. Refresh the page."}</p>
       </div>
     );
   }
@@ -135,7 +135,7 @@ export default function StudioWearablesPage() {
         </Link>
         <h1 className="mt-3 font-serif text-2xl font-semibold text-stone-900">Wearables</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Sell curated pottery-inspired apparel directly from your shop — no stock, no shipping, no hassle.
+          Sell pottery-themed apparel from your studio page. No stock, no shipping — we handle it.
         </p>
         {activeCreators != null && (
           <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-900">
@@ -151,8 +151,8 @@ export default function StudioWearablesPage() {
       <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium text-stone-900">Enable Wearables Shop</p>
-            <p className="mt-0.5 text-xs text-[var(--muted)]">Products appear on your public page when enabled.</p>
+            <p className="font-medium text-stone-900">Show wearables on my studio page</p>
+            <p className="mt-0.5 text-xs text-[var(--muted)]">Turn on to display the selected products to visitors.</p>
           </div>
           <button
             type="button"
@@ -169,7 +169,7 @@ export default function StudioWearablesPage() {
       {enabled && (
         <>
           <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="font-medium text-stone-900">Your Commission</p>
+            <p className="font-medium text-stone-900">What you earn per sale</p>
             {(() => {
               const avgBase = config.catalog.length > 0
                 ? config.catalog.reduce((s, p) => s + p.basePriceCents, 0) / config.catalog.length
@@ -177,13 +177,13 @@ export default function StudioWearablesPage() {
               const exampleEarning = (avgBase * marginBps) / 10000 / 100;
               return config.marginLocked ? (
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Your margin is set to <strong>{marginLabel}</strong> and locked by the platform.
+                  Your margin is fixed at <strong>{marginLabel}</strong>.
                   {" "}You earn ~<strong>{formatEur(Math.round(avgBase * marginBps / 10000))}</strong> per sale.
                 </p>
               ) : (
                 <>
                   <p className="mt-1 text-xs text-[var(--muted)]">
-                    You earn {marginLabel} on every sale — roughly <strong>€{exampleEarning.toFixed(2)}</strong> per item.
+                    You earn {marginLabel} per sale — about <strong>€{exampleEarning.toFixed(2)}</strong> per item.
                   </p>
                   <input
                     type="range"
@@ -209,7 +209,7 @@ export default function StudioWearablesPage() {
           <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-stone-900">Select Products</p>
+                <p className="font-medium text-stone-900">Pick what to sell</p>
                 <p className="mt-0.5 text-xs text-[var(--muted)]">
                   {selected.size} of {config.catalog.length} selected
                 </p>
@@ -262,15 +262,15 @@ export default function StudioWearablesPage() {
           </section>
 
           <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="font-medium text-stone-900">Embed on your website</p>
+            <p className="font-medium text-stone-900">Embed on your own website</p>
             <p className="mt-1 text-xs text-[var(--muted)]">
-              Paste one of these code snippets into your WordPress, Squarespace, Wix, or any HTML page to display your wearables shop.
+              Paste one of these into WordPress, Squarespace, Wix, or any HTML page.
             </p>
 
             <div className="mt-4 space-y-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Option A — JavaScript widget (recommended)</p>
-                <p className="mt-1 text-xs text-stone-400">Works everywhere. Renders inline, matches your page. Light or dark theme.</p>
+                <p className="mt-1 text-xs text-stone-400">Matches your page style. Works anywhere.</p>
                 <div className="relative mt-2">
                   <pre className="overflow-x-auto rounded-lg bg-stone-50 p-3 text-xs leading-relaxed text-stone-700 select-all">
 {`<div id="potterymania-wearables" data-studio="${studioId}"></div>
@@ -290,8 +290,8 @@ export default function StudioWearablesPage() {
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Option B — Iframe embed</p>
-                <p className="mt-1 text-xs text-stone-400">Simplest integration. Drop this into any HTML or page builder block.</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Option B — Iframe</p>
+                <p className="mt-1 text-xs text-stone-400">Easiest. Drop it into any HTML block.</p>
                 <div className="relative mt-2">
                   <pre className="overflow-x-auto rounded-lg bg-stone-50 p-3 text-xs leading-relaxed text-stone-700 select-all">
 {`<iframe
@@ -326,7 +326,7 @@ export default function StudioWearablesPage() {
                   loading="lazy"
                 />
               </div>
-              <p className="mt-1 text-xs text-stone-400">This is how your wearables shop looks when embedded on an external site.</p>
+              <p className="mt-1 text-xs text-stone-400">This is how the embed will look on your website.</p>
             </div>
           </section>
         </>
@@ -339,7 +339,7 @@ export default function StudioWearablesPage() {
           disabled={saving}
           className="rounded-full bg-amber-950 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? "Saving…" : "Save changes"}
         </button>
       </div>
     </div>

@@ -13,7 +13,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Users",
   "/admin/users",
-  "Customer and vendor accounts.",
+  "Customer and studio accounts.",
 );
 
 export const dynamic = "force-dynamic";
@@ -81,11 +81,10 @@ export default async function AdminUsersPage({ searchParams }: Props) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Users</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Accounts</h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">All accounts</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Search by email, filter by role, account status, and email verification. List shows order/booking counts as a
-        quick activity proxy; filter by internal **admin flag** (exact tag). Open a user for flags, notes, suspension,
-        role changes, impersonation, and activity (audit logged).
+        Search by email, filter by role and status. Open a user to change role, suspend, impersonate, or add notes.
+        All changes are audit-logged.
       </p>
 
       <form className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">

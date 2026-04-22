@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ui } from "@/lib/ui-styles";
@@ -32,8 +31,8 @@ const STOCK_STATUS = [
 ];
 
 const FULFILLMENT_OPTS = [
-  { value: "pending", label: "Pending" },
-  { value: "processing", label: "Processing" },
+  { value: "pending", label: "Not started" },
+  { value: "processing", label: "Preparing" },
   { value: "shipped", label: "Shipped" },
   { value: "delivered", label: "Delivered" },
   { value: "ready_for_pickup", label: "Ready for pickup" },
@@ -55,7 +54,7 @@ export default function StudioShopClient({
   studioId: string;
   products: StudioShopProductRow[];
   orders: StudioShopOrderRow[];
-  /** When set from route (e.g. Commerce → Orders), open that tab first. */
+  /** When set from route (e.g. Shop → Orders), open that tab first. */
   initialTab?: Tab;
 }) {
   const router = useRouter();
@@ -199,25 +198,25 @@ export default function StudioShopClient({
     if (!selected) return;
     const price = parseFloat(String(form.priceEur).replace(",", "."));
     if (!Number.isFinite(price) || price < 0) {
-      setErr("Invalid price");
+      setErr("Enter a valid price.");
       return;
     }
     const priceCents = Math.round(price * 100);
     const salePriceRaw = String(form.salePriceEur).trim();
     const salePrice = salePriceRaw ? parseFloat(salePriceRaw.replace(",", ".")) : Number.NaN;
     if (salePriceRaw && (!Number.isFinite(salePrice) || salePrice < 0)) {
-      setErr("Invalid sale price");
+      setErr("Enter a valid sale price, or leave it empty.");
       return;
     }
     const salePriceCents = salePriceRaw ? Math.round(salePrice * 100) : null;
     if (salePriceCents != null && salePriceCents > priceCents) {
-      setErr("Sale price cannot exceed base price");
+      setErr("Sale price can’t be higher than the regular price.");
       return;
     }
     const recurringPrice = parseFloat(String(form.recurringPriceEur).replace(",", "."));
     const recurringPriceCents = Number.isFinite(recurringPrice) ? Math.round(recurringPrice * 100) : 0;
     if (form.pricingType === "recurring" && recurringPriceCents < 50) {
-      setErr("Recurring price must be at least €0.50");
+      setErr("Recurring price must be at least €0.50.");
       return;
     }
     setSaving(true);
@@ -264,10 +263,10 @@ export default function StudioShopClient({
         }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Save failed");
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t save this product. Try again.");
       router.refresh();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Save failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t save this product. Try again.");
     } finally {
       setSaving(false);
     }
@@ -278,11 +277,11 @@ export default function StudioShopClient({
     const price = parseFloat(String(createForm.priceEur).replace(",", "."));
     const recurringPrice = parseFloat(String(createForm.recurringPriceEur).replace(",", "."));
     if (!createForm.title.trim() || !Number.isFinite(price) || price < 0) {
-      setErr("Provide valid title and price");
+      setErr("Add a title and a valid price.");
       return;
     }
     if (createForm.pricingType === "recurring" && (!Number.isFinite(recurringPrice) || recurringPrice < 0.5)) {
-      setErr("Provide valid recurring price (>= €0.50)");
+      setErr("Recurring price must be at least €0.50.");
       return;
     }
     setCreating(true);
@@ -329,7 +328,7 @@ export default function StudioShopClient({
         }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Create failed");
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t create this product. Try again.");
       setCreateForm({
         title: "",
         category: "tableware",
@@ -350,7 +349,7 @@ export default function StudioShopClient({
       setCreateImages([]);
       router.refresh();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Create failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t create this product. Try again.");
     } finally {
       setCreating(false);
     }
@@ -366,7 +365,7 @@ export default function StudioShopClient({
         body: JSON.stringify(payload),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Update failed");
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t update this order. Try again.");
       const updatedOrder = (data as { order?: StudioShopOrderRow }).order;
       if (updatedOrder) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? updatedOrder : o)));
@@ -392,7 +391,7 @@ export default function StudioShopClient({
         );
       }
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Update failed");
+      setErr(e instanceof Error ? e.message : "We couldn’t update this order. Try again.");
     } finally {
       setOrderBusy(null);
     }
@@ -429,11 +428,7 @@ export default function StudioShopClient({
         <div className="relative grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="space-y-4">
             <p className="text-sm text-[var(--muted)]">
-              Low-stock highlight when quantity is between 1 and {DEFAULT_LOW_STOCK_THRESHOLD}. Open{" "}
-              <Link href={`/dashboard/${studioId}/commerce/catalog`} className="font-medium text-amber-900 underline">
-                Commerce → Catalog
-              </Link>{" "}
-              for full product controls.
+              We flag anything with 1–{DEFAULT_LOW_STOCK_THRESHOLD} left in stock so you can restock in time.
             </p>
 
             <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-xl border border-stone-200 bg-stone-50/95 p-4 backdrop-blur sm:flex-row sm:flex-wrap sm:items-end">
@@ -463,7 +458,7 @@ export default function StudioShopClient({
               onSubmit={(e) => void createProduct(e)}
               className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm"
             >
-              <p className="text-sm font-semibold text-stone-900">Create product</p>
+              <p className="text-sm font-semibold text-stone-900">Add a product</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 <label className="block sm:col-span-2">
                   <span className={ui.label}>Title</span>
@@ -588,7 +583,7 @@ export default function StudioShopClient({
                         e.currentTarget.value = "";
                         if (!file) return;
                         if (createImages.length >= PRODUCT_IMAGE_MAX) {
-                          setErr(`Maximum ${PRODUCT_IMAGE_MAX} images per product`);
+                          setErr(`You can add up to ${PRODUCT_IMAGE_MAX} images per product.`);
                           return;
                         }
                         setUploadingCreateImage(true);
@@ -601,7 +596,7 @@ export default function StudioShopClient({
                             ]),
                           );
                         } catch (error) {
-                          setErr(error instanceof Error ? error.message : "Image upload failed");
+                          setErr(error instanceof Error ? error.message : "We couldn’t upload that image. Try again.");
                         } finally {
                           setUploadingCreateImage(false);
                         }
@@ -610,7 +605,7 @@ export default function StudioShopClient({
                   </label>
                 </div>
                 {createImages.length === 0 ? (
-                  <p className="mt-2 text-xs text-[var(--muted)]">Upload at least one image so products look complete in storefront listings.</p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">Add at least one photo so shoppers can see what they&apos;re buying.</p>
                 ) : (
                   <ul className="mt-3 space-y-2">
                     {createImages.map((image, idx) => (
@@ -684,7 +679,7 @@ export default function StudioShopClient({
                 )}
               </div>
               <button type="submit" disabled={creating} className={`${ui.buttonPrimary} mt-4`}>
-                {creating ? "Creating..." : "Create draft"}
+                {creating ? "Saving…" : "Save as draft"}
               </button>
             </form>
 
@@ -704,7 +699,7 @@ export default function StudioShopClient({
                   {filteredProducts.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted)]">
-                        No products match.
+                        Nothing matches your search yet.
                       </td>
                     </tr>
                   ) : (
@@ -999,7 +994,7 @@ export default function StudioShopClient({
                 </select>
               </label>
               <label>
-                <span className={ui.label}>Listing status</span>
+                <span className={ui.label}>Show in shop</span>
                 <select className={cn(ui.input, "mt-1")} value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
                   {PRODUCT_STATUS.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -1034,7 +1029,7 @@ export default function StudioShopClient({
                         e.currentTarget.value = "";
                         if (!file) return;
                         if (formImages.length >= PRODUCT_IMAGE_MAX) {
-                          setErr(`Maximum ${PRODUCT_IMAGE_MAX} images per product`);
+                          setErr(`You can add up to ${PRODUCT_IMAGE_MAX} images per product.`);
                           return;
                         }
                         setUploadingEditImage(true);
@@ -1047,7 +1042,7 @@ export default function StudioShopClient({
                             ]),
                           );
                         } catch (error) {
-                          setErr(error instanceof Error ? error.message : "Image upload failed");
+                          setErr(error instanceof Error ? error.message : "We couldn’t upload that image. Try again.");
                         } finally {
                           setUploadingEditImage(false);
                         }
@@ -1056,7 +1051,7 @@ export default function StudioShopClient({
                   </label>
                 </div>
                 {formImages.length === 0 ? (
-                  <p className="mt-2 text-xs text-[var(--muted)]">No images yet. Upload at least one image for storefront quality.</p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">No photos yet. Add at least one so shoppers can see what they&apos;re buying.</p>
                 ) : (
                   <ul className="mt-3 space-y-2">
                     {formImages.map((image, idx) => (
@@ -1145,7 +1140,7 @@ export default function StudioShopClient({
                 <th className="px-4 py-3">Items</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Payment</th>
-                <th className="px-4 py-3">Fulfillment</th>
+                <th className="px-4 py-3">Shipping</th>
                 <th className="px-4 py-3">Tracking</th>
               </tr>
             </thead>
@@ -1153,7 +1148,7 @@ export default function StudioShopClient({
               {orders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-[var(--muted)]">
-                    No product sales yet.
+                    No sales yet. Share your shop link to get your first order.
                   </td>
                 </tr>
               ) : (

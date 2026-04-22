@@ -13,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Guests", "guests", "Contacts, booking history, and notes.");
+  return dashboardStudioMeta(studioId, "Guests", "guests", "Your contacts, booking history, and notes.");
 }
 
 export default async function StudioGuestsPage({ params }: Props) {
@@ -31,7 +31,7 @@ export default async function StudioGuestsPage({ params }: Props) {
         <p className={ui.overline}>Guests</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Guests</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Booking history merged with saved contacts. Search and tag filters, side panel for notes — add contacts who have not booked yet.
+          Everyone who booked, plus any contacts you add. Search, tag, and keep notes in one place.
         </p>
       </div>
 

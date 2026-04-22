@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell
       title="Choose a new password"
-      description="Pick a strong password you haven’t used elsewhere. This link expires after one hour."
+      description="Pick a strong password you haven’t used elsewhere. The link expires in one hour."
     >
       <Suspense
         fallback={

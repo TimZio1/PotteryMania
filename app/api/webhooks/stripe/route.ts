@@ -152,7 +152,7 @@ export async function POST(req: Request) {
             await runStripeWebhookSideEffect(event.id, `gift_card_email:${activated.id}`, async () => {
               await sendGiftCardEmail({
                 to: activated.recipientEmail!,
-                subject: `Your gift card from ${activated.studio.displayName}`,
+                subject: `A gift card from ${activated.studio.displayName}`,
                 html: emailHtml,
               });
               await prisma.giftCard.update({
@@ -725,7 +725,7 @@ export async function POST(req: Request) {
     await runStripeWebhookSideEffect(event.id, `order_payment_failed_email:${order.id}`, async () => {
       await sendOrderEmails({
         customerEmail: order.customerEmail,
-        subject: "Payment failed for your order",
+        subject: "Your payment didn't go through",
         customerHtml,
       });
     });

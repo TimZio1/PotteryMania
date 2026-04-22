@@ -19,7 +19,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "Revenue",
   "/admin/revenue",
-  "Platform revenue and payout visibility.",
+  "Platform revenue, commission, and refunds.",
 );
 
 export const dynamic = "force-dynamic";

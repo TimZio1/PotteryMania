@@ -6,7 +6,7 @@ import { AccountClient } from "./account-client";
 
 export const metadata: Metadata = buildMetadata({
   title: "Account",
-  description: "Manage your profile, name, phone, and preferences.",
+  description: "Your name, phone, language, and currency.",
   path: "/account",
 });
 

@@ -38,11 +38,11 @@ export function StudioProductAddToCart({
   async function add() {
     if (!checkoutEnabled) return;
     if (hasVariants && !selectedVariant) {
-      setMsg({ type: "err", text: "Choose a variant first." });
+      setMsg({ type: "err", text: "Pick an option first." });
       return;
     }
     if (variantUnavailable) {
-      setMsg({ type: "err", text: "This variant is currently unavailable." });
+      setMsg({ type: "err", text: "This option isn’t available right now." });
       return;
     }
     setBusy(true);
@@ -55,7 +55,7 @@ export function StudioProductAddToCart({
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setMsg({ type: "err", text: typeof j.error === "string" ? j.error : "Could not add to cart" });
+        setMsg({ type: "err", text: typeof j.error === "string" ? j.error : "We couldn’t add that. Try again." });
         return;
       }
       setMsg({ type: "ok", text: "Added to your cart." });
@@ -67,7 +67,7 @@ export function StudioProductAddToCart({
   if (!checkoutEnabled) {
     return (
       <p className={studioThemed ? "st-muted text-xs" : "text-xs text-stone-500"}>
-        You can&rsquo;t buy from this shop right now.
+        This shop isn&rsquo;t taking orders right now.
       </p>
     );
   }

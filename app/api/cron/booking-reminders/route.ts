@@ -30,12 +30,13 @@ export async function GET(req: Request) {
     let failed = 0;
     for (const booking of bookings) {
       try {
+        const dateStr = booking.slot.slotDate.toISOString().slice(0, 10);
         await sendBookingEmails({
           customerEmail: booking.customerEmail,
           studioEmail: booking.studio.email,
-          subject: `Reminder: ${booking.experience.title} is tomorrow`,
-          customerHtml: `<p>Hi ${booking.customerName},</p><p>This is a reminder for <strong>${booking.experience.title}</strong> on ${booking.slot.slotDate.toISOString().slice(0, 10)} at ${booking.slot.startTime}.</p>`,
-          studioHtml: `<p>Reminder sent to ${booking.customerName} for <strong>${booking.experience.title}</strong>.</p>`,
+          subject: `Tomorrow: ${booking.experience.title}`,
+          customerHtml: `<p>Hi ${booking.customerName},</p><p>Quick reminder — <strong>${booking.experience.title}</strong> is tomorrow, ${dateStr} at ${booking.slot.startTime}. See you there.</p>`,
+          studioHtml: `<p>Reminder sent to ${booking.customerName} for <strong>${booking.experience.title}</strong> (${dateStr} at ${booking.slot.startTime}).</p>`,
         });
         await prisma.booking.update({
           where: { id: booking.id },

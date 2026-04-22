@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Studio terms",
   description:
-    "Additional terms for ceramic studios selling and teaching on PotteryMania — payouts, listings, and platform rules.",
+    "Extra terms for studios selling classes and products on PotteryMania.",
   path: "/vendor-terms",
 });
 

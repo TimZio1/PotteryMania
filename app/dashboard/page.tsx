@@ -7,9 +7,9 @@ import { platformUi } from "@/lib/ui-styles";
 import { metaDashboardPage } from "@/lib/seo-routes";
 
 export const metadata: Metadata = metaDashboardPage(
-  "Studio control panel",
+  "Your studios",
   "/dashboard",
-  "Studio control panel for sessions, public pages, payments, and direct studio sales.",
+  "Open a studio to run classes, your shop, and payouts.",
 );
 
 export const dynamic = "force-dynamic";
@@ -27,8 +27,8 @@ export default async function DashboardPage() {
     return (
       <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
         <p className={platformUi.overline}>Account</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Start your studio</h1>
-        <p className="mt-3 text-[var(--muted)]">Create a studio, or see your bookings.</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Your account</h1>
+        <p className="mt-3 text-[var(--muted)]">Open a studio or see your class bookings.</p>
         <div className={`${platformUi.card} mt-8`}>
           <div className="flex flex-col gap-3">
             <Link href="/dashboard/studio/new?setup=both" className={platformUi.buttonPrimary}>
@@ -63,7 +63,6 @@ export default async function DashboardPage() {
     orderBy: { createdAt: "desc" },
     include: { stripeAccount: true },
   });
-  const latestStudio = studios[0] ?? null;
 
   return (
     <div className="mx-auto max-w-3xl px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
@@ -71,13 +70,13 @@ export default async function DashboardPage() {
         <p className={platformUi.overline}>Studios</p>
       </div>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Your studios</h1>
-      <p className="mt-2 max-w-xl text-[var(--muted)]">Open a studio to run classes, sales, and payouts.</p>
+      <p className="mt-2 max-w-xl text-[var(--muted)]">Pick a studio to manage classes, shop, and money.</p>
 
       {studios.length === 0 ? (
         <div className={`${platformUi.cardMuted} mt-10`}>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Start your studio</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Start your first studio</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Name your studio, add a class or product, and share your public page.
+            Name it, add a class or product, share your page.
           </p>
           <Link href="/dashboard/studio/new?setup=both" className={`${platformUi.buttonPrimary} mt-6 inline-flex`}>
             Create my studio
@@ -96,19 +95,19 @@ export default async function DashboardPage() {
                     <p className="mt-1 text-sm text-[var(--muted)] capitalize">Status: {s.status.replace(/_/g, " ")}</p>
 
                     <p className="mt-3 text-sm text-[var(--muted)]">
-                      <span className="font-medium text-stone-900">Taking payments:</span>{" "}
+                      <span className="font-medium text-stone-900">Ready to get paid:</span>{" "}
                       {activated ? (
                         <span className="text-emerald-700">Yes</span>
                       ) : (
-                        <span className="text-amber-800">Not yet &mdash; connect your bank to start</span>
+                        <span className="text-amber-800">Not yet — connect your bank first</span>
                       )}
                     </p>
                     <p className="mt-1 text-sm text-[var(--muted)]">
-                      <span className="font-medium text-stone-900">Bank connected:</span>{" "}
+                      <span className="font-medium text-stone-900">Bank linked:</span>{" "}
                       {stripeOk ? (
                         <span className="text-emerald-700">Yes</span>
                       ) : (
-                        <span className="text-amber-800">Not yet &mdash; finish your bank setup</span>
+                        <span className="text-amber-800">Not yet — finish bank setup</span>
                       )}
                     </p>
                   </div>
@@ -128,7 +127,7 @@ export default async function DashboardPage() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      See public page
+                      View public page
                     </Link>
                   </div>
                 </div>

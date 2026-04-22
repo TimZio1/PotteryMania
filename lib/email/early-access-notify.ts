@@ -38,24 +38,24 @@ function interests(input: EarlyAccessMailInput) {
 export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
   const customerHtml = renderEmailShell({
     eyebrow: "Thanks for reaching out",
-    title: "We saved your details",
-    intro: `Thanks ${input.studioName}. Your message is on file.`,
+    title: "We got your details",
+    intro: `Thanks, ${input.studioName}.`,
     bodyHtml: `
-      <p style="margin:0 0 10px;">Next step: create your studio in the app when you are ready.</p>
+      <p style="margin:0 0 10px;">Ready when you are — create your studio in the app and you're set.</p>
       <p style="margin:0 0 10px;">Country: <strong>${escapeHtml(input.country)}</strong></p>
-      <p style="margin:0 0 10px;">Interest:</p>
+      <p style="margin:0 0 10px;">You're interested in:</p>
       ${renderBulletList(interests(input))}
-      <p style="margin:16px 0 0;">Sell your work, book your classes, and manage everything in one system.</p>
+      <p style="margin:16px 0 0;">Everything in one place: classes, shop, bookings, payouts.</p>
     `,
-    ctaLabel: "Open the site",
-    ctaUrl: siteUrl(),
-    footerNote: "You can start setup any time from your dashboard.",
+    ctaLabel: "Create my studio",
+    ctaUrl: `${siteUrl()}/create-studio`,
+    footerNote: "Start any time from your dashboard.",
   });
 
   const adminHtml = renderEmailShell({
-    eyebrow: "New studio lead",
-    title: `${input.studioName} submitted details`,
-    intro: `A creator or studio submitted the lead form.`,
+    eyebrow: "New lead",
+    title: `${input.studioName} signed up`,
+    intro: `New studio lead from the form.`,
     bodyHtml: `
       <p style="margin:0 0 10px;"><strong>Studio:</strong> ${escapeHtml(input.studioName)}</p>
       <p style="margin:0 0 10px;"><strong>Email:</strong> ${escapeHtml(input.email)}</p>
@@ -76,7 +76,7 @@ export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
   const messages = [
     {
       to: input.email,
-      subject: "We received your details",
+      subject: "Thanks — we got your details",
       html: customerHtml,
     },
   ];
@@ -85,7 +85,7 @@ export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
   if (notifyTo) {
     messages.push({
       to: notifyTo,
-      subject: `New studio lead: ${input.studioName}`,
+      subject: `New lead: ${input.studioName}`,
       html: adminHtml,
     });
   }

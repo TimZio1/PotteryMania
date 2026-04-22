@@ -13,7 +13,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Reports", "money/reports", "Studio reports for direct revenue, reservations, and page readiness.");
+  return dashboardStudioMeta(studioId, "Reports", "money/reports", "Trends, demand, and how visible your studio is.");
 }
 
 export default async function StudioMoneyReportsPage({ params }: Props) {
@@ -29,7 +29,7 @@ export default async function StudioMoneyReportsPage({ params }: Props) {
         <p className={ui.overline}>Money</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Reports</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Trends, demand, and page readiness — not payout truth. Use Money overview for settlement-style totals.
+          Trends and demand. For totals, use Money → Overview.
         </p>
       </div>
       <StudioMarketplaceVisibility studioId={studioId} />

@@ -85,7 +85,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     });
     try {
       await sendOrderEmails({
-        subject: "Your order has shipped",
+        subject: "Your order is on the way",
         customerEmail: updated.customerEmail,
         customerHtml,
       });

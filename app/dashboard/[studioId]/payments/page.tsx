@@ -6,7 +6,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Money overview", "payments", "Payouts, direct sales, and studio payment history.");
+  return dashboardStudioMeta(studioId, "Money overview", "payments", "What you earned — at a glance.");
 }
 
 /** @deprecated Use `/dashboard/[studioId]/money/overview` */

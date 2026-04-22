@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPublishedBlogPost(slug);
   if (!post) {
     return buildMetadata({
-      title: "Blog article not found",
-      description: "This article could not be found.",
+      title: "Article not found",
+      description: "This article doesn’t exist or was removed.",
       path: `/blog/${slug}`,
     });
   }
@@ -89,7 +89,7 @@ export default async function BlogArticlePage({ params }: Props) {
 
         {related.length > 0 ? (
           <section className="mx-auto mt-16 max-w-5xl">
-            <h2 className="text-2xl font-semibold text-amber-950">Related reading</h2>
+            <h2 className="text-2xl font-semibold text-amber-950">More to read</h2>
             <div className="mt-6 grid gap-6 md:grid-cols-3">
               {related.map((item) => (
                 <Link key={item.slug} href={`/blog/${item.slug}`} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-amber-200 hover:shadow-md">

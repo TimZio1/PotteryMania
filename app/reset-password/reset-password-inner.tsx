@@ -22,11 +22,11 @@ export default function ResetPasswordInner() {
       return;
     }
     if (password !== password2) {
-      setErr("Passwords do not match.");
+      setErr("Passwords don’t match.");
       return;
     }
     if (!tokenFromUrl) {
-      setErr("Missing reset link. Open the link from your email or request a new reset.");
+      setErr("No reset link. Open the link from your email, or request a new one.");
       return;
     }
     setPending(true);
@@ -38,18 +38,18 @@ export default function ResetPasswordInner() {
       });
       const data = (await r.json().catch(() => ({}))) as { error?: string };
       if (r.status === 429) {
-        setErr("Too many attempts. Please wait and try again.");
+        setErr("Too many tries. Wait a few minutes.");
         setPending(false);
         return;
       }
       if (!r.ok) {
-        setErr(data.error || "Could not reset password. The link may have expired.");
+        setErr(data.error || "We couldn’t reset your password. The link may have expired.");
         setPending(false);
         return;
       }
       setDone(true);
     } catch {
-      setErr("Something went wrong. Please try again.");
+      setErr("Something went wrong. Try again.");
     }
     setPending(false);
   }
@@ -57,7 +57,7 @@ export default function ResetPasswordInner() {
   if (!tokenFromUrl) {
     return (
       <div className="space-y-5">
-        <p className={ui.errorText}>This page needs a valid reset link from your email.</p>
+        <p className={ui.errorText}>Open the reset link from your email to continue.</p>
         <Link href="/forgot-password" className={`${ui.buttonPrimary} inline-flex w-full justify-center`}>
           Request a new link
         </Link>
@@ -73,7 +73,7 @@ export default function ResetPasswordInner() {
   if (done) {
     return (
       <div className="space-y-5">
-        <p className="text-sm text-stone-700">Your password has been updated. You can sign in with your new password.</p>
+        <p className="text-sm text-stone-700">Password updated. Sign in with your new one.</p>
         <Link href="/login" className={`${ui.buttonPrimary} inline-flex w-full justify-center`}>
           Sign in
         </Link>

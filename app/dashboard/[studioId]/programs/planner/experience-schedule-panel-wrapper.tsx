@@ -32,10 +32,19 @@ export function ExperienceSchedulePanelWrapper({
         ? "bg-amber-100 text-amber-800"
         : "bg-stone-100 text-stone-600";
 
+  const statusLabel =
+    experienceStatus === "active"
+      ? "Live"
+      : experienceStatus === "draft"
+        ? "Draft"
+        : experienceStatus === "archived"
+          ? "Archived"
+          : experienceStatus;
+
   return (
     <div className="rounded-2xl border border-stone-200 bg-white p-5">
       <div className="mb-3 flex items-center gap-2">
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadge}`}>{experienceStatus}</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadge}`}>{statusLabel}</span>
       </div>
       <ExperienceSchedulePanel
         studioId={studioId}

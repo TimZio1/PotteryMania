@@ -72,6 +72,7 @@ model User {
   rankingBoostsAuthored     RankingBoost[]           @relation("RankingBoostAuthor")
   insightPurchases          InsightPurchase[]
   offeringSubscriptions     OfferingSubscription[]
+  featureSuggestions        FeatureSuggestion[]
 
   @@map("users")
 }
@@ -2410,6 +2411,26 @@ model EarlyAccessSignup {
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("early_access_signups")
+}
+
+/// Ideas submitted from the public /suggest-feature form.
+/// Persisted so the team can triage them even when the email alert fails.
+model FeatureSuggestion {
+  id              String   @id @default(uuid()) @db.Uuid
+  body            String
+  submitterEmail  String?  @map("submitter_email")
+  submitterName   String?  @map("submitter_name")
+  userId          String?  @map("user_id") @db.Uuid
+  userAgent       String?  @map("user_agent")
+  ipHash          String?  @map("ip_hash")
+  status          String   @default("new")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([status])
+  @@map("feature_suggestions")
 }
 
 // --- Financial Hyperadmin Engine ---

@@ -69,7 +69,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
       const data = (await res.json()) as CalendarLinkPayload;
       if (!cancelled) setCalendarLink(data);
     })().catch(() => {
-      if (!cancelled) setCalendarLinkErr("Could not load calendar link.");
+      if (!cancelled) setCalendarLinkErr("We couldn’t load your calendar link. Try again later.");
     });
     return () => {
       cancelled = true;
@@ -77,7 +77,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
   }, []);
 
   async function handleCancel(bookingId: string) {
-    if (!confirm("Cancel this reservation? Refunds follow the studio’s policy.")) return;
+    if (!confirm("Cancel this booking? The studio’s refund policy applies.")) return;
     setActionMsg("");
     const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
       method: "POST",
@@ -86,10 +86,10 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
     });
     const data = await res.json();
     if (res.ok) {
-      setActionMsg(`Cancelled. Refund outcome: ${data.refundOutcome}`);
+      setActionMsg(`Cancelled. Refund: ${data.refundOutcome}`);
       load();
     } else {
-      setActionMsg(`Could not cancel: ${data.error}`);
+      setActionMsg(`We couldn’t cancel. ${data.error ?? "Try again."}`);
     }
   }
 
@@ -101,7 +101,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
       window.location.href = data.url;
       return;
     }
-    setActionMsg(`Could not open balance payment: ${data.error ?? "Unknown error"}`);
+    setActionMsg(`We couldn’t open payment. ${data.error ?? "Try again."}`);
   }
 
   const isCancellable = (status: string) =>
@@ -122,16 +122,16 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
     <div className="mx-auto max-w-3xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className={platformUi.overline}>Your classes</p>
+          <p className={platformUi.overline}>Bookings</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">My bookings</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">Classes you booked, plus calendar links.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">All your classes, with tickets and calendar links.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center`}>
-            View waitlist
+            Waitlist
           </Link>
           <Link href="/my-loyalty" className={`${platformUi.buttonSecondary} text-center`}>
-            Loyalty points
+            Points
           </Link>
           <Link href="/my-packages" className={`${platformUi.buttonSecondary} text-center`}>
             Packages
@@ -151,7 +151,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
 
       {calendarLink ? (
         <div className={`${platformUi.cardMuted} mt-6 space-y-3`}>
-          <p className="text-sm font-medium text-[var(--foreground)]">Calendar</p>
+          <p className="text-sm font-medium text-[var(--foreground)]">Add to your calendar</p>
           <p className="text-xs text-[var(--muted)]">{calendarLink.note}</p>
           <div className="flex flex-wrap gap-2">
             <a href="/api/my-bookings/calendar" className={platformUi.buttonSecondary}>
@@ -166,15 +166,15 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 } catch {
-                  setCalendarLinkErr("Could not copy to clipboard.");
+                  setCalendarLinkErr("Couldn’t copy. Copy the link manually.");
                 }
               }}
             >
-              {copied ? "Copied" : "Copy subscribe URL"}
+              {copied ? "Copied" : "Copy subscribe link"}
             </button>
           </div>
           <label className={platformUi.label} htmlFor="cal-feed-url">
-            Subscribe URL (HTTPS)
+            Subscribe link
           </label>
           <input
             id="cal-feed-url"
@@ -184,10 +184,9 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
             onFocus={(e) => e.target.select()}
           />
           <p className={platformUi.helper}>
-            In Apple Calendar: File → New Calendar Subscription. Google Calendar: Settings → Add calendar → From URL.
-            You can also try{" "}
+            Paste this link into Apple Calendar (File → New Calendar Subscription) or Google Calendar (Add calendar → From URL). Or{" "}
             <a href={calendarLink.webcalUrl} className="font-medium text-[var(--foreground)] underline underline-offset-2 hover:text-[var(--accent)]">
-              open in calendar app (webcal)
+              open it directly
             </a>
             .
           </p>
@@ -199,8 +198,12 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
           <div className={`${platformUi.cardMuted}`}>
             <p className="font-medium text-[var(--foreground)]">Nothing booked yet</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Open a studio&rsquo;s page to see what they offer.
+              Pick a class to get started.
             </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href="/classes" className={platformUi.buttonSecondary}>Find a class</Link>
+              <Link href="/studios" className={platformUi.buttonSecondary}>Browse studios</Link>
+            </div>
           </div>
         ) : null}
         {bookings.map((b) => (
@@ -212,7 +215,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                 <p className="mt-2 text-sm text-[var(--muted)]">
                   {b.slot.slotDate.slice(0, 10)} · {b.slot.startTime}–{b.slot.endTime}
                 </p>
-                <p className="mt-1 text-sm text-[var(--muted)]">{b.participantCount} participants</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{b.participantCount} guest{b.participantCount === 1 ? "" : "s"}</p>
                 {b.seatType ? <p className="mt-1 text-sm text-[var(--muted)]">Seat: {b.seatType}</p> : null}
                 {b.bookingAddOns.length > 0 ? (
                   <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--muted)]">
@@ -230,7 +233,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                 ) : null}
                 {b.intakeResponses.length > 0 ? (
                   <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm text-[var(--muted)]">
-                    <p className="font-medium text-[var(--foreground)]">Your booking answers</p>
+                    <p className="font-medium text-[var(--foreground)]">Your answers</p>
                     <dl className="mt-2 space-y-2">
                       {b.intakeResponses.map((entry, index) => (
                         <div key={`${b.id}-intake-${index}`}>
@@ -247,7 +250,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                     <p className="mt-2 whitespace-pre-wrap">{b.notes}</p>
                   </div>
                 ) : null}
-                {b.ticketRef ? <p className="mt-2 text-sm font-medium text-[var(--foreground)]">Ref: {b.ticketRef}</p> : null}
+                {b.ticketRef ? <p className="mt-2 text-sm font-medium text-[var(--foreground)]">Reference: {b.ticketRef}</p> : null}
                 {b.ticketRef && ACTIVE_QR_STATUSES.has(b.bookingStatus) ? (
                   <div className="mt-4 inline-flex rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -263,13 +266,13 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                 <p className="text-lg font-semibold text-[var(--foreground)]">€{(b.totalAmountCents / 100).toFixed(2)}</p>
                 {b.remainingBalanceCents > 0 ? (
                   <p className="mt-1 text-xs text-[var(--muted)]">
-                    Paid online €{(b.depositAmountCents / 100).toFixed(2)} · Balance €
+                    Paid €{(b.depositAmountCents / 100).toFixed(2)} · Pay on arrival €
                     {(b.remainingBalanceCents / 100).toFixed(2)}
                   </p>
                 ) : null}
                 {b.remainderPaidAt ? (
                   <p className="mt-1 text-xs text-emerald-400">
-                    Remaining balance paid {new Date(b.remainderPaidAt).toLocaleDateString()}
+                    Balance paid {new Date(b.remainderPaidAt).toLocaleDateString()}
                   </p>
                 ) : null}
                 <p className="mt-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
@@ -277,19 +280,13 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                 </p>
                 {b.cancellations.length > 0 ? (
                   <p className="mt-2 text-xs text-red-400">
-                    Cancelled ({b.cancellations[0].cancelledByRole.replace("vendor", "studio")}) — {b.cancellations[0].refundOutcome}
+                    Cancelled by {b.cancellations[0].cancelledByRole.replace("vendor", "studio")} — {b.cancellations[0].refundOutcome.replace(/_/g, " ")}
                   </p>
                 ) : null}
               </div>
             </div>
             <div className="mt-5 space-y-4 border-t border-[var(--border)]/80 pt-4">
               <AddToCalendarButtons bookingId={b.id} bookingStatus={b.bookingStatus} visualMode="platform" />
-              <a
-                href={`/api/bookings/${b.id}/calendar`}
-                className={`${platformUi.buttonSecondary} inline-flex text-center`}
-              >
-                Download .ics (same file)
-              </a>
               <RescheduleBookingPanel
                 bookingId={b.id}
                 bookingStatus={b.bookingStatus}
@@ -303,7 +300,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                   onClick={() => handlePayRemainder(b.id)}
                   className={platformUi.buttonSecondary}
                 >
-                  Pay remaining balance
+                  Pay the balance
                 </button>
               ) : null}
               {isCancellable(b.bookingStatus) ? (
@@ -312,7 +309,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                   onClick={() => handleCancel(b.id)}
                   className="rounded-full border border-red-400/30 bg-[var(--surface)] px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950/30"
                 >
-                  Cancel reservation
+                  Cancel booking
                 </button>
               ) : null}
               {b.bookingStatus === "completed" && b.reviews.length === 0 ? (

@@ -24,13 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!p) {
     return buildMetadata({
       title: "Wear",
-      description: "Wear product.",
+      description: "This piece isn’t available.",
       path: `/wear/${slug}`,
     });
   }
-  const desc = p.subtitle ?? p.description ?? `${p.name} — wear.`;
+  const desc = p.subtitle ?? p.description ?? p.name;
   return buildMetadata({
-    title: `${p.name} Wear`,
+    title: `${p.name} — Wear`,
     description: desc.slice(0, 160),
     path: `/wear/${slug}`,
   });

@@ -11,9 +11,9 @@ import { resolveStudioPublicTheme } from "@/lib/studio-theme/resolve";
 import { ui } from "@/lib/ui-styles";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Demo page | PotteryMania",
+  title: "Demo | PotteryMania",
   description:
-    "See what a creator studio page looks like before you sign up: products, classes, story, imagery, and booking flow.",
+    "A sample studio page: classes, shop, photos, and story — before you build yours.",
   path: "/demo",
 });
 
@@ -58,7 +58,7 @@ const classes = [
     title: "Open Studio Session",
     schedule: "Sundays · 14:00",
     price: "€24",
-    body: "Flexible bench time for returning students who want practice space without the admin chaos.",
+    body: "Open bench time for returning students who just need space to practice.",
   },
 ] as const;
 
@@ -115,7 +115,7 @@ export default function DemoPage() {
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
-            { label: "Demo studio" },
+            { label: "Demo" },
           ]}
         />
       }
@@ -129,13 +129,12 @@ export default function DemoPage() {
               <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <h1 className="st-h1 text-3xl font-semibold sm:text-4xl">Clay &amp; Fire Studio</h1>
-                  <p className="st-accent-text mt-2 text-sm font-medium">A warm, modern creator page built for classes, products, and trust.</p>
+                  <p className="st-accent-text mt-2 text-sm font-medium">Sample studio page: classes, shop, and story in one place.</p>
                 </div>
-                <span className="st-pill">Demo page</span>
+                <span className="st-pill">Demo</span>
               </div>
               <p className="st-body mt-4 max-w-3xl text-base leading-relaxed">
-                This is the kind of public page a ceramic artist or studio can launch here: real imagery, a clear story,
-                class booking, product sales, and one consistent brand from first click to checkout.
+                This is what your customers see: photos, class times, products, and your story — without jumping between apps.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <a href="#demo-classes" className="st-btn-primary">
@@ -145,11 +144,8 @@ export default function DemoPage() {
                   Visit shop
                 </a>
                 <Link href="/dashboard-demo" className="st-btn-secondary">
-                  Studio dashboard demo
+                  See the admin demo
                 </Link>
-                <a href="#demo-about" className="st-btn-secondary">
-                  About the studio
-                </a>
               </div>
             </div>
           </div>
@@ -157,18 +153,17 @@ export default function DemoPage() {
           <section className="st-section mt-6">
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="st-card p-6 sm:p-8">
-                <p className="st-muted text-sm uppercase tracking-wide">Why this page converts</p>
-                <h2 className="st-h2 mt-3 text-2xl font-semibold">Creators need proof before they commit.</h2>
+                <p className="st-muted text-sm uppercase tracking-wide">Why it works</p>
+                <h2 className="st-h2 mt-3 text-2xl font-semibold">One page. Clear next step.</h2>
                 <p className="st-body mt-4 text-base leading-relaxed">
-                  You get one public page for your classes, products, and brand story, so customers understand what you
-                  offer and trust it quickly.
+                  Visitors see classes, shop, and your story together. They don’t hunt for links in your bio.
                 </p>
                 <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                   {[
-                    "Beautiful brand presentation with real imagery",
-                    "Classes and products under one identity",
-                    "Clear booking and buying CTAs",
-                    "A site that feels premium from day one",
+                    "Strong photos and simple layout",
+                    "Classes and shop under one name",
+                    "Obvious Book and Buy buttons",
+                    "Feels professional on day one",
                   ].map((item) => (
                     <li key={item} className="st-tile p-4 text-sm leading-6">
                       {item}
@@ -195,10 +190,10 @@ export default function DemoPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="st-muted text-sm uppercase tracking-wide">Classes</p>
-                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Bookable experiences under your own brand</h2>
+                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Classes on your page</h2>
                 </div>
-                <Link href="/register" className="st-btn-primary">
-                  Get started
+                <Link href="/dashboard/studio/new?setup=bookings" className="st-btn-primary">
+                  Start yours
                 </Link>
               </div>
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -209,8 +204,8 @@ export default function DemoPage() {
                     <p className="st-body mt-3 text-sm leading-6">{item.body}</p>
                     <div className="mt-5 flex items-center justify-between gap-3">
                       <span className="st-accent-text text-base font-semibold">{item.price}</span>
-                      <Link href="/register" className="st-btn-primary text-sm">
-                        Book now
+                      <Link href="/register?callbackUrl=%2Fdemo" className="st-btn-primary text-sm">
+                        Try booking
                       </Link>
                     </div>
                   </article>
@@ -224,10 +219,10 @@ export default function DemoPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="st-muted text-sm uppercase tracking-wide">Shop</p>
-                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Products that feel like they belong to your brand</h2>
+                  <h2 className="st-h2 mt-2 text-2xl font-semibold">Shop on the same page</h2>
                 </div>
-                <Link href="/register" className="st-btn-secondary">
-                  Start with shop
+                <Link href="/dashboard/studio/new?setup=shop" className="st-btn-secondary">
+                  Add a shop
                 </Link>
               </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -245,8 +240,8 @@ export default function DemoPage() {
                     <div className="p-4">
                       <h3 className="st-h3 text-base font-semibold">{product.title}</h3>
                       <p className="st-accent-text mt-2 text-sm font-semibold">{product.price}</p>
-                      <Link href="/register" className="st-btn-primary mt-4 w-full text-sm">
-                        Add to cart
+                      <Link href="/register?callbackUrl=%2Fdemo" className="st-btn-primary mt-4 w-full text-sm">
+                        Try adding to cart
                       </Link>
                     </div>
                   </article>
@@ -270,20 +265,18 @@ export default function DemoPage() {
               </div>
               <div className="st-card p-6 sm:p-8">
                 <p className="st-muted text-sm uppercase tracking-wide">About</p>
-                <h2 className="st-h2 mt-2 text-2xl font-semibold">A page that tells your story clearly</h2>
+                <h2 className="st-h2 mt-2 text-2xl font-semibold">Your story, plain and simple</h2>
                 <p className="st-body mt-4 text-base leading-relaxed">
-                  Clay &amp; Fire Studio teaches wheel throwing and glaze workshops while selling small-batch tableware.
-                  One studio page keeps that story easy to understand without forcing visitors to jump between social DMs,
-                  generic booking links, and disconnected storefronts.
+                  This sample studio teaches wheel and glaze classes and sells small-batch tableware — all explained on one page.
                 </p>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="st-tile p-4 text-sm leading-6">
-                    <strong className="block text-(--st-heading)">What visitors see</strong>
-                    Clear imagery, pricing, booking calls to action, and one premium brand.
+                    <strong className="block text-(--st-heading)">Visitors</strong>
+                    Photos, prices, and clear Book / Buy buttons.
                   </div>
                   <div className="st-tile p-4 text-sm leading-6">
-                    <strong className="block text-(--st-heading)">What owners get</strong>
-                    One page for products, classes, and trust instead of a stack of disconnected tools.
+                    <strong className="block text-(--st-heading)">You</strong>
+                    One home for classes, shop, and trust — not five different links.
                   </div>
                 </div>
               </div>
@@ -292,7 +285,7 @@ export default function DemoPage() {
 
           <section className="mt-6">
             <ReviewSummary
-              title="What this kind of page should make a creator feel"
+              title="Sample reviews"
               avgRating={5}
               count={reviews.length}
               reviews={[...reviews]}
@@ -304,20 +297,17 @@ export default function DemoPage() {
             <div className="rounded-(--st-radius-lg) border border-(--st-border) bg-(--st-surface-bg) px-5 py-4 shadow-[0_18px_50px_rgba(30,20,14,0.16)] backdrop-blur-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-(--st-heading) text-sm font-semibold">This is a demo page.</p>
+                  <p className="text-(--st-heading) text-sm font-semibold">This page is a demo.</p>
                   <p className="st-body text-sm">
-                    Build your own version with your story, products, and classes.
+                    Build yours with your photos, classes, and products.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link href="/dashboard/studio/new?setup=both" className="st-btn-primary">
+                    Create your studio
+                  </Link>
                   <Link href="/dashboard-demo" className="st-btn-secondary">
-                    Open dashboard demo
-                  </Link>
-                  <Link href="/pricing" className="st-btn-secondary">
-                    See plans
-                  </Link>
-                  <Link href="/register" className="st-btn-primary">
-                    Get started
+                    Admin demo
                   </Link>
                 </div>
               </div>

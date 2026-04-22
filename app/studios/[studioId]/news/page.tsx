@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!studio) return buildMetadata({ title: "News", description: "Studio news.", path: `/studios/${studioId}/news` });
   return buildMetadata({
     title: `${studio.displayName} — News`,
-    description: `Latest updates and posts from ${studio.displayName}.`,
+    description: `Updates and posts from ${studio.displayName}.`,
     path: `/studios/${studioId}/news`,
   });
 }
@@ -49,13 +49,13 @@ export default async function StudioPublicNewsPage({ params }: Props) {
     <MarketingLayout toolbar={toolbar}>
       <main className={`${ui.pageContainer} max-w-4xl py-8 sm:py-12`}>
         <h1 className="text-3xl font-semibold tracking-tight text-amber-950">{studio.displayName} news</h1>
-        <p className="mt-2 text-sm text-stone-600">Updates, announcements, and stories from the studio.</p>
+        <p className="mt-2 text-sm text-stone-600">Updates and stories from the studio.</p>
 
         {posts.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
             <p className="font-medium text-stone-800">No posts yet</p>
             <p className="mt-2 text-sm text-stone-600">
-              The studio hasn&apos;t published any news yet. Check back soon!
+              The studio hasn’t posted anything yet. Check back soon.
             </p>
           </div>
         ) : (

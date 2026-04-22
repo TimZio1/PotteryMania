@@ -12,7 +12,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Waitlist", "schedule/waitlist", "Active waitlist entries for your sessions.");
+  return dashboardStudioMeta(studioId, "Waitlist", "schedule/waitlist", "People waiting for a seat in your classes.");
 }
 
 export default async function StudioScheduleWaitlistPage({ params }: Props) {
@@ -38,7 +38,7 @@ export default async function StudioScheduleWaitlistPage({ params }: Props) {
     customerEmail: e.customerEmail,
     participantCount: e.participantCount,
     createdAt: e.createdAt.toISOString(),
-    experienceTitle: e.experience?.title ?? "Unknown class",
+    experienceTitle: e.experience?.title ?? "Class no longer available",
     slotDate: e.slot?.slotDate?.toISOString().slice(0, 10) ?? null,
     slotTime: e.slot?.startTime ?? null,
     slotStatus: e.slot?.status ?? null,
@@ -50,7 +50,7 @@ export default async function StudioScheduleWaitlistPage({ params }: Props) {
         <p className={ui.overline}>Schedule</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Waitlist</h1>
         <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
-          People waiting for a spot when your classes are full. Reach out directly when a seat opens up.
+          Anyone waiting for a full class. When a seat opens, reach out here.
         </p>
       </div>
 

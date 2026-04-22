@@ -14,7 +14,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Planner", "programs/planner", "Schedule rules, slot generation, and studio closed days.");
+  return dashboardStudioMeta(studioId, "Planner", "programs/planner", "Add bookable times for your classes and mark days off.");
 }
 
 export default async function ClassPlannerPage({ params }: Props) {
@@ -69,14 +69,14 @@ export default async function ClassPlannerPage({ params }: Props) {
     <div className="mx-auto max-w-4xl space-y-8 px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className={ui.overline}>Scheduling</p>
-          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Class planner</h1>
+          <p className={ui.overline}>Classes</p>
+          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Planner</h1>
           <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
-            Add schedule rules to your classes, generate bookable time slots, and manage studio-wide closed days.
+            Pick when each class runs and mark days your studio is closed.
           </p>
         </div>
         <Link href={`/dashboard/${studioId}/programs`} className={ui.buttonSecondary}>
-          ← All programs
+          ← All classes
         </Link>
       </div>
 
@@ -84,7 +84,7 @@ export default async function ClassPlannerPage({ params }: Props) {
 
       {serialized.length === 0 ? (
         <div className="rounded-2xl border border-stone-200 bg-white px-5 py-8 text-center">
-          <p className="text-sm text-[var(--muted)]">No classes yet. Create one first, then come back to set up schedules.</p>
+          <p className="text-sm text-[var(--muted)]">You don&apos;t have any classes yet. Create one first, then come back to pick its times.</p>
           <Link href={`/dashboard/${studioId}/guided?flow=class&step=1`} className={`${ui.buttonPrimary} mt-4 inline-flex`}>
             Create your first class
           </Link>

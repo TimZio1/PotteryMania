@@ -8,22 +8,22 @@ import { ui } from "@/lib/ui-styles";
 
 function messageForAuthError(error: string | undefined, code: string | undefined): string | null {
   if (code === "suspended" || error === "AccessDenied") {
-    return "This account is suspended. Contact support if that’s a mistake.";
+    return "This account is paused. Email support if that’s wrong.";
   }
   if (code === "email_not_verified") {
-    return "Please verify your email first. Check your inbox for the link.";
+    return "Confirm your email first. Open the link we sent you.";
   }
   if (code === "rate_limited") {
     return "Too many tries. Wait a few minutes and try again.";
   }
   if (error === "Configuration") {
-    return "Sign-in isn’t available right now. Please try again later.";
+    return "Sign-in is down for a moment. Try again soon.";
   }
   if (error === "CredentialsSignin" || error === "CallbackRouteError") {
     return "Wrong email or password.";
   }
   if (error) {
-    return "We couldn’t sign you in. Please try again.";
+    return "We couldn’t sign you in. Try again.";
   }
   return null;
 }
@@ -72,7 +72,7 @@ export default function LoginInner() {
         callbackUrl,
       });
       if (r?.error) {
-        setErr(messageForAuthError(r.error, r.code ?? undefined) ?? "Invalid email or password.");
+        setErr(messageForAuthError(r.error, r.code ?? undefined) ?? "Wrong email or password.");
         setPending(false);
         return;
       }
@@ -91,10 +91,10 @@ export default function LoginInner() {
         window.location.assign(dest);
         return;
       }
-      setErr("Invalid email or password.");
+      setErr("Wrong email or password.");
       setPending(false);
     } catch {
-      setErr("Something went wrong. Please try again.");
+      setErr("Sign-in failed. Try again.");
       setPending(false);
     }
   }
@@ -114,20 +114,20 @@ export default function LoginInner() {
     <form onSubmit={onSubmit} className="space-y-5">
       {signedOutNotice ? (
         <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
-          <p className={ui.successText}>You’re signed out.</p>
+          <p className={ui.successText}>You signed out.</p>
         </div>
       ) : null}
       {suspendedNotice ? (
-        <p className={ui.errorText}>This account is suspended. Contact support if that’s a mistake.</p>
+        <p className={ui.errorText}>This account is paused. Email support if that’s wrong.</p>
       ) : null}
       {verifiedOk ? (
         <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
-          <p className={ui.successText}>Your email is verified. You can sign in.</p>
+          <p className={ui.successText}>Your email is verified. Sign in below.</p>
         </div>
       ) : null}
       {verifiedBad ? (
         <p className={ui.errorText}>
-          That verification link didn’t work — it may have expired. Please register again to get a new one.
+          That link didn&rsquo;t work or expired. Sign up again to get a new one.
         </p>
       ) : null}
       {displayErr ? <p className={ui.errorText}>{displayErr}</p> : null}
@@ -138,7 +138,7 @@ export default function LoginInner() {
           </button>
           <div className={`flex items-center gap-(--pm-space-3) ${ui.overline} text-[var(--muted)]`}>
             <span className="h-px flex-1 bg-[var(--border)]" />
-            <span>or use email</span>
+            <span>or email</span>
             <span className="h-px flex-1 bg-[var(--border)]" />
           </div>
         </>

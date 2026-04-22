@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     if (!cart.user?.email) continue;
     await sendOrderEmails({
       customerEmail: cart.user.email,
-      subject: "Complete your PotteryMania order",
+      subject: "You left something in your cart",
       customerHtml: abandonedCartCopy({ recoveryUrl: `${baseUrl()}/cart`, itemCount: cart.items.length }),
     });
     await prisma.cart.update({

@@ -13,9 +13,9 @@ import {
 } from "@/lib/studio-plan-pricing-config";
 
 export const metadata: Metadata = metaDashboardPage(
-  "Workspace billing",
+  "Billing",
   "/dashboard/billing",
-  "Workspace billing, invoices, and advanced studio features.",
+  "Your studio plans, add-ons, and subscription.",
 );
 
 export const dynamic = "force-dynamic";
@@ -47,16 +47,16 @@ export default async function DashboardBillingPage() {
         <p className={ui.overline}>Billing</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Billing</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          View your studio plans, purchase packs and add-ons, and manage your subscription — all from one place.
+          Your plans, add-ons, and subscription — all here.
         </p>
       </div>
 
       {studios.length > 0 ? (
         <div className={`${ui.card} space-y-4`}>
           <div>
-            <h2 className="text-lg font-semibold text-stone-900">Buy packs, subscriptions & add-ons</h2>
+            <h2 className="text-lg font-semibold text-stone-900">Buy add-ons or upgrade</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Purchases happen per studio. Open the studio you want to upgrade and continue to its packs and add-ons page.
+              Purchases happen per studio. Open the studio you want to upgrade.
             </p>
           </div>
           <div className="flex flex-col gap-3">
@@ -67,10 +67,10 @@ export default async function DashboardBillingPage() {
               >
                 <div>
                   <p className="font-medium text-stone-900">{studio.displayName}</p>
-                  <p className="mt-1 text-sm text-[var(--muted)]">Open this studio to buy packs, start subscriptions, or add features.</p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">Buy add-ons, start a subscription, or unlock features.</p>
                 </div>
                 <Link href={`/dashboard/${studio.id}/features`} className={ui.buttonPrimary}>
-                  Open packs & add-ons
+                  Open add-ons
                 </Link>
               </div>
             ))}
@@ -81,16 +81,13 @@ export default async function DashboardBillingPage() {
       <div className={`${ui.card} space-y-3`}>
         <h2 className="text-lg font-semibold text-stone-900">Studio plans</h2>
         <p className="text-sm text-[var(--muted)]">
-          Plans are based on studio usage: experiences-only, catalog-only, both, or pro. Platform fees on product sales and class
-          bookings are set per tier (typically {commissionLabel} across tiers).
-        </p>
-        <p className="mt-3 text-sm font-medium text-[var(--foreground)]">
-          This replaces multiple tools you may otherwise juggle — public page, reservations, catalog, and the glue between them.
+          Pick the plan that matches how you use your studio — classes only, shop only, both, or pro. Platform fee on
+          sales is {commissionLabel} across tiers.
         </p>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Start free. Activate advanced features when you&apos;re ready. Public comparison:{" "}
+          Start free. Upgrade when you&apos;re ready. Compare plans on the{" "}
           <Link href="/pricing" className="font-semibold text-amber-900 underline underline-offset-2">
-            Pricing page
+            pricing page
           </Link>
           .
         </p>
@@ -134,23 +131,23 @@ export default async function DashboardBillingPage() {
           </table>
         </div>
         <p className="text-xs text-[var(--muted)]">
-          Advanced features are purchased per studio from the Packs &amp; add-ons page.
+          Add-ons are purchased per studio from the Add-ons page.
         </p>
       </div>
       <div className={`${ui.card} space-y-3`}>
-        <h2 className="text-lg font-semibold text-stone-900">High-impact add-ons</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Popular add-ons</h2>
         <p className="text-sm text-[var(--muted)]">
-          Keep your base plan simple, then add optional capabilities when your studio is ready for them.
+          Keep your plan simple. Add what you need, when you need it.
         </p>
         <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--foreground)]">
-          <li>Automation and reminder packs</li>
-          <li>Advanced analytics and reporting</li>
+          <li>Reminders and automation</li>
+          <li>Advanced analytics</li>
           <li>Priority support</li>
-          <li>Premium branding and template upgrades</li>
+          <li>Premium branding and templates</li>
         </ul>
         {studios[0] ? (
           <Link href={`/dashboard/${studios[0].id}/features`} className={ui.buttonSecondary}>
-            Open packs & add-ons
+            Open add-ons
           </Link>
         ) : null}
       </div>

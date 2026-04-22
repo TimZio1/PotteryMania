@@ -6,7 +6,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Kiln", "kiln", "Kiln firings and production queue.");
+  return dashboardStudioMeta(studioId, "Kiln", "kiln", "Track firings and pieces in the queue.");
 }
 
 /** @deprecated Use `/dashboard/[studioId]/studio-tools/kiln` */

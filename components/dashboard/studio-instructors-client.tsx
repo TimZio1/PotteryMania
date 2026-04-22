@@ -41,12 +41,12 @@ export function StudioInstructorsClient({
         body: JSON.stringify({ name, bio: bio || null }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Could not create instructor");
+      if (!res.ok) throw new Error(data.error ?? "We couldn’t add this teacher. Try again.");
       setName("");
       setBio("");
       await refresh();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not create instructor");
+      setErr(error instanceof Error ? error.message : "We couldn’t add this teacher. Try again.");
     } finally {
       setBusy(false);
     }
@@ -63,11 +63,11 @@ export function StudioInstructorsClient({
       });
       if (!res.ok) {
         const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Could not update instructor");
+        throw new Error(data.error ?? "We couldn’t update this teacher. Try again.");
       }
       await refresh();
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Could not update instructor");
+      setErr(error instanceof Error ? error.message : "We couldn’t update this teacher. Try again.");
     } finally {
       setBusy(false);
     }
@@ -78,33 +78,40 @@ export function StudioInstructorsClient({
       {err ? <p className={ui.errorText}>{err}</p> : null}
       <form onSubmit={createInstructor} className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <label className="block">
-          <span className={ui.label}>Instructor name</span>
+          <span className={ui.label}>Teacher&apos;s name</span>
           <input className={`${ui.input} mt-1`} value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
         <label className="block">
-          <span className={ui.label}>Bio (optional)</span>
+          <span className={ui.label}>Short bio (optional)</span>
           <textarea className={`${ui.input} mt-1 min-h-20`} value={bio} onChange={(e) => setBio(e.target.value)} />
         </label>
         <button type="submit" disabled={busy} className={ui.buttonPrimary}>
-          {busy ? "Saving..." : "Add instructor"}
+          {busy ? "Saving…" : "Add teacher"}
         </button>
       </form>
 
       {instructors.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">No instructors configured.</p>
+        <p className="text-sm text-[var(--muted)]">No teachers yet. Add your first one above.</p>
       ) : (
         <ul className="space-y-3">
           {instructors.map((instructor) => (
             <li key={instructor.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium text-[var(--foreground)]">{instructor.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-[var(--foreground)]">{instructor.name}</p>
+                  {!instructor.isActive ? (
+                    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600">Hidden</span>
+                  ) : null}
+                </div>
                 <button type="button" className="text-xs font-medium text-[var(--accent)] underline" onClick={() => void toggleActive(instructor)}>
-                  {instructor.isActive ? "Deactivate" : "Activate"}
+                  {instructor.isActive ? "Hide" : "Show again"}
                 </button>
               </div>
               {instructor.bio ? <p className="mt-1 text-sm text-[var(--muted)]">{instructor.bio}</p> : null}
               <p className="mt-2 text-xs text-[var(--muted)]">
-                Classes: {instructor.experiences.map((link) => link.experience.title).join(", ") || "None"}
+                {instructor.experiences.length > 0
+                  ? `Teaches: ${instructor.experiences.map((link) => link.experience.title).join(", ")}`
+                  : "Not assigned to any class yet."}
               </p>
             </li>
           ))}

@@ -24,8 +24,8 @@ import { billingIntervalLabel } from "@/lib/offering-pricing";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
-  title: "Classes and experiences",
-  description: "Book pottery classes, workshops, and ceramic studio experiences.",
+  title: "Find a pottery class",
+  description: "Book a pottery class or workshop at a studio near you.",
   path: "/classes",
 });
 
@@ -133,10 +133,10 @@ export default async function ClassesPage({ searchParams }: Props) {
         <div className="max-w-2xl">
           <p className={ui.overline}>Book</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">
-            Classes &amp; experiences
+            Find a pottery class
           </h1>
           <p className="mt-3 text-[var(--muted)]">
-            Pick a session at a studio. Pricing is per person; deposits and policies are shown before you pay.
+            Workshops and classes hosted by real studios. Pick one, pick a time, pay — that&rsquo;s it.
           </p>
         </div>
 
@@ -295,7 +295,7 @@ export default async function ClassesPage({ searchParams }: Props) {
                   defaultChecked={filters.openSpotsOnly}
                   className="h-4 w-4 rounded border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent-muted)]"
                 />
-                Only show dates with open spots
+                Only show classes with open seats
               </label>
             </div>
             <NearPointFields
@@ -305,9 +305,8 @@ export default async function ClassesPage({ searchParams }: Props) {
               initialRadius={radiusDefault}
               description={
                 <>
-                  Decimal latitude &amp; longitude (WGS84). Use the button to fill from your device, or paste from a map.
-                  We scan up to {GEO_SCAN_LIMIT} classes, keep those within the radius, and sort by distance. Coordinates
-                  come from the class venue or the studio pin.
+                  Use the button to fill from your device, or paste a point from a map. We scan up to {GEO_SCAN_LIMIT}{" "}
+                  classes and sort by distance.
                 </>
               }
             />
@@ -323,8 +322,7 @@ export default async function ClassesPage({ searchParams }: Props) {
             ) : null}
           </div>
           <p className={ui.helper}>
-            Filters update the URL so you can share a search. Dates use scheduled session days; open spots means the
-            slot is bookable today or later. Leave latitude/longitude empty to search everywhere.
+            Filters update the URL, so you can share a search. Leave latitude and longitude empty to search everywhere.
           </p>
         </form>
         </FilterCollapse>
@@ -366,7 +364,7 @@ export default async function ClassesPage({ searchParams }: Props) {
               Map
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Amber circle: your search radius. Pins match the list below — click a pin to open the class.
+              The circle is your search radius. Tap a pin to open that class.
             </p>
             <div className="mt-4">
               <NearResultsMap
@@ -383,9 +381,9 @@ export default async function ClassesPage({ searchParams }: Props) {
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
             {filtered ? (
               <>
-                <p className="font-medium text-[var(--foreground)]">No classes match these filters</p>
+                <p className="font-medium text-[var(--foreground)]">No classes match your filters</p>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Try clearing your filters or adjusting your search.
+                  Try removing a filter or broadening your search.
                 </p>
                 <Link
                   href="/classes"
@@ -396,10 +394,18 @@ export default async function ClassesPage({ searchParams }: Props) {
               </>
             ) : (
               <>
-                <p className="font-medium text-[var(--foreground)]">No public classes yet</p>
+                <p className="font-medium text-[var(--foreground)]">No classes listed yet</p>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Check back soon — studios are adding new classes regularly.
+                  Studios are still setting up. Browse studios in the meantime — new classes go live every week.
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link href="/studios" className={ui.buttonSecondary}>
+                    Browse studios
+                  </Link>
+                  <Link href="/demo" className={ui.buttonSecondary}>
+                    See the demo
+                  </Link>
+                </div>
               </>
             )}
           </div>

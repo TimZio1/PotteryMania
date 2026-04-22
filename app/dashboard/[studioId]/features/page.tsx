@@ -14,7 +14,7 @@ type Props = { params: Promise<{ studioId: string }> };
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const { studioId } = await params;
-  return dashboardStudioMeta(studioId, "Packs & add-ons", "features", "Studio subscriptions, packs, and add-ons.");
+  return dashboardStudioMeta(studioId, "Add-ons", "features", "Extra features and bundles for your studio.");
 }
 
 export default async function StudioFeaturesPage({ params }: Props) {
@@ -27,10 +27,10 @@ export default async function StudioFeaturesPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <p className={ui.overline}>Packs & add-ons</p>
-        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Packs, subscriptions & add-ons</h1>
+        <p className={ui.overline}>Add-ons</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Add-ons & bundles</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Upgrade your studio with packs, subscriptions, or individual add-ons. Bundles unlock grouped capabilities at a discount.
+          Turn on extra tools or buy bundles at a discount.
         </p>
       </div>
       <Suspense

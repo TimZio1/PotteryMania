@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
     studioId,
     "Gift cards",
     "commerce/gift-cards",
-    "Sell, issue, and manage branded gift cards for your studio.",
+    "Sell gift cards and track who’s redeemed them.",
   );
 }
 
@@ -49,10 +49,10 @@ export default async function StudioGiftCardsPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <p className={ui.overline}>Revenue</p>
+        <p className={ui.overline}>Shop</p>
         <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Gift cards</h1>
         <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-          Create branded studio gift cards, issue them directly, and keep the balance and delivery status visible in one place.
+          Send a gift card and see who&apos;s used theirs — balance included.
         </p>
       </div>
 

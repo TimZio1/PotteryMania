@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Write a review",
-  description: "Leave a review after your class or session.",
+  description: "Share how your class went.",
   path: "/reviews/new",
   robots: {
     index: false,
@@ -42,8 +42,8 @@ export default async function NewReviewPage({ searchParams }: PageProps) {
       <MarketingLayout>
         <main className="mx-auto max-w-2xl px-4 py-10">
           <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-            <h1 className="text-xl font-semibold text-amber-950">Review link missing booking</h1>
-            <p className="mt-2 text-sm text-stone-600">Open this page from your booking email or your bookings page.</p>
+            <h1 className="text-xl font-semibold text-amber-950">No booking selected</h1>
+            <p className="mt-2 text-sm text-stone-600">Open this link from your booking email, or pick a booking to review.</p>
             <p className="mt-4">
               <Link href="/my-bookings" className="text-sm font-medium text-amber-900 underline underline-offset-2">
                 Go to my bookings
@@ -77,7 +77,7 @@ export default async function NewReviewPage({ searchParams }: PageProps) {
         <main className="mx-auto max-w-2xl px-4 py-10">
           <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
             <h1 className="text-xl font-semibold text-amber-950">Booking not found</h1>
-            <p className="mt-2 text-sm text-stone-600">This review link does not match any booking in your account.</p>
+            <p className="mt-2 text-sm text-stone-600">This review link doesn’t match anything in your account.</p>
           </div>
         </main>
       </MarketingLayout>
@@ -89,8 +89,8 @@ export default async function NewReviewPage({ searchParams }: PageProps) {
       <MarketingLayout>
         <main className="mx-auto max-w-2xl px-4 py-10">
           <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-            <h1 className="text-xl font-semibold text-amber-950">Class not completed yet</h1>
-            <p className="mt-2 text-sm text-stone-600">Reviews are available after the class is marked completed.</p>
+            <h1 className="text-xl font-semibold text-amber-950">Class not finished yet</h1>
+            <p className="mt-2 text-sm text-stone-600">You can leave a review once the studio marks the class complete.</p>
           </div>
         </main>
       </MarketingLayout>
@@ -102,8 +102,8 @@ export default async function NewReviewPage({ searchParams }: PageProps) {
       <MarketingLayout>
         <main className="mx-auto max-w-2xl px-4 py-10">
           <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-            <h1 className="text-xl font-semibold text-amber-950">Review already submitted</h1>
-            <p className="mt-2 text-sm text-stone-600">You have already reviewed this booking.</p>
+            <h1 className="text-xl font-semibold text-amber-950">You’ve already reviewed this</h1>
+            <p className="mt-2 text-sm text-stone-600">Thanks — one review per booking.</p>
             <p className="mt-4">
               <Link href="/my-bookings" className="text-sm font-medium text-amber-900 underline underline-offset-2">
                 Back to my bookings

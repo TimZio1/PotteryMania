@@ -13,9 +13,9 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
   const { studioId } = await params;
   return dashboardStudioMeta(
     studioId,
-    "Tax report",
+    "Tax",
     "money/tax",
-    "Track booking and product tax totals for accounting periods.",
+    "Tax totals for bookings and products (last 30 days).",
   );
 }
 
@@ -66,30 +66,30 @@ export default async function StudioTaxReportPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <p className={ui.overline}>Finance</p>
-        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Tax report (last 30 days)</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">{studio.displayName} tax snapshot for bookings and catalog sales.</p>
+        <p className={ui.overline}>Money</p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Tax (last 30 days)</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">Tax collected on bookings and products for {studio.displayName}.</p>
       </div>
 
       <section className={ui.card}>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-[var(--muted)]">Gross revenue</p>
+            <p className="text-xs text-[var(--muted)]">Gross</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">€{(gross / 100).toFixed(2)}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-[var(--muted)]">Tax collected</p>
+            <p className="text-xs text-[var(--muted)]">Tax</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">€{(tax / 100).toFixed(2)}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-            <p className="text-xs text-[var(--muted)]">Net revenue</p>
+            <p className="text-xs text-[var(--muted)]">Net</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">€{((gross - tax) / 100).toFixed(2)}</p>
           </div>
         </div>
       </section>
 
       <section className={ui.card}>
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">Experience tax rates</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Tax rate per class</h2>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
             <thead>

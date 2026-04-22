@@ -37,7 +37,7 @@ export function AccountClient() {
     setErr("");
     const res = await fetch("/api/me/customer-profile");
     if (!res.ok) {
-      setErr("Could not load your profile.");
+      setErr("We couldn’t load your profile. Refresh the page.");
       setLoading(false);
       return;
     }
@@ -71,7 +71,7 @@ export function AccountClient() {
     });
     const data = await res.json();
     if (!res.ok) {
-      setErr(typeof data.error === "string" ? data.error : "Could not save.");
+      setErr(typeof data.error === "string" ? data.error : "We couldn’t save. Try again.");
     } else {
       setMsg("Saved.");
       if (data.profile) {
@@ -92,7 +92,7 @@ export function AccountClient() {
       const res = await fetch("/api/me/data-export");
       const data = await res.json();
       if (!res.ok) {
-        setErr(typeof data.error === "string" ? data.error : "Could not export your data.");
+        setErr(typeof data.error === "string" ? data.error : "We couldn’t prepare your export. Try again.");
         return;
       }
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -105,9 +105,9 @@ export function AccountClient() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setMsg("Your data export is ready.");
+      setMsg("Your export is ready.");
     } catch {
-      setErr("Could not export your data.");
+      setErr("We couldn’t prepare your export. Try again.");
     } finally {
       setExporting(false);
     }
@@ -115,7 +115,7 @@ export function AccountClient() {
 
   async function onDeleteAccount() {
     const confirmed = window.confirm(
-      "This will anonymize your account and sign you out immediately. This cannot be undone. Continue?",
+      "This deletes your account and signs you out. It can’t be undone. Continue?",
     );
     if (!confirmed) return;
     setDeleting(true);
@@ -125,12 +125,12 @@ export function AccountClient() {
       const res = await fetch("/api/me/data-deletion", { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) {
-        setErr(typeof data.error === "string" ? data.error : "Could not delete your account.");
+        setErr(typeof data.error === "string" ? data.error : "We couldn’t delete your account. Contact support.");
         return;
       }
       window.location.href = "/login?reason=account_deleted";
     } catch {
-      setErr("Could not delete your account.");
+      setErr("We couldn’t delete your account. Contact support.");
     } finally {
       setDeleting(false);
     }
@@ -152,8 +152,7 @@ export function AccountClient() {
       <p className={platformUi.overline}>Account</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Your profile</h1>
       <p className="mt-2 text-sm text-stone-600">
-        Name and phone can pre-fill bookings and checkout where we use them. Language and currency are preferences for
-        future features.
+        Name and phone pre-fill your bookings and checkout. Language and currency are personal preferences.
       </p>
 
       {err ? <p className="mt-6 text-sm font-medium text-red-700">{err}</p> : null}
@@ -171,7 +170,7 @@ export function AccountClient() {
             disabled
             className={`${platformUi.input} mt-1.5 cursor-not-allowed opacity-70`}
           />
-          <p className={`${platformUi.helper} mt-1`}>Sign in email — contact support to change.</p>
+          <p className={`${platformUi.helper} mt-1`}>This is your sign-in email. Contact support to change it.</p>
         </div>
         <div>
           <label className={platformUi.label} htmlFor="acct-name">
@@ -243,13 +242,13 @@ export function AccountClient() {
       </form>
 
       <section className={`${platformUi.cardMuted} mt-8 space-y-3`}>
-        <h2 className="text-base font-semibold text-amber-950">Data controls</h2>
+        <h2 className="text-base font-semibold text-amber-950">Your data</h2>
         <p className="text-sm text-stone-600">
-          Download a machine-readable copy of your account data or anonymize your account.
+          Download everything we have on you, or delete your account.
         </p>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={onDownloadData} disabled={exporting} className={platformUi.buttonSecondary}>
-            {exporting ? "Preparing export…" : "Download my data"}
+            {exporting ? "Preparing…" : "Download my data"}
           </button>
           <button
             type="button"

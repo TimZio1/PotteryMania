@@ -42,7 +42,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
     const res = await fetch(`/api/studios/${studioId}/vendor-domains`);
     if (!res.ok) {
       const j = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(j.error ?? "Could not load domains");
+      setError(j.error ?? "We couldn’t load your domains. Try again.");
       setDomains([]);
       return;
     }
@@ -75,7 +75,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
       });
       const j = (await res.json().catch(() => ({}))) as { error?: string; setup?: DomainSetup };
       if (!res.ok) {
-        setError(j.error ?? "Could not add domain");
+        setError(j.error ?? "We couldn’t add that domain. Try again.");
         return;
       }
       if (j.setup) setSetup(j.setup);
@@ -94,7 +94,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
       const res = await fetch(`/api/studios/${studioId}/vendor-domains/${id}/verify`, { method: "POST" });
       const j = (await res.json().catch(() => ({}))) as { error?: string; hint?: string };
       if (!res.ok) {
-        setError(j.hint ?? j.error ?? "Verification failed");
+        setError(j.hint ?? j.error ?? "We couldn’t verify yet. Check your DNS records.");
         return;
       }
       await load();
@@ -105,14 +105,14 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
   }
 
   async function removeDomain(id: string) {
-    if (!window.confirm("Remove this domain from routing? DNS records can stay; storefront routing will stop immediately.")) return;
+    if (!window.confirm("Remove this domain? People won’t reach your page through it anymore. Your DNS records can stay in place.")) return;
     setBusyId(id);
     setError(null);
     try {
       const res = await fetch(`/api/studios/${studioId}/vendor-domains/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? "Could not remove domain");
+        setError(j.error ?? "We couldn’t remove that domain. Try again.");
         return;
       }
       await load();
@@ -125,55 +125,53 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
   return (
     <div className={`${ui.card} space-y-4`}>
       <div>
-        <h2 className="text-lg font-semibold text-stone-900">Custom storefront domain</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Use your own domain</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Link your own domain to the storefront this site hosts for your studio. Your custom host loads your studio page on{" "}
-          <code className="rounded bg-stone-100 px-1">/</code>; booking, checkout, and account flows currently stay on the primary site hostname.
+          Point your own domain at your studio page. Cart, checkout, and account still run on PotteryMania.
         </p>
       </div>
 
       {setup && !setup.setupReady ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Custom-domain routing is not fully configured in this environment yet. Add your domain now if needed, but final live routing will not work
-          until the primary site origin is configured.
+          Custom domains aren’t fully turned on yet on this environment. You can add yours now, but it won’t go live until setup is finished.
         </div>
       ) : null}
 
       <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-4 text-sm text-stone-700">
-        <p className="font-medium text-stone-900">Domain setup checklist</p>
+        <p className="font-medium text-stone-900">How to set it up</p>
         <ol className="mt-3 space-y-2 text-sm text-[var(--foreground)]">
-          <li>1. Pick one hostname to use publicly first: either <code className="rounded bg-white px-1 py-0.5">www.yourstudio.com</code> or the apex domain.</li>
-          <li>2. Add that exact hostname below so we can generate the verification records for it.</li>
-          <li>3. Create the TXT record shown for ownership proof.</li>
+          <li>1. Pick one host — either <code className="rounded bg-white px-1 py-0.5">www.yourstudio.com</code> or the bare <code className="rounded bg-white px-1 py-0.5">yourstudio.com</code>.</li>
+          <li>2. Add that host below. We’ll give you two DNS records.</li>
+          <li>3. Add the <strong>TXT</strong> record at your DNS provider (proves you own the domain).</li>
           <li>
-            4. Point the same hostname to{" "}
+            4. Add a <strong>CNAME</strong> record pointing your host to{" "}
             {setup?.connectTargetHostname ? (
               <code className="rounded bg-white px-1 py-0.5">{setup.connectTargetHostname}</code>
             ) : (
-              "your primary site routing target"
-            )}{" "}
-            using your DNS provider’s CNAME/ALIAS instructions.
+              "the routing target we’ll show you"
+            )}
+            .
           </li>
-          <li>5. Wait for DNS propagation, then click <strong>Verify DNS</strong>.</li>
+          <li>5. Wait a few minutes, then click <strong>Verify DNS</strong>.</li>
         </ol>
         <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
-          Important: <code className="rounded bg-white px-1 py-0.5">www</code> and apex hosts are treated as different domains. If you want both, add and verify both.
+          <code className="rounded bg-white px-1 py-0.5">www</code> and the bare domain count as two separate hosts — add both if you want both.
         </p>
         {setup?.canonicalOrigin ? (
           <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
-            Primary site origin for bookings, cart, checkout, and account:{" "}
+            Cart, checkout, and account stay on:{" "}
             <code className="rounded bg-white px-1 py-0.5 break-all">{setup.canonicalOrigin}</code>
           </p>
         ) : null}
       </div>
 
       {!studioApproved ? (
-        <p className="text-sm text-amber-900">Custom storefront domains are available after your studio is approved.</p>
+        <p className="text-sm text-amber-900">You can add a custom domain once your studio is approved.</p>
       ) : (
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <label className={`${ui.label} flex-1`}>
-              <span className="mb-1 block font-medium">Storefront hostname</span>
+              <span className="mb-1 block font-medium">Your domain</span>
               <input
                 type="text"
                 value={domainInput}
@@ -189,12 +187,12 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
               onClick={() => void addDomain()}
               className={ui.buttonSecondary}
             >
-              {busyId === "__add" ? "Adding…" : "Add storefront domain"}
+              {busyId === "__add" ? "Adding…" : "Add domain"}
             </button>
           </div>
 
           <p className="text-xs leading-5 text-[var(--muted)]">
-            Start with the host you actually want customers to type or click. In most cases that is{" "}
+            Use the exact host you want customers to type. For most people that’s{" "}
             <code className="rounded bg-stone-100 px-1 py-0.5">www.yourstudio.com</code>.
           </p>
 
@@ -213,7 +211,7 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium text-stone-900">{d.domainName}</span>
                     <span className="text-[var(--muted)]">
-                      {d.verificationStatus === "verified" ? (d.isActive ? "Live on storefront" : "Verified") : "Awaiting verification"}
+                      {d.verificationStatus === "verified" ? (d.isActive ? "Live" : "Verified") : "Waiting for verification"}
                     </span>
                   </div>
                   {d.txtHostname && d.txtValue ? (
@@ -230,16 +228,15 @@ export default function VendorDomainsSettingsCard({ studioId, studioApproved }: 
                   ) : null}
                   <div className="mt-2 rounded-md bg-white px-3 py-2 text-xs leading-5 text-stone-600">
                     <p>
-                      <span className="font-medium text-[var(--foreground)]">Routing target:</span>{" "}
+                      <span className="font-medium text-[var(--foreground)]">CNAME value:</span>{" "}
                       {setup?.connectTargetHostname ? (
                         <code className="break-all rounded bg-stone-100 px-1 py-0.5">{setup.connectTargetHostname}</code>
                       ) : (
-                        "Use your primary site host target"
+                        "We’ll show it after you add the domain."
                       )}
                     </p>
                     <p className="mt-1">
-                      <span className="font-medium text-[var(--foreground)]">What loads on this host:</span> your studio storefront home. Cart, booking, and checkout
-                      stay on the primary site origin.
+                      <span className="font-medium text-[var(--foreground)]">What shows on this host:</span> your studio page. Cart, booking, and checkout stay on PotteryMania.
                     </p>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">

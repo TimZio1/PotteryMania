@@ -11,7 +11,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaAdminPage(
   "War room",
   "/admin/war-room",
-  "Live operations and incident snapshot.",
+  "Live queues, daily pulse, and the newest admin events.",
 );
 
 export const dynamic = "force-dynamic";
@@ -92,38 +92,38 @@ export default async function AdminWarRoomPage() {
 
   const queues: QueueItem[] = [
     {
-      label: "Studios pending review",
+      label: "Studios awaiting review",
       count: pendingStudiosCount,
       href: "/admin/operations#pending-studios",
-      hint: "Approve or reject to grow supply",
+      hint: "Approve or reject to open supply",
       danger: pendingStudiosCount > 0,
     },
     {
-      label: "Studios suspended",
+      label: "Suspended studios",
       count: suspendedStudiosCount,
       href: "/admin/users",
       hint: "Compliance or policy holds",
       danger: suspendedStudiosCount > 0,
     },
     {
-      label: "Bookings awaiting vendor",
+      label: "Bookings waiting on a studio",
       count: bookingsAwaitingApprovalCount,
       href: "/admin/operations#booking-queue",
-      hint: "Customer paid — vendor must confirm",
+      hint: "Customer paid, studio has not confirmed",
       danger: bookingsAwaitingApprovalCount > 3,
     },
     {
-      label: "Manual refund queue",
+      label: "Manual refunds",
       count: manualRefundQueueCount,
       href: "/admin/operations#ops-stats",
-      hint: "Stripe / policy edge cases",
+      hint: "Stripe or policy edge cases",
       danger: manualRefundQueueCount > 0,
     },
     {
-      label: "Stale pending orders (>24h)",
+      label: "Stuck pending sales (>24h)",
       count: stalePendingOrdersCount,
       href: "/admin/operations#ops-stats",
-      hint: "Webhook or checkout leakage",
+      hint: "Possible webhook or checkout issue",
       danger: stalePendingOrdersCount > 0,
     },
     {
@@ -136,17 +136,14 @@ export default async function AdminWarRoomPage() {
   ];
 
   const shortcuts = [
-    { href: "/admin", label: "Executive overview" },
-    { href: "/admin/operations", label: "Operations & queues" },
-    { href: "/admin/finance", label: "Finance engine" },
+    { href: "/admin", label: "Home" },
+    { href: "/admin/operations", label: "Operations" },
+    { href: "/admin/finance", label: "Finance" },
     { href: "/admin/revenue", label: "Revenue" },
-    { href: "/admin/audit", label: "Audit log" },
+    { href: "/admin/audit", label: "Audit" },
     { href: "/admin/users", label: "Users" },
-    { href: "/admin/platform-features", label: "Platform add-ons" },
-    { href: "/admin/marketplace-ranking", label: "Ranking tools (internal)" },
     { href: "/admin/settings", label: "Settings" },
-    { href: "/", label: "Public homepage" },
-    { href: "/dashboard/studio/new?setup=both", label: "Studio setup" },
+    { href: "/", label: "Public site" },
   ] as const;
 
   return (
@@ -154,23 +151,22 @@ export default async function AdminWarRoomPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Hyperadmin</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">War room</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        One screen for triage: queue depth, the oldest bookings pending studio confirmation, today&apos;s commerce pulse,
-        shortcuts, and fresh audit lines. Heavy charts stay on the executive overview.
+        One screen for triage: queues, today&apos;s activity, oldest bookings, and the latest admin actions.
       </p>
 
       <section className="mt-10" id="pulse">
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">Pulse (UTC day)</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Today (UTC)</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-[var(--muted)]">New users today</p>
+            <p className="text-sm text-[var(--muted)]">New users</p>
             <p className="mt-2 text-3xl font-semibold text-[var(--foreground)]">{newUsersToday}</p>
           </div>
           <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-[var(--muted)]">Paid orders today</p>
+            <p className="text-sm text-[var(--muted)]">Paid sales today</p>
             <p className="mt-2 text-3xl font-semibold text-[var(--foreground)]">{paidOrdersToday}</p>
           </div>
           <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-[var(--muted)]">Paid orders last 24h</p>
+            <p className="text-sm text-[var(--muted)]">Paid sales (last 24h)</p>
             <p className="mt-2 text-3xl font-semibold text-[var(--foreground)]">{paidOrders24h}</p>
           </div>
         </div>
@@ -178,7 +174,7 @@ export default async function AdminWarRoomPage() {
 
       <section className="mt-10" id="queues">
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Queues</h2>
-        <p className="mt-1 text-sm text-[var(--muted)]">Tap a card to jump to the right surface in Operations or Users.</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">Click a card to open it.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {queues.map((q) => (
             <Link
@@ -200,11 +196,11 @@ export default async function AdminWarRoomPage() {
       <section className="mt-10">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">Oldest bookings pending studio confirmation</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">FIFO-style preview — full list lives on Operations.</p>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Oldest bookings waiting on a studio</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">Preview — full queue lives on Operations.</p>
           </div>
           <Link href="/admin/operations#booking-queue" className={cn(ui.buttonSecondary, "text-sm")}>
-            Open booking queue
+            Open queue
           </Link>
         </div>
         {approvalBookingsPreview.length === 0 ? (
@@ -245,7 +241,7 @@ export default async function AdminWarRoomPage() {
 
       <section className="mt-10">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Recent admin actions</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Latest admin actions</h2>
           <Link href="/admin/audit" className={cn(ui.buttonGhost, "text-sm")}>
             Full audit →
           </Link>

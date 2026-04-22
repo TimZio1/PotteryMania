@@ -10,7 +10,7 @@ import { ui } from "@/lib/ui-styles";
 export const metadata: Metadata = buildMetadata({
   title: "Pottery studio blog",
   description:
-    "Guides for pottery studios, ceramic artists, bookings, ecommerce, SEO, and revenue growth from our editorial team.",
+    "Practical guides for running a pottery studio online — classes, bookings, shop, and growth.",
   path: "/blog",
   keywords: ["pottery studio blog", "ceramic business tips", "pottery ecommerce", "pottery seo"],
 });
@@ -28,10 +28,10 @@ export default async function BlogIndexPage() {
     <MarketingLayout>
       <main className={`${ui.pageContainer} py-10 sm:py-14`}>
         <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Editorial</p>
-          <h1 className="mt-3 font-serif text-4xl tracking-tight text-amber-950 sm:text-5xl">Pottery business and studio growth</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Blog</p>
+          <h1 className="mt-3 font-serif text-4xl tracking-tight text-amber-950 sm:text-5xl">Guides for studios</h1>
           <p className="mt-4 text-sm leading-7 text-stone-600 sm:text-base">
-            Practical guides for pottery studios, ceramic artists, classes, ecommerce, SEO, and calm online growth.
+            Short, practical notes on classes, bookings, shop, and growing your studio online.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export default async function BlogIndexPage() {
                 </p>
                 <p className="mt-4 text-sm leading-7 text-stone-600">{post.excerpt}</p>
                 <Link href={`/blog/${post.slug}`} className="mt-5 inline-flex text-sm font-semibold text-amber-900 underline underline-offset-4">
-                  Read article
+                  Read
                 </Link>
               </div>
             </article>

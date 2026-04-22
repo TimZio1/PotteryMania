@@ -127,7 +127,7 @@ export async function POST(req: Request, ctx: Ctx) {
       });
       await sendGiftCardEmail({
         to: giftCard.recipientEmail,
-        subject: `Your gift card from ${studio.displayName}`,
+        subject: `A gift card from ${studio.displayName}`,
         html,
       });
       await prisma.giftCard.update({
@@ -137,7 +137,7 @@ export async function POST(req: Request, ctx: Ctx) {
       giftCard.sentAt = sentAt;
     } catch (error) {
       logApiError("studio_gift_card_send", error, { giftCardId: giftCard.id, studioId });
-      emailWarning = "Gift card created, but email delivery failed. You can still copy the code and send it manually.";
+      emailWarning = "Gift card created, but we couldn't email it. Copy the code and send it manually.";
     }
   }
 

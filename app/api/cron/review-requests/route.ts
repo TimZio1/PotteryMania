@@ -54,12 +54,12 @@ export async function GET(req: Request) {
         };
         const subject = template
           ? renderTemplateVariables(template.subject, vars)
-          : `How was your ${booking.experience.title} session?`;
+          : `How was ${booking.experience.title}?`;
         const html = template
           ? renderEmailShell({
-              eyebrow: "How was your session?",
+              eyebrow: "How was it?",
               title: subject,
-              intro: `Thanks for attending ${booking.experience.title} at ${booking.studio.displayName}.`,
+              intro: `Thanks for coming to ${booking.studio.displayName}.`,
               bodyHtml: renderTemplateVariables(template.bodyHtml, vars),
               ctaLabel: "Leave a review",
               ctaUrl: reviewUrl,
