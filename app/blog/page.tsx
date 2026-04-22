@@ -67,7 +67,7 @@ export default async function BlogIndexPage() {
                 </p>
                 <p className="mt-4 text-sm leading-7 text-stone-600">{post.excerpt}</p>
                 <Link href={`/blog/${post.slug}`} className="mt-5 inline-flex text-sm font-semibold text-amber-900 underline underline-offset-4">
-                  Read
+                  Read the guide
                 </Link>
               </div>
             </article>

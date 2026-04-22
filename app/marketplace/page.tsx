@@ -14,8 +14,8 @@ import { resolveShippingZoneForDestination, shipsToZone } from "@/lib/shipping-z
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
-  title: "Shop ceramics",
-  description: "Buy ceramics directly from independent studios. Every piece tells you who made it.",
+  title: "Shop handmade ceramics",
+  description: "Handmade mugs, bowls, vases, and more — straight from independent pottery studios. You know exactly who made your piece.",
   path: "/marketplace",
 });
 
@@ -116,12 +116,12 @@ export default async function MarketplacePage({ searchParams }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
           <p className={ui.overline}>Shop</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Shop ceramics</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Shop handmade ceramics</h1>
           <p className="mt-3 text-[var(--muted)]">
-            Handmade by independent studios. Each piece tells you who made it.
+            Every piece is made by hand at a real studio. You know exactly who made yours.
           </p>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Showing items that ship to{" "}
+            Showing pieces that ship to{" "}
             <strong>{resolvedRegion.country ? resolvedRegion.country : resolvedRegion.region.toUpperCase()}</strong>.
           </p>
         </div>
@@ -129,7 +129,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
         <form className="mt-8 grid gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
           <label className="block lg:col-span-2">
             <span className={ui.label}>Search</span>
-            <input className={`${ui.input} mt-1`} name="q" defaultValue={sp.q ?? ""} placeholder="Mug, vase, stoneware, studio…" />
+            <input className={`${ui.input} mt-1`} name="q" defaultValue={sp.q ?? ""} placeholder="Mug, vase, stoneware, a studio name…" />
           </label>
           <label className="block">
             <span className={ui.label}>Category</span>
@@ -143,20 +143,20 @@ export default async function MarketplacePage({ searchParams }: Props) {
             </select>
           </label>
           <label className="block">
-            <span className={ui.label}>Sort</span>
+            <span className={ui.label}>Sort by</span>
             <select className={`${ui.input} mt-1`} name="sort" defaultValue={sp.sort ?? "recommended"}>
               <option value="recommended">Recommended</option>
-              <option value="popular">Popular</option>
-              <option value="newest">Newest</option>
+              <option value="popular">Most popular</option>
+              <option value="newest">Just added</option>
               <option value="price_asc">Price: low to high</option>
               <option value="price_desc">Price: high to low</option>
             </select>
           </label>
           <label className="block">
-            <span className={ui.label}>In stock</span>
+            <span className={ui.label}>Availability</span>
             <select className={`${ui.input} mt-1`} name="inStock" defaultValue={sp.inStock ?? ""}>
-              <option value="">All</option>
-              <option value="1">Only in stock</option>
+              <option value="">Show everything</option>
+              <option value="1">Ready to ship only</option>
             </select>
           </label>
 
@@ -169,16 +169,16 @@ export default async function MarketplacePage({ searchParams }: Props) {
             <input className={`${ui.input} mt-1`} name="maxPrice" defaultValue={sp.maxPrice ?? ""} inputMode="numeric" />
           </label>
           <label className="block">
-            <span className={ui.label}>Country</span>
-            <input className={`${ui.input} mt-1`} name="country" defaultValue={sp.country ?? ""} />
+            <span className={ui.label}>Studio country</span>
+            <input className={`${ui.input} mt-1`} name="country" defaultValue={sp.country ?? ""} autoComplete="country-name" />
           </label>
           <label className="block">
-            <span className={ui.label}>City</span>
+            <span className={ui.label}>Studio city</span>
             <input className={`${ui.input} mt-1`} name="city" defaultValue={sp.city ?? ""} />
           </label>
           <div className="flex items-end gap-3 lg:col-span-1">
             <button className={ui.buttonPrimary} type="submit">
-              Update results
+              Apply filters
             </button>
             <Link href="/marketplace" className={ui.buttonSecondary}>
               Clear filters
@@ -188,9 +188,9 @@ export default async function MarketplacePage({ searchParams }: Props) {
 
         {products.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-            <p className="font-medium text-[var(--foreground)]">Nothing to show yet</p>
+            <p className="font-medium text-[var(--foreground)]">Nothing matches that right now</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Try fewer filters, or browse studios — some of them may ship to you even if nothing is listed here yet.
+              Try loosening a filter, or visit a studio page directly — some studios take orders from there even when nothing is listed here.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/marketplace" className={ui.buttonSecondary}>
@@ -246,7 +246,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
                       <p className="mt-2 line-clamp-2 text-sm text-[var(--muted)]">{p.shortDescription}</p>
                     ) : null}
                     <p className={`mt-2 text-xs font-medium ${ships ? "text-emerald-700" : "text-rose-700"}`}>
-                      {ships ? "Ships to your country" : "Doesn’t ship here"}
+                      {ships ? "Ships to your country" : "Doesn’t ship to your country"}
                     </p>
                     <p className="mt-2 text-lg font-medium text-[var(--foreground)]">
                       {recurring

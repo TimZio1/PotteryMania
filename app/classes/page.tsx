@@ -25,7 +25,7 @@ import { billingIntervalLabel } from "@/lib/offering-pricing";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
   title: "Find a pottery class",
-  description: "Book a pottery class or workshop at a studio near you.",
+  description: "Book a pottery class or workshop at a real studio near you — beginners welcome, no kit required.",
   path: "/classes",
 });
 
@@ -136,18 +136,18 @@ export default async function ClassesPage({ searchParams }: Props) {
             Find a pottery class
           </h1>
           <p className="mt-3 text-[var(--muted)]">
-            Workshops and classes hosted by real studios. Pick one, pick a time, pay — that&rsquo;s it.
+            Real classes at real studios. Pick one, pick a time, pay — we handle the rest.
           </p>
         </div>
 
         <div className="mt-8">
-        <FilterCollapse label="Filter classes" defaultOpen={filtered}>
+        <FilterCollapse label="Narrow it down" defaultOpen={filtered}>
         <form
           method="get"
           action="/classes"
           className={`${ui.cardMuted} mt-3 space-y-5 md:mt-0`}
         >
-          <p className="hidden text-sm font-medium text-[var(--foreground)] md:block">Filter classes</p>
+          <p className="hidden text-sm font-medium text-[var(--foreground)] md:block">Narrow it down</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
               <label className={ui.label} htmlFor="classes-q">
@@ -157,7 +157,7 @@ export default async function ClassesPage({ searchParams }: Props) {
                 id="classes-q"
                 name="q"
                 type="search"
-                placeholder="Title or description"
+                placeholder="Class name, theme, or keyword…"
                 defaultValue={filters.q}
                 className={`${ui.input} mt-1.5`}
               />
@@ -211,14 +211,14 @@ export default async function ClassesPage({ searchParams }: Props) {
                 id="classes-skill"
                 name="skill"
                 type="text"
-                placeholder="e.g. Beginner"
+                placeholder="e.g. Complete beginner"
                 defaultValue={filters.skillLevel}
                 className={`${ui.input} mt-1.5`}
               />
             </div>
             <div>
               <label className={ui.label} htmlFor="classes-type">
-                Type
+                Class type
               </label>
               <select
                 id="classes-type"
@@ -226,7 +226,7 @@ export default async function ClassesPage({ searchParams }: Props) {
                 defaultValue={filters.experienceType || ""}
                 className={`${ui.input} mt-1.5`}
               >
-                <option value="">Any</option>
+                <option value="">Any type</option>
                 {DISCOVER_EXPERIENCE_TYPE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -264,7 +264,7 @@ export default async function ClassesPage({ searchParams }: Props) {
             </div>
             <div>
               <label className={ui.label} htmlFor="classes-from">
-                From date
+                Earliest date
               </label>
               <input
                 id="classes-from"
@@ -276,7 +276,7 @@ export default async function ClassesPage({ searchParams }: Props) {
             </div>
             <div>
               <label className={ui.label} htmlFor="classes-to">
-                To date
+                Latest date
               </label>
               <input
                 id="classes-to"
@@ -295,7 +295,7 @@ export default async function ClassesPage({ searchParams }: Props) {
                   defaultChecked={filters.openSpotsOnly}
                   className="h-4 w-4 rounded border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent-muted)]"
                 />
-                Only show classes with open seats
+                Only classes with open seats
               </label>
             </div>
             <NearPointFields
@@ -305,24 +305,24 @@ export default async function ClassesPage({ searchParams }: Props) {
               initialRadius={radiusDefault}
               description={
                 <>
-                  Use the button to fill from your device, or paste a point from a map. We scan up to {GEO_SCAN_LIMIT}{" "}
-                  classes and sort by distance.
+                  Tap the button to use your location, or paste coordinates from a map. We&rsquo;ll check the closest{" "}
+                  {GEO_SCAN_LIMIT} classes and sort them by how far they are from you.
                 </>
               }
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={ui.buttonPrimary}>
-              Update results
+              Apply filters
             </button>
             {filtered ? (
               <Link href="/classes" className={cn(ui.buttonSecondary, "items-center")}>
-                Clear
+                Clear filters
               </Link>
             ) : null}
           </div>
           <p className={ui.helper}>
-            Filters update the URL, so you can share a search. Leave latitude and longitude empty to search everywhere.
+            Your filters show up in the address bar, so you can copy the link and share it with a friend.
           </p>
         </form>
         </FilterCollapse>
@@ -361,10 +361,10 @@ export default async function ClassesPage({ searchParams }: Props) {
         {near ? (
           <section className="mt-10" aria-labelledby="classes-map-heading">
             <h2 id="classes-map-heading" className="text-lg font-semibold text-[var(--foreground)]">
-              Map
+              Classes near you
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              The circle is your search radius. Tap a pin to open that class.
+              The circle shows your search radius. Tap any pin to open that class.
             </p>
             <div className="mt-4">
               <NearResultsMap
@@ -381,9 +381,9 @@ export default async function ClassesPage({ searchParams }: Props) {
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
             {filtered ? (
               <>
-                <p className="font-medium text-[var(--foreground)]">No classes match your filters</p>
+                <p className="font-medium text-[var(--foreground)]">No classes match those filters</p>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Try removing a filter or broadening your search.
+                  Try loosening a filter — or clear them all and start fresh.
                 </p>
                 <Link
                   href="/classes"
@@ -396,7 +396,7 @@ export default async function ClassesPage({ searchParams }: Props) {
               <>
                 <p className="font-medium text-[var(--foreground)]">No classes listed yet</p>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Studios are still setting up. Browse studios in the meantime — new classes go live every week.
+                  Studios are still setting things up. Browse studios in the meantime — new classes go live every week.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link href="/studios" className={ui.buttonSecondary}>
@@ -439,7 +439,7 @@ export default async function ClassesPage({ searchParams }: Props) {
                     </div>
                     <h2 className="mt-1 text-base font-semibold text-[var(--foreground)]">{ex.title}</h2>
                     {km != null ? (
-                      <p className="mt-1 text-xs text-[var(--muted)]">~{km.toFixed(1)} km away</p>
+                      <p className="mt-1 text-xs text-[var(--muted)]">{km.toFixed(1)} km from you</p>
                     ) : null}
                     <p className="mt-2 text-sm font-medium text-[var(--foreground)]">
                       {recurring

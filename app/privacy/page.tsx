@@ -5,7 +5,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Privacy policy",
-  description: "How we handle your data on PotteryMania.",
+  description: "How we collect, use, and protect your data on PotteryMania.",
   path: "/privacy",
 });
 

@@ -160,10 +160,10 @@ export default function DemoPage() {
                 </p>
                 <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                   {[
-                    "Strong photos and simple layout",
-                    "Classes and shop under one name",
-                    "Obvious Book and Buy buttons",
-                    "Feels professional on day one",
+                    "Strong photos, simple layout",
+                    "Classes and shop under one brand",
+                    "Clear Book and Buy buttons",
+                    "Looks professional from day one",
                   ].map((item) => (
                     <li key={item} className="st-tile p-4 text-sm leading-6">
                       {item}
@@ -271,12 +271,12 @@ export default function DemoPage() {
                 </p>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="st-tile p-4 text-sm leading-6">
-                    <strong className="block text-(--st-heading)">Visitors</strong>
-                    Photos, prices, and clear Book / Buy buttons.
+                    <strong className="block text-(--st-heading)">For your visitors</strong>
+                    Photos, prices, and clear Book and Buy buttons.
                   </div>
                   <div className="st-tile p-4 text-sm leading-6">
-                    <strong className="block text-(--st-heading)">You</strong>
-                    One home for classes, shop, and trust — not five different links.
+                    <strong className="block text-(--st-heading)">For you</strong>
+                    One home for your classes, shop, and story — instead of five scattered links.
                   </div>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function DemoPage() {
                 <div>
                   <p className="text-(--st-heading) text-sm font-semibold">This page is a demo.</p>
                   <p className="st-body text-sm">
-                    Build yours with your photos, classes, and products.
+                    Build your own with your photos, your classes, and your work.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">

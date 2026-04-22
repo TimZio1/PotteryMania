@@ -40,8 +40,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const result = await getMarketplaceProduct(productId);
   if (!result) {
     return buildMetadata({
-      title: "Product not found",
-      description: "This studio product could not be found.",
+      title: "Piece not found",
+      description: "We couldn’t find this piece. It may be sold out or the link is wrong.",
       path: `/marketplace/products/${productId}`,
     });
   }
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       product.shortDescription ||
       product.fullDescription ||
-      `Buy ${product.title} directly from ${product.studio.displayName}.`,
+      `${product.title} — handmade by ${product.studio.displayName}. Shop directly from the studio.`,
     path: `/marketplace/products/${productId}`,
     image: product.images[0]?.imageUrl,
   });
@@ -174,21 +174,21 @@ export default async function ProductPage({ params }: Props) {
               <span className="rounded-full bg-stone-100 px-3 py-1">{ceramicCategoryMetaByValue(product.category).title}</span>
               {hasVariants ? (
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
-                  {product.variants.length} {product.variants.length === 1 ? "option" : "options"}
-                  {totalVariantStock > 0 ? ` · ${totalVariantStock} in stock` : ""}
+                  {product.variants.length} {product.variants.length === 1 ? "option" : "options"} to choose from
+                  {totalVariantStock > 0 ? ` · ${totalVariantStock} ready to ship` : ""}
                 </span>
               ) : product.stockQuantity > 0 ? (
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
-                  {product.stockQuantity} in stock
+                  {product.stockQuantity} ready to ship
                 </span>
               ) : (
                 <span className="rounded-full bg-red-50 px-3 py-1 text-red-700">Sold out</span>
               )}
-              {product.isFeatured ? <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-800">Studio pick</span> : null}
+              {product.isFeatured ? <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-800">Studio favourite</span> : null}
             </div>
             {product.shortDescription ? <p className="mt-4 text-stone-700">{product.shortDescription}</p> : null}
             <p className={`mt-3 text-sm font-medium ${shipsToUser ? "text-emerald-700" : "text-rose-700"}`}>
-              {shipsToUser ? "Ships to your country" : "This studio doesn’t ship here yet"}
+              {shipsToUser ? "Ships to your country" : "This studio doesn’t ship to your country yet"}
             </p>
             <div className="mt-8">
               {recurring ? (
@@ -196,7 +196,7 @@ export default async function ProductPage({ params }: Props) {
                   <p className="text-sm font-medium text-amber-950">Subscription</p>
                   <ul className="mt-2 space-y-1 text-xs text-amber-900">
                     <li>Billed: {billingIntervalLabel(product.billingInterval!, product.billingIntervalCount ?? 1)}</li>
-                    <li>Renews automatically: {product.autoRenew ? "Yes" : "No"}</li>
+                    <li>Auto-renews: {product.autoRenew ? "Yes" : "No"}</li>
                     {product.minimumCommitmentCycles ? (
                       <li>Minimum commitment: {product.minimumCommitmentCycles} {product.minimumCommitmentCycles === 1 ? "cycle" : "cycles"}</li>
                     ) : null}
@@ -219,7 +219,7 @@ export default async function ProductPage({ params }: Props) {
                   />
                 ) : (
                   <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-                    This studio doesn&rsquo;t ship to your country yet. Try messaging them — they may be able to arrange it.
+                    This studio doesn&rsquo;t ship to your country yet. Send them a quick message — they might be able to sort something out.
                   </div>
                 )
               )}
@@ -234,23 +234,23 @@ export default async function ProductPage({ params }: Props) {
             ) : null}
             {(product.materials || product.careInstructions || product.dimensionsText || product.weightGrams != null) ? (
               <div className="mt-10 border-t border-stone-200 pt-8">
-                <h2 className="text-sm font-semibold text-stone-900">Details</h2>
+                <h2 className="text-sm font-semibold text-stone-900">The details</h2>
                 <dl className="mt-4 space-y-3 text-sm text-stone-600">
                   {product.materials ? (
                     <div>
-                      <dt className="font-medium text-stone-800">Materials</dt>
+                      <dt className="font-medium text-stone-800">Made from</dt>
                       <dd>{product.materials}</dd>
                     </div>
                   ) : null}
                   {product.careInstructions ? (
                     <div>
-                      <dt className="font-medium text-stone-800">Care</dt>
+                      <dt className="font-medium text-stone-800">How to care for it</dt>
                       <dd>{product.careInstructions}</dd>
                     </div>
                   ) : null}
                   {product.dimensionsText ? (
                     <div>
-                      <dt className="font-medium text-stone-800">Dimensions</dt>
+                      <dt className="font-medium text-stone-800">Size</dt>
                       <dd>{product.dimensionsText}</dd>
                     </div>
                   ) : null}
@@ -273,7 +273,7 @@ export default async function ProductPage({ params }: Props) {
                   Visit {product.studio.displayName}
                 </Link>
               </p>
-              {product.shippingNotes ? <p className="mt-3 text-xs">Shipping notes: {product.shippingNotes}</p> : null}
+              {product.shippingNotes ? <p className="mt-3 text-xs">A note from the studio: {product.shippingNotes}</p> : null}
               <div className="mt-3">
                 <p className="text-xs font-medium text-stone-800">Shipping rates</p>
                 <ul className="mt-1 space-y-1 text-xs">
@@ -281,7 +281,7 @@ export default async function ProductPage({ params }: Props) {
                     const cents = zonePriceCents(product, zone);
                     return (
                       <li key={zone} className={cents == null ? "text-stone-500" : "text-stone-700"}>
-                        {label}: {cents == null ? "Doesn’t ship here" : `€${(cents / 100).toFixed(2)}`}
+                        {label}: {cents == null ? "Not shipping here" : `€${(cents / 100).toFixed(2)}`}
                       </li>
                     );
                   })}

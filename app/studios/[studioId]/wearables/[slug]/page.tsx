@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   if (!product || !studio) return buildMetadata({ title: "Not found", description: "Product not found.", path: `/studios/${studioId}/wearables/${slug}` });
   return buildMetadata({
-    title: `${product.name} ${studio.displayName}`,
-    description: product.subtitle || `${product.name} from ${studio.displayName}`,
+    title: `${product.name} — ${studio.displayName}`,
+    description: product.subtitle || `${product.name} from ${studio.displayName}.`,
     path: `/studios/${studioId}/wearables/${slug}`,
   });
 }

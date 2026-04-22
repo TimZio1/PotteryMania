@@ -8,7 +8,7 @@ import { auth } from "@/auth";
 export const metadata: Metadata = metaPublicPage(
   "Your cart",
   "/cart",
-  "Check your classes and products, then head to secure payment.",
+  "Review your classes and pieces before heading to secure payment.",
 );
 import { ui } from "@/lib/ui-styles";
 import { CartContents } from "./cart-contents";

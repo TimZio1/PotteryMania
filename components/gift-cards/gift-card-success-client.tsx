@@ -13,7 +13,7 @@ export function GiftCardSuccessClient() {
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-[var(--muted)]">Thank you</p>
         <h1 className="mt-6 font-serif text-3xl text-[var(--foreground)] sm:text-4xl">Gift card purchased</h1>
         <p className="mt-6 text-sm leading-relaxed text-[var(--muted)]">
-          Payment confirmed. We are activating the gift card and sending the code to your recipient by email.
+          Payment confirmed. We&rsquo;re activating the gift card now and emailing the code to your recipient.
         </p>
         {sessionId ? (
           <p className="mt-4 break-all font-mono text-[11px] text-[var(--muted)]">Ref: {sessionId}</p>

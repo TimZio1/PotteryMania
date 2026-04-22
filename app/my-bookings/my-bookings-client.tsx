@@ -83,7 +83,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
   }, []);
 
   async function handleCancel(bookingId: string) {
-    if (!confirm("Cancel this booking? The studio’s refund policy decides what (if anything) gets refunded.")) return;
+    if (!confirm("Cancel this booking? The studio’s refund policy sets what (if anything) gets refunded.")) return;
     setActionMsg("");
     const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
       method: "POST",
@@ -130,7 +130,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
         <div>
           <p className={platformUi.overline}>Bookings</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">My bookings</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">All your classes — tickets, calendar links, and receipts in one place.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Every class you&rsquo;ve booked — tickets, calendar links, and receipts in one place.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/my-waitlist" className={`${platformUi.buttonSecondary} text-center`}>
@@ -204,7 +204,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
           <div className={`${platformUi.cardMuted}`}>
             <p className="font-medium text-[var(--foreground)]">Nothing booked yet</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Pick a class to get started.
+              Ready for your first class? Find one that fits your week.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link href="/classes" className={platformUi.buttonSecondary}>Find a class</Link>
@@ -273,7 +273,7 @@ export function MyBookingsClient({ initialMessage = "" }: { initialMessage?: str
                 {b.remainingBalanceCents > 0 ? (
                   <p className="mt-1 text-xs text-[var(--muted)]">
                     Paid €{(b.depositAmountCents / 100).toFixed(2)} today · €
-                    {(b.remainingBalanceCents / 100).toFixed(2)} to pay when you arrive
+                    {(b.remainingBalanceCents / 100).toFixed(2)} when you arrive
                   </p>
                 ) : null}
                 {b.remainderPaidAt ? (

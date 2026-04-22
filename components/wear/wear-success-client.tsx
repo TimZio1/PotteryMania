@@ -19,9 +19,9 @@ export function WearSuccessClient() {
     <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-20 text-stone-900 sm:px-6 sm:py-28">
       <div className="mx-auto max-w-md text-center">
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Thank you</p>
-        <h1 className="mt-6 font-serif text-3xl text-amber-950 sm:text-4xl">Order received</h1>
+        <h1 className="mt-6 font-serif text-3xl text-amber-950 sm:text-4xl">Order confirmed</h1>
         <p className="mt-6 text-sm leading-relaxed text-stone-600">
-          Payment confirmed. You will get a receipt from Stripe; we&apos;ll follow up when your pieces ship.
+          Payment received. Stripe will email your receipt, and we&apos;ll let you know as soon as your pieces ship.
         </p>
         {sessionId ? (
           <p className="mt-4 font-mono text-[11px] text-stone-500 break-all">Ref: {sessionId}</p>

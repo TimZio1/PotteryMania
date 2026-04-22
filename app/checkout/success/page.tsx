@@ -12,7 +12,7 @@ import { humanBookingStatus } from "@/lib/status-labels";
 export const metadata: Metadata = metaPublicPage(
   "You’re all set",
   "/checkout/success",
-  "Payment received. Your tickets, receipts, and next steps are below.",
+  "Payment received — your tickets, receipt, and next steps are below.",
 );
 
 export const dynamic = "force-dynamic";
@@ -109,8 +109,8 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           </h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
             {paymentVerified
-              ? "Payment received. A confirmation is on its way to your inbox — keep it somewhere safe."
-              : "Your bank is still confirming your payment. Refresh in a minute — no need to try again or pay again."}
+              ? "Payment received. A confirmation is on its way to your inbox — keep it handy for your records."
+              : "Your bank is still confirming the payment. Refresh in a minute — no need to try again or pay twice."}
           </p>
 
           {hasBookings && (
@@ -223,15 +223,15 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
               <ol className="mt-3 space-y-3 text-sm text-[var(--muted)]">
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">1</span>
-                  <span>The studio gets your order and starts preparing it.</span>
+                  <span>The studio picks up your order and gets it ready for you.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">2</span>
-                  <span>You’ll get email updates when it ships — including tracking.</span>
+                  <span>We&rsquo;ll email you when it ships, with tracking once it&rsquo;s on its way.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">3</span>
-                  <span>Sign in any time to see your orders, bookings, and receipts in one place.</span>
+                  <span>Sign in any time to find your orders, bookings, and receipts in one place.</span>
                 </li>
               </ol>
             </div>

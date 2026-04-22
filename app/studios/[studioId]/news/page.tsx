@@ -18,10 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     where: { id: studioId, status: "approved" },
     select: { displayName: true },
   });
-  if (!studio) return buildMetadata({ title: "News", description: "Studio news.", path: `/studios/${studioId}/news` });
+  if (!studio) return buildMetadata({ title: "News", description: "Updates from a PotteryMania studio.", path: `/studios/${studioId}/news` });
   return buildMetadata({
     title: `${studio.displayName} — News`,
-    description: `Updates and posts from ${studio.displayName}.`,
+    description: `News, stories, and behind-the-scenes updates from ${studio.displayName}.`,
     path: `/studios/${studioId}/news`,
   });
 }
@@ -48,14 +48,14 @@ export default async function StudioPublicNewsPage({ params }: Props) {
   return (
     <MarketingLayout toolbar={toolbar}>
       <main className={`${ui.pageContainer} max-w-4xl py-8 sm:py-12`}>
-        <h1 className="text-3xl font-semibold tracking-tight text-amber-950">{studio.displayName} news</h1>
-        <p className="mt-2 text-sm text-stone-600">Updates and stories from the studio.</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-amber-950">News from {studio.displayName}</h1>
+        <p className="mt-2 text-sm text-stone-600">New classes, fresh pieces in the shop, and the occasional kiln story.</p>
 
         {posts.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-            <p className="font-medium text-stone-800">No posts yet</p>
+            <p className="font-medium text-stone-800">Nothing posted yet</p>
             <p className="mt-2 text-sm text-stone-600">
-              The studio hasn’t posted anything yet. Check back soon.
+              The studio hasn&rsquo;t shared any news yet. We&rsquo;ll put it here the moment they do.
             </p>
           </div>
         ) : (
@@ -91,7 +91,7 @@ export default async function StudioPublicNewsPage({ params }: Props) {
 
         <div className="mt-12 text-center">
           <Link href={`/studios/${studio.id}`} className={ui.buttonSecondary}>
-            Back to {studio.displayName}
+            ← Back to {studio.displayName}
           </Link>
         </div>
       </main>

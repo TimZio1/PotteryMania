@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Wear",
-  description: "Branded studio apparel. Print on demand. You earn on every sale.",
+  description: "Branded studio apparel — printed on demand. You earn on every sale.",
   path: "/wear",
 });
 

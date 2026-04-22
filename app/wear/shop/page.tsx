@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Wear shop",
-  description: "Limited wear drops — shirts, hoodies, headwear, and accessories.",
+  description: "Limited drops — shirts, hoodies, headwear, and accessories, printed to order.",
   path: "/wear/shop",
 });
 
@@ -226,12 +226,12 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
           <div className="mx-auto mt-12 max-w-md text-center">
             <p className="text-sm leading-relaxed text-stone-600">
               {dbUnavailable
-                ? "We couldn’t load the wear catalog. Try again in a moment."
+                ? "We couldn’t load the wear catalog right now. Try again in a moment."
                 : activeCategory
                 ? activeTopSub
-                  ? `Nothing in ${wearTopSubcategoryLabel(activeTopSub)} right now.`
-                  : `Nothing in this category right now.`
-                : "We’re between drops. New pieces land here first — check back soon."}
+                  ? `Nothing in ${wearTopSubcategoryLabel(activeTopSub)} right now — check back soon.`
+                  : `Nothing in this category right now — check back soon.`
+                : "Between drops. New pieces land here first — check back soon."}
             </p>
             <p className="mt-6 text-sm text-stone-500">
               <Link href="/wear" className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline">

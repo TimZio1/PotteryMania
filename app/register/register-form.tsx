@@ -46,13 +46,13 @@ export function RegisterForm() {
         return;
       }
       if (j.user) {
-        setOk("Check your email. Open the link to confirm, then sign in.");
+        setOk("Check your email and open the link to confirm. Then come back and sign in.");
       } else {
-        setOk("If this email is new, check your inbox. Already have an account? Sign in instead.");
+        setOk("If that email is new, check your inbox. Already have an account? Sign in below.");
       }
       setPending(false);
     } catch {
-      setErr("Sign-up failed. Try again.");
+      setErr("Something went wrong. Try again.");
       setPending(false);
     }
   }
@@ -63,7 +63,7 @@ export function RegisterForm() {
     try {
       await signIn("google", { callbackUrl });
     } catch {
-      setErr("Google sign-up isn’t available right now.");
+      setErr("Google sign-up isn’t working right now. Try email instead.");
       setGooglePending(false);
     }
   }
@@ -96,9 +96,9 @@ export function RegisterForm() {
         </>
       ) : null}
       <div className={`${ui.cardMuted} border-[var(--border)]/80`}>
-        <p className="text-sm font-medium text-[var(--foreground)]">Same login for shopping and for your studio.</p>
+        <p className="text-sm font-medium text-[var(--foreground)]">One login — whether you’re shopping or running a studio.</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          When you open a studio, you agree to the{" "}
+          When you open a studio later, you’re also agreeing to the{" "}
           <Link href="/vendor-terms" className="font-medium text-[var(--accent)] underline-offset-2 hover:underline">
             studio terms
           </Link>
@@ -129,7 +129,7 @@ export function RegisterForm() {
           onChange={(e) => setMarketingConsent(e.target.checked)}
           disabled={pending}
         />
-        <span>Email me tips. Unsubscribe anytime.</span>
+        <span>Send me the occasional tip. Unsubscribe anytime.</span>
       </label>
       <div>
         <label className={ui.label} htmlFor="reg-password">
@@ -149,7 +149,7 @@ export function RegisterForm() {
         />
       </div>
       <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
-        {pending ? "Creating…" : "Continue"}
+        {pending ? "Creating your account…" : "Create your account"}
       </button>
       <p className="text-center text-sm text-[var(--muted)]">
         Already have an account?{" "}

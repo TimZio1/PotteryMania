@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export function generateMetadata(): Metadata {
   return buildMetadata({
     title: "My memberships",
-    description: "Your active studio memberships and how many sessions you have left.",
+    description: "Your studio memberships and how many sessions you have left this month.",
     path: "/my-memberships",
   });
 }
@@ -38,13 +38,13 @@ export default async function MyMembershipsPage() {
       <div>
         <p className={ui.overline}>Account</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">My memberships</h1>
-        <p className="mt-2 text-sm text-stone-600">See what you&apos;re subscribed to and how many sessions you have left.</p>
+        <p className="mt-2 text-sm text-stone-600">See what you&rsquo;re subscribed to, and how many sessions you have left this period.</p>
       </div>
       {memberships.length === 0 ? (
         <div className={ui.card}>
           <p className="font-medium text-stone-900">No memberships yet</p>
           <p className="mt-2 text-sm text-stone-600">
-            Most studios offer a monthly membership on their page — cheaper than paying per class if you&apos;re going regularly.
+            Most studios offer a monthly membership on their page. If you&apos;re going regularly, it usually works out cheaper than paying per class.
           </p>
         </div>
       ) : (

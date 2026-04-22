@@ -188,7 +188,7 @@ export function WearPdpBuySection({
             label="Add to cart"
           />
         ) : (
-          <p className="text-sm text-stone-500">{soldOut ? "This option is sold out." : "Choose an option to continue."}</p>
+          <p className="text-sm text-stone-500">{soldOut ? "This option is sold out." : "Pick a size to continue."}</p>
         )}
       </div>
     </div>

@@ -21,14 +21,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   if (!studio) {
     return buildMetadata({
-      title: "Packages not found",
-      description: "Class packages are not available for this studio.",
+      title: "Packages not available",
+      description: "This studio isn’t selling class packages right now.",
       path: `/studios/${studioId}/packages`,
     });
   }
   return buildMetadata({
-    title: `${studio.displayName} packages`,
-    description: `Buy prepaid class packages from ${studio.displayName} and use credits across eligible classes.`,
+    title: `${studio.displayName} — Class packages`,
+    description: `Pay once for a bundle of classes at ${studio.displayName}, then book in whenever you like.`,
     path: `/studios/${studioId}/packages`,
   });
 }
@@ -72,13 +72,16 @@ export default async function StudioPackagesPublicPage({ params }: Props) {
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-amber-950">Class packages</h1>
           <p className="mt-2 text-sm text-stone-600">
-            Prepay once, then spend credits on included classes at {studio.displayName}.
+            Pay once, spend the credits on classes at {studio.displayName} whenever you like. Usually cheaper than booking one at a time.
           </p>
         </div>
 
         {packages.length === 0 ? (
           <div className={`${ui.cardMuted}`}>
-            <p className="text-sm text-stone-600">No public packages are available right now.</p>
+            <p className="font-medium text-stone-800">No packages on sale right now</p>
+            <p className="mt-2 text-sm text-stone-600">
+              This studio isn&rsquo;t selling class packages at the moment. Book a one-off class instead, or check back later.
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -92,7 +95,7 @@ export default async function StudioPackagesPublicPage({ params }: Props) {
                     <div>
                       <h2 className="text-xl font-semibold text-amber-950">{pkg.name}</h2>
                       <p className="mt-1 text-sm text-stone-600">
-                        €{(pkg.priceCents / 100).toFixed(2)} · {totalCredits} credits · valid for {pkg.validityDays} days
+                        €{(pkg.priceCents / 100).toFixed(2)} · {totalCredits} credit{totalCredits === 1 ? "" : "s"} · use them within {pkg.validityDays} days
                       </p>
                     </div>
                     {soldOut ? (
@@ -103,7 +106,7 @@ export default async function StudioPackagesPublicPage({ params }: Props) {
                   {pkg.description ? <p className="text-sm text-stone-700">{pkg.description}</p> : null}
 
                   <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Included classes</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">What&rsquo;s included</p>
                     <ul className="mt-2 space-y-1 text-sm text-stone-700">
                       {pkg.items.map((item) => (
                         <li key={item.id}>
@@ -118,10 +121,14 @@ export default async function StudioPackagesPublicPage({ params }: Props) {
                       <Link href={`/login?callbackUrl=${encodeURIComponent(`/studios/${studio.id}/packages`)}`} className="font-medium text-amber-900 hover:underline">
                         Sign in
                       </Link>{" "}
-                      to buy this package.
+                      or{" "}
+                      <Link href={`/register?callbackUrl=${encodeURIComponent(`/studios/${studio.id}/packages`)}`} className="font-medium text-amber-900 hover:underline">
+                        create a free account
+                      </Link>{" "}
+                      to grab this package.
                     </p>
                   ) : soldOut ? (
-                    <p className="text-sm text-rose-700">This package has reached its sales limit.</p>
+                    <p className="text-sm text-rose-700">This package is sold out for now — ask the studio if there&rsquo;s a waitlist.</p>
                   ) : (
                     <PackagePurchaseForm packageId={pkg.id} defaultStartDate={today} />
                   )}

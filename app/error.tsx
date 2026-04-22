@@ -22,7 +22,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       </div>
       <h1 className="mt-6 text-2xl font-semibold tracking-tight text-amber-950">Something broke on our side</h1>
       <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
-        Try again. If it keeps happening, head back home.
+        Give it another try. If it keeps happening, head home and we&rsquo;ll sort it out.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button type="button" onClick={reset} className={ui.buttonPrimary}>

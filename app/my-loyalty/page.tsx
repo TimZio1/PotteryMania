@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "My points",
-  description: "The points you’ve earned at each studio. Cash them in for a gift card at the same studio.",
+  description: "Points you’ve earned at each studio — cash them in for a gift card at that same studio.",
   path: "/my-loyalty",
   robots: {
     index: false,

@@ -5,7 +5,7 @@ import { metaPublicPage } from "@/lib/seo-routes";
 export const metadata: Metadata = metaPublicPage(
   "Forgot password",
   "/forgot-password",
-  "Request a secure link to reset your password.",
+  "We’ll email you a link to set a new password.",
 );
 import ForgotPasswordInner from "./forgot-password-inner";
 
@@ -13,7 +13,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell
       title="Reset your password"
-      description="We email a reset link if this address has an account."
+      description="Enter your email. If we have an account for it, a reset link is on its way."
     >
       <ForgotPasswordInner />
     </AuthShell>

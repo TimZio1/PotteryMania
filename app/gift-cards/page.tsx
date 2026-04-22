@@ -8,7 +8,7 @@ import { ui } from "@/lib/ui-styles";
 export const metadata: Metadata = metaPublicPage(
   "Gift cards",
   "/gift-cards",
-  "Purchase pottery studio gift cards and send them with a personal message.",
+  "Send a pottery studio gift card — classes, workshops, or shop pieces, with a personal note.",
 );
 
 export const dynamic = "force-dynamic";
@@ -50,10 +50,10 @@ export default async function GiftCardsPage() {
       <main className={`${ui.pageContainer} py-10 sm:py-14`}>
         <div className="mx-auto max-w-5xl space-y-8">
           <div className="max-w-2xl">
-            <p className={ui.overline}>Revenue</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Gift cards for pottery experiences</h1>
+            <p className={ui.overline}>Gift cards</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-amber-950 sm:text-4xl">Gift someone a pottery experience</h1>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              Send a studio gift card that can be redeemed later for classes, workshops, or shop orders.
+              A studio gift card they can spend on classes, workshops, or anything from the shop — whenever they&rsquo;re ready.
             </p>
           </div>
           <GiftCardPurchaseForm studios={purchaseStudios} />

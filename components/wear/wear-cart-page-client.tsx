@@ -89,15 +89,15 @@ export function WearCartPageClient() {
       if (!res.ok) {
         setLoadError(
           data.error === "wear_catalog_unavailable"
-            ? "The shop catalog is temporarily unavailable. You can still change quantities below, or retry in a moment."
-            : "Could not load products.",
+            ? "The shop catalog isn’t available right now. You can still change quantities below — or try again in a moment."
+            : "We couldn’t load your products. Try again in a moment.",
         );
         setProducts(Array.isArray(data.products) ? data.products : []);
         return;
       }
       setProducts(Array.isArray(data.products) ? data.products : []);
     } catch {
-      setLoadError("Could not load products. Check your connection and try again.");
+      setLoadError("We couldn’t load your products. Check your connection and try again.");
     } finally {
       setCatalogReady(true);
     }
@@ -156,15 +156,15 @@ export function WearCartPageClient() {
     setEmailError(null);
     let hasFieldErr = false;
     if (!customerName.trim()) {
-      setNameError("Full name is required.");
+      setNameError("Please add your full name.");
       hasFieldErr = true;
     }
     const emailVal = customerEmail.trim();
     if (!emailVal) {
-      setEmailError("Email is required.");
+      setEmailError("Please add your email.");
       hasFieldErr = true;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-      setEmailError("Enter a valid email address.");
+      setEmailError("That email doesn’t look right — double-check it.");
       hasFieldErr = true;
     }
     if (hasFieldErr) return;
@@ -193,7 +193,7 @@ export function WearCartPageClient() {
         orderId?: string;
       };
       if (!res.ok) {
-        setCheckoutError(data.error ?? "Checkout failed.");
+        setCheckoutError(data.error ?? "Something went wrong at checkout. Try again in a moment.");
         return;
       }
       if (data.url) {
@@ -206,9 +206,9 @@ export function WearCartPageClient() {
         window.location.href = data.url;
         return;
       }
-      setCheckoutError("No checkout URL returned.");
+      setCheckoutError("Something went wrong at checkout. Try again in a moment.");
     } catch {
-      setCheckoutError("Network error.");
+      setCheckoutError("Connection problem. Check your internet and try again.");
     } finally {
       setCheckoutBusy(false);
     }
@@ -224,8 +224,8 @@ export function WearCartPageClient() {
 
         {cancelled ? (
           <div className="mt-6 rounded border border-amber-300/70 bg-amber-50 px-4 py-4 text-center text-sm text-amber-950">
-            <p>Checkout was cancelled. Nothing was charged.</p>
-            <p className="mt-2 text-stone-600">Your cart is still here, so you can review it and try again whenever you’re ready.</p>
+            <p>Checkout was cancelled — nothing was charged.</p>
+            <p className="mt-2 text-stone-600">Your cart is still here. Review it and try again whenever you’re ready.</p>
             <button
               type="button"
               onClick={onCheckout}
@@ -245,14 +245,14 @@ export function WearCartPageClient() {
               onClick={() => void loadCatalog()}
               className="text-sm font-medium text-amber-900 underline underline-offset-4 hover:text-amber-800"
             >
-              Retry loading catalog
+              Try loading again
             </button>
           </div>
         ) : null}
 
         {lines.length === 0 ? (
           <p className="mt-12 text-center text-sm text-stone-600">
-            Nothing here yet.{" "}
+            Your cart is empty.{" "}
             <Link href="/wear/shop" className="text-amber-950 underline underline-offset-4 hover:text-amber-800">
               Browse the shop
             </Link>
@@ -289,7 +289,7 @@ export function WearCartPageClient() {
                         {formatWearMoney(r.unitCents, r.currency)} each · {formatWearMoney(lineCents, r.currency)} line
                       </p>
                     ) : (
-                      <p className="mt-1 text-sm text-amber-800">This item is no longer valid — remove it.</p>
+                      <p className="mt-1 text-sm text-amber-800">This item isn’t available anymore — please remove it.</p>
                     )}
                     </div>
                   </div>
@@ -327,7 +327,7 @@ export function WearCartPageClient() {
               <span className="text-amber-950">{formatWearMoney(subtotalCents, currency)}</span>
             </div>
             <p className="mt-2 text-xs text-stone-600">
-              Shipping is added at secure checkout (standard rate). Taxes may apply per Stripe.
+              Shipping is added at checkout (standard rate). Taxes may apply, depending on your region.
             </p>
 
             <div className="mt-10 space-y-4">

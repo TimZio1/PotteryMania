@@ -33,7 +33,7 @@ export function ReviewForm(props: {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "Could not submit your review.");
+        setError(data.error ?? "We couldn’t submit your review. Try again in a moment.");
         return;
       }
       setDone(true);
@@ -45,8 +45,8 @@ export function ReviewForm(props: {
   if (done) {
     return (
       <section className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-emerald-900">
-        <h1 className="text-xl font-semibold">Thanks for your feedback</h1>
-        <p className="mt-2 text-sm">Your review has been submitted and helps other students pick the right class.</p>
+        <h1 className="text-xl font-semibold">Thanks for the feedback</h1>
+        <p className="mt-2 text-sm">Your review is live — other students will use it to pick the right class.</p>
         <div className="mt-4">
           <Link href="/my-bookings" className="rounded-full bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800">
             Back to my bookings
@@ -99,7 +99,7 @@ export function ReviewForm(props: {
             maxLength={3000}
             rows={5}
             className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-stone-900 outline-none ring-amber-200 focus:ring"
-            placeholder="Tell future students what they should know."
+            placeholder="Tell future students what they should know before signing up."
           />
         </label>
 
@@ -111,7 +111,7 @@ export function ReviewForm(props: {
             disabled={saving}
             className="rounded-full bg-amber-900 px-4 py-2 text-sm font-medium text-white hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Submitting..." : "Submit review"}
+            {saving ? "Submitting…" : "Submit review"}
           </button>
           <Link href="/my-bookings" className="text-sm font-medium text-stone-600 underline underline-offset-2 hover:text-stone-800">
             Cancel

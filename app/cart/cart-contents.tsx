@@ -178,7 +178,7 @@ export function CartContents({
 
   async function applyAdjustment(method: "coupon" | "gift_card") {
     if (multiVendor) {
-      setCouponErr("Codes work for one studio at a time. Pay each studio separately, or keep items from just one studio.");
+      setCouponErr("Codes only work for one studio at a time. Pay each studio separately, or keep items from just one studio to apply a code.");
       return;
     }
     const code = method === "gift_card" ? giftCardInput.trim() : promoInput.trim();
@@ -364,7 +364,7 @@ export function CartContents({
       </div>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{isCheckoutMode ? "Review and pay" : "Your cart"}</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        {isCheckoutMode ? "Last step before we take payment." : "Check your items, then head to secure payment."}
+        {isCheckoutMode ? "Last step before payment." : "Take a look, make any changes, then head to secure payment."}
       </p>
       {wasCancelled && (
         <div className="mt-4 rounded-xl border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-4 text-sm text-[var(--foreground)]">
@@ -378,7 +378,7 @@ export function CartContents({
       )}
       {multiVendor ? (
         <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-[var(--pm-space-4)] text-sm text-[var(--foreground)]">
-          You have items from <strong>more than one studio</strong>. Each studio is paid separately — you&rsquo;ll see one payment button per studio below.
+          You&rsquo;re buying from <strong>more than one studio</strong>. Each studio gets paid separately — you&rsquo;ll see one payment button per studio below.
         </p>
       ) : null}
       {!isAuthed && items.length > 0 ? (
@@ -388,7 +388,7 @@ export function CartContents({
         >
           <p className="font-medium">You&rsquo;re shopping as a guest</p>
           <p className="mt-1 text-[var(--muted)]">
-            Browse and edit your cart as much as you like. You&rsquo;ll sign in (or make a free account) at payment so we can send your receipt.
+            Add and edit as much as you like. You&rsquo;ll sign in (or create a free account) right before payment so we can send your receipt.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
@@ -411,7 +411,7 @@ export function CartContents({
         <div className={`${ui.cardMuted} mt-10`}>
           <p className="font-medium text-[var(--foreground)]">Your cart is empty</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Book a class or pick up something handmade — your cart saves automatically.
+            Book a class, or pick up something handmade — we&rsquo;ll save your cart as you go.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/classes" className={ui.buttonSecondary}>Find a class</Link>
@@ -542,7 +542,7 @@ export function CartContents({
                         value={i.seatType ?? ""}
                         onChange={(e) => updateSeatType(i.id, e.target.value)}
                       >
-                        <option value="">Pick one…</option>
+                        <option value="">Pick a seat type…</option>
                         {seatKeys.map((k) => (
                           <option key={k} value={k}>
                             {prettifySeatKey(k)}
@@ -557,14 +557,14 @@ export function CartContents({
                         <div className="mb-4 rounded-lg border border-emerald-800/40 bg-emerald-950/30 p-3">
                           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Paying with a class package</p>
                           <p className="mt-1 text-sm text-emerald-400">
-                            Your package covers the class itself. You&rsquo;ll only pay for any add-ons at checkout.
+                            Your package covers the class itself. At checkout you&rsquo;ll only pay for any add-ons.
                           </p>
                           <button
                             type="button"
                             className="mt-2 text-xs font-medium text-emerald-400 underline"
                             onClick={() => updatePackageCredit(i.id, null)}
                           >
-                            Use a different payment instead
+                            Pay another way instead
                           </button>
                         </div>
                       ) : null}
@@ -580,7 +580,7 @@ export function CartContents({
                                 onChange={() => updateBookingPaymentPreference(i.id, "deposit")}
                               />
                               <span>
-                                <span className="block font-medium text-[var(--foreground)]">Deposit now, rest at the studio</span>
+                                <span className="block font-medium text-[var(--foreground)]">Pay a deposit now, the rest at the studio</span>
                                 <span className="block text-xs text-[var(--muted)]">
                                   €{(
                                     bookingChargeNowCents(
@@ -614,9 +614,9 @@ export function CartContents({
                                   onChange={() => updateBookingPaymentPreference(i.id, "full")}
                                 />
                                 <span>
-                                  <span className="block font-medium text-[var(--foreground)]">Pay it all now</span>
+                                  <span className="block font-medium text-[var(--foreground)]">Pay in full now</span>
                                   <span className="block text-xs text-[var(--muted)]">
-                                    €{(lineDisplayFullCents(i) / 100).toFixed(2)} today, nothing to pay at the studio
+                                    €{(lineDisplayFullCents(i) / 100).toFixed(2)} today — nothing left to pay at the studio
                                   </span>
                                 </span>
                               </label>
@@ -720,7 +720,7 @@ export function CartContents({
             {!isCheckoutMode ? (
               <div className="space-y-4">
                 <p className="text-sm text-[var(--muted)]">
-                  Looking good? Next we&rsquo;ll ask for a few details and take you to secure payment.
+                  Happy with everything? Next we&rsquo;ll take a few details, then on to secure payment.
                 </p>
                 <Link href="/checkout" className={`${ui.buttonPrimary} inline-flex`}>
                   Continue to payment
@@ -731,7 +731,7 @@ export function CartContents({
               <>
             <h2 className="text-lg font-semibold text-[var(--foreground)]">Your details</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              {hasProducts ? "So we can send your receipt and know where to ship." : "So we can send your receipt. Nothing to ship here."}
+              {hasProducts ? "So we can send your receipt and know where to ship your order." : "So we can send your receipt — nothing to ship for this order."}
             </p>
             {err ? <p className={`${ui.errorText} mt-4`}>{err}</p> : null}
             {couponErr ? <p className={`${ui.errorText} mt-2`}>{couponErr}</p> : null}
@@ -883,7 +883,7 @@ export function CartContents({
                         </button>
                       </div>
                       <p className="mt-2 text-xs text-[var(--muted)]">
-                        Only works for the studio that issued it, and comes straight off what you pay.
+                        Only works for the studio that issued it. The balance comes straight off what you pay today.
                       </p>
                     </div>
                   </>
@@ -892,7 +892,7 @@ export function CartContents({
               {!isAuthed ? (
                 <div className="mt-4 space-y-2">
                   <p className="text-sm text-[var(--muted)]">
-                    Sign in or create a free account to pay — your cart stays exactly as is.
+                    Sign in or create a free account to pay. Your cart stays exactly as it is.
                   </p>
                   <Link
                     href={`/login?callbackUrl=${encodeURIComponent("/checkout")}`}

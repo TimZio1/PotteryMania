@@ -7,7 +7,7 @@ import { GiftCardSuccessClient } from "@/components/gift-cards/gift-card-success
 export const metadata: Metadata = metaPublicPage(
   "Gift card purchased",
   "/gift-cards/success",
-  "Your gift card is on its way.",
+  "Payment received — your gift card is on its way.",
 );
 
 function SuccessFallback() {

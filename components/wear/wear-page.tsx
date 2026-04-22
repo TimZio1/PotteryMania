@@ -55,7 +55,7 @@ export function WearPage({
               Branded shirts and hoodies for your studio. Printed when someone orders. No boxes in your garage.
             </p>
             <p className="mt-6 text-sm font-medium text-amber-900">
-              Join the reseller program and earn {resellerStats.marginPct} on every sale, roughly{" "}
+              Sell them under your studio brand — earn {resellerStats.marginPct} on every sale, roughly{" "}
               {formatEur(resellerStats.estimatedEarningPerSale)} per item.
             </p>
             <p className="mt-2 text-xs uppercase tracking-[0.18em] text-stone-500">
@@ -178,22 +178,22 @@ export function WearPage({
               Sell wearables under your studio brand
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-relaxed text-stone-600">
-              Storefront, checkout, and fulfilment in one place. Pick what you sell, publish it on your studio page,
+              Storefront, checkout, and printing — all handled. Pick what you sell, show it on your studio page,
               and keep your margin on every sale.
             </p>
             <div className="mt-10 grid gap-4 md:grid-cols-3">
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">1. Join</p>
-                <p className="mt-3 text-lg font-semibold text-stone-900">Turn on your shop</p>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">1. Turn on</p>
+                <p className="mt-3 text-lg font-semibold text-stone-900">Turn on wearables</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  From your dashboard, turn on wearables and pick what you sell.
+                  From your dashboard, switch on wearables and pick what you want to sell.
                 </p>
               </div>
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">2. Sell</p>
-                <p className="mt-3 text-lg font-semibold text-stone-900">Share your studio identity</p>
+                <p className="mt-3 text-lg font-semibold text-stone-900">Sell on your studio page</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  Items show on your studio page, so people buy from you — not a random third-party store.
+                  Items appear on your studio page, so people buy from you — not from a random third-party store.
                 </p>
               </div>
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
@@ -208,7 +208,7 @@ export function WearPage({
             </div>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <WearResellerProgramLink href={resellerProgramHref} className={sectionCtaClass}>
-                Join the program
+                Start selling wearables
               </WearResellerProgramLink>
               <Link href="/wear/shop" className={bridgeLinkClass}>
                 Browse the shop
@@ -222,7 +222,7 @@ export function WearPage({
           <div className="mx-auto max-w-xl text-center">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Studio platform</p>
             <p className="mt-4 text-sm leading-relaxed text-stone-600">
-              Run classes, sell work, and host this wear line from one studio home.
+              Run your classes, sell your work, and host your wearables — all from one studio.
             </p>
             <nav
               className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8"

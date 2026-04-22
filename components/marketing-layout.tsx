@@ -75,7 +75,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
                   Suggest a feature
                 </Link>
                 <Link href="/early-access" className="block transition hover:text-[var(--foreground)]">
-                  Join early access
+                  Get early access
                 </Link>
                 {!isPreregistrationOnly() ? (
                   <Link href="/login" className="block transition hover:text-[var(--foreground)]">

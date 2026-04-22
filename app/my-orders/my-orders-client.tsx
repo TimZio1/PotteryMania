@@ -88,12 +88,12 @@ export function MyOrdersClient() {
       <div>
         <p className={platformUi.overline}>Orders</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">My orders</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Track your orders, download receipts, and reorder what you love.</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">Track your orders and grab receipts — every purchase, in one place.</p>
       </div>
       {orders.length === 0 ? (
         <div className={`${platformUi.cardMuted}`}>
-          <p className="font-medium text-[var(--foreground)]">You haven&apos;t ordered anything yet</p>
-          <p className="mt-2 text-sm text-[var(--muted)]">Browse studios or the shop to place your first order.</p>
+          <p className="font-medium text-[var(--foreground)]">Nothing ordered yet</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Take a look around — your first order&rsquo;s only a click or two away.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link href="/marketplace" className={platformUi.buttonSecondary}>Shop ceramics</Link>
             <Link href="/studios" className={platformUi.buttonSecondary}>Browse studios</Link>

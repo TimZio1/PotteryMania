@@ -7,7 +7,7 @@ import { MyBookingsClient } from "./my-bookings-client";
 export const metadata: Metadata = metaPublicPage(
   "My bookings",
   "/my-bookings",
-  "All your upcoming and past classes — tickets, calendar links, and receipts in one place.",
+  "Every class you’ve booked — tickets, calendar links, and receipts in one place.",
 );
 
 type Props = {
@@ -20,7 +20,7 @@ export default async function MyBookingsPage({ searchParams }: Props) {
     typeof sp.remainder_paid === "string" && sp.remainder_paid
       ? "Balance paid — see you at the class!"
       : typeof sp.remainder_cancelled === "string" && sp.remainder_cancelled
-        ? "Payment cancelled. Nothing was charged."
+        ? "Payment cancelled — nothing was charged."
         : "";
   return (
     <PlatformChrome headerVariant="account">

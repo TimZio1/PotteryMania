@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!studio) {
     return buildMetadata({
       title: "Studio not found",
-      description: "We couldn’t find this studio.",
+      description: "We couldn’t find this studio — it may have moved or closed. Try browsing all studios instead.",
       path: `/studios/${studioId}`,
     });
   }
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       studio.shortDescription ||
       studio.longDescription ||
-      `Explore ${studio.displayName} in ${studio.city}, ${studio.country}.`,
+      `${studio.displayName} in ${studio.city}, ${studio.country}. See their classes, shop what they make, and get in touch.`,
     path: `/studios/${studioId}`,
     image: studio.coverImageUrl || undefined,
   });
@@ -337,7 +337,7 @@ export default async function StudioPage({ params }: Props) {
                   <h1 className="st-h1 text-3xl font-semibold sm:text-4xl">{studio.displayName}</h1>
                   {avgRating > 0 ? (
                     <p className="st-accent-text mt-2 text-sm font-medium">
-                      ★ {avgRating.toFixed(1)} average · {reviews.length} review{reviews.length === 1 ? "" : "s"}
+                      ★ {avgRating.toFixed(1)} · {reviews.length} review{reviews.length === 1 ? "" : "s"} from real students
                     </p>
                   ) : null}
                 </div>
@@ -354,7 +354,7 @@ export default async function StudioPage({ params }: Props) {
                 <p className="st-body mt-4 text-base leading-relaxed">{studio.shortDescription}</p>
               ) : null}
               {!studio.activationPaidAt ? (
-                <p className="st-pill mt-4">This studio isn&rsquo;t accepting bookings or orders just yet — check back soon.</p>
+                <p className="st-pill mt-4">This studio is still setting up — classes and shop aren&rsquo;t live yet. Check back soon.</p>
               ) : null}
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -451,7 +451,7 @@ export default async function StudioPage({ params }: Props) {
               if (rows.length === 0) return null;
               return (
                 <div className="st-card mt-6 p-5">
-                  <h3 className="st-h3 text-sm font-semibold uppercase tracking-wide">Opening hours</h3>
+                  <h3 className="st-h3 text-sm font-semibold uppercase tracking-wide">When the studio is open</h3>
                   <dl className="mt-3 space-y-1 text-sm">
                     {rows.map((h) => (
                       <div key={h.day} className="flex justify-between">
@@ -470,17 +470,17 @@ export default async function StudioPage({ params }: Props) {
           {!classesHidden && upcomingSlots.length > 0 ? (
             <section id="upcoming-sessions" className="st-section">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <h2 className="st-h2">Open classes</h2>
+                <h2 className="st-h2">Upcoming classes with seats</h2>
                 {experiences.length > 0 ? (
                   <a href="#studio-classes" className="st-link text-sm">
-                    See all classes
+                    See every class
                   </a>
                 ) : null}
               </div>
               <p className="st-muted mt-1 text-sm">
                 {classesVisible
-                  ? "Upcoming times — book directly with the studio."
-                  : "Pick a time and book your seat."}
+                  ? "These times are confirmed — book directly with the studio."
+                  : "Pick a day and time below to grab your seat."}
               </p>
               <ul className="st-list-shell st-divide-y mt-6">
                 {upcomingSlots.map((slot) => {
@@ -504,7 +504,7 @@ export default async function StudioPage({ params }: Props) {
                         Book
                       </a>
                     ) : (
-                      <span className="st-muted shrink-0 self-start text-sm sm:self-center">Book in person</span>
+                      <span className="st-muted shrink-0 self-start text-sm sm:self-center">Drop by the studio</span>
                     );
                   return (
                     <li key={slot.id} className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -514,7 +514,7 @@ export default async function StudioPage({ params }: Props) {
                           {dateLabel} · {slot.startTime}–{slot.endTime}
                           <span>
                             {" "}
-                            · {rem <= 2 ? `Only ${rem} seat${rem === 1 ? "" : "s"} left` : `${rem} seats left`}
+                            · {rem <= 2 ? `Only ${rem} seat${rem === 1 ? "" : "s"} left` : `${rem} seat${rem === 1 ? "" : "s"} left`}
                           </span>
                         </p>
                       </div>
@@ -529,7 +529,7 @@ export default async function StudioPage({ params }: Props) {
           {!classesHidden ? (
             <section id="studio-classes" className="st-section">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <h2 className="st-h2">Classes</h2>
+                <h2 className="st-h2">What you can learn here</h2>
                 {upcomingSlots.length > 0 ? (
                   <a href="#upcoming-sessions" className="st-link text-sm">
                     See upcoming times
@@ -557,7 +557,7 @@ export default async function StudioPage({ params }: Props) {
                         </p>
                         {experience.allowPayAtStudio && (
                           <span className="mt-1 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                            Pay at the studio
+                            Pay when you arrive
                           </span>
                         )}
                       </div>
@@ -591,7 +591,7 @@ export default async function StudioPage({ params }: Props) {
                 })}
               </div>
               {experiences.length === 0 ? (
-                <p className="st-muted mt-4 text-sm">No classes listed right now. Check back soon.</p>
+                <p className="st-muted mt-4 text-sm">This studio hasn&rsquo;t listed classes yet — check back soon.</p>
               ) : null}
             </section>
           ) : null}
@@ -599,7 +599,7 @@ export default async function StudioPage({ params }: Props) {
           {!shopHidden ? (
             <section id="studio-shop" className="st-section">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <h2 className="st-h2">Shop</h2>
+                <h2 className="st-h2">Take something home</h2>
               </div>
               <div className="st-grid md-2 lg-3 mt-6">
                 {products.map((product) => {
@@ -655,7 +655,7 @@ export default async function StudioPage({ params }: Props) {
                 })}
               </div>
               {products.length === 0 ? (
-                <p className="st-muted mt-4 text-sm">Nothing in the shop right now. Check back soon.</p>
+                <p className="st-muted mt-4 text-sm">The shop is empty right now. Handmade takes time — check back soon.</p>
               ) : null}
             </section>
           ) : null}

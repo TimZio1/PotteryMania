@@ -21,7 +21,7 @@ export default function ForgotPasswordInner() {
         body: JSON.stringify({ email }),
       });
       if (r.status === 429) {
-        setErr("Too many tries. Wait a few minutes.");
+        setErr("A few too many tries. Wait a few minutes, then try again.");
         setPending(false);
         return;
       }
@@ -41,7 +41,7 @@ export default function ForgotPasswordInner() {
     return (
       <div className="space-y-5">
         <p className="text-sm leading-relaxed text-stone-700">
-          If that email has an account, we sent a reset link. Check your inbox and spam.
+          If we have an account for that email, a reset link is on its way. Check your inbox (and your spam folder, just in case).
         </p>
         <Link href="/login" className={`${ui.buttonSecondary} inline-flex w-full justify-center`}>
           Back to sign in
@@ -70,7 +70,7 @@ export default function ForgotPasswordInner() {
         />
       </div>
       <button type="submit" disabled={pending} className={`${ui.buttonPrimary} w-full`}>
-        {pending ? "Sending…" : "Email me a link"}
+        {pending ? "Sending…" : "Send me the reset link"}
       </button>
       <p className="text-center text-sm text-stone-600">
         <Link href="/login" className="font-medium text-amber-900 hover:underline">

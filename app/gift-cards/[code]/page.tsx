@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return metaPublicPage(
     "Gift card balance",
     `/gift-cards/${encodeURIComponent(normalized || code)}`,
-    "Check the balance and status of a studio gift card.",
+    "Check what’s left on a studio gift card and when it expires.",
   );
 }
 

@@ -70,19 +70,19 @@ export default function GiftCardPurchaseForm({ studios }: { studios: StudioOptio
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedStudio) {
-      setErr("No studios are available for gift cards yet.");
+      setErr("No studios are taking gift card orders just yet. Check back soon.");
       return;
     }
     if (!name.trim() || !purchaserName.trim() || !recipientName.trim()) {
-      setErr("Gift title, purchaser, and recipient names are required.");
+      setErr("We need a gift title, your name, and the recipient’s name.");
       return;
     }
     if (!EMAIL_RE.test(purchaserEmail.trim()) || !EMAIL_RE.test(recipientEmail.trim())) {
-      setErr("Enter valid purchaser and recipient email addresses.");
+      setErr("Double-check both email addresses — something looks off.");
       return;
     }
     if (amountCents < 500 || amountCents > 100000) {
-      setErr("Gift card amount must be between EUR 5 and EUR 1000.");
+      setErr("Gift cards must be between EUR 5 and EUR 1000.");
       return;
     }
 
@@ -109,7 +109,7 @@ export default function GiftCardPurchaseForm({ studios }: { studios: StudioOptio
         checkoutUrl?: string;
       };
       if (!res.ok || !data.checkoutUrl) {
-        setErr(data.error ?? "Could not start gift card checkout.");
+        setErr(data.error ?? "We couldn’t start checkout. Try again in a moment.");
         return;
       }
       window.location.href = data.checkoutUrl;
@@ -128,7 +128,7 @@ export default function GiftCardPurchaseForm({ studios }: { studios: StudioOptio
       <div className={`${ui.card} text-center`}>
         <p className="text-lg font-semibold text-amber-950">Gift cards are coming soon</p>
         <p className="mt-2 text-sm text-stone-600">
-          No studios with live Stripe payouts are ready for gift card purchases yet.
+          No studios are taking gift card orders yet — check back in a few days.
         </p>
       </div>
     );
@@ -138,10 +138,10 @@ export default function GiftCardPurchaseForm({ studios }: { studios: StudioOptio
     <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
       <form onSubmit={onSubmit} className={`${ui.card} space-y-5`}>
         <div>
-          <p className={ui.overline}>Purchase</p>
+          <p className={ui.overline}>Buy a gift card</p>
           <h2 className="mt-1 text-2xl font-semibold text-amber-950">Send a pottery gift card</h2>
           <p className="mt-2 text-sm text-stone-600">
-            Pay securely with Stripe, then we email the gift card code directly to your recipient.
+            Pay securely with Stripe. We&rsquo;ll email the code straight to your recipient — no printing needed.
           </p>
         </div>
 
@@ -276,7 +276,7 @@ export default function GiftCardPurchaseForm({ studios }: { studios: StudioOptio
           {busy ? (
             <span className="inline-flex items-center gap-2">
               <Spinner size="sm" className="text-white" />
-              Starting checkout...
+              Starting checkout…
             </span>
           ) : (
             "Continue to secure payment"
@@ -313,9 +313,9 @@ export default function GiftCardPurchaseForm({ studios }: { studios: StudioOptio
         />
         <div className={`${ui.cardMuted} space-y-2 text-sm text-stone-600`}>
           <p className="font-medium text-stone-800">How it works</p>
-          <p>1. Choose a studio, amount, and recipient details.</p>
-          <p>2. Pay through Stripe-hosted checkout.</p>
-          <p>3. After payment, the studio gift card email is delivered with the code and balance link.</p>
+          <p>1. Pick a studio, an amount, and who it&rsquo;s for.</p>
+          <p>2. Pay securely through Stripe-hosted checkout.</p>
+          <p>3. Your recipient gets the code and a balance link by email.</p>
         </div>
       </div>
     </div>

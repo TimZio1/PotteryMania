@@ -37,7 +37,7 @@ export function AccountClient() {
     setErr("");
     const res = await fetch("/api/me/customer-profile");
     if (!res.ok) {
-      setErr("We couldn’t load your profile. Refresh the page.");
+      setErr("We couldn’t load your profile. Refresh the page to try again.");
       setLoading(false);
       return;
     }
@@ -71,9 +71,9 @@ export function AccountClient() {
     });
     const data = await res.json();
     if (!res.ok) {
-      setErr(typeof data.error === "string" ? data.error : "We couldn’t save. Try again.");
+      setErr(typeof data.error === "string" ? data.error : "We couldn’t save your changes. Try again in a moment.");
     } else {
-      setMsg("Saved!");
+      setMsg("Saved.");
       if (data.profile) {
         setFullName(data.profile.fullName ?? "");
         setPhone(data.profile.phone ?? "");
@@ -115,7 +115,7 @@ export function AccountClient() {
 
   async function onDeleteAccount() {
     const confirmed = window.confirm(
-      "Delete your account for good? You’ll be signed out and this can’t be undone.",
+      "Delete your account for good? You’ll be signed out, and we can’t bring it back.",
     );
     if (!confirmed) return;
     setDeleting(true);
@@ -125,12 +125,12 @@ export function AccountClient() {
       const res = await fetch("/api/me/data-deletion", { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) {
-        setErr(typeof data.error === "string" ? data.error : "We couldn’t delete your account. Contact support.");
+        setErr(typeof data.error === "string" ? data.error : "We couldn’t delete your account. Message support and we’ll sort it.");
         return;
       }
       window.location.href = "/login?reason=account_deleted";
     } catch {
-      setErr("We couldn’t delete your account. Contact support.");
+      setErr("We couldn’t delete your account. Message support and we’ll sort it.");
     } finally {
       setDeleting(false);
     }
@@ -152,7 +152,7 @@ export function AccountClient() {
       <p className={platformUi.overline}>Account</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Your profile</h1>
       <p className="mt-2 text-sm text-stone-600">
-        Your name and phone save you from typing them in every time you book.
+        Set your details once — we&rsquo;ll pre-fill them whenever you book a class or check out.
       </p>
 
       {err ? <p className="mt-6 text-sm font-medium text-red-700">{err}</p> : null}
@@ -170,7 +170,7 @@ export function AccountClient() {
             disabled
             className={`${platformUi.input} mt-1.5 cursor-not-allowed opacity-70`}
           />
-          <p className={`${platformUi.helper} mt-1`}>This is how you sign in. To change it, message support.</p>
+          <p className={`${platformUi.helper} mt-1`}>This is how you sign in. Need to change it? Message support and we&rsquo;ll sort it.</p>
         </div>
         <div>
           <label className={platformUi.label} htmlFor="acct-name">
@@ -244,7 +244,7 @@ export function AccountClient() {
       <section className={`${platformUi.cardMuted} mt-8 space-y-3`}>
         <h2 className="text-base font-semibold text-amber-950">Your data</h2>
         <p className="text-sm text-stone-600">
-          You&apos;re in control. Download a copy of everything we have, or delete your account whenever you like.
+          You&apos;re in control. Download a copy of everything we have on you, or delete your account whenever you like.
         </p>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={onDownloadData} disabled={exporting} className={platformUi.buttonSecondary}>

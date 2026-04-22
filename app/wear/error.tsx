@@ -13,7 +13,7 @@ export default function WearError({ error, reset }: { error: Error & { digest?: 
     <main className={`${ui.pageContainer} flex min-h-[60vh] flex-col items-center justify-center py-16 text-center`}>
       <h1 className="text-2xl font-semibold tracking-tight text-amber-950">We couldn&apos;t load this page</h1>
       <p className="mt-3 max-w-sm text-sm leading-6 text-stone-600">
-        Try again in a moment.
+        Something went wrong on our end. Try again in a moment.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <button type="button" onClick={reset} className={ui.buttonPrimary}>

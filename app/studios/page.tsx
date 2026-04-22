@@ -21,8 +21,8 @@ import { sortStudiosByMarketplaceRanking } from "@/lib/ranking/score-engine";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Studios",
-  description: "Discover pottery studios, classes, and makers near you.",
+  title: "Find a pottery studio",
+  description: "Browse real pottery studios near you — book a class, shop what they make, or send them a message.",
   path: "/studios",
 });
 
@@ -133,15 +133,15 @@ export default async function StudiosPage({ searchParams }: Props) {
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
         <div className="max-w-2xl">
           <p className={ui.overline}>Browse</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Studios</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">Find a pottery studio</h1>
           <p className="mt-3 text-[var(--muted)]">
-            Pick a studio to see their classes and products.
+            Real studios, run by real people. Tap one to see their classes, shop, and how to reach them.
           </p>
         </div>
 
         <form method="get" action="/studios" className={`${ui.cardMuted} mt-8 space-y-4`}>
           {byName ? <input type="hidden" name="sort" value="name" /> : null}
-          <p className="text-sm font-medium text-[var(--foreground)]">Filter studios</p>
+          <p className="text-sm font-medium text-[var(--foreground)]">Narrow it down</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
               <label className={ui.label} htmlFor="studios-q">
@@ -151,7 +151,7 @@ export default async function StudiosPage({ searchParams }: Props) {
                 id="studios-q"
                 name="q"
                 type="search"
-                placeholder="Name, city, or description"
+                placeholder="Studio name, neighbourhood, style…"
                 defaultValue={filters.q}
                 className={`${ui.input} mt-1.5`}
               />
@@ -190,7 +190,7 @@ export default async function StudiosPage({ searchParams }: Props) {
                   defaultChecked={filters.hasPublicClasses}
                   className="h-4 w-4 rounded border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent-muted)]"
                 />
-                Has public classes
+                Only studios running public classes
               </label>
             </div>
             <NearPointFields
@@ -200,29 +200,29 @@ export default async function StudiosPage({ searchParams }: Props) {
               initialRadius={radiusDefault}
               description={
                 <>
-                  Use the button to fill from your device, or paste a point from a map. We scan up to {GEO_SCAN_LIMIT}{" "}
-                  studios and sort by distance.
+                  Use your location, or paste coordinates from a map. We&rsquo;ll check the closest{" "}
+                  {GEO_SCAN_LIMIT} studios and sort them by how far they are from you.
                 </>
               }
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={ui.buttonPrimary}>
-              Update results
+              Apply filters
             </button>
             {filtered ? (
               <Link
                 href={byName ? "/studios?sort=name" : "/studios"}
                 className={cn(ui.buttonSecondary, "inline-flex items-center justify-center")}
               >
-                Clear
+                Clear filters
               </Link>
             ) : null}
           </div>
         </form>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Sort</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Sort by</span>
           <Link
             href={hrefRecommended}
             className={cn(
@@ -241,17 +241,17 @@ export default async function StudiosPage({ searchParams }: Props) {
               byName ? "border-[var(--accent)] bg-[var(--accent-muted)]" : "",
             )}
           >
-            Name A–Z
+            Name (A–Z)
           </Link>
         </div>
 
         {near ? (
           <section className="mt-10" aria-labelledby="studios-map-heading">
             <h2 id="studios-map-heading" className="text-lg font-semibold text-[var(--foreground)]">
-              Map
+              Studios near you
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              The circle is your search radius. Tap a pin to open that studio.
+              The circle shows your search radius. Tap any pin to open that studio.
             </p>
             <div className="mt-4">
               <NearResultsMap
@@ -267,9 +267,9 @@ export default async function StudiosPage({ searchParams }: Props) {
         {studios.length === 0 ? (
           filtered ? (
             <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-              <p className="font-medium text-[var(--foreground)]">No studios match these filters</p>
+              <p className="font-medium text-[var(--foreground)]">Nothing matches those filters</p>
               <p className="mt-2 text-sm text-[var(--muted)]">
-                Try fewer filters or a broader search.
+                Try loosening a filter, or clear them all and start over.
               </p>
               <Link
                 href={byName ? "/studios?sort=name" : "/studios"}
@@ -279,19 +279,19 @@ export default async function StudiosPage({ searchParams }: Props) {
               </Link>
             </div>
           ) : dbUnavailable ? (
-            <p className="mt-10 text-[var(--muted)]">Studios aren&rsquo;t loading right now. Try again in a minute.</p>
+            <p className="mt-10 text-[var(--muted)]">We can&rsquo;t load studios right now. Give it a minute and refresh the page.</p>
           ) : (
             <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-              <p className="font-medium text-[var(--foreground)]">No studios live yet</p>
+              <p className="font-medium text-[var(--foreground)]">No studios listed yet</p>
               <p className="mt-2 text-sm text-[var(--muted)]">
-                The first studios are coming online. See the demo in the meantime, or start your own.
+                The first studios are setting up right now. Take a look at the demo, or set up your own.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link href="/demo" className={ui.buttonSecondary}>
                   See the demo
                 </Link>
                 <Link href="/dashboard/studio/new?setup=both" className={ui.buttonSecondary}>
-                  Create your studio
+                  List your studio
                 </Link>
               </div>
             </div>
@@ -315,7 +315,7 @@ export default async function StudiosPage({ searchParams }: Props) {
                     <p className="mt-1 text-sm text-[var(--muted)]">
                       {studio.city}, {studio.country}
                     </p>
-                    {km != null ? <p className="mt-1 text-xs text-[var(--muted)]">~{km.toFixed(1)} km away</p> : null}
+                    {km != null ? <p className="mt-1 text-xs text-[var(--muted)]">{km.toFixed(1)} km from you</p> : null}
                   </div>
                   {studio.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element

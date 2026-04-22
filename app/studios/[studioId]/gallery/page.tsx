@@ -17,10 +17,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     where: { id: studioId, status: "approved" },
     select: { displayName: true },
   });
-  if (!studio) return buildMetadata({ title: "Gallery", description: "Studio gallery.", path: `/studios/${studioId}/gallery` });
+  if (!studio) return buildMetadata({ title: "Gallery", description: "Photos from a PotteryMania studio.", path: `/studios/${studioId}/gallery` });
   return buildMetadata({
     title: `${studio.displayName} — Gallery`,
-    description: `Photos from ${studio.displayName}.`,
+    description: `Peek inside ${studio.displayName} — the space, the work, and the people behind it.`,
     path: `/studios/${studioId}/gallery`,
   });
 }
@@ -47,15 +47,15 @@ export default async function StudioPublicGalleryPage({ params }: Props) {
   return (
     <MarketingLayout toolbar={toolbar}>
       <main className={`${ui.pageContainer} py-8 sm:py-12`}>
-        <h1 className="text-3xl font-semibold tracking-tight text-amber-950">{studio.displayName} gallery</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-amber-950">Inside {studio.displayName}</h1>
         <p className="mt-2 text-sm text-stone-600">
-          Photos of the studio and its work.
+          The space, the tools, the wheel marks — see what a class here really looks like.
         </p>
         {items.length === 0 ? (
           <div className={`${ui.cardMuted} mt-10 max-w-lg`}>
-            <p className="font-medium text-stone-800">No photos yet</p>
+            <p className="font-medium text-stone-800">No photos up yet</p>
             <p className="mt-2 text-sm text-stone-600">
-              The studio hasn’t added photos yet. Check back soon.
+              The studio hasn&rsquo;t shared photos yet. Pop back in a bit.
             </p>
           </div>
         ) : (

@@ -63,7 +63,7 @@ export function MyLoyaltyClient() {
   async function redeem(studioId: string, availablePoints: number) {
     const points = Math.floor(availablePoints / 100) * 100;
     if (points < 500) {
-      setError("You need at least 500 points to cash in for a gift card.");
+      setError("You need at least 500 points here to cash in for a gift card.");
       return;
     }
     setBusyStudio(studioId);
@@ -91,7 +91,7 @@ export function MyLoyaltyClient() {
       <div>
         <h1 className="text-2xl font-semibold text-amber-950">My points</h1>
         <p className="mt-2 text-sm text-stone-600">
-          You earn points every time you book or buy at a studio. Cash them in for a gift card to use at that same studio.
+          You earn points every time you book or buy at a studio. Cash them in for a gift card to spend at that same studio.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
@@ -111,7 +111,7 @@ export function MyLoyaltyClient() {
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {rows.length === 0 ? (
         <p className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">
-          No points yet. Book a class or buy something at a studio to start earning.
+          No points yet. Book a class or pick up something from a studio to start earning.
         </p>
       ) : (
         rows.map((row) => (

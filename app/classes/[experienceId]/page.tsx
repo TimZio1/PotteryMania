@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!experience) {
     return buildMetadata({
       title: "Class not found",
-      description: "We couldn’t find this class.",
+      description: "We couldn’t find this class. It may be sold out, archived, or the link is wrong.",
       path: `/classes/${experienceId}`,
     });
   }
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description:
       experience.shortDescription ||
       experience.fullDescription ||
-      `Book ${experience.title} with ${experience.studio.displayName}.`,
+      `Book ${experience.title} at ${experience.studio.displayName} — all levels welcome, everything you need is there.`,
     path: `/classes/${experienceId}`,
     image: experience.images[0]?.imageUrl,
   });
@@ -242,17 +242,17 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         </p>
         {experience.bookingDepositBps > 0 && (
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            Pay a {(experience.bookingDepositBps / 100).toFixed(1)}% deposit now. You&rsquo;ll pay the rest when you arrive.
+            Pay {(experience.bookingDepositBps / 100).toFixed(1)}% today to hold your seat — you settle the rest at the studio.
           </p>
         )}
         {experience.bookingApprovalRequired && (
           <p className="mt-2 max-w-2xl rounded-xl border border-[var(--accent)]/50 bg-[var(--accent-muted)] px-4 py-3 text-sm text-[var(--foreground)]">
-            The studio approves each booking by hand. Your seat is held and your card authorised — you&rsquo;re only charged once they confirm.
+            The studio reviews each booking personally. We hold your seat and authorise your card — no money is taken until they confirm.
           </p>
         )}
         {(experience.bookingCutoffHours ?? 0) > 0 && (
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            Bookings close {experience.bookingCutoffHours}h before the class starts.
+            Booking closes {experience.bookingCutoffHours} hour{experience.bookingCutoffHours === 1 ? "" : "s"} before the class starts.
           </p>
         )}
         {primary?.imageUrl ? (
@@ -265,17 +265,17 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
         {experience.fullDescription && (
           <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">{experience.fullDescription}</div>
         )}
-        {cancellationPolicyLabel ? <p className="mt-6 text-xs text-[var(--muted)]">Cancellations: {cancellationPolicyLabel}</p> : null}
+        {cancellationPolicyLabel ? <p className="mt-6 text-xs text-[var(--muted)]">If you need to cancel: {cancellationPolicyLabel}</p> : null}
         <div className="mt-10 border-t border-[var(--border)] pt-10">
           {recurring ? (
             <>
               <h2 className="text-lg font-semibold text-[var(--foreground)]">Start your membership</h2>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                You&rsquo;ll see the full renewal and trial terms at checkout before you pay.
+                The full renewal and trial terms show up at checkout — nothing hidden.
               </p>
               <ul className="mt-3 space-y-1 text-xs text-[var(--muted)]">
                 <li>Billed: {billingIntervalLabel(experience.billingInterval!, experience.billingIntervalCount ?? 1)}</li>
-                <li>Renews automatically: {experience.autoRenew ? "Yes" : "No"}</li>
+                <li>Auto-renews: {experience.autoRenew ? "Yes" : "No"}</li>
                 {experience.minimumCommitmentCycles ? (
                   <li>Minimum commitment: {experience.minimumCommitmentCycles} {experience.minimumCommitmentCycles === 1 ? "cycle" : "cycles"}</li>
                 ) : null}
@@ -291,7 +291,7 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
           ) : (
             <>
               <h2 className="text-lg font-semibold text-[var(--foreground)]">Book your seat</h2>
-              <p className="mt-1 text-sm text-[var(--muted)]">Pick a time, then tell us how many of you are coming.</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">Pick a day and time, then tell us how many of you are coming.</p>
               <ClassBookingForm
                 studioId={experience.studio.id}
                 experienceId={experience.id}

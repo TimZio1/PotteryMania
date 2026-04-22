@@ -514,7 +514,7 @@ export function ClassBookingForm(props: {
     <div className="mt-6 space-y-8">
       {props.slots.length === 0 ? (
         <p className="text-sm text-[var(--muted)]">
-          No open times with enough seats right now.{props.waitlistSlots.length > 0 ? " Join the waitlist below and we’ll email you when a seat opens up." : " Check back soon."}
+          No open times with enough seats right now.{props.waitlistSlots.length > 0 ? " Add yourself to the waitlist below and we’ll email you when a seat opens up." : " Check back soon."}
         </p>
       ) : (
         <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
@@ -1094,7 +1094,7 @@ export function ClassBookingForm(props: {
 
       {props.waitlistSlots.length > 0 && (
         <form onSubmit={onWaitlist} className="space-y-4 rounded-lg border border-dashed border-amber-300 bg-[var(--accent-muted)]/40 p-4">
-          <h2 className="text-lg font-medium text-[var(--foreground)]">Join the waitlist</h2>
+          <h2 className="text-lg font-medium text-[var(--foreground)]">Get on the waitlist</h2>
           <p className="text-sm text-[var(--muted)]">
             All seats are taken. Leave your details — we&rsquo;ll email you the moment a seat opens up. No payment, no seat held.
           </p>

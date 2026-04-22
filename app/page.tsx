@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
     title: "Sell your work. Run your studio. Own your craft. | PotteryMania",
     description:
-      "Built for potters, ceramic artists, teachers, and studios. Sell your work, run bookings, and grow from your first piece to your full studio.",
+      "Built for potters, ceramic artists, and teachers. Sell your work, take class bookings, and run everything from one place.",
     path: "/",
   });
   return {
@@ -81,7 +81,7 @@ function buildLandingPanels(defaultResellerMarginLabel: string): LandingPanel[] 
       "Offer classes or private sessions",
       "Take bookings 24/7",
       "Set your schedule and prices",
-      "Customers pay up front",
+      "Customers pay when they book",
     ],
     cta: "Start booking",
     href: "/register?callbackUrl=%2Fdashboard%2Fstudio%2Fnew%3Fsetup%3Dbookings",
@@ -141,7 +141,7 @@ export default async function Home() {
               Sell your work. Run your studio. Own your craft.
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-stone-700 sm:text-base">
-              Built for potters, ceramic artists, and studios. Start small. Grow into a studio.
+              Built for potters, ceramic artists, and teachers. Start with one piece — grow into a full studio.
             </p>
             <p className="mt-2 max-w-2xl text-xs text-stone-600 sm:text-sm">
               Connect your own domain in minutes.

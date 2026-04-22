@@ -18,15 +18,15 @@ export default function ResetPasswordInner() {
     e.preventDefault();
     setErr("");
     if (password.length < 8) {
-      setErr("Password must be at least 8 characters.");
+      setErr("Use at least 8 characters.");
       return;
     }
     if (password !== password2) {
-      setErr("Passwords don’t match.");
+      setErr("Those two passwords don’t match.");
       return;
     }
     if (!tokenFromUrl) {
-      setErr("No reset link. Open the link from your email, or request a new one.");
+      setErr("That reset link is missing. Open the link from your email, or request a new one.");
       return;
     }
     setPending(true);
@@ -38,7 +38,7 @@ export default function ResetPasswordInner() {
       });
       const data = (await r.json().catch(() => ({}))) as { error?: string };
       if (r.status === 429) {
-        setErr("Too many tries. Wait a few minutes.");
+        setErr("A few too many tries. Wait a few minutes, then try again.");
         setPending(false);
         return;
       }
@@ -57,7 +57,7 @@ export default function ResetPasswordInner() {
   if (!tokenFromUrl) {
     return (
       <div className="space-y-5">
-        <p className={ui.errorText}>Open the reset link from your email to continue.</p>
+        <p className={ui.errorText}>Open the reset link from your email to carry on.</p>
         <Link href="/forgot-password" className={`${ui.buttonPrimary} inline-flex w-full justify-center`}>
           Request a new link
         </Link>

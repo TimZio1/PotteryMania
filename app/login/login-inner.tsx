@@ -8,19 +8,19 @@ import { ui } from "@/lib/ui-styles";
 
 function messageForAuthError(error: string | undefined, code: string | undefined): string | null {
   if (code === "suspended" || error === "AccessDenied") {
-    return "This account is paused. Email support if that’s wrong.";
+    return "This account is paused. Email support if that looks wrong.";
   }
   if (code === "email_not_verified") {
-    return "Confirm your email first. Open the link we sent you.";
+    return "Confirm your email first — open the link we sent you.";
   }
   if (code === "rate_limited") {
-    return "Too many tries. Wait a few minutes and try again.";
+    return "A few too many tries. Wait a few minutes, then have another go.";
   }
   if (error === "Configuration") {
-    return "Sign-in is down for a moment. Try again soon.";
+    return "Sign-in isn’t working right now. Try again in a moment.";
   }
   if (error === "CredentialsSignin" || error === "CallbackRouteError") {
-    return "Wrong email or password.";
+    return "That email or password doesn’t match.";
   }
   if (error) {
     return "We couldn’t sign you in. Try again.";
@@ -72,7 +72,7 @@ export default function LoginInner() {
         callbackUrl,
       });
       if (r?.error) {
-        setErr(messageForAuthError(r.error, r.code ?? undefined) ?? "Wrong email or password.");
+        setErr(messageForAuthError(r.error, r.code ?? undefined) ?? "That email or password doesn’t match.");
         setPending(false);
         return;
       }
@@ -91,10 +91,10 @@ export default function LoginInner() {
         window.location.assign(dest);
         return;
       }
-      setErr("Wrong email or password.");
+      setErr("That email or password doesn’t match.");
       setPending(false);
     } catch {
-      setErr("Sign-in failed. Try again.");
+      setErr("Something went wrong. Try again.");
       setPending(false);
     }
   }
@@ -105,7 +105,7 @@ export default function LoginInner() {
     try {
       await signIn("google", { callbackUrl });
     } catch {
-      setErr("Google sign-in isn’t available right now.");
+      setErr("Google sign-in isn’t working right now. Try email instead.");
       setGooglePending(false);
     }
   }
@@ -114,20 +114,20 @@ export default function LoginInner() {
     <form onSubmit={onSubmit} className="space-y-5">
       {signedOutNotice ? (
         <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
-          <p className={ui.successText}>You signed out.</p>
+          <p className={ui.successText}>You’re signed out. See you next time.</p>
         </div>
       ) : null}
       {suspendedNotice ? (
-        <p className={ui.errorText}>This account is paused. Email support if that’s wrong.</p>
+        <p className={ui.errorText}>This account is paused. Email support if that looks wrong.</p>
       ) : null}
       {verifiedOk ? (
         <div className={`${ui.cardMuted} border-emerald-800/40 bg-emerald-950/30`}>
-          <p className={ui.successText}>Your email is verified. Sign in below.</p>
+          <p className={ui.successText}>Email confirmed. Sign in below.</p>
         </div>
       ) : null}
       {verifiedBad ? (
         <p className={ui.errorText}>
-          That link didn&rsquo;t work or expired. Sign up again to get a new one.
+          That link has expired or isn&rsquo;t valid anymore. Sign up again to get a fresh one.
         </p>
       ) : null}
       {displayErr ? <p className={ui.errorText}>{displayErr}</p> : null}
@@ -176,7 +176,7 @@ export default function LoginInner() {
         />
         <p className="mt-2 text-right text-sm">
           <Link href="/forgot-password" className="font-medium text-[var(--accent)] hover:underline">
-            Forgot password?
+            Forgot your password?
           </Link>
         </p>
       </div>
@@ -184,7 +184,7 @@ export default function LoginInner() {
         {pending ? "Signing in…" : "Sign in"}
       </button>
       <p className="text-center text-sm text-[var(--muted)]">
-        New here?{" "}
+        First time here?{" "}
         <Link href={callbackUrl && callbackUrl !== "/dashboard" ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"} className="font-medium text-[var(--accent)] hover:underline">
           Create an account
         </Link>
