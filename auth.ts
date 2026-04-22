@@ -50,6 +50,8 @@ const authSecret =
   configuredAuthSecret ||
   (isProductionBuildPhase() ? "__potterymania_build_time_auth_secret__" : "dev-only-auth-secret-change-me");
 const hasConfiguredPublicOrigin = Boolean(
+  process.env.FRONTDESK_SITE_URL?.trim() ||
+    process.env.BACKOFFICE_SITE_URL?.trim() ||
   process.env.AUTH_URL?.trim() ||
     process.env.NEXTAUTH_URL?.trim() ||
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||

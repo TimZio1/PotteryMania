@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth-session";
 import { ensureCalendarFeedToken } from "@/lib/calendar/ensure-feed-token";
+import { resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 function publicSiteOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-    process.env.AUTH_URL?.replace(/\/+$/, "") ||
-    process.env.NEXTAUTH_URL?.replace(/\/+$/, "") ||
-    "http://localhost:3000"
-  );
+  return resolveFrontdeskSiteUrl();
 }
 
 /** Returns HTTPS and webcal URLs for subscribing in Apple Calendar / Google Calendar. */

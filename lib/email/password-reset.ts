@@ -1,4 +1,5 @@
 import { renderEmailShell, sendEmailMessages, escapeHtml } from "./base";
+import { resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 function resetUrl(origin: string, rawToken: string) {
   const u = new URL("/reset-password", origin);
@@ -7,11 +8,7 @@ function resetUrl(origin: string, rawToken: string) {
 }
 
 export async function sendPasswordResetEmail(opts: { to: string; resetToken: string }) {
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-    process.env.AUTH_URL?.replace(/\/+$/, "") ||
-    process.env.NEXTAUTH_URL?.replace(/\/+$/, "") ||
-    "http://localhost:3000";
+  const origin = resolveFrontdeskSiteUrl();
   const url = resetUrl(origin, opts.resetToken);
   const html = renderEmailShell({
     eyebrow: "Password reset",

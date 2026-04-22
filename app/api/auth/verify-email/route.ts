@@ -2,12 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { hashResetToken } from "@/lib/password-reset-token";
+import { resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 function redirectBase(req: Request) {
-  const env =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-    process.env.AUTH_URL?.replace(/\/+$/, "") ||
-    process.env.NEXTAUTH_URL?.replace(/\/+$/, "");
+  const env = resolveFrontdeskSiteUrl();
   if (env) return env;
   const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
   const proto = req.headers.get("x-forwarded-proto") || "http";

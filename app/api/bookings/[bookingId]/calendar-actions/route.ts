@@ -7,19 +7,11 @@ import {
   guestCalendarLinksConfigured,
 } from "@/lib/calendar/booking-calendar-guest";
 import { loadBookingIcsRowById } from "@/lib/calendar/load-booking-ics-rows";
+import { resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ bookingId: string }> };
-
-function publicOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-    process.env.AUTH_URL?.replace(/\/+$/, "") ||
-    process.env.NEXTAUTH_URL?.replace(/\/+$/, "") ||
-    ""
-  );
-}
 
 /**
  * Add-to-calendar links for authenticated customers, studio owners, and admins.
@@ -44,7 +36,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   const row = await loadBookingIcsRowById(bookingId);
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const origin = publicOrigin();
+  const origin = resolveFrontdeskSiteUrl();
   const icsAuthenticatedUrl = origin ? `${origin}/api/bookings/${bookingId}/calendar` : null;
 
   let icsGuestUrl: string | null = null;

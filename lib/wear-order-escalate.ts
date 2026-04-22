@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { escapeHtml, renderEmailShell, sendEmailMessages } from "@/lib/email/base";
-import { resolvePublicSiteUrl } from "@/lib/public-site-url";
+import { resolveBackofficeSiteUrl } from "@/lib/public-site-url";
 
 export function wearOpsAlertInbox(): string | null {
   const a = process.env.WEAR_OPS_ALERT_EMAIL?.trim();
@@ -45,7 +45,7 @@ export async function escalateWearOrderSpreadconnectFailure(opts: {
   if (!didEscalate) return;
 
   const admin = wearOpsAlertInbox();
-  const adminUrl = `${resolvePublicSiteUrl()}/admin/wear-orders/${opts.wearOrderId}`;
+  const adminUrl = `${resolveBackofficeSiteUrl()}/admin/wear-orders/${opts.wearOrderId}`;
   const detailStr = opts.detail
     ? escapeHtml(JSON.stringify(opts.detail, null, 2).slice(0, 2000))
     : "";

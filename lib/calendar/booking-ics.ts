@@ -1,14 +1,10 @@
 import type { BookingStatus } from "@prisma/client";
 import { bookingSlotUtcRangeInTimezone } from "@/lib/calendar/booking-slot-times";
 import { resolveStudioIanaTimezone } from "@/lib/calendar/booking-timezone";
+import { resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 function publicSiteOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-    process.env.AUTH_URL?.replace(/\/+$/, "") ||
-    process.env.NEXTAUTH_URL?.replace(/\/+$/, "") ||
-    "http://localhost:3000"
-  );
+  return resolveFrontdeskSiteUrl();
 }
 
 function icsHostForUid(): string {

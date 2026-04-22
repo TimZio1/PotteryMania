@@ -124,7 +124,7 @@ export default async function AdminStorefrontDomainsPage() {
         <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Operator checklist</p>
           <ol className="mt-5 space-y-3 text-sm leading-6 text-[var(--foreground)]">
-            <li>1. Set `NEXT_PUBLIC_SITE_URL` and `AUTH_URL` to the exact public PotteryMania origin.</li>
+            <li>1. Set `NEXT_PUBLIC_SITE_URL` / `FRONTDESK_SITE_URL` to the customer origin and `AUTH_URL` / `BACKOFFICE_SITE_URL` to the backoffice origin.</li>
             <li>2. Set `INTERNAL_APP_ORIGIN` to the same primary HTTPS origin so middleware can call the resolve API reliably.</li>
             <li>3. Set `VENDOR_DOMAIN_RESOLVE_SECRET` so host resolution is not publicly callable without the shared secret header.</li>
             <li>4. Make sure your hosting platform accepts custom hostnames and provisions TLS for them.</li>

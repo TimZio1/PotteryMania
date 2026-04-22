@@ -5,13 +5,7 @@ function normalizeAbsoluteUrl(value: string | undefined | null) {
   return `https://${raw.replace(/\/+$/, "")}`;
 }
 
-export function resolvePublicSiteUrl() {
-  const explicit =
-    normalizeAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
-    normalizeAbsoluteUrl(process.env.AUTH_URL) ||
-    normalizeAbsoluteUrl(process.env.NEXTAUTH_URL);
-  if (explicit) return explicit;
-
+function platformFallbackUrl() {
   const platformHost =
     process.env.RAILWAY_PUBLIC_DOMAIN?.trim() ||
     process.env.VERCEL_URL?.trim() ||
@@ -26,4 +20,31 @@ export function resolvePublicSiteUrl() {
   }
 
   return "http://localhost:3000";
+}
+
+/** Customer-facing canonical origin (shop/bookings/frontdesk). */
+export function resolveFrontdeskSiteUrl() {
+  return (
+    normalizeAbsoluteUrl(process.env.FRONTDESK_SITE_URL) ||
+    normalizeAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
+    normalizeAbsoluteUrl(process.env.AUTH_URL) ||
+    normalizeAbsoluteUrl(process.env.NEXTAUTH_URL) ||
+    platformFallbackUrl()
+  );
+}
+
+/** Backoffice canonical origin (dashboard/admin/hyperadmin). */
+export function resolveBackofficeSiteUrl() {
+  return (
+    normalizeAbsoluteUrl(process.env.BACKOFFICE_SITE_URL) ||
+    normalizeAbsoluteUrl(process.env.AUTH_URL) ||
+    normalizeAbsoluteUrl(process.env.NEXTAUTH_URL) ||
+    normalizeAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
+    platformFallbackUrl()
+  );
+}
+
+/** Backwards compatibility: public/customer origin defaults to frontdesk. */
+export function resolvePublicSiteUrl() {
+  return resolveFrontdeskSiteUrl();
 }

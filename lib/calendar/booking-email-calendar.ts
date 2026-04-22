@@ -7,14 +7,10 @@ import {
 } from "@/lib/calendar/customer-calendar-links";
 import { createBookingCalendarGuestQuery, guestCalendarLinksConfigured } from "@/lib/calendar/booking-calendar-guest";
 import { loadBookingIcsRowById } from "@/lib/calendar/load-booking-ics-rows";
+import { resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 function publicOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-    process.env.AUTH_URL?.replace(/\/+$/, "") ||
-    process.env.NEXTAUTH_URL?.replace(/\/+$/, "") ||
-    "http://localhost:3000"
-  );
+  return resolveFrontdeskSiteUrl();
 }
 
 export type BookingCalendarEmailPayload = {

@@ -1,5 +1,5 @@
 import { escapeHtml, renderEmailShell, sendEmailMessages } from "./base";
-import { resolvePublicSiteUrl } from "@/lib/public-site-url";
+import { resolveBackofficeSiteUrl, resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 export type FeatureSuggestionMailInput = {
   id: string;
@@ -11,8 +11,12 @@ export type FeatureSuggestionMailInput = {
   createdAt: Date;
 };
 
-function siteUrl() {
-  return resolvePublicSiteUrl();
+function customerSiteUrl() {
+  return resolveFrontdeskSiteUrl();
+}
+
+function backofficeSiteUrl() {
+  return resolveBackofficeSiteUrl();
 }
 
 /** Where to route new suggestion alerts. Set on hosting, e.g. FEATURE_SUGGESTION_NOTIFY_EMAIL. */
@@ -61,7 +65,7 @@ export async function sendFeatureSuggestionEmails(input: FeatureSuggestionMailIn
         <p style="margin:16px 0 0;">We read every idea. If we build it, we’ll let you know.</p>
       `,
       ctaLabel: "Back to PotteryMania",
-      ctaUrl: siteUrl(),
+      ctaUrl: customerSiteUrl(),
       footerNote: "You’re receiving this because you submitted a feature suggestion on PotteryMania.",
     });
 
@@ -90,7 +94,7 @@ export async function sendFeatureSuggestionEmails(input: FeatureSuggestionMailIn
         <blockquote style="margin:0;padding:14px 18px;border-left:3px solid #c9a27a;background:#fbf3ea;color:#3a3029;border-radius:8px;">${safeBodyLines}</blockquote>
       `,
       ctaLabel: "Open the ideas inbox",
-      ctaUrl: `${siteUrl()}/admin/feature-suggestions?status=new`,
+      ctaUrl: `${backofficeSiteUrl()}/admin/feature-suggestions?status=new`,
       footerNote: "PotteryMania admin notification.",
     });
 

@@ -1,5 +1,5 @@
 import { escapeHtml, renderBulletList, renderEmailShell, sendEmailMessages } from "./base";
-import { resolvePublicSiteUrl } from "@/lib/public-site-url";
+import { resolveBackofficeSiteUrl } from "@/lib/public-site-url";
 
 type EarlyAccessMailInput = {
   email: string;
@@ -12,7 +12,7 @@ type EarlyAccessMailInput = {
 };
 
 function siteUrl() {
-  return resolvePublicSiteUrl();
+  return resolveBackofficeSiteUrl();
 }
 
 /** Where to send new lead alerts. Set on hosting, e.g. HYPERADMIN_ALERT_EMAIL */

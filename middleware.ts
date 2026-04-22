@@ -13,6 +13,7 @@ import {
   isSameOriginRequest,
   isStateChangingMethod,
 } from "@/lib/csrf-protection";
+import { resolveBackofficeSiteUrl, resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 const LOGIN_REQUIRED = [
   "/dashboard",
@@ -43,6 +44,36 @@ const BASE_PUBLIC_CORE = [
   "/vendor-terms",
   "/checkout/success",
   "/unauthorized-admin",
+];
+
+const FRONTDESK_ONLY = [
+  "/",
+  "/pricing",
+  "/demo",
+  "/dashboard-demo",
+  "/early-access",
+  "/blog",
+  "/terms",
+  "/privacy",
+  "/refunds",
+  "/vendor-terms",
+  "/checkout/success",
+  "/classes",
+  "/studios",
+  "/gift-cards",
+  "/category",
+  "/marketplace",
+  "/wear",
+  "/cart",
+  "/checkout",
+  "/account",
+  "/my-bookings",
+  "/my-orders",
+  "/my-memberships",
+  "/my-loyalty",
+  "/my-packages",
+  "/my-waitlist",
+  "/reviews/new",
 ];
 
 function publicAllowlist(): string[] {
@@ -87,6 +118,19 @@ function clearAuthCookies(res: NextResponse): NextResponse {
   return res;
 }
 
+function matchesPath(path: string, candidates: string[]) {
+  return candidates.some((p) => path === p || (p !== "/" && path.startsWith(`${p}/`)));
+}
+
+function hostFromOrigin(origin: string | null): string | null {
+  if (!origin) return null;
+  try {
+    return normalizeDomainName(new URL(origin).hostname);
+  } catch {
+    return null;
+  }
+}
+
 export default auth(async (req) => {
   const path = req.nextUrl.pathname;
   const isApiPath = path.startsWith("/api/");
@@ -125,12 +169,48 @@ export default auth(async (req) => {
     return clearAuthCookies(NextResponse.redirect(dest));
   }
 
+  const frontdeskOrigin = resolveFrontdeskSiteUrl();
+  const backofficeOrigin = resolveBackofficeSiteUrl();
+  const frontdeskHost = hostFromOrigin(frontdeskOrigin);
+  const backofficeHost = hostFromOrigin(backofficeOrigin);
   const rawHost = req.headers.get("host");
   const hostNoPort = stripPortFromHost(rawHost);
+  const currentHost = hostNoPort ? normalizeDomainName(hostNoPort) : null;
+
+  // Hard split: frontdesk host should only serve customer-facing routes.
+  if (
+    currentHost &&
+    frontdeskHost &&
+    backofficeOrigin &&
+    backofficeHost &&
+    frontdeskHost !== backofficeHost &&
+    currentHost === frontdeskHost &&
+    !matchesPath(path, publicAllowlist()) &&
+    !matchesPath(path, LOGIN_REQUIRED)
+  ) {
+    const dest = new URL(`${path}${req.nextUrl.search}`, backofficeOrigin);
+    return NextResponse.redirect(dest);
+  }
+
+  // Hard split: backoffice host should hand off customer routes to frontdesk.
+  if (
+    currentHost &&
+    frontdeskOrigin &&
+    backofficeHost &&
+    frontdeskHost &&
+    frontdeskHost !== backofficeHost &&
+    currentHost === backofficeHost &&
+    matchesPath(path, FRONTDESK_ONLY)
+  ) {
+    const dest = new URL(`${path}${req.nextUrl.search}`, frontdeskOrigin);
+    return NextResponse.redirect(dest);
+  }
+
   const primaryHost = primaryAppHostname();
   if (hostNoPort && primaryHost) {
     const hNorm = normalizeDomainName(hostNoPort);
-    if (hNorm && hNorm !== primaryHost && hNorm !== "localhost" && hNorm !== "127.0.0.1") {
+    const isKnownSplitHost = Boolean((frontdeskHost && hNorm === frontdeskHost) || (backofficeHost && hNorm === backofficeHost));
+    if (hNorm && hNorm !== primaryHost && hNorm !== "localhost" && hNorm !== "127.0.0.1" && !isKnownSplitHost) {
       const base = vendorDomainResolveFetchBaseUrl();
       if (base) {
         try {

@@ -1,4 +1,5 @@
 import { renderEmailShell, sendEmailMessages, escapeHtml } from "./base";
+import { resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 
 function verifyApiUrl(origin: string, rawToken: string) {
   const u = new URL("/api/auth/verify-email", origin);
@@ -7,11 +8,7 @@ function verifyApiUrl(origin: string, rawToken: string) {
 }
 
 export async function sendEmailVerificationEmail(opts: { to: string; token: string }) {
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ||
-    process.env.AUTH_URL?.replace(/\/+$/, "") ||
-    process.env.NEXTAUTH_URL?.replace(/\/+$/, "") ||
-    "http://localhost:3000";
+  const origin = resolveFrontdeskSiteUrl();
   const url = verifyApiUrl(origin, opts.token);
   const html = renderEmailShell({
     eyebrow: "One step left",
