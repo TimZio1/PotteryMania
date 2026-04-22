@@ -73,7 +73,7 @@ export function AccountClient() {
     if (!res.ok) {
       setErr(typeof data.error === "string" ? data.error : "We couldn’t save. Try again.");
     } else {
-      setMsg("Saved.");
+      setMsg("Saved!");
       if (data.profile) {
         setFullName(data.profile.fullName ?? "");
         setPhone(data.profile.phone ?? "");
@@ -105,7 +105,7 @@ export function AccountClient() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setMsg("Your export is ready.");
+      setMsg("Your data is downloading.");
     } catch {
       setErr("We couldn’t prepare your export. Try again.");
     } finally {
@@ -115,7 +115,7 @@ export function AccountClient() {
 
   async function onDeleteAccount() {
     const confirmed = window.confirm(
-      "This deletes your account and signs you out. It can’t be undone. Continue?",
+      "Delete your account for good? You’ll be signed out and this can’t be undone.",
     );
     if (!confirmed) return;
     setDeleting(true);
@@ -152,7 +152,7 @@ export function AccountClient() {
       <p className={platformUi.overline}>Account</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">Your profile</h1>
       <p className="mt-2 text-sm text-stone-600">
-        Name and phone pre-fill your bookings and checkout. Language and currency are personal preferences.
+        Your name and phone save you from typing them in every time you book.
       </p>
 
       {err ? <p className="mt-6 text-sm font-medium text-red-700">{err}</p> : null}
@@ -170,7 +170,7 @@ export function AccountClient() {
             disabled
             className={`${platformUi.input} mt-1.5 cursor-not-allowed opacity-70`}
           />
-          <p className={`${platformUi.helper} mt-1`}>This is your sign-in email. Contact support to change it.</p>
+          <p className={`${platformUi.helper} mt-1`}>This is how you sign in. To change it, message support.</p>
         </div>
         <div>
           <label className={platformUi.label} htmlFor="acct-name">
@@ -244,7 +244,7 @@ export function AccountClient() {
       <section className={`${platformUi.cardMuted} mt-8 space-y-3`}>
         <h2 className="text-base font-semibold text-amber-950">Your data</h2>
         <p className="text-sm text-stone-600">
-          Download everything we have on you, or delete your account.
+          You&apos;re in control. Download a copy of everything we have, or delete your account whenever you like.
         </p>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={onDownloadData} disabled={exporting} className={platformUi.buttonSecondary}>

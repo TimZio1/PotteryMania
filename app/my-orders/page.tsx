@@ -7,7 +7,7 @@ import { MyOrdersClient } from "./my-orders-client";
 export const metadata: Metadata = metaPublicPage(
   "My orders",
   "/my-orders",
-  "What you bought, where it is, and receipts.",
+  "See what you bought, where it is right now, and download your receipts.",
 );
 
 export default function MyOrdersPage() {

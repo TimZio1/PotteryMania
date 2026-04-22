@@ -63,7 +63,7 @@ export function MyLoyaltyClient() {
   async function redeem(studioId: string, availablePoints: number) {
     const points = Math.floor(availablePoints / 100) * 100;
     if (points < 500) {
-      setError("You need 500 points to redeem.");
+      setError("You need at least 500 points to cash in for a gift card.");
       return;
     }
     setBusyStudio(studioId);
@@ -84,32 +84,34 @@ export function MyLoyaltyClient() {
     }
   }
 
-  if (loading) return <p className="text-sm text-stone-600">Loading…</p>;
+  if (loading) return <p className="text-sm text-stone-600">Loading your points…</p>;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-amber-950">My points</h1>
-        <p className="mt-2 text-sm text-stone-600">Points you earn per studio. Cash them in for a gift card.</p>
+        <p className="mt-2 text-sm text-stone-600">
+          You earn points every time you book or buy at a studio. Cash them in for a gift card to use at that same studio.
+        </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-xs text-stone-500">Available</p>
+          <p className="text-xs text-stone-500">To spend</p>
           <p className="mt-1 text-xl font-semibold text-stone-900">{totals.balance}</p>
         </div>
         <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-xs text-stone-500">Earned</p>
+          <p className="text-xs text-stone-500">Earned all-time</p>
           <p className="mt-1 text-xl font-semibold text-stone-900">{totals.earned}</p>
         </div>
         <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-xs text-stone-500">Spent</p>
+          <p className="text-xs text-stone-500">Cashed in</p>
           <p className="mt-1 text-xl font-semibold text-stone-900">{totals.spent}</p>
         </div>
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {rows.length === 0 ? (
         <p className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600">
-          No points yet. Book a class at a participating studio to start earning.
+          No points yet. Book a class or buy something at a studio to start earning.
         </p>
       ) : (
         rows.map((row) => (
@@ -117,7 +119,10 @@ export function MyLoyaltyClient() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-stone-900">{row.studio.displayName}</h2>
-                <p className="mt-1 text-sm text-stone-500">{row.pointsBalance} points available</p>
+                <p className="mt-1 text-sm text-stone-500">
+                  {row.pointsBalance} points to spend here
+                  {row.pointsBalance < 500 ? ` · ${500 - row.pointsBalance} to go until a gift card` : ""}
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -126,16 +131,16 @@ export function MyLoyaltyClient() {
                   disabled={busyStudio === row.studio.id || row.pointsBalance < 500}
                   onClick={() => redeem(row.studio.id, row.pointsBalance)}
                 >
-                  {busyStudio === row.studio.id ? "Redeeming…" : "Cash in for gift card"}
+                  {busyStudio === row.studio.id ? "Cashing in…" : "Cash in for gift card"}
                 </button>
                 <Link href={`/studios/${row.studio.id}`} className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50">
-                  Open studio
+                  Visit this studio
                 </Link>
               </div>
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <p className="text-sm text-stone-600">Earned: {row.totalEarned}</p>
-              <p className="text-sm text-stone-600">Spent: {row.totalSpent}</p>
+              <p className="text-sm text-stone-600">Cashed in: {row.totalSpent}</p>
             </div>
             {row.transactions.length > 0 ? (
               <ul className="mt-4 space-y-2">

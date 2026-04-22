@@ -5,8 +5,8 @@ import { platformUi } from "@/lib/ui-styles";
 import { AccountClient } from "./account-client";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Account",
-  description: "Your name, phone, language, and currency.",
+  title: "Your profile",
+  description: "Your name, phone, language, and currency — used to pre-fill bookings and checkout.",
   path: "/account",
 });
 

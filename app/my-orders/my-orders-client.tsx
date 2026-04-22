@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SkeletonText } from "@/components/ui/skeleton";
 import { platformUi } from "@/lib/ui-styles";
+import { humanFulfillmentStatus, humanPaymentStatus } from "@/lib/status-labels";
 
 type MyOrderItem = {
   id: string;
@@ -84,13 +85,18 @@ export function MyOrdersClient() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
+      <div>
+        <p className={platformUi.overline}>Orders</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">My orders</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">Track your orders, download receipts, and reorder what you love.</p>
+      </div>
       {orders.length === 0 ? (
         <div className={`${platformUi.cardMuted}`}>
-          <p className="font-medium text-[var(--foreground)]">Nothing ordered yet</p>
-          <p className="mt-2 text-sm text-[var(--muted)]">Shop a studio to place your first order.</p>
+          <p className="font-medium text-[var(--foreground)]">You haven&apos;t ordered anything yet</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Browse studios or the shop to place your first order.</p>
           <div className="mt-3 flex flex-wrap gap-2">
+            <Link href="/marketplace" className={platformUi.buttonSecondary}>Shop ceramics</Link>
             <Link href="/studios" className={platformUi.buttonSecondary}>Browse studios</Link>
-            <Link href="/marketplace" className={platformUi.buttonSecondary}>Shop products</Link>
           </div>
         </div>
       ) : (
@@ -99,23 +105,23 @@ export function MyOrdersClient() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
-                  Order {order.id.slice(0, 8)} · {order.createdAt.slice(0, 10)}
+                  Order #{order.id.slice(0, 8)} · {order.createdAt.slice(0, 10)}
                 </p>
                 <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                  Total {(order.totalCents / 100).toFixed(2)} {order.currency}
+                  {(order.totalCents / 100).toFixed(2)} {order.currency}
                 </h2>
               </div>
               <div className="text-sm">
                 <p className="text-[var(--muted)]">
                   Payment:{" "}
                   <span className={statusTone[order.paymentStatus] ?? "text-[var(--foreground)]"}>
-                    {order.paymentStatus.replace(/_/g, " ")}
+                    {humanPaymentStatus(order.paymentStatus)}
                   </span>
                 </p>
                 <p className="text-[var(--muted)]">
-                  Delivery:{" "}
+                  Shipping:{" "}
                   <span className={statusTone[order.fulfillmentStatus] ?? "text-[var(--foreground)]"}>
-                    {order.fulfillmentStatus.replace(/_/g, " ")}
+                    {humanFulfillmentStatus(order.fulfillmentStatus)}
                   </span>
                 </p>
               </div>
@@ -135,7 +141,7 @@ export function MyOrdersClient() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-[var(--foreground)]">{item.title}</p>
                     <p className="text-xs text-[var(--muted)]">
-                      {item.quantity} × {(item.priceSnapshotCents / 100).toFixed(2)}
+                      {item.quantity} × €{(item.priceSnapshotCents / 100).toFixed(2)}
                     </p>
                   </div>
                 </li>
@@ -150,11 +156,11 @@ export function MyOrdersClient() {
                   rel="noreferrer"
                   className="font-medium text-[var(--accent)] underline underline-offset-2"
                 >
-                  Track my package
+                  Track this order
                 </a>
               ) : null}
               <Link href={`/api/orders/${order.id}/invoice`} className="font-medium text-[var(--accent)] underline underline-offset-2">
-                Get receipt
+                Download receipt
               </Link>
             </div>
           </article>

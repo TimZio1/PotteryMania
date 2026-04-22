@@ -7,7 +7,7 @@ import { MyWaitlistClient } from "./my-waitlist-client";
 export const metadata: Metadata = metaPublicPage(
   "My waitlist",
   "/my-waitlist",
-  "Classes you’re waiting for a spot on.",
+  "Classes you’re waiting on — we’ll email you the moment a seat opens up.",
 );
 
 export default function MyWaitlistPage() {

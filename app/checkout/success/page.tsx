@@ -7,41 +7,13 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { AddToCalendarButtons } from "@/components/bookings/add-to-calendar-buttons";
 import { buildTicketQrDataUrl } from "@/lib/bookings/ticket-qr";
+import { humanBookingStatus } from "@/lib/status-labels";
 
 export const metadata: Metadata = metaPublicPage(
   "You’re all set",
   "/checkout/success",
-  "Payment received. Your tickets and next steps are below.",
+  "Payment received. Your tickets, receipts, and next steps are below.",
 );
-
-function humanBookingStatus(status: string): string {
-  switch (status) {
-    case "awaiting_vendor_approval":
-      return "Waiting on the studio";
-    case "pending":
-      return "Pending";
-    case "confirmed":
-      return "Confirmed";
-    case "cancellation_requested":
-      return "Cancellation requested";
-    case "completed":
-      return "Attended";
-    case "no_show":
-      return "No-show";
-    case "cancelled_by_customer":
-      return "Cancelled";
-    case "cancelled_by_vendor":
-      return "Cancelled by the studio";
-    case "cancelled_by_admin":
-      return "Cancelled by admin";
-    case "refunded":
-      return "Refunded";
-    case "partially_refunded":
-      return "Partially refunded";
-    default:
-      return status.replace(/_/g, " ").replace("vendor", "studio");
-  }
-}
 
 export const dynamic = "force-dynamic";
 
@@ -133,12 +105,12 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
             </svg>
           </div>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-            {paymentVerified ? "You’re all set" : "Almost there"}
+            {paymentVerified ? "You’re all set!" : "Almost there"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
             {paymentVerified
-              ? "Payment received. We’ve emailed you a confirmation — keep an eye on your inbox."
-              : "We’re still confirming your payment with the bank. Refresh in a moment — no need to pay again."}
+              ? "Payment received. A confirmation is on its way to your inbox — keep it somewhere safe."
+              : "Your bank is still confirming your payment. Refresh in a minute — no need to try again or pay again."}
           </p>
 
           {hasBookings && (
@@ -172,7 +144,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                       <dd className="font-medium text-[var(--foreground)]">{b.participantCount}</dd>
                       {b.instructor?.name ? (
                         <>
-                          <dt className="text-[var(--muted)]">Instructor</dt>
+                          <dt className="text-[var(--muted)]">Teacher</dt>
                           <dd className="font-medium text-[var(--foreground)]">{b.instructor.name}</dd>
                         </>
                       ) : null}
@@ -190,7 +162,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                         <>
                           <dt className="text-[var(--muted)]">Paid today</dt>
                           <dd className="font-medium text-[var(--foreground)]">€{(b.depositAmountCents / 100).toFixed(2)}</dd>
-                          <dt className="text-[var(--muted)]">Pay on arrival</dt>
+                          <dt className="text-[var(--muted)]">Pay when you arrive</dt>
                           <dd className="font-medium text-[var(--foreground)]">€{(b.remainingBalanceCents / 100).toFixed(2)}</dd>
                         </>
                       )}
@@ -198,12 +170,12 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
 
                     {b.bookingAddOns.length > 0 ? (
                       <div className={`${ui.cardMuted} mt-4`}>
-                        <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Extras</p>
+                        <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Add-ons</p>
                         <ul className="mt-2 space-y-1 text-sm text-[var(--muted)]">
                           {b.bookingAddOns.map((entry, index) => (
                             <li key={`${b.id}-addon-${index}`}>
                               {entry.addOnName}
-                              {entry.quantity > 1 ? ` x${entry.quantity}` : ""} · +€
+                              {entry.quantity > 1 ? ` × ${entry.quantity}` : ""} · +€
                               {((entry.unitPriceCents * entry.quantity) / 100).toFixed(2)}
                             </li>
                           ))}
@@ -232,7 +204,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={qrDataUrl} alt={`QR ticket for ${b.ticketRef ?? "booking"}`} className="h-40 w-40 rounded-lg bg-[var(--surface)] p-2" />
                         </div>
-                        <p className="mt-2 text-xs text-[var(--muted)]">Show this QR code at the studio — or just read out your booking code.</p>
+                        <p className="mt-2 text-xs text-[var(--muted)]">Show this at the studio when you arrive — or just read out your booking code.</p>
                       </div>
                     ) : null}
 
@@ -251,15 +223,15 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
               <ol className="mt-3 space-y-3 text-sm text-[var(--muted)]">
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">1</span>
-                  <span>The studio gets your order and starts getting it ready.</span>
+                  <span>The studio gets your order and starts preparing it.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">2</span>
-                  <span>Keep an eye on your inbox — receipt and shipping updates come by email.</span>
+                  <span>You’ll get email updates when it ships — including tracking.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[var(--accent)]">3</span>
-                  <span>Sign in any time to see your orders and bookings in one place.</span>
+                  <span>Sign in any time to see your orders, bookings, and receipts in one place.</span>
                 </li>
               </ol>
             </div>
@@ -268,10 +240,15 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
             {hasBookings && (
               <Link href="/my-bookings" className={ui.buttonPrimary}>
-                View my bookings
+                See my bookings
               </Link>
             )}
-            <Link href="/" className={hasBookings ? ui.buttonSecondary : ui.buttonPrimary}>
+            {!hasBookings && (
+              <Link href="/my-orders" className={ui.buttonPrimary}>
+                See my orders
+              </Link>
+            )}
+            <Link href="/" className={ui.buttonSecondary}>
               Back to home
             </Link>
           </div>

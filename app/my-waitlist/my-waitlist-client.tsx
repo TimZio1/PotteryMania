@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { SkeletonText } from "@/components/ui/skeleton";
 import { platformUi } from "@/lib/ui-styles";
+import { humanWaitlistStatus, prettifySeatKey } from "@/lib/status-labels";
 
 type Entry = {
   id: string;
@@ -50,7 +51,7 @@ export function MyWaitlistClient() {
           <p className={platformUi.overline}>Waitlist</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-amber-950 sm:text-3xl">My waitlist</h1>
           <p className="mt-2 max-w-xl text-sm text-stone-600">
-            A waitlist spot isn&apos;t a confirmed seat. The studio will email you if one opens up.
+            You&apos;re on the list — not booked yet. The studio will email you the moment a seat opens up.
           </p>
         </div>
         <Link href="/my-bookings" className={`${platformUi.buttonSecondary} text-center sm:w-auto!`}>
@@ -60,9 +61,9 @@ export function MyWaitlistClient() {
 
       {entries.length === 0 ? (
         <div className={`${platformUi.cardMuted} mt-8`}>
-          <p className="font-medium text-stone-900">You’re not on any waitlists</p>
+          <p className="font-medium text-stone-900">You&apos;re not waiting on any classes</p>
           <p className="mt-2 text-sm text-stone-600">
-            When a class is full, join its waitlist from the class page.
+            If a class you want is full, you can join its waitlist from the class page — no payment needed.
           </p>
           <div className="mt-3">
             <Link href="/classes" className={platformUi.buttonSecondary}>Find a class</Link>
@@ -78,8 +79,8 @@ export function MyWaitlistClient() {
                 {e.slot.slotDate.slice(0, 10)} · {e.slot.startTime}–{e.slot.endTime}
               </p>
               <p className="mt-2 text-sm text-stone-600">
-                {e.participantCount} guest{e.participantCount === 1 ? "" : "s"}{e.seatType ? ` · ${e.seatType}` : ""} ·{" "}
-                <span className="font-medium capitalize">{e.status.replace(/_/g, " ")}</span>
+                {e.participantCount} {e.participantCount === 1 ? "guest" : "guests"}{e.seatType ? ` · ${prettifySeatKey(e.seatType)}` : ""} ·{" "}
+                <span className="font-medium">{humanWaitlistStatus(e.status)}</span>
               </p>
             </li>
           ))}

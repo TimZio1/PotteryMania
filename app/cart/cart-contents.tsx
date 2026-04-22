@@ -7,6 +7,7 @@ import { bookingAllowsFullPaymentOption, bookingChargeNowCents, normalizeBooking
 import { seatTypeKeysFromSlot } from "@/lib/bookings/seat-type";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { prettifySeatKey } from "@/lib/status-labels";
 import { ui } from "@/lib/ui-styles";
 
 type Item = {
@@ -240,11 +241,11 @@ export function CartContents({
     if (!r.ok) {
       setCheckoutBusy(false);
       if (r.status === 409 && j?.priceChanged) {
-        setErr("Prices changed. Check your totals, then try again.");
+        setErr("Prices just updated — have a quick look at your totals and try again.");
         load();
         return;
       }
-      setErr(j.error || "We couldn’t start your payment. Try again.");
+      setErr(j.error || "We couldn’t start your payment. Try again in a moment.");
       return;
     }
     if (j.url) window.location.href = j.url;
@@ -363,21 +364,21 @@ export function CartContents({
       </div>
       <h1 className="mt-6 text-3xl font-semibold tracking-tight text-[var(--foreground)]">{isCheckoutMode ? "Review and pay" : "Your cart"}</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        {isCheckoutMode ? "One last check of your total, then pay." : "Review your items, then head to payment."}
+        {isCheckoutMode ? "Last step before we take payment." : "Check your items, then head to secure payment."}
       </p>
       {wasCancelled && (
         <div className="mt-4 rounded-xl border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-4 text-sm text-[var(--foreground)]">
-          Payment cancelled. Your cart is still here.
+          Payment cancelled — nothing was charged. Your cart is exactly as you left it.
         </div>
       )}
       {cartError && (
         <div className="mt-4 rounded-xl border border-red-800/40 bg-red-950/30 p-4 text-sm text-red-900">
-          We couldn&rsquo;t load your cart. Refresh the page.
+          We couldn&rsquo;t load your cart right now. Refresh the page to try again.
         </div>
       )}
       {multiVendor ? (
         <p className="mt-4 rounded-[length:var(--pm-radius-card)] border border-[var(--accent)]/80 bg-[var(--accent-muted)]/90 p-[var(--pm-space-4)] text-sm text-[var(--foreground)]">
-          Your cart has items from <strong>more than one studio</strong>. You&rsquo;ll pay each studio separately — come back here for the next one.
+          You have items from <strong>more than one studio</strong>. Each studio is paid separately — you&rsquo;ll see one payment button per studio below.
         </p>
       ) : null}
       {!isAuthed && items.length > 0 ? (
@@ -385,9 +386,9 @@ export function CartContents({
           role="status"
           className="mt-4 rounded-[length:var(--pm-radius-card)] border border-[var(--border)] bg-[var(--surface)] p-[var(--pm-space-4)] text-sm text-[var(--foreground)]"
         >
-          <p className="font-medium">You&rsquo;re shopping as a guest.</p>
+          <p className="font-medium">You&rsquo;re shopping as a guest</p>
           <p className="mt-1 text-[var(--muted)]">
-            Edit your cart as much as you want. You&rsquo;ll need a free account at payment so the studio can send your receipt.
+            Browse and edit your cart as much as you like. You&rsquo;ll sign in (or make a free account) at payment so we can send your receipt.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
@@ -410,11 +411,12 @@ export function CartContents({
         <div className={`${ui.cardMuted} mt-10`}>
           <p className="font-medium text-[var(--foreground)]">Your cart is empty</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Visit a studio to see their classes and shop.
+            Book a class or pick up something handmade — your cart saves automatically.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/studios" className={ui.buttonSecondary}>Browse studios</Link>
             <Link href="/classes" className={ui.buttonSecondary}>Find a class</Link>
+            <Link href="/marketplace" className={ui.buttonSecondary}>Shop ceramics</Link>
+            <Link href="/studios" className={ui.buttonSecondary}>Browse studios</Link>
           </div>
         </div>
       ) : (
@@ -476,13 +478,13 @@ export function CartContents({
                         {i.itemType === "product" ? i.product?.title : i.itemType === "wear" ? i.wearProduct?.name : i.experience?.title}
                       </p>
                       {i.itemType === "product" && i.variant?.name ? (
-                        <p className="mt-1 text-xs text-[var(--muted)]">Variant: {i.variant.name}</p>
+                        <p className="mt-1 text-xs text-[var(--muted)]">Option: {i.variant.name}</p>
                       ) : null}
                       {i.itemType === "wear" && i.wearProductVariant?.label ? (
                         <p className="mt-1 text-xs text-[var(--muted)]">Option: {i.wearProductVariant.label}</p>
                       ) : null}
                       {i.itemType === "booking" && i.classPackagePurchaseId ? (
-                        <p className="mt-1 text-xs font-medium text-emerald-700">Using a package credit</p>
+                        <p className="mt-1 text-xs font-medium text-emerald-700">Paying with a class package</p>
                       ) : null}
                       {i.itemType === "booking" && i.slot ? (
                         <p className="mt-1 text-xs text-[var(--muted)]">
@@ -514,8 +516,8 @@ export function CartContents({
                       <div className="text-right text-sm">
                         {i.itemType === "booking" && hasDeposit ? (
                           <>
-                            <span className="font-medium text-[var(--foreground)]">Total €{fullEur}</span>
-                            <span className="mt-0.5 block text-xs text-[var(--muted)]">Pay now €{dueEur}</span>
+                            <span className="font-medium text-[var(--foreground)]">€{fullEur} total</span>
+                            <span className="mt-0.5 block text-xs text-[var(--muted)]">Due now: €{dueEur}</span>
                           </>
                         ) : (
                           <span className="font-medium text-[var(--foreground)]">€{dueEur}</span>
@@ -543,7 +545,7 @@ export function CartContents({
                         <option value="">Pick one…</option>
                         {seatKeys.map((k) => (
                           <option key={k} value={k}>
-                            {k.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                            {prettifySeatKey(k)}
                           </option>
                         ))}
                       </select>
@@ -553,22 +555,22 @@ export function CartContents({
                     <div className="mt-4">
                       {i.classPackagePurchaseId ? (
                         <div className="mb-4 rounded-lg border border-emerald-800/40 bg-emerald-950/30 p-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Package credit</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Paying with a class package</p>
                           <p className="mt-1 text-sm text-emerald-400">
-                            Your package covers the class price. Only extras are paid at checkout.
+                            Your package covers the class itself. You&rsquo;ll only pay for any add-ons at checkout.
                           </p>
                           <button
                             type="button"
                             className="mt-2 text-xs font-medium text-emerald-400 underline"
                             onClick={() => updatePackageCredit(i.id, null)}
                           >
-                            Don&rsquo;t use package credit
+                            Use a different payment instead
                           </button>
                         </div>
                       ) : null}
                       {(i.experience?.bookingDepositBps ?? 0) > 0 && !i.classPackagePurchaseId ? (
                         <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Payment</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">How would you like to pay?</p>
                           <div className="mt-2 space-y-2">
                             <label className="flex items-start gap-3 text-sm text-[var(--muted)]">
                               <input
@@ -578,9 +580,9 @@ export function CartContents({
                                 onChange={() => updateBookingPaymentPreference(i.id, "deposit")}
                               />
                               <span>
-                                <span className="block font-medium text-[var(--foreground)]">Pay a deposit now</span>
+                                <span className="block font-medium text-[var(--foreground)]">Deposit now, rest at the studio</span>
                                 <span className="block text-xs text-[var(--muted)]">
-                                  Pay €{(
+                                  €{(
                                     bookingChargeNowCents(
                                       lineDisplayFullCents(i),
                                       {
@@ -589,7 +591,14 @@ export function CartContents({
                                       },
                                       "deposit",
                                     ) / 100
-                                  ).toFixed(2)}
+                                  ).toFixed(2)} today, €{((lineDisplayFullCents(i) - bookingChargeNowCents(
+                                    lineDisplayFullCents(i),
+                                    {
+                                      bookingDepositBps: i.experience?.bookingDepositBps ?? 0,
+                                      allowFullPaymentOption: i.experience?.allowFullPaymentOption ?? false,
+                                    },
+                                    "deposit",
+                                  )) / 100).toFixed(2)} when you arrive
                                 </span>
                               </span>
                             </label>
@@ -605,9 +614,9 @@ export function CartContents({
                                   onChange={() => updateBookingPaymentPreference(i.id, "full")}
                                 />
                                 <span>
-                                  <span className="block font-medium text-[var(--foreground)]">Pay the full price now</span>
+                                  <span className="block font-medium text-[var(--foreground)]">Pay it all now</span>
                                   <span className="block text-xs text-[var(--muted)]">
-                                    Pay €{(lineDisplayFullCents(i) / 100).toFixed(2)} today, nothing on arrival
+                                    €{(lineDisplayFullCents(i) / 100).toFixed(2)} today, nothing to pay at the studio
                                   </span>
                                 </span>
                               </label>
@@ -616,24 +625,24 @@ export function CartContents({
                         </div>
                       ) : null}
                       <label className={ui.label} htmlFor={`booking-notes-${i.id}`}>
-                        Note for the studio (optional)
+                        Note to the studio (optional)
                       </label>
                       <textarea
                         id={`booking-notes-${i.id}`}
                         className={`${ui.input} mt-1 min-h-24`}
                         defaultValue={i.notes ?? ""}
                         maxLength={1000}
-                        placeholder="Anything they should know about this booking?"
+                        placeholder="Allergies, accessibility needs, or anything else they should know…"
                         onBlur={(e) => updateBookingNotes(i.id, e.target.value)}
                       />
                       {i.addOnSelections && i.addOnSelections.length > 0 ? (
                         <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Extras</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Add-ons</p>
                           <ul className="mt-2 space-y-1 text-sm text-[var(--muted)]">
                             {i.addOnSelections.map((selection) => (
                               <li key={`${i.id}-${selection.addOnId}`}>
                                 {selection.name}
-                                {selection.quantity > 1 ? ` x${selection.quantity}` : ""} · +€
+                                {selection.quantity > 1 ? ` × ${selection.quantity}` : ""} · +€
                                 {((selection.unitPriceCents * selection.quantity) / 100).toFixed(2)}
                               </li>
                             ))}
@@ -664,7 +673,7 @@ export function CartContents({
           </div>
           <div className="mt-6 space-y-1 text-right text-sm text-[var(--muted)]">
             <p>
-              Pay now{" "}
+              Due now{" "}
               <span className="text-base font-semibold text-[var(--foreground)]">€{sub.toFixed(2)}</span>
             </p>
             {couponPreview ? (
@@ -686,7 +695,7 @@ export function CartContents({
                   <>
                     <p className="text-xs text-[var(--muted)]">
                       Shipping €{(couponPreview.shippingCents / 100).toFixed(2)} · Tax €
-                      {(couponPreview.taxCents / 100).toFixed(2)} (estimates)
+                      {(couponPreview.taxCents / 100).toFixed(2)} (estimated from your address)
                     </p>
                     <p>
                       Estimated total{" "}
@@ -711,7 +720,7 @@ export function CartContents({
             {!isCheckoutMode ? (
               <div className="space-y-4">
                 <p className="text-sm text-[var(--muted)]">
-                  Happy with everything? Next, you&rsquo;ll add your details and pay.
+                  Looking good? Next we&rsquo;ll ask for a few details and take you to secure payment.
                 </p>
                 <Link href="/checkout" className={`${ui.buttonPrimary} inline-flex`}>
                   Continue to payment
@@ -721,12 +730,11 @@ export function CartContents({
             {isCheckoutMode ? (
               <>
             <h2 className="text-lg font-semibold text-[var(--foreground)]">Your details</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">For your receipt{hasProducts ? " and shipping" : ""}.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {hasProducts ? "So we can send your receipt and know where to ship." : "So we can send your receipt. Nothing to ship here."}
+            </p>
             {err ? <p className={`${ui.errorText} mt-4`}>{err}</p> : null}
             {couponErr ? <p className={`${ui.errorText} mt-2`}>{couponErr}</p> : null}
-            {!hasProducts ? (
-              <p className="mt-4 text-sm text-[var(--muted)]">Just name and email &mdash; nothing to ship.</p>
-            ) : null}
             <div className="mt-6 space-y-4">
               <div>
                 <label className={ui.label} htmlFor="cart-name">
@@ -757,12 +765,12 @@ export function CartContents({
               </div>
               <div>
                 <label className={ui.label} htmlFor="cart-notes">
-                  Note for the studio (optional)
+                  Note to the studio (optional)
                 </label>
                 <textarea
                   id="cart-notes"
                   className={`${ui.input} mt-1 min-h-24`}
-                  placeholder="Allergies, questions, special requests…"
+                  placeholder="Anything else they should know about this order?"
                   value={generalNotes}
                   onChange={(e) => setGeneralNotes(e.target.value)}
                   maxLength={1000}
@@ -814,11 +822,11 @@ export function CartContents({
               ) : null}
               <div className={`${ui.cardMuted} !p-[var(--pm-space-4)]`}>
                 <label className={ui.label} htmlFor="cart-promo">
-                  Have a code?
+                  Promo or gift card code?
                 </label>
                 {multiVendor ? (
                   <p className="mt-2 text-sm text-[var(--muted)]">
-                    Codes work for one studio at a time. Add yours when you pay that studio.
+                    Codes only apply to one studio at a time. Add yours once you&rsquo;re paying that studio below.
                   </p>
                 ) : (
                   <>
@@ -849,12 +857,12 @@ export function CartContents({
                     </div>
                     <p className="mt-2 text-xs text-[var(--muted)]">
                       {hasProducts
-                        ? "Shipping and tax are estimated from your address."
-                        : "Discount comes off what you pay now."}
+                        ? "We’ll estimate shipping and tax from your address above."
+                        : "Your discount comes off what you pay today."}
                     </p>
                     <div className="mt-4 border-t border-[var(--border)] pt-4">
                       <label className={ui.label} htmlFor="cart-gift-card">
-                        Gift card
+                        Gift card code
                       </label>
                       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
                         <input
@@ -875,7 +883,7 @@ export function CartContents({
                         </button>
                       </div>
                       <p className="mt-2 text-xs text-[var(--muted)]">
-                        Gift cards work for one studio at a time and come off what you pay.
+                        Only works for the studio that issued it, and comes straight off what you pay.
                       </p>
                     </div>
                   </>
@@ -884,7 +892,7 @@ export function CartContents({
               {!isAuthed ? (
                 <div className="mt-4 space-y-2">
                   <p className="text-sm text-[var(--muted)]">
-                    Sign in or make a free account to pay. Your cart stays as is.
+                    Sign in or create a free account to pay — your cart stays exactly as is.
                   </p>
                   <Link
                     href={`/login?callbackUrl=${encodeURIComponent("/checkout")}`}
@@ -910,14 +918,14 @@ export function CartContents({
                         className={`${ui.buttonPrimary} w-full`}
                       >
                         {checkoutBusy ? (
-                          <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
+                          <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Taking you to payment…</span>
                         ) : (
                           <>Pay {g.displayName}</>
                         )}
                       </button>
                       <p className="flex items-center justify-center gap-2 text-xs text-[var(--muted)]">
                         <span aria-hidden="true">🔒</span>
-                        Secure payment
+                        Secure payment, powered by Stripe
                       </p>
                     </div>
                   ))}
@@ -926,14 +934,14 @@ export function CartContents({
                 <div className="space-y-2">
                   <button type="button" disabled={checkoutBusy} onClick={() => checkout()} className={`${ui.buttonPrimary} mt-2 w-full`}>
                     {checkoutBusy ? (
-                      <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Processing…</span>
+                      <span className="inline-flex items-center gap-2"><Spinner size="sm" className="text-white" /> Taking you to payment…</span>
                     ) : (
                       "Pay now"
                     )}
                   </button>
                   <p className="flex items-center justify-center gap-2 text-xs text-[var(--muted)]">
                     <span aria-hidden="true">🔒</span>
-                    Secure payment
+                    Secure payment, powered by Stripe
                   </p>
                 </div>
               )}

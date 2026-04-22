@@ -10,7 +10,7 @@ import { auth } from "@/auth";
 export const metadata: Metadata = metaPublicPage(
   "Review and pay",
   "/checkout",
-  "One last check of your total, then pay securely.",
+  "Double-check your details and total, then pay securely.",
 );
 
 export const dynamic = "force-dynamic";

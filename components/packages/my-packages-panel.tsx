@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { humanPackageStatus } from "@/lib/status-labels";
 import { ui } from "@/lib/ui-styles";
 
 type PurchaseRow = {
@@ -43,7 +44,7 @@ export function MyPackagesPanel({
       {packagePurchases.length === 0 ? (
         <div className={`${ui.cardMuted}`}>
           <p className="font-medium text-stone-800">No packages yet</p>
-          <p className="mt-2 text-sm text-stone-600">Buy a class package from any studio — pay once, book classes against the credits.</p>
+          <p className="mt-2 text-sm text-stone-600">Pay once for a bundle of credits, then book classes against it — usually cheaper than paying per class.</p>
         </div>
       ) : (
         byStudio.map((group) => (
@@ -63,20 +64,20 @@ export function MyPackagesPanel({
                       <div>
                         <p className="font-medium text-stone-900">{purchase.package.name}</p>
                         <p className="mt-1 text-xs text-stone-500">
-                          {purchase.startsAt.slice(0, 10)} → {purchase.expiresAt.slice(0, 10)}
+                          Valid {purchase.startsAt.slice(0, 10)} → {purchase.expiresAt.slice(0, 10)}
                         </p>
                       </div>
                       <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
-                        {purchase.status.replace(/_/g, " ")}
+                        {humanPackageStatus(purchase.status)}
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-stone-700">
-                      <strong>{remaining}</strong> of {purchase.creditsTotal} credits left
+                      <strong>{remaining}</strong> of {purchase.creditsTotal} credits left to use
                     </p>
                     <ul className="mt-2 space-y-1 text-xs text-stone-600">
                       {purchase.package.items.map((item) => (
                         <li key={item.id}>
-                          {item.experience.title}: {item.quantity} credit{item.quantity === 1 ? "" : "s"} per booking
+                          {item.experience.title}: {item.quantity} {item.quantity === 1 ? "credit" : "credits"} per booking
                         </li>
                       ))}
                     </ul>

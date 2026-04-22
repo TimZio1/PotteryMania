@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/db";
 import { buildMetadata } from "@/lib/seo";
+import { humanMembershipStatus } from "@/lib/status-labels";
 import { ui } from "@/lib/ui-styles";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 export function generateMetadata(): Metadata {
   return buildMetadata({
     title: "My memberships",
-    description: "Your studio memberships and sessions left.",
+    description: "Your active studio memberships and how many sessions you have left.",
     path: "/my-memberships",
   });
 }
@@ -37,11 +38,14 @@ export default async function MyMembershipsPage() {
       <div>
         <p className={ui.overline}>Account</p>
         <h1 className="mt-1 text-2xl font-semibold text-amber-950">My memberships</h1>
-        <p className="mt-2 text-sm text-stone-600">Active and past memberships, with sessions used and left.</p>
+        <p className="mt-2 text-sm text-stone-600">See what you&apos;re subscribed to and how many sessions you have left.</p>
       </div>
       {memberships.length === 0 ? (
         <div className={ui.card}>
-          <p className="text-sm text-stone-600">No memberships yet. Pick one on any studio&apos;s page.</p>
+          <p className="font-medium text-stone-900">No memberships yet</p>
+          <p className="mt-2 text-sm text-stone-600">
+            Most studios offer a monthly membership on their page — cheaper than paying per class if you&apos;re going regularly.
+          </p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -53,12 +57,13 @@ export default async function MyMembershipsPage() {
                 <p className="text-xs text-stone-500">{purchase.membership.studio.displayName}</p>
                 <h2 className="mt-1 text-lg font-semibold text-amber-950">{purchase.membership.name}</h2>
                 <p className="mt-2 text-sm text-stone-600">
-                  {new Date(purchase.startsAt).toLocaleDateString()} - {new Date(purchase.expiresAt).toLocaleDateString()}
+                  {new Date(purchase.startsAt).toLocaleDateString()} → {new Date(purchase.expiresAt).toLocaleDateString()}
                 </p>
-                <p className="mt-1 text-sm text-stone-700">Status: {purchase.status.replaceAll("_", " ")}</p>
+                <p className="mt-1 text-sm text-stone-700">{humanMembershipStatus(purchase.status)}</p>
                 <p className="mt-1 text-sm text-stone-700">
-                  {purchase.sessionsUsed} used
-                  {sessionsRemaining != null ? ` · ${sessionsRemaining} left` : " · unlimited"}
+                  {sessionsRemaining != null
+                    ? `${sessionsRemaining} ${sessionsRemaining === 1 ? "session" : "sessions"} left this period (${purchase.sessionsUsed} used)`
+                    : `Unlimited sessions · ${purchase.sessionsUsed} used so far`}
                 </p>
               </article>
             );
