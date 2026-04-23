@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const studioRouteMocks = vi.hoisted(() => ({
   getSessionUser: vi.fn(),
   studioCreate: vi.fn(),
+  userFindUnique: vi.fn(),
   userUpdate: vi.fn(),
 }));
 
@@ -16,6 +17,7 @@ vi.mock("@/lib/db", () => ({
       create: (...args: unknown[]) => studioRouteMocks.studioCreate(...args),
     },
     user: {
+      findUnique: (...args: unknown[]) => studioRouteMocks.userFindUnique(...args),
       update: (...args: unknown[]) => studioRouteMocks.userUpdate(...args),
     },
   },
@@ -30,6 +32,9 @@ describe("API contract: POST /api/studios", () => {
       id: "u-vendor",
       email: "vendor@example.com",
       role: "vendor",
+    });
+    studioRouteMocks.userFindUnique.mockResolvedValue({
+      emailVerifiedAt: new Date("2026-04-01T00:00:00.000Z"),
     });
     studioRouteMocks.studioCreate.mockResolvedValue({
       id: "studio_1",
@@ -72,6 +77,9 @@ describe("API contract: POST /api/studios", () => {
       status: "pending_review",
       ownerUserId: "u-customer",
     });
+    studioRouteMocks.userFindUnique.mockResolvedValueOnce({
+      emailVerifiedAt: new Date("2026-04-01T00:00:00.000Z"),
+    });
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",
       body: JSON.stringify(basePayload),
@@ -104,6 +112,9 @@ describe("API contract: POST /api/studios", () => {
       status: "pending_review",
       ownerUserId: "u-customer-1",
     });
+    studioRouteMocks.userFindUnique.mockResolvedValueOnce({
+      emailVerifiedAt: new Date("2026-04-01T00:00:00.000Z"),
+    });
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",
       body: JSON.stringify({
@@ -132,6 +143,9 @@ describe("API contract: POST /api/studios", () => {
   });
 
   it("quickStart creates studio with deferred-address placeholders", async () => {
+    studioRouteMocks.userFindUnique.mockResolvedValueOnce({
+      emailVerifiedAt: new Date("2026-04-01T00:00:00.000Z"),
+    });
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",
       body: JSON.stringify({
@@ -165,6 +179,9 @@ describe("API contract: POST /api/studios", () => {
   });
 
   it("creates vendor studio in pending review", async () => {
+    studioRouteMocks.userFindUnique.mockResolvedValueOnce({
+      emailVerifiedAt: new Date("2026-04-01T00:00:00.000Z"),
+    });
     const req = new Request("http://localhost:3000/api/studios", {
       method: "POST",
       body: JSON.stringify(basePayload),
@@ -181,5 +198,21 @@ describe("API contract: POST /api/studios", () => {
         }),
       }),
     );
+  });
+
+  it("returns 403 when email is not verified", async () => {
+    studioRouteMocks.userFindUnique.mockResolvedValueOnce({
+      emailVerifiedAt: null,
+    });
+    const req = new Request("http://localhost:3000/api/studios", {
+      method: "POST",
+      body: JSON.stringify(basePayload),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req);
+    const json = (await res.json()) as Record<string, unknown>;
+    expect(res.status).toBe(403);
+    expect(json.reason).toBe("email_not_verified");
   });
 });
