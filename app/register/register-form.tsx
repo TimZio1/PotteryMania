@@ -46,9 +46,9 @@ export function RegisterForm() {
         return;
       }
       if (j.user) {
-        setOk("Check your email and open the link to confirm. Then come back and sign in.");
+        setOk("Check your email and open the link to verify your account. After sign-in, you can create your studio and enable shop/classes.");
       } else {
-        setOk("If that email is new, check your inbox. Already have an account? Sign in below.");
+        setOk("If that email is new, check your inbox to verify first. Already have an account? Sign in below.");
       }
       setPending(false);
     } catch {

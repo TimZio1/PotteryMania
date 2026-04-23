@@ -4,9 +4,11 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  void prisma;
-  return NextResponse.json({ count: 0, closed: true }, {
-    status: 410,
-    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" },
-  });
+  const count = await prisma.earlyAccessSignup.count();
+  return NextResponse.json(
+    { count, closed: false },
+    {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" },
+    },
+  );
 }

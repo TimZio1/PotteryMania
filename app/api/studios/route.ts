@@ -17,6 +17,15 @@ export async function GET() {
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) return apiError("Unauthorized", 401);
+  const userAccount = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { emailVerifiedAt: true },
+  });
+  if (!userAccount?.emailVerifiedAt) {
+    return apiError("Verify your email before creating your studio.", 403, {
+      reason: "email_not_verified",
+    });
+  }
 
   let body: Record<string, unknown>;
   try {

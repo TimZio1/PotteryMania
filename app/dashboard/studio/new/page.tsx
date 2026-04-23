@@ -48,12 +48,15 @@ export default function NewStudioPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
+  const emailVerified = session?.user?.emailVerified === true;
   const setup = normalizeSetupPath(searchParams.get("setup"));
   const fullForm = searchParams.get("full") === "1";
 
   const [err, setErr] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [resendPending, setResendPending] = useState(false);
+  const [verifyMsg, setVerifyMsg] = useState("");
   const [planPricing, setPlanPricing] = useState<Partial<StudioPlanPricingConfig> | null>(null);
   const [commissionLabels, setCommissionLabels] = useState<StudioPlanCommissionLabels | null>(null);
 
@@ -136,8 +139,29 @@ export default function NewStudioPage() {
     setFieldErrors(next);
   }
 
+  async function resendVerificationEmail() {
+    setVerifyMsg("");
+    setResendPending(true);
+    try {
+      const r = await fetch("/api/auth/resend-verification", { method: "POST" });
+      const j = (await r.json().catch(() => ({}))) as { alreadyVerified?: boolean; error?: string };
+      if (r.status === 429) setVerifyMsg("Wait a few minutes, then try again.");
+      else if (j.alreadyVerified) setVerifyMsg("Already verified. Refresh the page.");
+      else if (r.ok) setVerifyMsg("Check your inbox for a new verification link.");
+      else setVerifyMsg(typeof j.error === "string" ? j.error : "We couldn’t send the verification email.");
+    } catch {
+      setVerifyMsg("We couldn’t send the verification email.");
+    } finally {
+      setResendPending(false);
+    }
+  }
+
   async function submitQuick(e: React.FormEvent) {
     e.preventDefault();
+    if (!emailVerified) {
+      setErr("Verify your email before creating your studio.");
+      return;
+    }
     setErr("");
     setFieldErrors({});
     const qd = {
@@ -171,6 +195,10 @@ export default function NewStudioPage() {
       });
       const j = await r.json();
       if (!r.ok) {
+        if (j?.reason === "email_not_verified") {
+          setErr("Verify your email before creating your studio.");
+          return;
+        }
         setErr(typeof j.error === "string" ? j.error : "We couldn’t create your studio. Try again.");
         applyMissingFromResponse(j.missing);
         return;
@@ -188,6 +216,10 @@ export default function NewStudioPage() {
 
   async function submitFull(e: React.FormEvent) {
     e.preventDefault();
+    if (!emailVerified) {
+      setErr("Verify your email before creating your studio.");
+      return;
+    }
     setErr("");
     setFieldErrors({});
     const trimmed: Record<string, string> = {};
@@ -211,6 +243,10 @@ export default function NewStudioPage() {
       });
       const j = await r.json();
       if (!r.ok) {
+        if (j?.reason === "email_not_verified") {
+          setErr("Verify your email before creating your studio.");
+          return;
+        }
         setErr(typeof j.error === "string" ? j.error : "We couldn’t create your studio. Try again.");
         applyMissingFromResponse(j.missing);
         return;
@@ -272,6 +308,22 @@ export default function NewStudioPage() {
       <h1 className="mt-2 font-serif text-3xl font-normal tracking-[-0.02em] text-(--brand-ink)">Start selling your work</h1>
       <p className="mt-1 text-xs text-[var(--muted)]">Solo potter or full studio — pick what fits right now. You can add more later.</p>
       <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{pathCopy.helper}</p>
+      {!emailVerified && sessionStatus !== "loading" && session?.user?.email ? (
+        <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50/70 p-3 text-sm text-amber-950">
+          <p>
+            Verify your email first to unlock studio setup (studio profile + shop + classes).
+          </p>
+          <button
+            type="button"
+            disabled={resendPending}
+            onClick={() => void resendVerificationEmail()}
+            className="mt-2 inline-flex min-h-10 items-center rounded-full border border-amber-300 bg-white px-4 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 disabled:opacity-60"
+          >
+            {resendPending ? "Sending…" : "Resend verification email"}
+          </button>
+          {verifyMsg ? <p className="mt-2 text-xs text-amber-900">{verifyMsg}</p> : null}
+        </div>
+      ) : null}
       <div className="mt-5 grid gap-2 sm:grid-cols-3">
         <Link
           href={`/dashboard/studio/new?setup=bookings${fullForm ? "&full=1" : ""}`}
@@ -393,7 +445,7 @@ export default function NewStudioPage() {
             </label>
             <button
               type="submit"
-              disabled={submitting || sessionStatus === "loading"}
+              disabled={submitting || sessionStatus === "loading" || !emailVerified}
               className="w-full rounded-full bg-amber-950 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 disabled:opacity-60"
             >
               {submitting ? "Creating…" : pathCopy.cta}
@@ -448,7 +500,7 @@ export default function NewStudioPage() {
             />
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !emailVerified}
               className="w-full rounded-full bg-amber-950 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-amber-900 disabled:opacity-60"
             >
               {submitting ? "Creating…" : "Create studio"}
