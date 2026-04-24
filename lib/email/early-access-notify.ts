@@ -1,4 +1,5 @@
 import { escapeHtml, renderBulletList, renderEmailShell, sendEmailMessages } from "./base";
+import { getAdminNotifyRecipient } from "./admin-notify-recipient";
 import { resolveBackofficeSiteUrl } from "@/lib/public-site-url";
 
 type EarlyAccessMailInput = {
@@ -13,17 +14,6 @@ type EarlyAccessMailInput = {
 
 function siteUrl() {
   return resolveBackofficeSiteUrl();
-}
-
-/** Where to send new lead alerts. Set on hosting, e.g. HYPERADMIN_ALERT_EMAIL */
-function leadNotifyRecipient(): string | null {
-  const a = process.env.EARLY_ACCESS_NOTIFY_EMAIL?.trim();
-  if (a) return a;
-  const b = process.env.HYPERADMIN_ALERT_EMAIL?.trim();
-  if (b) return b;
-  const c = process.env.SEED_HYPER_ADMIN_EMAIL?.trim();
-  if (c) return c;
-  return null;
 }
 
 function interests(input: EarlyAccessMailInput) {
@@ -81,7 +71,7 @@ export async function sendEarlyAccessEmails(input: EarlyAccessMailInput) {
     },
   ];
 
-  const notifyTo = leadNotifyRecipient();
+  const notifyTo = getAdminNotifyRecipient();
   if (notifyTo) {
     messages.push({
       to: notifyTo,

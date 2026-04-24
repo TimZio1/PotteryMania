@@ -5,7 +5,9 @@ import type { UserRole } from "@prisma/client";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { issueEmailVerificationToken } from "@/lib/email-verification-flow";
 import { isEmailTransportError } from "@/lib/email/email-transport-error";
+import { notifyAdminNewUserAccount } from "@/lib/email/admin-inbound-notify";
 import { logApiError } from "@/lib/monitoring";
+import { registrationPlatformLabelFromRequest } from "@/lib/registration-platform";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -62,5 +64,13 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
+
+  notifyAdminNewUserAccount({
+    platformLabel: registrationPlatformLabelFromRequest(req),
+    email: user.email,
+    method: "password",
+    userId: user.id,
+  });
+
   return NextResponse.json({ ok: true }, { status: 201 });
 }
