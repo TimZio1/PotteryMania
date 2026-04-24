@@ -6,6 +6,7 @@ import { organizationJsonLd, toJsonLdScript, websiteJsonLd } from "@/lib/structu
 import { ui } from "@/lib/ui-styles";
 import { PrivateGuideForm } from "@/app/early-access/private-guide-form";
 import { HomeLaunchStats } from "@/app/home-launch-stats";
+import { HomeScrollReset } from "@/app/home-scroll-reset";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default function Home() {
   const jsonLd = toJsonLdScript([websiteJsonLd(), organizationJsonLd()]);
   return (
     <MarketingLayout>
+      <HomeScrollReset />
       <main className="bg-[#f6f1e8] py-8 text-[#1f1a17] sm:py-12">
         <section className={ui.pageContainer}>
           <div className="mx-auto max-w-3xl">
