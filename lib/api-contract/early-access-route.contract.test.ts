@@ -30,6 +30,8 @@ describe("API contract: POST /api/early-access", () => {
         country: "Portugal",
         city: "Porto",
         googleMapsUrl: "https://maps.google.com/?q=porto",
+        logoUrl: "https://cdn.example.com/logo.png",
+        photoUrls: ["https://cdn.example.com/photo-1.jpg", "https://cdn.example.com/photo-2.jpg"],
         websiteOrIg: "instagram.com/clayhome",
         offeringIntent: "both",
       }),
@@ -40,6 +42,24 @@ describe("API contract: POST /api/early-access", () => {
     expect(res.status).toBe(200);
     expect(json.ok).toBe(true);
     expect(earlyAccessMocks.signupUpsert).toHaveBeenCalledTimes(1);
+    expect(earlyAccessMocks.signupUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          photoUrls: [
+            "https://cdn.example.com/logo.png",
+            "https://cdn.example.com/photo-1.jpg",
+            "https://cdn.example.com/photo-2.jpg",
+          ],
+        }),
+        update: expect.objectContaining({
+          photoUrls: [
+            "https://cdn.example.com/logo.png",
+            "https://cdn.example.com/photo-1.jpg",
+            "https://cdn.example.com/photo-2.jpg",
+          ],
+        }),
+      }),
+    );
   });
 
   it("rejects invalid Google Maps links", async () => {

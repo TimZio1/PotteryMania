@@ -14,6 +14,7 @@ import {
   isStateChangingMethod,
 } from "@/lib/csrf-protection";
 import { resolveBackofficeSiteUrl, resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
+import { canBrowseDuringPreregistration, isPreregistrationOnly } from "@/lib/preregistration";
 
 const LOGIN_REQUIRED = [
   "/dashboard",
@@ -30,56 +31,35 @@ const LOGIN_REQUIRED = [
 /** Public core pages; legacy catalog entry URLs redirect separately. */
 const BASE_PUBLIC_CORE = [
   "/",
-  "/pricing",
-  "/demo",
-  "/dashboard-demo",
+  "/vision",
   "/early-access",
-  "/blog",
   "/login",
+  "/register",
   "/forgot-password",
   "/reset-password",
   "/terms",
   "/privacy",
-  "/refunds",
-  "/vendor-terms",
   "/checkout/success",
   "/unauthorized-admin",
 ];
 
 const FRONTDESK_ONLY = [
   "/",
-  "/pricing",
-  "/demo",
-  "/dashboard-demo",
+  "/vision",
   "/early-access",
-  "/blog",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
   "/terms",
   "/privacy",
-  "/refunds",
-  "/vendor-terms",
   "/checkout/success",
-  "/classes",
-  "/studios",
-  "/gift-cards",
-  "/category",
-  "/marketplace",
-  "/wear",
-  "/cart",
-  "/checkout",
-  "/account",
-  "/my-bookings",
-  "/my-orders",
-  "/my-memberships",
-  "/my-loyalty",
-  "/my-packages",
-  "/my-waitlist",
-  "/reviews/new",
 ];
 
 function publicAllowlist(): string[] {
+  if (isPreregistrationOnly()) return [...BASE_PUBLIC_CORE];
   return [
     ...BASE_PUBLIC_CORE,
-    "/register",
     "/classes",
     "/studios",
     "/gift-cards",
@@ -167,6 +147,11 @@ export default auth(async (req) => {
      */
     const dest = new URL("/login?reason=suspended", req.url);
     return clearAuthCookies(NextResponse.redirect(dest));
+  }
+
+  const userRole = (req.auth?.user as { role?: string } | undefined)?.role;
+  if (isPreregistrationOnly() && !canBrowseDuringPreregistration(userRole) && !matchesPath(path, BASE_PUBLIC_CORE)) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   const frontdeskOrigin = resolveFrontdeskSiteUrl();

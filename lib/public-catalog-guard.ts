@@ -38,14 +38,9 @@ export async function redirectEndUserIfNoPublicClasses(role: string | undefined)
 }
 
 export async function redirectEndUserIfNoApprovedStudios(role: string | undefined): Promise<void> {
-  if (!isEndUserBrowse(role)) return;
-  let n = 0;
-  try {
-    n = await prisma.studio.count({ where: { status: "approved" } });
-  } catch {
-    return;
-  }
-  if (n === 0) redirect("/");
+  // Studio directory stays private during registration phase:
+  // guests/customers are always redirected away.
+  if (isEndUserBrowse(role)) redirect("/");
 }
 
 export function redirectEndUserIfStudioHasNoPublicOfferings(
@@ -54,7 +49,8 @@ export function redirectEndUserIfStudioHasNoPublicOfferings(
   productCount: number,
   allowEmptyStudioProfile = false,
 ): void {
-  if (!isEndUserBrowse(role)) return;
+  // Keep individual studio pages private for end users as well.
+  if (isEndUserBrowse(role)) redirect("/");
   if (allowEmptyStudioProfile) return;
   if (experienceCount === 0 && productCount === 0) redirect("/");
 }

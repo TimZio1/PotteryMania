@@ -154,21 +154,15 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
-                <Link href="/classes" className={linkClass("/classes")}>
-                  Find a class
+                <Link href="/vision" className={linkClass("/vision")}>
+                  Our vision
                 </Link>
-                <Link href="/studios" className={linkClass("/studios")}>
-                  Browse studios
-                </Link>
-                <Link href="/pricing" className={linkClass("/pricing")}>
-                  Pricing
-                </Link>
-                <Link href="/dashboard/studio/new?setup=both" className={linkClass("/dashboard/studio/new")}>
-                  Create your studio
+                <Link href="/#register-studio" className={linkClass("/")}>
+                  Register for free
                 </Link>
               </div>
-              <Link href="/demo" className={`${ui.buttonMarketing} md:hidden`}>
-                Create your studio
+              <Link href="/#register-studio" className={`${ui.buttonMarketing} md:hidden`}>
+                Register for free
               </Link>
               {showPublicSignIn ? (
                 <Link href="/login" className={cn(linkClass("/login"), "hidden md:inline-flex")}>
@@ -266,21 +260,12 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </>
             ) : (
               <>
-                <Link href="/classes" className={mobileLinkClass("/classes")} onClick={close}>
-                  Find a class
-                </Link>
-                <Link href="/studios" className={mobileLinkClass("/studios")} onClick={close}>
-                  Browse studios
-                </Link>
-                <Link href="/marketplace" className={mobileLinkClass("/marketplace")} onClick={close}>
-                  Shop
+                <Link href="/vision" className={mobileLinkClass("/vision")} onClick={close}>
+                  Our vision
                 </Link>
                 <hr className="my-2 border-[var(--border)]" />
-                <Link href="/pricing" className={mobileLinkClass("/pricing")} onClick={close}>
-                  Pricing
-                </Link>
-                <Link href={createStudioHref} className={mobileLinkClass(createStudioActiveHref)} onClick={close}>
-                  Create your studio
+                <Link href="/#register-studio" className={mobileLinkClass("/")} onClick={close}>
+                  Register for free
                 </Link>
                 <hr className="my-2 border-[var(--border)]" />
                 {showPublicSignIn ? (

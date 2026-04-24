@@ -16,7 +16,12 @@ type Props = {
 
 function isClayenseHostname(host: string | null): boolean {
   if (!host) return false;
-  return host === "clayense.com" || host.endsWith(".clayense.com");
+  return (
+    host === "clayense.com" ||
+    host.endsWith(".clayense.com") ||
+    host === "potterymania.com" ||
+    host.endsWith(".potterymania.com")
+  );
 }
 
 export async function MarketingLayout({ children, toolbar }: Props) {

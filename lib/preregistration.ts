@@ -7,7 +7,10 @@
  * Default: closed in production, open in development (set PREREGISTRATION_ONLY=1 locally to test).
  */
 export function isPreregistrationOnly(): boolean {
-  return false;
+  const raw = process.env.PREREGISTRATION_ONLY?.trim().toLowerCase();
+  if (raw === "0" || raw === "false" || raw === "off") return false;
+  if (raw === "1" || raw === "true" || raw === "on") return true;
+  return true;
 }
 
 /** URL prefixes treated as closed for guests when restricted mode is on (not admin). */

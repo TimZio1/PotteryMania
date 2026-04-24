@@ -9,13 +9,32 @@ const MAX_STUDIO = 160;
 const MAX_COUNTRY = 100;
 const MAX_CITY = 100;
 const MAX_WEBSITE = 300;
+const MAX_PHOTOS = 8;
 
 function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function looksLikeEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function looksLikeHttpUrl(value: string) {
+  if (!value) return true;
+  try {
+    const url = new URL(value.startsWith("http") ? value : `https://${value}`);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function looksLikeGoogleMapsUrl(value: string) {
@@ -45,6 +64,8 @@ export async function POST(req: Request) {
   const country = asString(raw.country);
   const city = asString(raw.city);
   const googleMapsUrl = asString(raw.googleMapsUrl);
+  const logoUrl = asString(raw.logoUrl);
+  const photoUrls = asStringArray(raw.photoUrls);
   const websiteOrIg = asString(raw.websiteOrIg);
   const offeringIntent = asString(raw.offeringIntent);
   const honeypot = asString(raw.website);
@@ -71,12 +92,23 @@ export async function POST(req: Request) {
   if (googleMapsUrl.length > MAX_WEBSITE || !looksLikeGoogleMapsUrl(googleMapsUrl)) {
     return NextResponse.json({ error: "Please paste a valid Google Maps link." }, { status: 400 });
   }
+  if (logoUrl.length > MAX_WEBSITE || !looksLikeHttpUrl(logoUrl)) {
+    return NextResponse.json({ error: "Please paste a valid logo URL." }, { status: 400 });
+  }
+  if (photoUrls.length > MAX_PHOTOS) {
+    return NextResponse.json({ error: `Please add up to ${MAX_PHOTOS} photo links.` }, { status: 400 });
+  }
+  if (photoUrls.some((url) => url.length > MAX_WEBSITE || !looksLikeHttpUrl(url))) {
+    return NextResponse.json({ error: "Please paste valid studio photo links." }, { status: 400 });
+  }
 
   const intent = offeringIntent === "shop" || offeringIntent === "classes" || offeringIntent === "both" ? offeringIntent : "both";
+  const mergedPhotoUrls = Array.from(new Set([logoUrl, ...photoUrls].filter(Boolean))).slice(0, MAX_PHOTOS);
   const profileSummary = [
     city ? `city:${city}` : "",
     googleMapsUrl ? `maps:${googleMapsUrl}` : "",
     websiteOrIg ? `web:${websiteOrIg}` : "",
+    logoUrl ? `logo:${logoUrl}` : "",
   ]
     .filter(Boolean)
     .join(" | ")
@@ -88,6 +120,7 @@ export async function POST(req: Request) {
       studioName,
       country,
       websiteOrIg: profileSummary || null,
+      photoUrls: mergedPhotoUrls,
       wantBooking: intent === "classes" || intent === "both",
       wantMarket: intent === "shop" || intent === "both",
       wantBoth: intent === "both",
@@ -97,6 +130,7 @@ export async function POST(req: Request) {
       studioName,
       country,
       websiteOrIg: profileSummary || null,
+      photoUrls: mergedPhotoUrls,
       wantBooking: intent === "classes" || intent === "both",
       wantMarket: intent === "shop" || intent === "both",
       wantBoth: intent === "both",

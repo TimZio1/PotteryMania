@@ -5,6 +5,14 @@ import { ui } from "@/lib/ui-styles";
 
 type OfferingIntent = "shop" | "classes" | "both";
 
+function parsePhotoUrlsFromText(value: string): string[] {
+  return value
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
 export function PrivateGuideForm() {
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
@@ -14,6 +22,8 @@ export function PrivateGuideForm() {
     studioName: "",
     country: "",
     googleMapsUrl: "",
+    logoUrl: "",
+    studioPhotos: "",
     websiteOrIg: "",
     offeringIntent: "both" as OfferingIntent,
     website: "",
@@ -27,7 +37,10 @@ export function PrivateGuideForm() {
       const response = await fetch("/api/early-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          photoUrls: parsePhotoUrlsFromText(form.studioPhotos),
+        }),
       });
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -46,8 +59,8 @@ export function PrivateGuideForm() {
     return (
       <div className={`${ui.card} text-center`}>
         <h2 className="font-serif text-2xl text-foreground sm:text-3xl">You are on the list.</h2>
-        <p className="mt-3 text-sm text-(--muted)">
-          Thanks. We saved your studio details and will contact you for the next step.
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          Thanks. We saved your details and will notify you when your studio is approved.
         </p>
       </div>
     );
@@ -118,7 +131,19 @@ export function PrivateGuideForm() {
         </label>
       </div>
 
-      <div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className={ui.label}>Logo URL (optional)</span>
+          <input
+            className={`${ui.input} mt-2`}
+            type="url"
+            inputMode="url"
+            disabled={pending}
+            value={form.logoUrl}
+            onChange={(e) => setForm((prev) => ({ ...prev, logoUrl: e.target.value }))}
+            placeholder="https://..."
+          />
+        </label>
         <label className="block">
           <span className={ui.label}>Website or Instagram (optional)</span>
           <input
@@ -128,6 +153,19 @@ export function PrivateGuideForm() {
             value={form.websiteOrIg}
             onChange={(e) => setForm((prev) => ({ ...prev, websiteOrIg: e.target.value }))}
             placeholder="instagram.com/yourstudio"
+          />
+        </label>
+      </div>
+
+      <div>
+        <label className="block">
+          <span className={ui.label}>Studio photo URLs (optional)</span>
+          <textarea
+            className={`${ui.input} mt-2 min-h-28`}
+            disabled={pending}
+            value={form.studioPhotos}
+            onChange={(e) => setForm((prev) => ({ ...prev, studioPhotos: e.target.value }))}
+            placeholder={"One link per line or comma-separated (up to 8 photos)"}
           />
         </label>
       </div>
