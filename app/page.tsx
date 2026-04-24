@@ -14,7 +14,7 @@ const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
-    title: "Sell your work. Run your studio. Own your craft. | PotteryMania",
+    title: "Sell your work. Run your studio. Own your craft. | Clayense",
     description:
       "Built for potters, ceramic artists, and teachers. Sell your work, take class bookings, and run everything from one place.",
     path: "/",

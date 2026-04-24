@@ -4,7 +4,7 @@ import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 const siteUrl = resolvePublicSiteUrl();
 
 export const siteMetadata = {
-  name: "PotteryMania",
+  name: "Clayense",
   description:
     "Pottery studio software for makers, ceramic artists, and studios to sell products, take bookings, and grow one calm business online.",
   url: siteUrl,

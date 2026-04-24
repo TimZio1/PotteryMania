@@ -32,7 +32,7 @@ export function BrandLogo({
   const inner = (
     <span className="inline-flex items-center gap-2 sm:gap-2.5">
       <PotteryManiaMark className={markSizes[size]} />
-      <span className={cn("font-serif tracking-tight", wordSizes[size])}>PotteryMania</span>
+      <span className={cn("font-serif tracking-tight", wordSizes[size])}>Clayense</span>
     </span>
   );
 
@@ -51,7 +51,7 @@ export function BrandLogo({
     <Link
       href={href}
       className={twMerge("inline-flex shrink-0 items-center", colorClass, className)}
-      aria-label="PotteryMania home"
+      aria-label="Clayense home"
     >
       {inner}
     </Link>

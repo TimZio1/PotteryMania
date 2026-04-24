@@ -102,7 +102,7 @@ export function MarketingLayout({ children, toolbar }: Props) {
             </div>
           </div>
           <div className="mt-8 border-t border-[var(--border)] pt-6 text-sm text-[var(--muted)]">
-            <p>&copy; PotteryMania. All rights reserved.</p>
+            <p>&copy; Clayense. All rights reserved.</p>
           </div>
         </div>
       </footer>
