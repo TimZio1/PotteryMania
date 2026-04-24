@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const count = await prisma.earlyAccessSignup.count();
   return NextResponse.json(
-    { count, closed: false },
+    { count },
     {
-      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" },
+      headers: { "Cache-Control": "no-store" },
     },
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 const LAUNCH_AT_UTC = Date.parse("2026-06-01T00:00:00Z");
-const WORLDWIDE_BASE_STUDIOS = 11223;
+const WORLDWIDE_BASE_STUDIOS = 112233;
 
 type CountdownParts = {
   days: number;
@@ -44,7 +44,7 @@ export function HomeLaunchStats() {
         setDbCount(payload.count);
       })
       .catch(() => {
-        // Keep base-only count if network fails.
+        // Keep previous count if network fails.
       });
     return () => {
       cancelled = true;
@@ -77,10 +77,9 @@ export function HomeLaunchStats() {
 
       <div className="rounded-xl border border-white/15 bg-white/5 p-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
-          Studios worldwide registered
+          Studios worldwide
         </p>
         <p className="mt-2 text-2xl font-semibold text-white">{worldwideTotal.toLocaleString("en-US")}</p>
-        <p className="mt-2 text-xs text-white/70">Base 11,223 + live registrations</p>
       </div>
     </div>
   );
