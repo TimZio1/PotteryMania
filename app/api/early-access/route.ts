@@ -10,6 +10,7 @@ const MAX_COUNTRY = 100;
 const MAX_CITY = 100;
 const MAX_WEBSITE = 300;
 const MAX_PHOTOS = 8;
+const MAX_TEAM_SIZE = 1000;
 
 function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -21,6 +22,17 @@ function asStringArray(value: unknown): string[] {
     .filter((item): item is string => typeof item === "string")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function asOptionalInt(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const n = Number.parseInt(trimmed, 10);
+    if (Number.isInteger(n)) return n;
+  }
+  return null;
 }
 
 function looksLikeEmail(value: string) {
@@ -66,6 +78,7 @@ export async function POST(req: Request) {
   const googleMapsUrl = asString(raw.googleMapsUrl);
   const logoUrl = asString(raw.logoUrl);
   const photoUrls = asStringArray(raw.photoUrls);
+  const teamSize = asOptionalInt(raw.teamSize);
   const websiteOrIg = asString(raw.websiteOrIg);
   const offeringIntent = asString(raw.offeringIntent);
   const honeypot = asString(raw.website);
@@ -101,6 +114,9 @@ export async function POST(req: Request) {
   if (photoUrls.some((url) => url.length > MAX_WEBSITE || !looksLikeHttpUrl(url))) {
     return NextResponse.json({ error: "Please paste valid studio photo links." }, { status: 400 });
   }
+  if (teamSize != null && (teamSize < 0 || teamSize > MAX_TEAM_SIZE)) {
+    return NextResponse.json({ error: "Please enter a valid studio team size." }, { status: 400 });
+  }
 
   const intent = offeringIntent === "shop" || offeringIntent === "classes" || offeringIntent === "both" ? offeringIntent : "both";
   const mergedPhotoUrls = Array.from(new Set([logoUrl, ...photoUrls].filter(Boolean))).slice(0, MAX_PHOTOS);
@@ -108,6 +124,7 @@ export async function POST(req: Request) {
     city ? `city:${city}` : "",
     googleMapsUrl ? `maps:${googleMapsUrl}` : "",
     websiteOrIg ? `web:${websiteOrIg}` : "",
+    teamSize != null ? `team:${teamSize}` : "",
     logoUrl ? `logo:${logoUrl}` : "",
   ]
     .filter(Boolean)
