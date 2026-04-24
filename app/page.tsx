@@ -13,9 +13,9 @@ const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
-    title: "The global network for pottery studios | ClaySense",
+    title: "The global network for pottery artists and studios | ClaySense",
     description:
-      "Discover, support, and grow without losing your identity. Join the first studios building ClaySense.",
+      "Discover, support, and grow without losing your identity. Join the first pottery artists and studios building ClaySense.",
     path: "/",
   });
   return {
@@ -35,7 +35,7 @@ export default function Home() {
           <div className="mx-auto max-w-3xl">
             <div className={ui.card}>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">
-                The global network for pottery studios
+                The global network for pottery artists and studios
               </p>
               <h1 className="mt-2 font-serif text-3xl leading-tight text-white sm:text-4xl">
                 Discover, support, and grow — without losing your identity.
@@ -49,7 +49,7 @@ export default function Home() {
                   href="/#register-studio"
                   className="inline-flex min-h-11 items-center rounded-(--radius-button) bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
                 >
-                  Join the first studios
+                  Join the first artists and studios
                 </Link>
                 <Link
                   href="/#how-it-works"
@@ -61,9 +61,9 @@ export default function Home() {
 
               <HomeLaunchStats />
               <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">Most studios don&apos;t have a growth system.</h2>
+                <h2 className="text-xl font-semibold text-white sm:text-2xl">Most artists and studios don&apos;t have a growth system.</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  Most pottery studios are hard to find. Bookings are scattered across messages, links, and tools.
+                Most pottery artists and studios are hard to find. Bookings are scattered across messages, links, and tools.
                   Growth depends on time you don&apos;t have.
                 </p>
                 <p className="mt-3 text-sm leading-7 text-white/80">
@@ -72,9 +72,9 @@ export default function Home() {
               </div>
 
               <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">A better way to run your studio.</h2>
+                <h2 className="text-xl font-semibold text-white sm:text-2xl">A better way to grow as an artist or studio.</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  ClaySense connects pottery studios to a global audience and gives them the tools to run their
+                  ClaySense connects pottery artists and studios to a global audience and gives them the tools to run their
                   business properly.
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-white/85">
@@ -87,7 +87,7 @@ export default function Home() {
               <div className="mt-6 border-t border-white/15 pt-6">
                 <h2 className="text-xl font-semibold text-white sm:text-2xl">You stay in control.</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  You own your customers. You control your studio. We don&apos;t take ownership — we build
+                  You own your customers. You control your work and studio. We don&apos;t take ownership — we build
                   infrastructure.
                 </p>
                 <p className="mt-3 text-sm leading-7 text-white/80">No marketplace lock-in. No platform dependency.</p>
@@ -97,7 +97,7 @@ export default function Home() {
                 <h2 className="text-xl font-semibold text-white sm:text-2xl">How it works</h2>
                 <ol className="mt-3 space-y-3 text-sm text-white/85">
                   <li>
-                    <span className="font-semibold text-white">1. Create your studio profile</span>
+                    <span className="font-semibold text-white">1. Create your artist or studio profile</span>
                     <p className="mt-1 text-white/80">Show your work, your space, your identity.</p>
                   </li>
                   <li>
@@ -106,29 +106,29 @@ export default function Home() {
                   </li>
                   <li>
                     <span className="font-semibold text-white">3. Manage everything in one place</span>
-                    <p className="mt-1 text-white/80">Simple tools to run your studio without chaos.</p>
+                    <p className="mt-1 text-white/80">Simple tools to run your pottery business without chaos.</p>
                   </li>
                 </ol>
               </div>
 
               <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">Built with real studios</h2>
+                <h2 className="text-xl font-semibold text-white sm:text-2xl">Built with real artists and studios</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  Early studios are already joining from across Europe.
+                  Early artists and studios are already joining from across Europe.
                 </p>
                 <p className="mt-2 text-sm font-medium text-white/90">Rhodes · Berlin · Copenhagen · Amsterdam</p>
                 <blockquote className="mt-4 border-l-2 border-white/30 pl-4 text-sm italic text-white/80">
-                  &ldquo;Finally something built for how studios actually work.&rdquo; — Founding studio
+                  &ldquo;Finally something built for how artists and studios actually work.&rdquo; — Founding studio
                 </blockquote>
               </div>
 
               <div className="mt-6 border-t border-white/15 pt-6">
                 <h2 className="text-xl font-semibold text-white sm:text-2xl">We&apos;re building this together</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  We&apos;re starting with studios who want more than just tools.
+                  We&apos;re starting with artists and studios who want more than just tools.
                 </p>
                 <p className="mt-2 text-sm leading-7 text-white/80">
-                  Studios that want visibility, control, and a stronger connection to a global network.
+                  Artists and studios that want visibility, control, and a stronger connection to a global network.
                 </p>
                 <p className="mt-2 text-sm leading-7 text-white/80">
                   Join early. Help shape what ClaySense becomes.
@@ -136,9 +136,9 @@ export default function Home() {
               </div>
 
               <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">Grow your studio — on your terms.</h2>
+                <h2 className="text-xl font-semibold text-white sm:text-2xl">Grow as an artist or studio — on your terms.</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  Join the global network for pottery studios.
+                  Join the global network for pottery artists and studios.
                 </p>
                 <div className="mt-4">
                   <Link

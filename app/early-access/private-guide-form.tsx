@@ -27,6 +27,19 @@ function normalizeUrl(value: string): string {
   return v.startsWith("http://") || v.startsWith("https://") ? v : `https://${v}`;
 }
 
+function looksLikeGoogleMapsUrl(value: string): boolean {
+  if (!value.trim()) return false;
+  try {
+    const url = new URL(normalizeUrl(value));
+    const host = url.hostname.toLowerCase();
+    if (host === "maps.app.goo.gl") return true;
+    if (host === "goo.gl") return url.pathname.toLowerCase().startsWith("/maps");
+    return host.includes("google.") && (host.startsWith("maps.") || url.pathname.toLowerCase().includes("/maps"));
+  } catch {
+    return false;
+  }
+}
+
 export function PrivateGuideForm() {
   const [step, setStep] = useState<Step>(1);
   const [pending, setPending] = useState(false);
@@ -81,9 +94,9 @@ export function PrivateGuideForm() {
         body: JSON.stringify({
           email: form.email.trim(),
           studioName: form.studioName.trim(),
-          country: form.location.trim(),
+          country: "Google Maps location provided",
           city: "",
-          googleMapsUrl: "",
+          googleMapsUrl: normalizeUrl(form.location),
           logoUrl: normalizeUrl(form.logoUrl),
           photoUrls: parsePhotoUrlsFromText(form.studioPhotos),
           websiteOrIg: form.shortDescription.trim(),
@@ -186,7 +199,7 @@ export function PrivateGuideForm() {
         <p className="text-center text-2xl" aria-hidden="true">
           🎉
         </p>
-        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Your studio is live.</h2>
+        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Your artist or studio profile is live.</h2>
         <p className="text-sm text-(--muted)">Now let&apos;s make it visible.</p>
         <div className={`${ui.cardMuted} space-y-2`}>
           <ul className="space-y-2 text-sm text-(--muted)">
@@ -214,7 +227,7 @@ export function PrivateGuideForm() {
           {stepDots(progressStep)}
           <p className="text-xs text-(--muted)">Step 5 of 5</p>
         </div>
-        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Save your studio</h2>
+        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Save your artist or studio profile</h2>
         <div className="mt-4 space-y-4">
           {showError}
           <button
@@ -306,16 +319,16 @@ export function PrivateGuideForm() {
           {stepDots(progressStep)}
           <p className="text-xs text-(--muted)">Step 3 of 5</p>
         </div>
-        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">This is how people will see your studio</h2>
+        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">This is how people will see your artist or studio profile</h2>
         <div className="mt-4 flex-1">
           <div className="rounded-(--radius-card) border border-(--border) bg-(--surface-elevated) p-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-200">
             <p className="text-lg font-semibold text-foreground">{form.studioName || "Studio Name"}</p>
-            <p className="mt-1 text-sm text-(--muted)">{form.location || "Location"}</p>
+            <p className="mt-1 text-sm text-(--muted)">Google Maps location added</p>
             <p className="mt-3 text-sm text-(--muted)">{form.shortDescription.trim() || "Short description..."}</p>
             <div className="mt-4 h-28 rounded-(--radius-input) border border-(--border) bg-(--surface)" />
           </div>
         </div>
-        <p className="mt-3 text-xs font-medium text-emerald-700">Your studio is already visible internally.</p>
+        <p className="mt-3 text-xs font-medium text-emerald-700">Your artist or studio profile is already visible internally.</p>
         {showError}
         <div className="mt-auto space-y-3 pt-6">
           <button
@@ -353,7 +366,7 @@ export function PrivateGuideForm() {
           </button>
           <p className="text-xs text-(--muted)">Step 2 of 5</p>
         </div>
-        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Tell us about your studio</h2>
+        <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Tell us about your work or studio</h2>
         <div className="mt-4 flex-1 space-y-4">
           {showError}
           <div>
@@ -400,7 +413,7 @@ export function PrivateGuideForm() {
             />
           </label>
           <label className="block">
-            <span className={ui.label}>How many people work in the studio? (optional)</span>
+            <span className={ui.label}>How many people work in the studio or artist practice? (optional)</span>
             <input
               className={`${ui.input} mt-2`}
               type="number"
@@ -442,8 +455,8 @@ export function PrivateGuideForm() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!form.studioName.trim() || !form.location.trim() || !isValidEmail(form.email)) {
-          setError("Enter studio name, location, and a valid email.");
+        if (!form.studioName.trim() || !looksLikeGoogleMapsUrl(form.location) || !isValidEmail(form.email)) {
+          setError("Enter studio name, a Google Maps link, and a valid email.");
           return;
         }
         goTo(2);
@@ -451,12 +464,12 @@ export function PrivateGuideForm() {
       className="mx-auto flex min-h-[560px] w-full max-w-[560px] flex-col rounded-(--radius-card) border border-(--border) bg-(--surface) p-5 sm:p-6"
     >
       <div className="mb-5">{stepDots(progressStep)}</div>
-      <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Create your studio profile</h2>
+      <h2 className="font-serif text-2xl text-foreground sm:text-3xl">Create your artist or studio profile</h2>
       <p className="mt-2 text-sm text-(--muted)">Takes 2 minutes. You can edit everything later.</p>
       <div className="mt-5 flex-1 space-y-4">
         {showError}
         <label className="block">
-          <span className={ui.label}>Studio name</span>
+          <span className={ui.label}>Artist or studio name</span>
           <input
             className={`${ui.input} mt-2`}
             type="text"
@@ -464,18 +477,19 @@ export function PrivateGuideForm() {
             autoFocus
             value={form.studioName}
             onChange={(e) => setForm((prev) => ({ ...prev, studioName: e.target.value }))}
-            placeholder="Studio name"
+            placeholder="Artist or studio name"
           />
         </label>
         <label className="block">
-          <span className={ui.label}>Location</span>
+          <span className={ui.label}>Google Maps link</span>
           <input
             className={`${ui.input} mt-2`}
-            type="text"
+            type="url"
+            inputMode="url"
             required
             value={form.location}
             onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
-            placeholder="Location"
+            placeholder="https://maps.google.com/..."
           />
         </label>
         <label className="block">
