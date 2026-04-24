@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
-    title: "Private studio guide registration",
+    title: "Private artist and studio registration",
     description:
-      "Private registration for pottery studios that want to join our upcoming global studio guide.",
+      "Private registration for independent artists and studios joining the first global network & directory.",
     path: "/early-access",
     robots: { index: false, follow: false },
   });
@@ -24,11 +24,11 @@ export default function EarlyAccessPage() {
           <div className={`${ui.card} border-stone-300 bg-[#f8f3ea]`}>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Private registration</p>
             <h1 className="mt-2 font-serif text-3xl leading-tight text-stone-950 sm:text-4xl">
-              Join the first global pottery studio guide
+              Join the first global network & directory for independent artists and studios
             </h1>
             <p className="mt-3 text-sm leading-7 text-stone-700">
-              We are onboarding studios in private. Share your basic details now, then we help you activate products,
-              classes, or both. Add your Google Maps link so we can pin your studio correctly in the guide.
+              We are onboarding artists and studios in private. Share your basic details now and add your Google Maps
+              link so we can place your profile correctly.
             </p>
             <div className="mt-6">
               <PrivateGuideForm />

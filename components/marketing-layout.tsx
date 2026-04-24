@@ -46,7 +46,7 @@ export async function MarketingLayout({ children, toolbar }: Props) {
               <BrandLogo size="md" className="text-[var(--foreground)]" />
               <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">
                 {onClayense
-                  ? "Catalog registration for independent studios. Submit your profile to join the Clayense guide."
+                  ? "The first global network & directory for independent artists and studios."
                   : "For people who work with clay — from solo artists to full studios — sell your work, take bookings, and run everything in one calm system."}
               </p>
             </div>
@@ -58,9 +58,9 @@ export async function MarketingLayout({ children, toolbar }: Props) {
               {onClayense ? (
                 <>
                   <div className="space-y-2.5">
-                    <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Catalog</p>
+                    <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Clayense</p>
                     <Link href="/" className="block transition hover:text-[var(--foreground)]">
-                      Register your studio
+                      Register your artist or studio profile
                     </Link>
                     <Link href="/vision" className="block transition hover:text-[var(--foreground)]">
                       Our vision

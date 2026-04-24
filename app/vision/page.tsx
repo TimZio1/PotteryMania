@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: "Our vision | Clayense",
     description:
-      "Clayense vision: connect pottery studios worldwide, strengthen community, and build practical tools that improve sales and studio operations.",
+      "Clayense vision: the first global network & directory for independent artists and studios.",
     path: "/vision",
   });
 }
@@ -23,25 +23,25 @@ export default function VisionPage() {
           <div className={ui.card}>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">Clayense vision</p>
             <h1 className="mt-2 font-serif text-3xl leading-tight text-white sm:text-4xl">
-              One pottery community. Many studios. Shared growth.
+              The first global network & directory for independent artists and studios.
             </h1>
             <p className="mt-3 text-sm leading-7 text-white/85">
-              We believe pottery studios everywhere should be easier to find, easier to support, and easier to run.
-              Clayense is building a global studio catalog and practical tools that improve sales and studio operations.
+              We believe independent pottery artists and studios should be easier to find, easier to support, and easier
+              to grow.
             </p>
             <p className="mt-3 text-sm leading-7 text-white/85">
-              Our goal is simple: help studios grow without losing their identity. Each studio keeps control of its
-              own profile, its own customers, and its own way of working.
+              Clayense is built around visibility, identity, and control. Artists and studios keep their own voice,
+              customers, and way of working.
             </p>
             <p className="mt-3 text-sm leading-7 text-white/85">
-              We are starting with registration-first launch cohorts and improving with feedback from founding studios.
+              We are starting with founding artists and studios and improving with their feedback.
             </p>
             <div className="mt-5">
               <Link
                 href="/#register-studio"
                 className="inline-flex min-h-11 items-center rounded-(--radius-button) bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
               >
-                Register your studio
+                Register your artist or studio profile
               </Link>
             </div>
           </div>

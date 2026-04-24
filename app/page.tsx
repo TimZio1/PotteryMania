@@ -14,9 +14,9 @@ const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
-    title: "The global network for pottery artists and studios | ClaySense",
+    title: "The first global network & directory for independent artists and studios | Clayense",
     description:
-      "Discover, support, and grow without losing your identity. Join the first pottery artists and studios building ClaySense.",
+      "Clayense is the first global network & directory for independent artists and studios.",
     path: "/",
   });
   return {
@@ -37,7 +37,7 @@ export default function Home() {
           <div className="mx-auto max-w-3xl">
             <div className={ui.card}>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">
-                The global network for pottery artists and studios
+                The first global network & directory for independent artists and studios
               </p>
               <h1 className="mt-2 font-serif text-3xl leading-tight text-white sm:text-4xl">
                 Discover, support, and grow — without losing your identity.
@@ -51,7 +51,7 @@ export default function Home() {
                   href="/#register-studio"
                   className="inline-flex min-h-11 items-center rounded-(--radius-button) bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
                 >
-                  Join the first artists and studios
+                  Register for free
                 </Link>
               </div>
 
@@ -59,8 +59,8 @@ export default function Home() {
               <div className="mt-6 border-t border-white/15 pt-6">
                 <h2 className="text-xl font-semibold text-white sm:text-2xl">Built for artists and studios.</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  Create your profile, add your Google Maps location, and join the first pottery network built around
-                  identity, visibility, and control.
+                  Create your profile, add your Google Maps location, and join the first global network & directory
+                  built around identity, visibility, and control.
                 </p>
               </div>
 

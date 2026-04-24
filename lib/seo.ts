@@ -6,10 +6,14 @@ const siteUrl = resolvePublicSiteUrl();
 export const siteMetadata = {
   name: "Clayense",
   description:
-    "Pottery studio software for makers, ceramic artists, and studios to sell products, take bookings, and grow one calm business online.",
+    "The first global network & directory for independent artists and studios.",
   url: siteUrl,
   ogImage: "/og-default.png",
   keywords: [
+    "global pottery directory",
+    "pottery artists directory",
+    "independent pottery artists",
+    "pottery studios directory",
     "pottery studio software",
     "ceramic studio software",
     "pottery class booking software",
