@@ -13,6 +13,20 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function parsePhotoUrlsFromText(value: string): string[] {
+  return value
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeUrl(value: string): string {
+  const v = value.trim();
+  if (!v) return "";
+  return v.startsWith("http://") || v.startsWith("https://") ? v : `https://${v}`;
+}
+
 export function PrivateGuideForm() {
   const [step, setStep] = useState<Step>(1);
   const [pending, setPending] = useState(false);
@@ -26,6 +40,8 @@ export function PrivateGuideForm() {
     offerings: [] as OfferingIntent[],
     shortDescription: "",
     teamSize: "",
+    logoUrl: "",
+    studioPhotos: "",
     bookingIntent: "not_sure" as BookingIntent,
   });
 
@@ -68,6 +84,8 @@ export function PrivateGuideForm() {
           country: form.location.trim(),
           city: "",
           googleMapsUrl: "",
+          logoUrl: normalizeUrl(form.logoUrl),
+          photoUrls: parsePhotoUrlsFromText(form.studioPhotos),
           websiteOrIg: form.shortDescription.trim(),
           teamSize: form.teamSize.trim() ? Number(form.teamSize.trim()) : null,
           offeringIntent: getEarlyAccessIntent(),
@@ -391,6 +409,25 @@ export function PrivateGuideForm() {
               value={form.teamSize}
               onChange={(e) => setForm((prev) => ({ ...prev, teamSize: e.target.value }))}
               placeholder="e.g. 3"
+            />
+          </label>
+          <label className="block">
+            <span className={ui.label}>Logo URL (optional)</span>
+            <input
+              className={`${ui.input} mt-2`}
+              type="url"
+              value={form.logoUrl}
+              onChange={(e) => setForm((prev) => ({ ...prev, logoUrl: e.target.value }))}
+              placeholder="https://..."
+            />
+          </label>
+          <label className="block">
+            <span className={ui.label}>Studio photo URLs (optional)</span>
+            <textarea
+              className={`${ui.input} mt-2 min-h-24`}
+              value={form.studioPhotos}
+              onChange={(e) => setForm((prev) => ({ ...prev, studioPhotos: e.target.value }))}
+              placeholder="One link per line (up to 8)"
             />
           </label>
         </div>
