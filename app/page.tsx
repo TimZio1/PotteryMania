@@ -51,103 +51,15 @@ export default function Home() {
                 >
                   Join the first artists and studios
                 </Link>
-                <Link
-                  href="/#how-it-works"
-                  className="inline-flex min-h-11 items-center rounded-(--radius-button) border border-white/25 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  See how it works
-                </Link>
               </div>
 
               <HomeLaunchStats />
               <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">Most artists and studios don&apos;t have a growth system.</h2>
+                <h2 className="text-xl font-semibold text-white sm:text-2xl">Built for artists and studios.</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                Most pottery artists and studios are hard to find. Bookings are scattered across messages, links, and tools.
-                  Growth depends on time you don&apos;t have.
+                  Create your profile, add your Google Maps location, and join the first pottery network built around
+                  identity, visibility, and control.
                 </p>
-                <p className="mt-3 text-sm leading-7 text-white/80">
-                  You don&apos;t need more tools. You need visibility, structure, and control.
-                </p>
-              </div>
-
-              <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">A better way to grow as an artist or studio.</h2>
-                <p className="mt-3 text-sm leading-7 text-white/80">
-                  ClaySense connects pottery artists and studios to a global audience and gives them the tools to run their
-                  business properly.
-                </p>
-                <ul className="mt-3 space-y-2 text-sm text-white/85">
-                  <li>- Get discovered by new customers</li>
-                  <li>- Manage bookings in one place</li>
-                  <li>- Grow without giving up control</li>
-                </ul>
-              </div>
-
-              <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">You stay in control.</h2>
-                <p className="mt-3 text-sm leading-7 text-white/80">
-                  You own your customers. You control your work and studio. We don&apos;t take ownership — we build
-                  infrastructure.
-                </p>
-                <p className="mt-3 text-sm leading-7 text-white/80">No marketplace lock-in. No platform dependency.</p>
-              </div>
-
-              <div id="how-it-works" className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">How it works</h2>
-                <ol className="mt-3 space-y-3 text-sm text-white/85">
-                  <li>
-                    <span className="font-semibold text-white">1. Create your artist or studio profile</span>
-                    <p className="mt-1 text-white/80">Show your work, your space, your identity.</p>
-                  </li>
-                  <li>
-                    <span className="font-semibold text-white">2. Start receiving bookings</span>
-                    <p className="mt-1 text-white/80">Customers find and book you directly.</p>
-                  </li>
-                  <li>
-                    <span className="font-semibold text-white">3. Manage everything in one place</span>
-                    <p className="mt-1 text-white/80">Simple tools to run your pottery business without chaos.</p>
-                  </li>
-                </ol>
-              </div>
-
-              <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">Built with real artists and studios</h2>
-                <p className="mt-3 text-sm leading-7 text-white/80">
-                  Early artists and studios are already joining from across Europe.
-                </p>
-                <p className="mt-2 text-sm font-medium text-white/90">Rhodes · Berlin · Copenhagen · Amsterdam</p>
-                <blockquote className="mt-4 border-l-2 border-white/30 pl-4 text-sm italic text-white/80">
-                  &ldquo;Finally something built for how artists and studios actually work.&rdquo; — Founding studio
-                </blockquote>
-              </div>
-
-              <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">We&apos;re building this together</h2>
-                <p className="mt-3 text-sm leading-7 text-white/80">
-                  We&apos;re starting with artists and studios who want more than just tools.
-                </p>
-                <p className="mt-2 text-sm leading-7 text-white/80">
-                  Artists and studios that want visibility, control, and a stronger connection to a global network.
-                </p>
-                <p className="mt-2 text-sm leading-7 text-white/80">
-                  Join early. Help shape what ClaySense becomes.
-                </p>
-              </div>
-
-              <div className="mt-6 border-t border-white/15 pt-6">
-                <h2 className="text-xl font-semibold text-white sm:text-2xl">Grow as an artist or studio — on your terms.</h2>
-                <p className="mt-3 text-sm leading-7 text-white/80">
-                  Join the global network for pottery artists and studios.
-                </p>
-                <div className="mt-4">
-                  <Link
-                    href="/#register-studio"
-                    className="inline-flex min-h-11 items-center rounded-(--radius-button) bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
-                  >
-                    Get started
-                  </Link>
-                </div>
               </div>
 
               <div id="register-studio" className="mt-6 border-t border-white/15 pt-6">
