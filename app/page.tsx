@@ -30,12 +30,12 @@ export default function Home() {
     <MarketingLayout>
       <main className="bg-[#f6f1e8] py-8 text-[#1f1a17] sm:py-12">
         <section className={ui.narrowContainer}>
-          <div className={`${ui.card} border-stone-300 bg-[#f8f3ea]`}>
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Studio catalog registration</p>
-            <h1 className="mt-2 font-serif text-3xl leading-tight text-stone-950 sm:text-4xl">
+          <div className={`${ui.card} border-(--border)`}>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-(--muted)">Studio catalog registration</p>
+            <h1 className="mt-2 font-serif text-3xl leading-tight text-foreground sm:text-4xl">
               Register your studio for the Clayense catalog
             </h1>
-            <p className="mt-3 text-sm leading-7 text-stone-700">
+            <p className="mt-3 text-sm leading-7 text-(--muted)">
               Fill this form to join the catalog. You can choose what to activate next: studio profile, shop, classes,
               or all three.
             </p>
