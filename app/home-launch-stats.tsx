@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 const LAUNCH_AT_UTC = Date.parse("2026-06-01T00:00:00Z");
-const WORLDWIDE_BASE_STUDIOS = 112233;
+const WORLDWIDE_BASE_STUDIOS = 1234;
 
 type CountdownParts = {
   days: number;
