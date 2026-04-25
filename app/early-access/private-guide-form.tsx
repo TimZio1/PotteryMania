@@ -27,19 +27,6 @@ function normalizeUrl(value: string): string {
   return v.startsWith("http://") || v.startsWith("https://") ? v : `https://${v}`;
 }
 
-function looksLikeGoogleMapsUrl(value: string): boolean {
-  if (!value.trim()) return false;
-  try {
-    const url = new URL(normalizeUrl(value));
-    const host = url.hostname.toLowerCase();
-    if (host === "maps.app.goo.gl") return true;
-    if (host === "goo.gl") return url.pathname.toLowerCase().startsWith("/maps");
-    return host.includes("google.") && (host.startsWith("maps.") || url.pathname.toLowerCase().includes("/maps"));
-  } catch {
-    return false;
-  }
-}
-
 export function PrivateGuideForm() {
   const [step, setStep] = useState<Step>(1);
   const [pending, setPending] = useState(false);
@@ -49,7 +36,7 @@ export function PrivateGuideForm() {
   const [form, setForm] = useState({
     email: "",
     studioName: "",
-    location: "",
+    country: "",
     offerings: [] as OfferingIntent[],
     shortDescription: "",
     teamSize: "",
@@ -94,9 +81,9 @@ export function PrivateGuideForm() {
         body: JSON.stringify({
           email: form.email.trim(),
           studioName: form.studioName.trim(),
-          country: "Google Maps location provided",
+          country: form.country.trim() || "Not specified",
           city: "",
-          googleMapsUrl: normalizeUrl(form.location),
+          googleMapsUrl: "",
           logoUrl: normalizeUrl(form.logoUrl),
           photoUrls: parsePhotoUrlsFromText(form.studioPhotos),
           websiteOrIg: form.shortDescription.trim(),
@@ -323,7 +310,7 @@ export function PrivateGuideForm() {
         <div className="mt-4 flex-1">
           <div className="rounded-(--radius-card) border border-(--border) bg-(--surface-elevated) p-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition-all duration-200">
             <p className="text-lg font-semibold text-foreground">{form.studioName || "Studio Name"}</p>
-            <p className="mt-1 text-sm text-(--muted)">Google Maps location added</p>
+            <p className="mt-1 text-sm text-(--muted)">You can add your map and address from the dashboard</p>
             <p className="mt-3 text-sm text-(--muted)">{form.shortDescription.trim() || "Short description..."}</p>
             <div className="mt-4 h-28 rounded-(--radius-input) border border-(--border) bg-(--surface)" />
           </div>
@@ -455,8 +442,8 @@ export function PrivateGuideForm() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!form.studioName.trim() || !looksLikeGoogleMapsUrl(form.location) || !isValidEmail(form.email)) {
-          setError("Enter studio name, a Google Maps link, and a valid email.");
+        if (!form.studioName.trim() || !isValidEmail(form.email)) {
+          setError("Enter artist or studio name and a valid email.");
           return;
         }
         goTo(2);
@@ -481,15 +468,14 @@ export function PrivateGuideForm() {
           />
         </label>
         <label className="block">
-          <span className={ui.label}>Google Maps link</span>
+          <span className={ui.label}>Country or region (optional)</span>
           <input
             className={`${ui.input} mt-2`}
-            type="url"
-            inputMode="url"
-            required
-            value={form.location}
-            onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
-            placeholder="https://maps.google.com/..."
+            type="text"
+            autoComplete="country-name"
+            value={form.country}
+            onChange={(e) => setForm((prev) => ({ ...prev, country: e.target.value }))}
+            placeholder="e.g. Portugal"
           />
         </label>
         <label className="block">

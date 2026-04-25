@@ -27,8 +27,8 @@ export default function EarlyAccessPage() {
               Join the first global network & directory for independent artists and studios
             </h1>
             <p className="mt-3 text-sm leading-7 text-stone-700">
-              We are onboarding artists and studios in private. Share your basic details now and add your Google Maps
-              link so we can place your profile correctly.
+              We are onboarding artists and studios in private. Share your basic details now. You can add a map and full
+              studio address from your dashboard when you are ready.
             </p>
             <div className="mt-6">
               <PrivateGuideForm />

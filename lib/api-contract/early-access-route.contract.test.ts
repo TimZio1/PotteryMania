@@ -29,7 +29,7 @@ describe("API contract: POST /api/early-access", () => {
         studioName: "Clay Home",
         country: "Portugal",
         city: "Porto",
-        googleMapsUrl: "https://maps.google.com/?q=porto",
+        googleMapsUrl: "",
         logoUrl: "https://cdn.example.com/logo.png",
         photoUrls: ["https://cdn.example.com/photo-1.jpg", "https://cdn.example.com/photo-2.jpg"],
         websiteOrIg: "instagram.com/clayhome",
@@ -62,7 +62,7 @@ describe("API contract: POST /api/early-access", () => {
     );
   });
 
-  it("rejects invalid Google Maps links", async () => {
+  it("rejects invalid Google Maps links when provided", async () => {
     const req = new Request("http://localhost:3000/api/early-access", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -77,6 +77,24 @@ describe("API contract: POST /api/early-access", () => {
     const res = await POST(req);
     const json = (await res.json()) as Record<string, unknown>;
     expect(res.status).toBe(400);
-    expect(json.error).toBe("Please paste a valid Google Maps link.");
+    expect(json.error).toBe("Please paste a valid Google Maps link, or leave it empty.");
+  });
+
+  it("accepts empty googleMapsUrl", async () => {
+    const req = new Request("http://localhost:3000/api/early-access", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        email: "maps-optional@example.com",
+        studioName: "Clay Home",
+        country: "",
+        googleMapsUrl: "",
+        offeringIntent: "both",
+      }),
+    });
+    const res = await POST(req);
+    const json = (await res.json()) as Record<string, unknown>;
+    expect(res.status).toBe(200);
+    expect(json.ok).toBe(true);
   });
 });

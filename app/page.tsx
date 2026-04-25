@@ -59,8 +59,9 @@ export default function Home() {
               <div className="mt-6 border-t border-white/15 pt-6">
                 <h2 className="text-xl font-semibold text-white sm:text-2xl">Built for artists and studios.</h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  Create your profile, add your Google Maps location, and join the first global network & directory
-                  built around identity, visibility, and control.
+                  Create your profile and join the first global network & directory
+                  built around identity, visibility, and control. You can add your map and full address in the
+                  dashboard later.
                 </p>
               </div>
 

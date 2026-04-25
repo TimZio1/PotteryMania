@@ -75,7 +75,8 @@ export async function POST(req: Request) {
   const raw = (payload ?? {}) as Record<string, unknown>;
   const email = asString(raw.email).toLowerCase();
   const studioName = asString(raw.studioName);
-  const country = asString(raw.country);
+  let country = asString(raw.country);
+  if (!country) country = "Not specified";
   const city = asString(raw.city);
   const googleMapsUrl = asString(raw.googleMapsUrl);
   const logoUrl = asString(raw.logoUrl);
@@ -95,8 +96,8 @@ export async function POST(req: Request) {
   if (!studioName || studioName.length > MAX_STUDIO) {
     return NextResponse.json({ error: "Please enter a valid studio name." }, { status: 400 });
   }
-  if (!country || country.length > MAX_COUNTRY) {
-    return NextResponse.json({ error: "Please enter a valid country." }, { status: 400 });
+  if (country.length > MAX_COUNTRY) {
+    return NextResponse.json({ error: "Country is too long." }, { status: 400 });
   }
   if (city.length > MAX_CITY) {
     return NextResponse.json({ error: "City is too long." }, { status: 400 });
@@ -104,8 +105,10 @@ export async function POST(req: Request) {
   if (websiteOrIg.length > MAX_WEBSITE) {
     return NextResponse.json({ error: "Website/Instagram is too long." }, { status: 400 });
   }
-  if (googleMapsUrl.length > MAX_WEBSITE || !looksLikeGoogleMapsUrl(googleMapsUrl)) {
-    return NextResponse.json({ error: "Please paste a valid Google Maps link." }, { status: 400 });
+  if (googleMapsUrl) {
+    if (googleMapsUrl.length > MAX_WEBSITE || !looksLikeGoogleMapsUrl(googleMapsUrl)) {
+      return NextResponse.json({ error: "Please paste a valid Google Maps link, or leave it empty." }, { status: 400 });
+    }
   }
   if (logoUrl.length > MAX_WEBSITE || !looksLikeHttpUrl(logoUrl)) {
     return NextResponse.json({ error: "Please paste a valid logo URL." }, { status: 400 });
