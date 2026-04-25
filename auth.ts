@@ -168,7 +168,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           });
           if (!existingGoogleUser) {
-            notifyAdminNewUserAccount({
+            await notifyAdminNewUserAccount({
               platformLabel: oauthGoogleRegistrationPlatformLabel(),
               email: dbUser.email,
               method: "google",

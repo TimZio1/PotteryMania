@@ -160,7 +160,7 @@ export async function POST(req: Request) {
     select: { id: true },
   });
 
-  notifyAdminCatalogLead({
+  await notifyAdminCatalogLead({
     platformLabel: registrationPlatformLabelFromRequest(req),
     email,
     studioName,

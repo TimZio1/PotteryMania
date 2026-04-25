@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     );
   }
 
-  notifyAdminNewUserAccount({
+  await notifyAdminNewUserAccount({
     platformLabel: registrationPlatformLabelFromRequest(req),
     email: user.email,
     method: "password",

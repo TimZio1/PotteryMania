@@ -6,20 +6,16 @@ function adminPanelUrl() {
   return `${resolveBackofficeSiteUrl()}/admin`;
 }
 
-function safeSend(subject: string, html: string, context: string) {
+async function sendAdminEmail(subject: string, html: string, context: string) {
   const to = getAdminNotifyRecipient();
-  if (!to) return;
-
-  void (async () => {
-    try {
-      await sendEmailMessages([{ to, subject, html }]);
-    } catch (e) {
-      console.error(`[admin-inbound-notify] ${context}`, e);
-    }
-  })();
+  try {
+    await sendEmailMessages([{ to, subject, html }]);
+  } catch (e) {
+    console.error(`[admin-inbound-notify] ${context}`, e);
+  }
 }
 
-export function notifyAdminCatalogLead(input: {
+export async function notifyAdminCatalogLead(input: {
   platformLabel: string;
   email: string;
   studioName: string;
@@ -51,10 +47,10 @@ export function notifyAdminCatalogLead(input: {
     footerNote: "PotteryMania — inbound catalog lead.",
   });
 
-  safeSend(`New catalog lead: ${input.studioName} (${input.platformLabel})`, html, "catalog lead");
+  await sendAdminEmail(`New catalog lead: ${input.studioName} (${input.platformLabel})`, html, "catalog lead");
 }
 
-export function notifyAdminNewUserAccount(input: {
+export async function notifyAdminNewUserAccount(input: {
   platformLabel: string;
   email: string;
   method: "password" | "google";
@@ -79,5 +75,5 @@ export function notifyAdminNewUserAccount(input: {
     footerNote: "PotteryMania — new user account.",
   });
 
-  safeSend(`New account: ${input.email} (${input.platformLabel})`, html, "new account");
+  await sendAdminEmail(`New account: ${input.email} (${input.platformLabel})`, html, "new account");
 }

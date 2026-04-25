@@ -14,6 +14,10 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
+vi.mock("@/lib/email/admin-inbound-notify", () => ({
+  notifyAdminCatalogLead: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe("API contract: POST /api/early-access", () => {
   beforeEach(() => {
     vi.clearAllMocks();
