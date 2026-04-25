@@ -1,5 +1,5 @@
 /**
- * Inbox for operator alerts (catalog leads, new accounts, etc.).
+ * Inbox for operator alerts (e.g. new studio registered).
  * Override with REGISTRATION_NOTIFY_EMAIL (or other vars in the chain); otherwise theorh72@gmail.com.
  */
 const DEFAULT_REGISTRATION_ALERT_EMAIL = "theorh72@gmail.com";

@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { notifyAdminCatalogLead } from "@/lib/email/admin-inbound-notify";
-import { registrationPlatformLabelFromRequest } from "@/lib/registration-platform";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -158,16 +156,6 @@ export async function POST(req: Request) {
       wantBoth: intent === "both",
     },
     select: { id: true },
-  });
-
-  await notifyAdminCatalogLead({
-    platformLabel: registrationPlatformLabelFromRequest(req),
-    email,
-    studioName,
-    country,
-    offeringIntent: intent,
-    earlyAccessId: record.id,
-    googleMapsUrl: googleMapsUrl || undefined,
   });
 
   return NextResponse.json({ ok: true, id: record.id });

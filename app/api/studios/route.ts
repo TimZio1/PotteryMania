@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth-session";
 import { apiError, apiSuccess } from "@/lib/api-response";
+import { notifyAdminNewStudioRegistered } from "@/lib/email/admin-inbound-notify";
 import type { Prisma } from "@prisma/client";
 import type { StudioPlanKey } from "@/lib/studio-plan-pricing";
 
@@ -141,6 +142,15 @@ export async function POST(req: Request) {
       data: { role: "vendor" },
     });
   }
+
+  await notifyAdminNewStudioRegistered({
+    studioId: studio.id,
+    displayName: studio.displayName,
+    country: studio.country,
+    city: studio.city,
+    ownerEmail: user.email,
+    ownerUserId: user.id,
+  });
 
   return apiSuccess({ studio }, 201);
 }

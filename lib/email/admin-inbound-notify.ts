@@ -2,8 +2,8 @@ import { renderEmailShell, sendEmailMessages, escapeHtml } from "./base";
 import { getAdminNotifyRecipient } from "./admin-notify-recipient";
 import { resolveBackofficeSiteUrl } from "@/lib/public-site-url";
 
-function adminPanelUrl() {
-  return `${resolveBackofficeSiteUrl()}/admin`;
+function adminStudiosUrl() {
+  return `${resolveBackofficeSiteUrl()}/admin/studios`;
 }
 
 async function sendAdminEmail(subject: string, html: string, context: string) {
@@ -15,65 +15,32 @@ async function sendAdminEmail(subject: string, html: string, context: string) {
   }
 }
 
-export async function notifyAdminCatalogLead(input: {
-  platformLabel: string;
-  email: string;
-  studioName: string;
+/** When a real `Studio` row is created (vendor finished studio registration in the app). */
+export async function notifyAdminNewStudioRegistered(input: {
+  studioId: string;
+  displayName: string;
   country: string;
-  offeringIntent: string;
-  earlyAccessId: string;
-  googleMapsUrl?: string;
+  city: string;
+  ownerEmail: string;
+  ownerUserId: string;
 }) {
-  const mapsBlock =
-    input.googleMapsUrl && input.googleMapsUrl.trim()
-      ? `<p style="margin:0 0 10px;"><strong>Google Maps:</strong> ${escapeHtml(input.googleMapsUrl.trim())}</p>`
-      : "";
-
+  const studioUrl = `${adminStudiosUrl()}/${input.studioId}`;
   const html = renderEmailShell({
-    eyebrow: input.platformLabel,
-    title: "New catalog registration",
-    intro: `${input.studioName} submitted the guided form.`,
+    eyebrow: "PotteryMania admin",
+    title: "New studio registered",
+    intro: `${input.displayName} is pending review.`,
     bodyHtml: `
-      <p style="margin:0 0 10px;"><strong>Platform:</strong> ${escapeHtml(input.platformLabel)}</p>
-      <p style="margin:0 0 10px;"><strong>Studio:</strong> ${escapeHtml(input.studioName)}</p>
-      <p style="margin:0 0 10px;"><strong>Email:</strong> ${escapeHtml(input.email)}</p>
-      <p style="margin:0 0 10px;"><strong>Country / location note:</strong> ${escapeHtml(input.country)}</p>
-      ${mapsBlock}
-      <p style="margin:0 0 10px;"><strong>Offering intent:</strong> ${escapeHtml(input.offeringIntent)}</p>
-      <p style="margin:0 0 10px;"><strong>Early access id:</strong> ${escapeHtml(input.earlyAccessId)}</p>
+      <p style="margin:0 0 10px;"><strong>Studio:</strong> ${escapeHtml(input.displayName)}</p>
+      <p style="margin:0 0 10px;"><strong>Location:</strong> ${escapeHtml(input.city)}, ${escapeHtml(input.country)}</p>
+      <p style="margin:0 0 10px;"><strong>Owner email:</strong> ${escapeHtml(input.ownerEmail)}</p>
+      <p style="margin:0 0 10px;"><strong>Owner user id:</strong> ${escapeHtml(input.ownerUserId)}</p>
+      <p style="margin:0 0 10px;"><strong>Studio id:</strong> ${escapeHtml(input.studioId)}</p>
+      <p style="margin:0 0 10px;"><strong>Status:</strong> pending review</p>
     `,
-    ctaLabel: "Open admin",
-    ctaUrl: adminPanelUrl(),
-    footerNote: "PotteryMania — inbound catalog lead.",
+    ctaLabel: "Review in admin",
+    ctaUrl: studioUrl,
+    footerNote: "PotteryMania — new studio (database record).",
   });
 
-  await sendAdminEmail(`New catalog lead: ${input.studioName} (${input.platformLabel})`, html, "catalog lead");
-}
-
-export async function notifyAdminNewUserAccount(input: {
-  platformLabel: string;
-  email: string;
-  method: "password" | "google";
-  userId?: string;
-}) {
-  const html = renderEmailShell({
-    eyebrow: input.platformLabel,
-    title: "New account registration",
-    intro: `Someone created an account (${input.method}).`,
-    bodyHtml: `
-      <p style="margin:0 0 10px;"><strong>Platform:</strong> ${escapeHtml(input.platformLabel)}</p>
-      <p style="margin:0 0 10px;"><strong>Email:</strong> ${escapeHtml(input.email)}</p>
-      <p style="margin:0 0 10px;"><strong>Method:</strong> ${escapeHtml(input.method)}</p>
-      ${
-        input.userId
-          ? `<p style="margin:0 0 10px;"><strong>User id:</strong> ${escapeHtml(input.userId)}</p>`
-          : ""
-      }
-    `,
-    ctaLabel: "Open admin",
-    ctaUrl: adminPanelUrl(),
-    footerNote: "PotteryMania — new user account.",
-  });
-
-  await sendAdminEmail(`New account: ${input.email} (${input.platformLabel})`, html, "new account");
+  await sendAdminEmail(`New studio: ${input.displayName}`, html, "new studio");
 }

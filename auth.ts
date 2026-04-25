@@ -6,8 +6,6 @@ import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { logAdminAction } from "@/lib/admin-audit";
 import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
-import { notifyAdminNewUserAccount } from "@/lib/email/admin-inbound-notify";
-import { oauthGoogleRegistrationPlatformLabel } from "@/lib/registration-platform";
 
 /** Thrown from authorize so the client can show a specific message (code in Auth.js JSON error URL). */
 class AccountSuspendedSignin extends CredentialsSignin {
@@ -167,14 +165,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               emailVerifiedAt: true,
             },
           });
-          if (!existingGoogleUser) {
-            await notifyAdminNewUserAccount({
-              platformLabel: oauthGoogleRegistrationPlatformLabel(),
-              email: dbUser.email,
-              method: "google",
-              userId: dbUser.id,
-            });
-          }
           token.sub = dbUser.id;
           token.email = dbUser.email;
           token.role = dbUser.role;
