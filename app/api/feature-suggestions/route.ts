@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     if (isEmailTransportError(e)) {
       console.warn("[feature-suggestions] email transport", e.code, e.message);
     } else {
-      console.error("[feature-suggestions] email failed", e);
+      console.warn("[feature-suggestions] email failed", e);
     }
   }
 

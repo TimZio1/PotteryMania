@@ -141,10 +141,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           "";
         if (email) {
           const normalizedEmail = email.toLowerCase().trim();
-          const existingGoogleUser = await prisma.user.findUnique({
-            where: { email: normalizedEmail },
-            select: { id: true },
-          });
           const dbUser = await prisma.user.upsert({
             where: { email: normalizedEmail },
             update: {

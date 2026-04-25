@@ -28,13 +28,13 @@ export async function notifyAdminNewStudioRegistered(input: {
   const html = renderEmailShell({
     eyebrow: "PotteryMania admin",
     title: "New studio registered",
-    intro: `${input.displayName} is pending review.`,
+    intro: `${input.displayName || "Studio"} is pending review.`,
     bodyHtml: `
-      <p style="margin:0 0 10px;"><strong>Studio:</strong> ${escapeHtml(input.displayName)}</p>
-      <p style="margin:0 0 10px;"><strong>Location:</strong> ${escapeHtml(input.city)}, ${escapeHtml(input.country)}</p>
-      <p style="margin:0 0 10px;"><strong>Owner email:</strong> ${escapeHtml(input.ownerEmail)}</p>
-      <p style="margin:0 0 10px;"><strong>Owner user id:</strong> ${escapeHtml(input.ownerUserId)}</p>
-      <p style="margin:0 0 10px;"><strong>Studio id:</strong> ${escapeHtml(input.studioId)}</p>
+      <p style="margin:0 0 10px;"><strong>Studio:</strong> ${escapeHtml(String(input.displayName ?? ""))}</p>
+      <p style="margin:0 0 10px;"><strong>Location:</strong> ${escapeHtml(String(input.city ?? ""))}, ${escapeHtml(String(input.country ?? ""))}</p>
+      <p style="margin:0 0 10px;"><strong>Owner email:</strong> ${escapeHtml(String(input.ownerEmail ?? ""))}</p>
+      <p style="margin:0 0 10px;"><strong>Owner user id:</strong> ${escapeHtml(String(input.ownerUserId ?? ""))}</p>
+      <p style="margin:0 0 10px;"><strong>Studio id:</strong> ${escapeHtml(String(input.studioId ?? ""))}</p>
       <p style="margin:0 0 10px;"><strong>Status:</strong> pending review</p>
     `,
     ctaLabel: "Review in admin",
@@ -42,5 +42,5 @@ export async function notifyAdminNewStudioRegistered(input: {
     footerNote: "PotteryMania — new studio (database record).",
   });
 
-  await sendAdminEmail(`New studio: ${input.displayName}`, html, "new studio");
+  await sendAdminEmail(`New studio: ${input.displayName || "unknown"}`, html, "new studio");
 }
