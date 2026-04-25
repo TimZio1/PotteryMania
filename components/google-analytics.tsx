@@ -1,9 +1,10 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { getGaMeasurementId } from "@/lib/ga-config";
-const CONSENT_COOKIE = "pm_cookie_consent";
+
 const DEFAULT_LINK_DOMAINS = ["potterymania.com"];
 
 function resolveLinkDomains(): string[] {
@@ -16,29 +17,48 @@ function resolveLinkDomains(): string[] {
   return parsed.length > 0 ? parsed : DEFAULT_LINK_DOMAINS;
 }
 
-function hasAnalyticsConsent(): boolean {
-  if (typeof document === "undefined") return false;
-  return document.cookie
-    .split(";")
-    .map((chunk) => chunk.trim())
-    .some((chunk) => chunk === `${CONSENT_COOKIE}=accepted`);
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+/**
+ * Single-page App: re-send a page view on client navigations (first load is handled by
+ * the inline gtag config; we skip the first effect run to avoid a duplicate hit).
+ */
+function Ga4SpaPageViews({ measurementId }: { measurementId: string }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isFirst = useRef(true);
+
+  useEffect(() => {
+    const run = () => {
+      if (typeof window.gtag !== "function") return;
+      const q = searchParams.toString();
+      const pagePath = q ? `${pathname}?${q}` : pathname;
+      if (isFirst.current) {
+        isFirst.current = false;
+        return;
+      }
+      window.gtag("config", measurementId, {
+        page_path: pagePath,
+      });
+    };
+    // Defer to after gtag is defined (script order).
+    const t = window.setTimeout(run, 0);
+    return () => window.clearTimeout(t);
+  }, [measurementId, pathname, searchParams]);
+
+  return null;
 }
 
 export function GoogleAnalytics() {
-  const [enabled, setEnabled] = useState(false);
   const gaId = getGaMeasurementId();
   const linkDomains = resolveLinkDomains();
   const linkerDomainsJson = JSON.stringify(linkDomains);
 
-  useEffect(() => {
-    if (!gaId) return;
-    const sync = () => setEnabled(hasAnalyticsConsent());
-    sync();
-    window.addEventListener("pm-consent-changed", sync);
-    return () => window.removeEventListener("pm-consent-changed", sync);
-  }, [gaId]);
-
-  if (!gaId || !enabled) return null;
+  if (!gaId) return null;
 
   return (
     <>
@@ -57,6 +77,9 @@ export function GoogleAnalytics() {
           });
         `}
       </Script>
+      <Suspense fallback={null}>
+        <Ga4SpaPageViews measurementId={gaId} />
+      </Suspense>
     </>
   );
 }

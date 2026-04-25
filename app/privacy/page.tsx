@@ -82,9 +82,10 @@ export default function PrivacyPage() {
 
       <h2>6. Cookies and analytics</h2>
       <p>
-        We use cookies and similar technologies for authentication, session continuity, security, preferences, and
-        measurement. Non-essential analytics only run after you grant consent via the cookie banner. Blocking essential
-        cookies may prevent sign-in, checkout, or dashboard features from working correctly.
+        We use cookies and similar technologies for authentication, session continuity, security, and preferences. We use
+        Google Analytics (GA4) to understand traffic and how the product is used. The cookie banner controls optional
+        marketing cookies (for example Meta Pixel) when we enable them — not the basic GA4 site measurement. Blocking
+        essential cookies may prevent sign-in, checkout, or dashboard features from working correctly.
       </p>
 
       <h2>7. Retention</h2>

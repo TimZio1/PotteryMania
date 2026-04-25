@@ -38,7 +38,8 @@ export function CookieConsentBanner() {
     <div className="fixed inset-x-0 bottom-0 z-200 border-t border-[var(--border)] bg-[var(--surface)]/95 px-4 py-4 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--muted)]">
-          We use analytics cookies to see what&apos;s working. Login and checkout cookies stay on no matter what.
+          We use optional marketing cookies when you allow. Login, security, and basic site usage measurement stay on
+          either way.
         </p>
         <div className="flex items-center gap-2">
           <button
