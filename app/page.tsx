@@ -37,10 +37,10 @@ export default function Home() {
           <div className="mx-auto max-w-3xl">
             <div className={ui.card}>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">
-                The first global network & directory for independent artists and studios
+                Potters only
               </p>
               <h1 className="mt-2 font-serif text-3xl leading-tight text-white sm:text-4xl">
-                Discover, support, and grow — without losing your identity.
+                Discover, support, and grow without losing your identity.
               </h1>
               <p className="mt-3 text-sm leading-7 text-white/80">
                 <span className="font-semibold text-white">Get discovered. Get bookings. Stay in control.</span>
