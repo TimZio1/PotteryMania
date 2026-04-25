@@ -2,8 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
-
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+import { getGaMeasurementId } from "@/lib/ga-config";
 const CONSENT_COOKIE = "pm_cookie_consent";
 const DEFAULT_LINK_DOMAINS = ["potterymania.com"];
 
@@ -27,23 +26,24 @@ function hasAnalyticsConsent(): boolean {
 
 export function GoogleAnalytics() {
   const [enabled, setEnabled] = useState(false);
+  const gaId = getGaMeasurementId();
   const linkDomains = resolveLinkDomains();
   const linkerDomainsJson = JSON.stringify(linkDomains);
 
   useEffect(() => {
-    if (!GA_ID) return;
+    if (!gaId) return;
     const sync = () => setEnabled(hasAnalyticsConsent());
     sync();
     window.addEventListener("pm-consent-changed", sync);
     return () => window.removeEventListener("pm-consent-changed", sync);
-  }, []);
+  }, [gaId]);
 
-  if (!GA_ID || !enabled) return null;
+  if (!gaId || !enabled) return null;
 
   return (
     <>
       <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
         strategy="afterInteractive"
       />
       <Script id="gtag-init" strategy="afterInteractive">
@@ -51,7 +51,7 @@ export function GoogleAnalytics() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${GA_ID}', {
+          gtag('config', '${gaId}', {
             send_page_view: true,
             linker: { domains: ${linkerDomainsJson} }
           });
