@@ -43,19 +43,6 @@ const BASE_PUBLIC_CORE = [
   "/unauthorized-admin",
 ];
 
-const FRONTDESK_ONLY = [
-  "/",
-  "/vision",
-  "/early-access",
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/terms",
-  "/privacy",
-  "/checkout/success",
-];
-
 function publicAllowlist(): string[] {
   if (isPreregistrationOnly()) return [...BASE_PUBLIC_CORE];
   return [
@@ -177,19 +164,12 @@ export default auth(async (req) => {
     return NextResponse.redirect(dest);
   }
 
-  // Hard split: backoffice host should hand off customer routes to frontdesk.
-  if (
-    currentHost &&
-    frontdeskOrigin &&
-    backofficeHost &&
-    frontdeskHost &&
-    frontdeskHost !== backofficeHost &&
-    currentHost === backofficeHost &&
-    matchesPath(path, FRONTDESK_ONLY)
-  ) {
-    const dest = new URL(`${path}${req.nextUrl.search}`, frontdeskOrigin);
-    return NextResponse.redirect(dest);
-  }
+  /**
+   * We no longer redirect the backoffice host (e.g. potterymania.com) to a separate
+   * `FRONTDESK_SITE_URL` for `/`, /vision, /login, etc. That split sent users from
+   * the primary app domain to the marketing domain and breaks single-domain setup.
+   * Frontdesk → backoffice for non-marketing paths (block above) is unchanged.
+   */
 
   const primaryHost = primaryAppHostname();
   if (hostNoPort && primaryHost) {
