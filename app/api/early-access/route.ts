@@ -109,13 +109,13 @@ export async function POST(req: Request) {
     }
   }
   if (logoUrl.length > MAX_WEBSITE || !looksLikeHttpUrl(logoUrl)) {
-    return NextResponse.json({ error: "Please paste a valid logo URL." }, { status: 400 });
+    return NextResponse.json({ error: "Logo must be a valid https image address, or left empty." }, { status: 400 });
   }
   if (photoUrls.length > MAX_PHOTOS) {
-    return NextResponse.json({ error: `Please add up to ${MAX_PHOTOS} photo links.` }, { status: 400 });
+    return NextResponse.json({ error: `Add up to ${MAX_PHOTOS} studio photos.` }, { status: 400 });
   }
   if (photoUrls.some((url) => url.length > MAX_WEBSITE || !looksLikeHttpUrl(url))) {
-    return NextResponse.json({ error: "Please paste valid studio photo links." }, { status: 400 });
+    return NextResponse.json({ error: "Each studio photo must be a valid https image address." }, { status: 400 });
   }
   if (teamSize != null && (teamSize < 0 || teamSize > MAX_TEAM_SIZE)) {
     return NextResponse.json({ error: "Please enter a valid studio team size." }, { status: 400 });

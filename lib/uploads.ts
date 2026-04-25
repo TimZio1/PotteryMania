@@ -38,6 +38,9 @@ const PUBLIC_ALLOWED_UPLOAD_FOLDERS = new Set([
   "potterymania/booking-intake",
 ]);
 
+/** Server-signed uploads for anonymous lead / early-access flows (see `app/api/early-access/upload-image`). */
+export const EARLY_ACCESS_UPLOAD_FOLDER = "potterymania/early-access";
+
 export function resolveAllowedUploadFolder(folder: string | undefined, userId: string): string {
   const requested = (folder || "").trim();
   if (ALLOWED_UPLOAD_FOLDERS.has(requested)) {

@@ -34,7 +34,7 @@ export function StudioBrandImageField({ kind, label, requirements, value, onChan
       const { secureUrl } = await uploadImage(optimized, STUDIO_BRAND_CLOUDINARY_FOLDER);
       onChange(secureUrl);
       setMsgOk(true);
-      setMsg("Uploaded and optimized. Save the form to persist the URL in your studio profile.");
+      setMsg("Uploaded and optimized. Save the form to keep it on your studio profile.");
     } catch (err) {
       setMsgOk(false);
       setMsg(err instanceof Error ? err.message : "Upload failed");
@@ -47,20 +47,24 @@ export function StudioBrandImageField({ kind, label, requirements, value, onChan
     <div className="block space-y-1 text-sm">
       <span className="text-[var(--muted)]">{label}</span>
       <p className="text-xs leading-relaxed text-[var(--muted)]">{requirements}</p>
-      <input
-        className="mt-1 w-full rounded border px-3 py-2"
-        type="url"
-        placeholder="https://… or upload a file below"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      {value ? (
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element -- remote studio-owned URL from our uploader */}
+          <img src={value} alt="" className="h-16 w-16 rounded-md border border-stone-200 object-contain" />
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2 pt-1">
         <label className="inline-flex cursor-pointer items-center rounded border border-amber-800/30 bg-stone-50 px-3 py-1.5 text-xs font-medium text-amber-950 hover:bg-stone-100">
           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={busy} onChange={onPick} />
-          {busy ? "Optimizing & uploading…" : "Upload & optimize"}
+          {busy ? "Optimizing & uploading…" : value ? "Replace image" : "Upload image"}
         </label>
         {value ? (
-          <span className="text-xs text-emerald-800">URL set</span>
+          <>
+            <span className="text-xs text-emerald-800">Image added</span>
+            <button type="button" className="text-xs text-stone-600 underline" disabled={busy} onClick={() => onChange("")}>
+              Remove
+            </button>
+          </>
         ) : (
           <span className="text-xs text-stone-400">Optional until you publish</span>
         )}

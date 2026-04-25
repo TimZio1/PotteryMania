@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { ui } from "@/lib/ui-styles";
+import { uploadEarlyAccessImage } from "@/lib/early-access-client-upload";
+import { optimizeImageForUpload } from "@/lib/optimize-image-client";
+import { STUDIO_COVER_OPTIMIZE, STUDIO_LOGO_OPTIMIZE } from "@/lib/studio-brand-media";
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
 type OfferingIntent = "classes" | "workshops" | "shop";
@@ -11,20 +14,6 @@ type BookingIntent = "classes" | "private" | "products" | "not_sure";
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
-function parsePhotoUrlsFromText(value: string): string[] {
-  return value
-    .split(/\r?\n|,/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 8);
-}
-
-function normalizeUrl(value: string): string {
-  const v = value.trim();
-  if (!v) return "";
-  return v.startsWith("http://") || v.startsWith("https://") ? v : `https://${v}`;
 }
 
 export function PrivateGuideForm() {
@@ -40,8 +29,12 @@ export function PrivateGuideForm() {
     offerings: [] as OfferingIntent[],
     shortDescription: "",
     teamSize: "",
-    logoUrl: "",
-    studioPhotos: "",
+    /** New files picked on step 2; uploaded on save */
+    logoFile: null as File | null,
+    photoFiles: [] as File[],
+    /** After a successful lead save, used so repeat saves (e.g. account step) do not re-upload */
+    leadLogoUrl: "",
+    leadPhotoUrls: [] as string[],
     bookingIntent: "not_sure" as BookingIntent,
   });
 
@@ -75,6 +68,26 @@ export function PrivateGuideForm() {
     setError("");
     setPending(true);
     try {
+      let logoUrl = form.leadLogoUrl.trim();
+      let photoUrls = [...form.leadPhotoUrls];
+
+      if (form.logoFile) {
+        const optimized = await optimizeImageForUpload(form.logoFile, { ...STUDIO_LOGO_OPTIMIZE });
+        const { secureUrl } = await uploadEarlyAccessImage(optimized);
+        logoUrl = secureUrl;
+      }
+
+      if (form.photoFiles.length > 0) {
+        const next: string[] = [];
+        for (const file of form.photoFiles) {
+          if (next.length >= 8) break;
+          const optimized = await optimizeImageForUpload(file, { ...STUDIO_COVER_OPTIMIZE });
+          const { secureUrl } = await uploadEarlyAccessImage(optimized);
+          next.push(secureUrl);
+        }
+        photoUrls = next;
+      }
+
       const response = await fetch("/api/early-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -84,8 +97,8 @@ export function PrivateGuideForm() {
           country: form.country.trim() || "Not specified",
           city: "",
           googleMapsUrl: "",
-          logoUrl: normalizeUrl(form.logoUrl),
-          photoUrls: parsePhotoUrlsFromText(form.studioPhotos),
+          logoUrl: logoUrl || "",
+          photoUrls,
           websiteOrIg: form.shortDescription.trim(),
           teamSize: form.teamSize.trim() ? Number(form.teamSize.trim()) : null,
           offeringIntent: getEarlyAccessIntent(),
@@ -97,9 +110,16 @@ export function PrivateGuideForm() {
         setError(data.error || "Could not save your details. Try again.");
         return false;
       }
+      setForm((prev) => ({
+        ...prev,
+        leadLogoUrl: logoUrl,
+        leadPhotoUrls: photoUrls,
+        logoFile: null,
+        photoFiles: [],
+      }));
       return true;
-    } catch {
-      setError("Network error. Try again.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Network error. Try again.");
       return false;
     } finally {
       setPending(false);
@@ -411,25 +431,73 @@ export function PrivateGuideForm() {
               placeholder="e.g. 3"
             />
           </label>
-          <label className="block">
-            <span className={ui.label}>Logo URL (optional)</span>
-            <input
-              className={`${ui.input} mt-2`}
-              type="url"
-              value={form.logoUrl}
-              onChange={(e) => setForm((prev) => ({ ...prev, logoUrl: e.target.value }))}
-              placeholder="https://..."
-            />
-          </label>
-          <label className="block">
-            <span className={ui.label}>Studio photo URLs (optional)</span>
-            <textarea
-              className={`${ui.input} mt-2 min-h-24`}
-              value={form.studioPhotos}
-              onChange={(e) => setForm((prev) => ({ ...prev, studioPhotos: e.target.value }))}
-              placeholder="One link per line (up to 8)"
-            />
-          </label>
+          <div>
+            <span className={ui.label}>Logo (optional)</span>
+            <p className="mt-1 text-xs text-(--muted)">Upload a file — we don&apos;t use pasted links here.</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <label className="inline-flex cursor-pointer items-center rounded-(--radius-input) border border-(--border) bg-(--surface-elevated) px-3 py-2 text-xs font-medium text-foreground">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  disabled={pending}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null;
+                    e.target.value = "";
+                    setForm((prev) => ({ ...prev, logoFile: f }));
+                  }}
+                />
+                {form.logoFile ? form.logoFile.name : "Choose logo file"}
+              </label>
+              {form.logoFile || form.leadLogoUrl ? (
+                <button
+                  type="button"
+                  className="text-xs text-(--muted) underline"
+                  onClick={() => setForm((prev) => ({ ...prev, logoFile: null, leadLogoUrl: "" }))}
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
+            {form.leadLogoUrl && !form.logoFile ? (
+              <p className="mt-1 text-xs text-emerald-800">Logo saved. Choose a new file to replace it.</p>
+            ) : null}
+          </div>
+          <div>
+            <span className={ui.label}>Studio photos (optional)</span>
+            <p className="mt-1 text-xs text-(--muted)">Up to 8 image files (JPEG, PNG, or WebP).</p>
+            <label className="mt-2 inline-flex cursor-pointer items-center rounded-(--radius-input) border border-(--border) bg-(--surface-elevated) px-3 py-2 text-xs font-medium text-foreground">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="sr-only"
+                disabled={pending}
+                onChange={(e) => {
+                  const list = Array.from(e.target.files ?? []).slice(0, 8);
+                  e.target.value = "";
+                  setForm((prev) => ({ ...prev, photoFiles: list }));
+                }}
+              />
+              {form.photoFiles.length > 0
+                ? `${form.photoFiles.length} file(s) selected`
+                : "Choose photo files"}
+            </label>
+            {form.leadPhotoUrls.length > 0 && form.photoFiles.length === 0 ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <p className="text-xs text-emerald-800">
+                  {form.leadPhotoUrls.length} photo(s) already saved. Choose files to replace.
+                </p>
+                <button
+                  type="button"
+                  className="text-xs text-(--muted) underline"
+                  onClick={() => setForm((prev) => ({ ...prev, leadPhotoUrls: [] }))}
+                >
+                  Clear saved photos
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
         <button type="submit" className={`${ui.buttonPrimary} mt-auto w-full justify-center`}>
           Continue →
