@@ -14,21 +14,18 @@ type Props = {
   toolbar?: ReactNode;
 };
 
-function isClayenseHostname(host: string | null): boolean {
+/** Compact registration-style marketing shell (potterymania.com and local dev). */
+function isPotterymaniaMarketingHost(host: string | null): boolean {
   if (!host) return false;
-  return (
-    host === "clayense.com" ||
-    host.endsWith(".clayense.com") ||
-    host === "potterymania.com" ||
-    host.endsWith(".potterymania.com")
-  );
+  if (host === "localhost" || host.startsWith("127.0.0.1") || host === "::1") return true;
+  return host === "potterymania.com" || host.endsWith(".potterymania.com");
 }
 
 export async function MarketingLayout({ children, toolbar }: Props) {
   const requestHeaders = await headers();
   const hostHeader = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
   const normalizedHost = normalizeDomainName(stripPortFromHost(hostHeader) || "");
-  const onClayense = isClayenseHostname(normalizedHost || null);
+  const onPotterymania = isPotterymaniaMarketingHost(normalizedHost || null);
 
   return (
     <div className="pm-marketing-shell flex min-h-screen flex-col text-[var(--foreground)]">
@@ -45,20 +42,20 @@ export async function MarketingLayout({ children, toolbar }: Props) {
             <div className="max-w-md">
               <BrandLogo size="md" className="text-[var(--foreground)]" />
               <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">
-                {onClayense
-                  ? "The first global network & directory for independent artists and studios."
+                {onPotterymania
+                  ? "The first global network & directory for independent artists and studios — on potterymania.com."
                   : "For people who work with clay — from solo artists to full studios — sell your work, take bookings, and run everything in one calm system."}
               </p>
             </div>
             <div
               className={`grid gap-x-12 gap-y-6 text-sm text-[var(--muted)] ${
-                onClayense ? "sm:grid-cols-1 lg:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4"
+                onPotterymania ? "sm:grid-cols-1 lg:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4"
               }`}
             >
-              {onClayense ? (
+              {onPotterymania ? (
                 <>
                   <div className="space-y-2.5">
-                    <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Clayense</p>
+                    <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">PotteryMania</p>
                     <Link href="/" className="block transition hover:text-[var(--foreground)]">
                       Register your artist or studio profile
                     </Link>
@@ -155,7 +152,7 @@ export async function MarketingLayout({ children, toolbar }: Props) {
             </div>
           </div>
           <div className="mt-8 border-t border-[var(--border)] pt-6 text-sm text-[var(--muted)]">
-            <p>&copy; Clayense. All rights reserved.</p>
+            <p>&copy; PotteryMania. All rights reserved.</p>
           </div>
         </div>
       </footer>

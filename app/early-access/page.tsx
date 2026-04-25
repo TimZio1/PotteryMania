@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: "Private artist and studio registration",
     description:
-      "Private registration for independent artists and studios joining the first global network & directory.",
+      "Private registration for independent artists and studios on PotteryMania (potterymania.com).",
     path: "/early-access",
     robots: { index: false, follow: false },
   });

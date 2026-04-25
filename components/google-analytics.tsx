@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const CONSENT_COOKIE = "pm_cookie_consent";
-const DEFAULT_LINK_DOMAINS = ["clayense.com", "potterymania.com"];
+const DEFAULT_LINK_DOMAINS = ["potterymania.com"];
 
 function resolveLinkDomains(): string[] {
   const raw = process.env.NEXT_PUBLIC_GA_LINK_DOMAINS;

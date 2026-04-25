@@ -4,9 +4,9 @@ import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 const siteUrl = resolvePublicSiteUrl();
 
 export const siteMetadata = {
-  name: "Clayense",
+  name: "PotteryMania",
   description:
-    "The first global network & directory for independent artists and studios.",
+    "PotteryMania: the global network and directory for independent pottery artists and studios.",
   url: siteUrl,
   ogImage: "/og-default.png",
   keywords: [

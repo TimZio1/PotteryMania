@@ -17,12 +17,12 @@ export function oauthGoogleRegistrationPlatformLabel(): string {
   }
 }
 
-/** Public hostname for inbound registration / lead requests (clayense vs potterymania, etc.). */
+/** Public hostname for inbound registration / lead requests (e.g. potterymania.com). */
 export function registrationPlatformLabelFromRequest(req: Request): string {
   const hostHeader = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
   const host = normalizeDomainName(stripPortFromHost(hostHeader) || "");
   if (!host) return "unknown host";
-  if (host === "clayense.com" || host.endsWith(".clayense.com")) return "clayense.com";
   if (host === "potterymania.com" || host.endsWith(".potterymania.com")) return "potterymania.com";
+  if (host === "localhost" || host.startsWith("127.0.0.1") || host === "::1") return "local dev";
   return host;
 }

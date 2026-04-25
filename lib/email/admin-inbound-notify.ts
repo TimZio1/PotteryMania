@@ -48,7 +48,7 @@ export function notifyAdminCatalogLead(input: {
     `,
     ctaLabel: "Open admin",
     ctaUrl: adminPanelUrl(),
-    footerNote: "Clayense / PotteryMania — inbound catalog lead.",
+    footerNote: "PotteryMania — inbound catalog lead.",
   });
 
   safeSend(`New catalog lead: ${input.studioName} (${input.platformLabel})`, html, "catalog lead");
@@ -76,7 +76,7 @@ export function notifyAdminNewUserAccount(input: {
     `,
     ctaLabel: "Open admin",
     ctaUrl: adminPanelUrl(),
-    footerNote: "Clayense / PotteryMania — new user account.",
+    footerNote: "PotteryMania — new user account.",
   });
 
   safeSend(`New account: ${input.email} (${input.platformLabel})`, html, "new account");

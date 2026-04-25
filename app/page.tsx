@@ -14,9 +14,9 @@ const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
-    title: "The first global network & directory for independent artists and studios | Clayense",
+    title: "The first global network & directory for independent artists and studios | PotteryMania",
     description:
-      "Clayense is the first global network & directory for independent artists and studios.",
+      "Register on potterymania.com — the global network and directory for independent pottery artists and studios.",
     path: "/",
   });
   return {

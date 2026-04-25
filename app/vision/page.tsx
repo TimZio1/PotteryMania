@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
-    title: "Our vision | Clayense",
+    title: "Our vision | PotteryMania",
     description:
-      "Clayense vision: the first global network & directory for independent artists and studios.",
+      "PotteryMania vision: the first global network & directory for independent artists and studios.",
     path: "/vision",
   });
 }
@@ -21,7 +21,7 @@ export default function VisionPage() {
       <main className="bg-[#f6f1e8] py-8 text-[#1f1a17] sm:py-12">
         <section className={ui.narrowContainer}>
           <div className={ui.card}>
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">Clayense vision</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">PotteryMania vision</p>
             <h1 className="mt-2 font-serif text-3xl leading-tight text-white sm:text-4xl">
               The first global network & directory for independent artists and studios.
             </h1>
@@ -30,7 +30,7 @@ export default function VisionPage() {
               to grow.
             </p>
             <p className="mt-3 text-sm leading-7 text-white/85">
-              Clayense is built around visibility, identity, and control. Artists and studios keep their own voice,
+              PotteryMania is built around visibility, identity, and control. Artists and studios keep their own voice,
               customers, and way of working.
             </p>
             <p className="mt-3 text-sm leading-7 text-white/85">
