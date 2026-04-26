@@ -57,6 +57,32 @@ export default function AboutPage() {
               Affiliate program
             </Link>
           </div>
+
+          <div className="mt-14 rounded-2xl border border-stone-200/80 bg-white/80 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500">Get in touch</h2>
+            <ul className="mt-3 space-y-2 text-sm leading-relaxed text-stone-700">
+              <li>
+                <strong>Customer support:</strong>{" "}
+                <a href="mailto:support@potterymania.com" className="text-amber-900 underline-offset-2 hover:underline">
+                  support@potterymania.com
+                </a>
+                {" "}— orders, returns, sizing, anything else.
+              </li>
+              <li>
+                <strong>Affiliate program:</strong>{" "}
+                <a href="mailto:affiliates@potterymania.com" className="text-amber-900 underline-offset-2 hover:underline">
+                  affiliates@potterymania.com
+                </a>
+              </li>
+              <li>
+                <strong>Legal &amp; privacy:</strong>{" "}
+                <a href="mailto:legal@potterymania.com" className="text-amber-900 underline-offset-2 hover:underline">
+                  legal@potterymania.com
+                </a>
+              </li>
+            </ul>
+            <p className="mt-3 text-xs text-stone-500">We usually reply within one business day.</p>
+          </div>
         </div>
       </main>
     </MarketingLayout>

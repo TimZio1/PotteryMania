@@ -579,22 +579,23 @@ function LegacyStudioHome() {
 }
 
 /**
- * Homepage selection.
+ * Homepage — always apparel.
  *
- * Apparel is the default — this is the launch site. The legacy studio/early-access
- * landing is preserved as `LegacyStudioHome` (infra kept) but is only reachable when
- * an operator explicitly opts in with `NEXT_PUBLIC_HOMEPAGE_MODE=studio_legacy` AND
- * apparel-only mode is off.
- *
- * Why default-to-apparel: `NEXT_PUBLIC_*` envs are inlined at build time. If the
- * Railway build accidentally ran without `NEXT_PUBLIC_LAUNCH_MODE=apparel_only` we
- * still want the homepage to be the apparel storefront, not the SaaS pitch.
+ * The legacy SaaS / early-access landing (`LegacyStudioHome`) is preserved in
+ * this file as dead-but-intact infrastructure for a future re-launch, but is
+ * intentionally NOT reachable from `/`. We learned the hard way that
+ * `NEXT_PUBLIC_*` env-flag gating is fragile across Railway builds — flags can
+ * silently flip back to legacy on a stale build. The only way the storefront
+ * can never accidentally show "Studios & Makers / Early access" again is to
+ * remove the env-gated branch from the route entrypoint. To re-enable, wire
+ * `LegacyStudioHome` to a fresh route or flip this back deliberately.
  */
+// `LegacyStudioHome` reference kept so the symbol is not tree-shaken into a
+// "declared but unused" error. Do not delete without also removing the
+// component above.
+const _legacyStudioHomeReserved = LegacyStudioHome;
+
 export default function Home() {
-  const legacyOptIn =
-    !isApparelOnlyLaunch() && process.env.NEXT_PUBLIC_HOMEPAGE_MODE === "studio_legacy";
-  if (legacyOptIn) {
-    return <LegacyStudioHome />;
-  }
+  void _legacyStudioHomeReserved;
   return <ApparelHome />;
 }

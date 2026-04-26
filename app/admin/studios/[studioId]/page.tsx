@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { StudioAdminDetailActions } from "@/components/admin/studio-admin-detail-actions";
 import { StudioAdminFeatureEntitlements } from "@/components/admin/studio-admin-feature-entitlements";
+import { StudioAdminProfileEdit } from "@/components/admin/studio-admin-profile-edit";
+import { StudioAdminDangerZone } from "@/components/admin/studio-admin-danger-zone";
 import { activationGrantsAccess } from "@/lib/studio-features";
 import { platformFeatureRequiresStripeSubscription } from "@/lib/studio-feature-billing";
 import { ui } from "@/lib/ui-styles";
@@ -192,6 +194,35 @@ export default async function AdminStudioDetailPage({ params }: Props) {
           displayName={studio.displayName}
           status={studio.status}
           marketplaceRankWeight={studio.marketplaceRankWeight}
+        />
+      </div>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <StudioAdminProfileEdit
+          studioId={studio.id}
+          initial={{
+            displayName: studio.displayName,
+            legalBusinessName: studio.legalBusinessName,
+            vatNumber: studio.vatNumber,
+            responsiblePersonName: studio.responsiblePersonName,
+            email: studio.email,
+            phone: studio.phone,
+            country: studio.country,
+            city: studio.city,
+            addressLine1: studio.addressLine1,
+            addressLine2: studio.addressLine2,
+            postalCode: studio.postalCode,
+            shortDescription: studio.shortDescription,
+            websiteUrl: studio.websiteUrl,
+            instagramUrl: studio.instagramUrl,
+            facebookUrl: studio.facebookUrl,
+          }}
+        />
+
+        <StudioAdminDangerZone
+          studioId={studio.id}
+          displayName={studio.displayName}
+          actorIsHyperAdmin={user.role === "hyper_admin"}
         />
       </div>
     </div>

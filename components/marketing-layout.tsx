@@ -153,7 +153,7 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
                     Affiliate program
                   </Link>
                   <a
-                    href="mailto:hello@potterymania.com"
+                    href="mailto:support@potterymania.com"
                     className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Contact

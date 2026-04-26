@@ -3441,6 +3441,37 @@ model AdminNotification {
   @@map("admin_notifications")
 }
 
+/// Admin email inbox: inbound support/affiliate/legal mail plus outbound replies.
+model AdminInboxMessage {
+  id                String    @id @default(uuid()) @db.Uuid
+  direction         String    @default("inbound")
+  mailbox           String    @default("support")
+  fromEmail         String    @map("from_email")
+  fromName          String?   @map("from_name")
+  toEmail           String    @map("to_email")
+  subject           String
+  textBody          String?   @map("text_body") @db.Text
+  htmlBody          String?   @map("html_body") @db.Text
+  providerMessageId String?   @unique @map("provider_message_id")
+  threadKey         String?   @map("thread_key")
+  inReplyToId       String?   @map("in_reply_to_id") @db.Uuid
+  sentByUserId      String?   @map("sent_by_user_id") @db.Uuid
+  readAt            DateTime? @map("read_at")
+  savedAt           DateTime? @map("saved_at")
+  deletedAt         DateTime? @map("deleted_at")
+  sentAt            DateTime? @map("sent_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@index([direction, createdAt(sort: Desc)])
+  @@index([mailbox, createdAt(sort: Desc)])
+  @@index([readAt])
+  @@index([savedAt])
+  @@index([deletedAt])
+  @@index([threadKey])
+  @@map("admin_inbox_messages")
+}
+
 /// Stripe webhook delivery deduplication (`evt_…` id). `processedAt` set after handler succeeds.
 model StripeWebhookEvent {
   id          String    @id

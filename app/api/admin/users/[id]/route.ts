@@ -87,6 +87,12 @@ export async function PATCH(req: Request, ctx: Ctx) {
     suspendedReason?: string | null;
     adminTags?: unknown;
     reason?: string;
+    /** Profile edits — email is on the User row, the rest are on CustomerProfile. */
+    profile?: {
+      email?: string | null;
+      fullName?: string | null;
+      phone?: string | null;
+    };
   };
   try {
     body = await req.json();
@@ -103,10 +109,12 @@ export async function PATCH(req: Request, ctx: Ctx) {
   const existing = await prisma.user.findUnique({
     where: { id },
     select: {
+      email: true,
       role: true,
       suspendedAt: true,
       suspendedReason: true,
       adminTags: true,
+      customerProfile: { select: { fullName: true, phone: true } },
     },
   });
   if (!existing) {
@@ -158,28 +166,121 @@ export async function PATCH(req: Request, ctx: Ctx) {
     }
   }
 
-  if (!Object.keys(data).length) {
+  // Profile edits: email lives on User; fullName/phone live on CustomerProfile.
+  let nextEmail: string | null | undefined = undefined;
+  let nextFullName: string | null | undefined = undefined;
+  let nextPhone: string | null | undefined = undefined;
+  if (body.profile && typeof body.profile === "object") {
+    const p = body.profile;
+    if (Object.prototype.hasOwnProperty.call(p, "email")) {
+      const raw = p.email;
+      if (typeof raw !== "string") {
+        return NextResponse.json({ error: "email must be a string" }, { status: 400 });
+      }
+      const trimmed = raw.trim().toLowerCase();
+      if (trimmed.length === 0) {
+        return NextResponse.json({ error: "email cannot be empty" }, { status: 400 });
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) || trimmed.length > 254) {
+        return NextResponse.json({ error: "email must be a valid address" }, { status: 400 });
+      }
+      if (trimmed !== existing.email.toLowerCase()) {
+        const clash = await prisma.user.findFirst({
+          where: { email: { equals: trimmed, mode: "insensitive" }, NOT: { id } },
+          select: { id: true },
+        });
+        if (clash) {
+          return NextResponse.json({ error: "Email already in use by another account" }, { status: 409 });
+        }
+        nextEmail = trimmed;
+        data.email = trimmed;
+        // Force re-verification when email changes.
+        data.emailVerifiedAt = null;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(p, "fullName")) {
+      const raw = p.fullName;
+      if (raw !== null && typeof raw !== "string") {
+        return NextResponse.json({ error: "fullName must be a string or null" }, { status: 400 });
+      }
+      const cleaned = raw === null ? null : raw.trim().slice(0, 120);
+      const finalName = cleaned && cleaned.length > 0 ? cleaned : null;
+      if (finalName !== (existing.customerProfile?.fullName ?? null)) {
+        nextFullName = finalName;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(p, "phone")) {
+      const raw = p.phone;
+      if (raw !== null && typeof raw !== "string") {
+        return NextResponse.json({ error: "phone must be a string or null" }, { status: 400 });
+      }
+      const cleaned = raw === null ? null : raw.trim().slice(0, 40);
+      const finalPhone = cleaned && cleaned.length > 0 ? cleaned : null;
+      if (finalPhone !== (existing.customerProfile?.phone ?? null)) {
+        nextPhone = finalPhone;
+      }
+    }
+  }
+
+  const profileChanged = nextFullName !== undefined || nextPhone !== undefined;
+
+  if (!Object.keys(data).length && !profileChanged) {
     return NextResponse.json({ error: "No changes" }, { status: 400 });
   }
 
   const before = {
+    email: existing.email,
     role: existing.role,
     suspendedAt: existing.suspendedAt?.toISOString() ?? null,
     suspendedReason: existing.suspendedReason,
     adminTags: [...existing.adminTags].sort(),
+    fullName: existing.customerProfile?.fullName ?? null,
+    phone: existing.customerProfile?.phone ?? null,
   };
 
-  const updated = await prisma.user.update({
-    where: { id },
-    data,
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      suspendedAt: true,
-      suspendedReason: true,
-      adminTags: true,
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const userRow =
+      Object.keys(data).length > 0
+        ? await tx.user.update({
+            where: { id },
+            data,
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              suspendedAt: true,
+              suspendedReason: true,
+              adminTags: true,
+            },
+          })
+        : await tx.user.findUniqueOrThrow({
+            where: { id },
+            select: {
+              id: true,
+              email: true,
+              role: true,
+              suspendedAt: true,
+              suspendedReason: true,
+              adminTags: true,
+            },
+          });
+
+    if (profileChanged) {
+      const profileData: { fullName?: string | null; phone?: string | null } = {};
+      if (nextFullName !== undefined) profileData.fullName = nextFullName;
+      if (nextPhone !== undefined) profileData.phone = nextPhone;
+      await tx.customerProfile.upsert({
+        where: { userId: id },
+        create: {
+          userId: id,
+          fullName: profileData.fullName ?? null,
+          phone: profileData.phone ?? null,
+        },
+        update: profileData,
+      });
+    }
+
+    return userRow;
   });
 
   await logAdminAction({
@@ -189,12 +290,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
     entityId: id,
     before,
     after: {
+      email: updated.email,
       role: updated.role,
       suspendedAt: updated.suspendedAt?.toISOString() ?? null,
       suspendedReason: updated.suspendedReason,
       adminTags: [...updated.adminTags].sort(),
+      fullName: nextFullName !== undefined ? nextFullName : (existing.customerProfile?.fullName ?? null),
+      phone: nextPhone !== undefined ? nextPhone : (existing.customerProfile?.phone ?? null),
     },
-    reason,
+    reason: nextEmail
+      ? `${reason} · email changed (verification reset)`
+      : reason,
   });
 
   return NextResponse.json({ user: updated });

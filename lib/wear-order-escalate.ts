@@ -54,14 +54,13 @@ export async function escalateWearOrderSpreadconnectFailure(opts: {
   const messages: { to: string; subject: string; html: string }[] = [
     {
       to: opts.customerEmail,
-      subject: "Your order — we're processing it manually",
+      subject: `Order update — PotteryMania (#${opts.wearOrderId.slice(0, 8).toUpperCase()})`,
       html: renderEmailShell({
         eyebrow: "Order update",
         title: "We're processing your order manually",
-        intro: `Hi ${firstName}, your payment went through, but fulfilment couldn't be started automatically. The team will complete submission manually and email you when your order ships.`,
+        intro: `Hi ${firstName}, your payment went through, but fulfilment couldn't be started automatically. Our team will complete submission manually and email you the moment it ships.`,
         bodyHtml:
-          "<p style=\"margin:0;\">You don't need to do anything right now. If you have questions, reply to this email.</p>",
-        footerNote: "This message is about an order you placed in the wear shop.",
+          "<p style=\"margin:0;\">You don't need to do anything right now. If you have questions, reply to this email or write to support@potterymania.com.</p>",
       }),
     },
   ];

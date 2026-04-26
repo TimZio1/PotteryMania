@@ -37,7 +37,7 @@ function ApparelRefundsContent() {
         within <strong>30 days of delivery</strong> and we&apos;ll replace or refund it.
       </p>
       <ul>
-        <li>Email <a href="mailto:hello@potterymania.com">hello@potterymania.com</a> with your order number.</li>
+        <li>Email <a href="mailto:support@potterymania.com">support@potterymania.com</a> with your order number.</li>
         <li>Attach 1–2 clear photos showing the issue.</li>
         <li>You don&apos;t need to ship the faulty piece back unless we ask.</li>
       </ul>
@@ -83,8 +83,13 @@ function ApparelRefundsContent() {
 
       <h2>Contact</h2>
       <p>
-        Order issues: <a href="mailto:hello@potterymania.com">hello@potterymania.com</a> · We
+        Order issues: <a href="mailto:support@potterymania.com">support@potterymania.com</a> · We
         usually reply within one business day.
+      </p>
+      <p className="text-sm text-stone-600">
+        Affiliate program: <a href="mailto:affiliates@potterymania.com">affiliates@potterymania.com</a>
+        {" · "}
+        Legal &amp; privacy: <a href="mailto:legal@potterymania.com">legal@potterymania.com</a>
       </p>
 
       <p className="pt-4">

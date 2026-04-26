@@ -6,6 +6,7 @@ import { isAdminRole, requireAdminUser } from "@/lib/auth-session";
 import { StatCard } from "@/components/admin/stat-card";
 import { UserAdminActions } from "./user-admin-actions";
 import { UserAdminNotesForm } from "./user-admin-notes";
+import { UserAdminProfileEdit } from "./user-admin-profile-edit";
 import { UserAdminTagsPanel } from "./user-admin-tags";
 import { metaAdminPage } from "@/lib/seo-routes";
 
@@ -285,8 +286,19 @@ export default async function AdminUserDetailPage({ params }: Props) {
         )}
       </section>
 
-      <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-[var(--foreground)]">Profile</h2>
+      <section className="mt-10">
+        <UserAdminProfileEdit
+          userId={row.id}
+          initial={{
+            email: row.email,
+            fullName: row.customerProfile?.fullName ?? null,
+            phone: row.customerProfile?.phone ?? null,
+          }}
+        />
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">Profile metadata</h2>
         <dl className="mt-3 grid gap-2 text-sm text-[var(--muted)] sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase text-stone-400">Created</dt>
@@ -301,8 +313,8 @@ export default async function AdminUserDetailPage({ params }: Props) {
             <dd>{row.emailVerifiedAt ? row.emailVerifiedAt.toISOString().slice(0, 10) : "No"}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase text-stone-400">Full name</dt>
-            <dd>{row.customerProfile?.fullName ?? "—"}</dd>
+            <dt className="text-xs uppercase text-stone-400">Phone</dt>
+            <dd>{row.customerProfile?.phone ?? "—"}</dd>
           </div>
         </dl>
       </section>

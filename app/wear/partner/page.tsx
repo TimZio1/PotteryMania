@@ -155,6 +155,18 @@ export default async function WearPartnerPage() {
         </div>
 
         <p className="mt-10 text-center text-xs text-stone-500">
+          {apparelOnly ? (
+            <>
+              Questions?{" "}
+              <a
+                href="mailto:affiliates@potterymania.com"
+                className="underline underline-offset-2 hover:text-amber-900"
+              >
+                affiliates@potterymania.com
+              </a>
+              <span className="mx-1.5">·</span>
+            </>
+          ) : null}
           <Link href="/terms" className="underline underline-offset-2 hover:text-amber-900">
             Terms
           </Link>

@@ -24,10 +24,11 @@ export default function PrivacyPage() {
 
       <h2>1. Who we are</h2>
       <p>
-        PotteryMania is the controller for the personal data we process to operate the platform, secure accounts,
-        support studios, and run customer-facing bookings and commerce. During early access, privacy-related requests are
-        handled through the support pathways available inside the product. Public contact details will be published on the
-        website before the end of the early-access period.
+        PotteryMania is the controller for the personal data we process to operate the apparel shop, secure accounts,
+        process orders, and run the affiliate program. For privacy, data-protection, or GDPR requests (including access,
+        correction, deletion, and export) email <a href="mailto:legal@potterymania.com">legal@potterymania.com</a>. For
+        anything else (orders, returns, account help) email{" "}
+        <a href="mailto:support@potterymania.com">support@potterymania.com</a>.
       </p>
 
       <h2>2. Data we collect</h2>

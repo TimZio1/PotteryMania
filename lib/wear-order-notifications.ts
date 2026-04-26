@@ -1,9 +1,13 @@
 /**
- * Transactional email when wear orders move through lifecycle (Resend).
+ * Transactional emails sent to apparel customers as their order moves through
+ * its lifecycle (Resend). Voice: friendly, direct, branded for PotteryMania.
+ * Footer falls through to the default in renderEmailShell, which already
+ * points customers at support@potterymania.com.
  */
 import { prisma } from "@/lib/db";
 import { escapeHtml, renderEmailShell, sendEmailMessages } from "@/lib/email/base";
 import { logApiError } from "@/lib/monitoring";
+import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 export type WearOrderNotifyKind = "order_confirmed" | "fulfilled" | "shipped" | "refunded";
 
@@ -18,6 +22,14 @@ export function scheduleWearOrderNotification(
   );
 }
 
+function shortOrderRef(id: string): string {
+  return id.slice(0, 8).toUpperCase();
+}
+
+function siteOrderTrackingUrl(): string {
+  return `${resolvePublicSiteUrl().replace(/\/+$/, "")}/my-orders`;
+}
+
 async function sendWearTransactionalEmail(kind: WearOrderNotifyKind, orderId: string): Promise<void> {
   const order = await prisma.wearOrder.findUnique({
     where: { id: orderId },
@@ -26,28 +38,31 @@ async function sendWearTransactionalEmail(kind: WearOrderNotifyKind, orderId: st
   if (!order) return;
 
   const first = order.customerName.trim().split(/\s+/)[0] || "there";
+  const ref = shortOrderRef(order.id);
   const lines = order.items.map(
     (it) =>
       `${it.productNameSnapshot}${it.variantLabelSnapshot ? ` (${it.variantLabelSnapshot})` : ""} × ${it.quantity}`,
   );
   const lineHtml = escapeHtml(lines.join(" · "));
-  const total =
+  const totalRaw =
     order.amountTotalCents != null
       ? (order.amountTotalCents / 100).toFixed(2)
       : (order.subtotalCents / 100).toFixed(2);
   const cur = (order.currency || "EUR").toUpperCase();
+  const trackingUrl = siteOrderTrackingUrl();
 
   if (kind === "order_confirmed") {
     await sendEmailMessages([
       {
         to: order.customerEmail,
-        subject: "Your PotteryMania shop order is confirmed",
+        subject: `Order confirmed — PotteryMania (#${ref})`,
         html: renderEmailShell({
-          eyebrow: "Thank you",
-          title: "Order confirmed",
-          intro: `Hi ${first}, we've received your order and will prepare it for fulfilment.`,
-          bodyHtml: `<p style="margin:0 0 12px;">${lineHtml}</p><p style="margin:0;"><strong>Total:</strong> ${escapeHtml(total)} ${escapeHtml(cur)}</p>`,
-          footerNote: "PotteryMania shop — ceramic community merch.",
+          eyebrow: `Order #${ref}`,
+          title: "Thanks for your order",
+          intro: `Hi ${first}, we got your order and it's heading into production. We'll email you again the moment it ships.`,
+          bodyHtml: `<p style="margin:0 0 12px;">${lineHtml}</p><p style="margin:0;"><strong>Total:</strong> ${escapeHtml(totalRaw)} ${escapeHtml(cur)}</p><p style="margin:18px 0 0;font-size:13px;color:#5f5045;">Each piece is printed for you, so production typically takes 2–5 business days plus carrier transit.</p>`,
+          ctaLabel: "Track my order",
+          ctaUrl: trackingUrl,
         }),
       },
     ]);
@@ -58,13 +73,14 @@ async function sendWearTransactionalEmail(kind: WearOrderNotifyKind, orderId: st
     await sendEmailMessages([
       {
         to: order.customerEmail,
-        subject: "Your merch order is being prepared",
+        subject: `Your order is being prepared (#${ref})`,
         html: renderEmailShell({
-          eyebrow: "Update",
-          title: "Order fulfilled — shipping soon",
-          intro: `Hi ${first}, your items are packed and will ship shortly.`,
+          eyebrow: `Order #${ref}`,
+          title: "We're packing it up",
+          intro: `Hi ${first}, your order is printed and being prepared for shipping. You'll get a tracking link as soon as it leaves the facility.`,
           bodyHtml: `<p style="margin:0;">${lineHtml}</p>`,
-          footerNote: "PotteryMania shop — ceramic community merch.",
+          ctaLabel: "View order",
+          ctaUrl: trackingUrl,
         }),
       },
     ]);
@@ -79,13 +95,14 @@ async function sendWearTransactionalEmail(kind: WearOrderNotifyKind, orderId: st
     await sendEmailMessages([
       {
         to: order.customerEmail,
-        subject: "Your PotteryMania shop order has shipped",
+        subject: `Your order has shipped (#${ref})`,
         html: renderEmailShell({
-          eyebrow: "Shipped",
-          title: "On its way",
-          intro: `Hi ${first}, your order is on its way.`,
+          eyebrow: `Order #${ref}`,
+          title: "Your order is on its way",
+          intro: `Hi ${first}, your PotteryMania order has shipped. Here's the rundown.`,
           bodyHtml: `<p style="margin:0;">${lineHtml}</p>${trackBlock}`,
-          footerNote: "PotteryMania shop — ceramic community merch.",
+          ctaLabel: "Track my package",
+          ctaUrl: trackingUrl,
         }),
       },
     ]);
@@ -96,13 +113,12 @@ async function sendWearTransactionalEmail(kind: WearOrderNotifyKind, orderId: st
     await sendEmailMessages([
       {
         to: order.customerEmail,
-        subject: "Your PotteryMania shop order — refund processed",
+        subject: `Refund processed — PotteryMania (#${ref})`,
         html: renderEmailShell({
-          eyebrow: "Refund",
-          title: "Refund issued",
-          intro: `Hi ${first}, a refund has been processed for your order. It may take a few days to appear on your statement.`,
-          bodyHtml: `<p style="margin:0;">${lineHtml}</p>`,
-          footerNote: "PotteryMania shop — ceramic community merch.",
+          eyebrow: `Order #${ref}`,
+          title: "Your refund is on its way",
+          intro: `Hi ${first}, a refund has been processed for your order. Most banks post the funds within 5–10 business days.`,
+          bodyHtml: `<p style="margin:0;">${lineHtml}</p><p style="margin:18px 0 0;font-size:13px;color:#5f5045;">Questions about this refund? Reply to this email or write to support@potterymania.com.</p>`,
         }),
       },
     ]);

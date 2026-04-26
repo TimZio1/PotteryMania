@@ -29,7 +29,7 @@ env:
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_ci_placeholder"
   CRON_SECRET: "ci-cron-secret"
   RESEND_API_KEY: ""
-  RESEND_FROM: "PotteryMania <onboarding@resend.dev>"
+  RESEND_FROM: "PotteryMania <orders@potterymania.com>"
 
 jobs:
   quality:

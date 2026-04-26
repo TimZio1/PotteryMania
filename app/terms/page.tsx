@@ -131,8 +131,16 @@ function ApparelTermsContent() {
 
       <h2>12. Contact</h2>
       <p>
-        Questions about these terms or your order:{" "}
-        <a href="mailto:hello@potterymania.com">hello@potterymania.com</a>
+        Order questions and customer support:{" "}
+        <a href="mailto:support@potterymania.com">support@potterymania.com</a>
+      </p>
+      <p>
+        Affiliate program inquiries:{" "}
+        <a href="mailto:affiliates@potterymania.com">affiliates@potterymania.com</a>
+      </p>
+      <p>
+        Legal, privacy, and data-protection requests:{" "}
+        <a href="mailto:legal@potterymania.com">legal@potterymania.com</a>
       </p>
 
       <p className="border-t border-stone-200 pt-6 text-stone-500">

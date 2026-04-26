@@ -7,6 +7,9 @@ type EmailMessage = {
   to: string;
   subject: string;
   html: string;
+  text?: string;
+  from?: string;
+  replyTo?: string;
   /** Resend expects Base64 file contents */
   attachments?: { filename: string; content: string }[];
 };
@@ -36,14 +39,16 @@ export async function sendEmailMessages(messages: EmailMessage[]) {
       "RESEND_API_KEY is not set; cannot send email.",
     );
   }
-  const from = process.env.RESEND_FROM || "PotteryMania <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM || "PotteryMania <orders@potterymania.com>";
   for (const message of messages) {
     try {
       await resend.emails.send({
-        from,
+        from: message.from || from,
         to: message.to,
         subject: message.subject,
         html: message.html,
+        ...(message.text ? { text: message.text } : {}),
+        ...(message.replyTo ? { replyTo: message.replyTo } : {}),
         ...(message.attachments?.length
           ? {
               attachments: message.attachments.map((a) => ({
@@ -80,7 +85,7 @@ export function renderEmailShell(input: EmailShellInput) {
     : "";
   const footer = escapeHtml(
     input.footerNote ||
-      "You are receiving this email about a booking or order connected to a studio. Questions about your purchase? Contact the studio directly.",
+      "You're receiving this email about your PotteryMania order. Questions? Email support@potterymania.com — we usually reply within one business day.",
   );
 
   return `<!doctype html>
