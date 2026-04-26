@@ -1,4 +1,7 @@
 /** ISO 3166-1 alpha-2 — Stripe Checkout `shipping_address_collection.allowed_countries`. */
+export const WEAR_FREE_SHIPPING_THRESHOLD_CENTS = 5000;
+export const WEAR_STANDARD_SHIPPING_CENTS = 900;
+
 export const WEAR_CHECKOUT_SHIPPING_COUNTRIES = [
   "AT",
   "BE",

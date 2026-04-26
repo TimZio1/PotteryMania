@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { assertRateLimit } from "@/lib/rate-limit";
-import { WEAR_CHECKOUT_SHIPPING_COUNTRIES } from "@/lib/wear-shipping";
+import {
+  WEAR_CHECKOUT_SHIPPING_COUNTRIES,
+  WEAR_FREE_SHIPPING_THRESHOLD_CENTS,
+  WEAR_STANDARD_SHIPPING_CENTS,
+} from "@/lib/wear-shipping";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { logApiError } from "@/lib/monitoring";
 import {
@@ -137,6 +141,7 @@ export async function POST(req: Request) {
   }
 
   const currency = resolvedPack.currency;
+  const qualifiesForFreeShipping = subtotalCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
 
   const orderId = await prisma.$transaction(async (tx) => {
     const order = await tx.wearOrder.create({
@@ -223,8 +228,8 @@ export async function POST(req: Request) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 900, currency },
-            display_name: "Standard shipping",
+            fixed_amount: { amount: qualifiesForFreeShipping ? 0 : WEAR_STANDARD_SHIPPING_CENTS, currency },
+            display_name: qualifiesForFreeShipping ? "Free shipping" : "Standard shipping",
           },
         },
       ],

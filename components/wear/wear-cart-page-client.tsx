@@ -16,6 +16,7 @@ import { WEAR_LISTING_CURRENCY, WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-cur
 import { formatWearMoney } from "@/lib/wear-money";
 import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
 import { WEAR_SHIPPING_CART_NOTE } from "@/lib/wear-shipping-copy";
+import { WEAR_FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/wear-shipping";
 import { wearDisplayName } from "@/lib/wear-display-name";
 
 type VariantRow = {
@@ -152,6 +153,9 @@ export function WearCartPageClient() {
 
   const currency = products[0]?.currency ?? "EUR";
   const displayCurrency = serverPricing?.currency ?? currency;
+  const merchandiseCents = serverPricing?.preCents ?? subtotalCents;
+  const qualifiesForFreeShipping = merchandiseCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
+  const freeShippingRemainingCents = Math.max(0, WEAR_FREE_SHIPPING_THRESHOLD_CENTS - merchandiseCents);
 
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
 
@@ -392,18 +396,24 @@ export function WearCartPageClient() {
               <div className="flex justify-between">
                 <dt className="font-medium text-stone-800">Merchandise</dt>
                 <dd className="text-amber-950">
-                  {formatWearMoney(serverPricing?.preCents ?? subtotalCents, displayCurrency)}
+                  {formatWearMoney(merchandiseCents, displayCurrency)}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-stone-600">Shipping</dt>
-                <dd className="text-stone-600">Calculated at checkout</dd>
+                <dd className={qualifiesForFreeShipping ? "font-semibold text-emerald-700" : "text-stone-600"}>
+                  {qualifiesForFreeShipping
+                    ? "Free"
+                    : `${formatWearMoney(freeShippingRemainingCents, displayCurrency)} away from free shipping`}
+                </dd>
               </div>
               <div className="flex justify-between border-t border-stone-200/80 pt-3 text-base">
                 <dt className="font-semibold text-amber-950">Estimated total</dt>
                 <dd className="font-semibold text-amber-950">
-                  {formatWearMoney(serverPricing?.preCents ?? subtotalCents, displayCurrency)}
-                  <span className="ml-1 text-xs font-normal text-stone-500">+ shipping</span>
+                  {formatWearMoney(merchandiseCents, displayCurrency)}
+                  <span className="ml-1 text-xs font-normal text-stone-500">
+                    {qualifiesForFreeShipping ? "shipping free" : "+ shipping"}
+                  </span>
                 </dd>
               </div>
             </dl>
@@ -445,7 +455,7 @@ export function WearCartPageClient() {
             >
               {checkoutBusy
                 ? "Redirecting to Stripe…"
-                : `Pay ${formatWearMoney(serverPricing?.preCents ?? subtotalCents, displayCurrency)} — secure checkout`}
+                : `Pay ${formatWearMoney(merchandiseCents, displayCurrency)} — secure checkout`}
             </button>
             <p className="mt-3 flex items-center justify-center gap-2 text-xs text-stone-600">
               <span aria-hidden>🔒</span>
