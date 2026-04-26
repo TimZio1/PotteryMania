@@ -76,8 +76,9 @@ export function WearRetailPricingForm({ initial }: Props) {
         <div>
           <p className="text-sm font-semibold text-stone-950">Apparel retail pricing</p>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            Your selling price is calculated from Spreadconnect base cost. If Spreadconnect cost is missing, the fallback
-            cost below is used. These prices feed the shop, product pages, cart, and checkout.
+            Your selling price is calculated from Spreadconnect production cost (`b2bPrice`). The fallback below is only
+            for manual/non-linked products. If a linked Spreadconnect product is missing production cost, we keep its
+            saved Spreadconnect retail price until the next cost sync instead of pricing it from fallback.
           </p>
         </div>
         <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">

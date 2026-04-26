@@ -46,7 +46,10 @@ function unitPriceCents(
 ): number {
   if (internalPricing) {
     return calculateWearInternalListCents({
+      priceCents: p.priceCents,
       supplyCostCents: p.supplyCostCents,
+      externalFulfillmentId: p.externalFulfillmentId,
+      spreadconnectArticleId: p.spreadconnectArticleId,
       spreadconnectProductTypeName: p.spreadconnectProductTypeName,
       spreadconnectCategoryData: p.spreadconnectCategoryData,
     }, config);
@@ -61,7 +64,10 @@ function unitCostCents(
 ): number {
   if (internalPricing) {
     return wearEffectiveCostCents({
+      priceCents: p.priceCents,
       supplyCostCents: p.supplyCostCents,
+      externalFulfillmentId: p.externalFulfillmentId,
+      spreadconnectArticleId: p.spreadconnectArticleId,
       spreadconnectProductTypeName: p.spreadconnectProductTypeName,
       spreadconnectCategoryData: p.spreadconnectCategoryData,
     }, config);

@@ -143,9 +143,9 @@ export function WearProductGallery({
   const pdpBenefits = apparelLaunch ? PDP_BENEFITS_APPAREL : PDP_BENEFITS_CLASSIC;
 
   return (
-    <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+    <div className="grid gap-6 lg:grid-cols-2 lg:gap-16">
       <div>
-        <div className="relative aspect-3/4 overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100 ring-1 ring-stone-200 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
+        <div className="relative aspect-square overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100 ring-1 ring-stone-200 sm:aspect-3/4 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
           {selectedImage ? (
             <Image
               src={wearListingImageSrc(selectedImage.url, 960)}
@@ -200,21 +200,31 @@ export function WearProductGallery({
         ) : null}
       </div>
 
-      <div className="flex flex-col justify-center lg:pr-2">
+      <div className="flex flex-col lg:justify-center lg:pr-2">
         <Link
           href={backHref}
           className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500 transition hover:text-amber-950"
         >
           ← Back to shop
         </Link>
-        <h1 className="mt-6 font-serif text-3xl leading-tight tracking-tight text-amber-950 sm:text-4xl">{productName}</h1>
-        <p className="mt-4 text-sm font-medium leading-relaxed text-stone-700">{pdpHook}</p>
+        <h1 className="mt-4 font-serif text-3xl leading-tight tracking-tight text-amber-950 sm:mt-6 sm:text-4xl">{productName}</h1>
+        <p className="mt-3 text-sm font-medium leading-relaxed text-stone-700 sm:mt-4">{pdpHook}</p>
         <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
           {categoryLabel}
           {topSubLabel ? <> · {topSubLabel}</> : null}
         </p>
         {subtitle ? <p className="mt-3 text-lg text-stone-600">{subtitle}</p> : null}
-        <ul className="mt-6 space-y-2 text-sm leading-relaxed text-stone-600">
+        <WearPdpBuySection
+          productId={productId}
+          basePriceCents={basePriceCents}
+          currency={currency}
+          variants={variants}
+          studioId={studioId}
+          viewCartHref={resolvedViewCartHref}
+          selectedColor={selectedColor}
+          onSelectedColorChange={setSelectedColor}
+        />
+        <ul className="mt-8 space-y-2 text-sm leading-relaxed text-stone-600">
           {pdpBenefits.map((line) => (
             <li key={line} className="flex gap-2">
               <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-amber-600" aria-hidden />
@@ -279,7 +289,7 @@ export function WearProductGallery({
           </div>
         </details>
         {colorPreviewImages.length > 1 ? (
-          <section className="mt-5 rounded-xl border border-stone-200/80 bg-stone-50/70 px-4 py-4">
+          <section className="mt-5 hidden rounded-xl border border-stone-200/80 bg-stone-50/70 px-4 py-4 md:block">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-stone-500">Color previews</p>
@@ -325,16 +335,6 @@ export function WearProductGallery({
             </div>
           </section>
         ) : null}
-        <WearPdpBuySection
-          productId={productId}
-          basePriceCents={basePriceCents}
-          currency={currency}
-          variants={variants}
-          studioId={studioId}
-          viewCartHref={resolvedViewCartHref}
-          selectedColor={selectedColor}
-          onSelectedColorChange={setSelectedColor}
-        />
         {description ? (
           <div className="mt-12 border-t border-stone-200/80 pt-10">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Details</p>

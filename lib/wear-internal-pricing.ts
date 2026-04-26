@@ -2,7 +2,11 @@
  * Platform-controlled apparel pricing. Spreadconnect list prices are not used when internal pricing is on.
  *
  * retail = baseCost + ruleMargin (fixed EUR add-on per category)
- * baseCost = product.supplyCostCents ?? fallbackCosts[category]
+ * baseCost = product.supplyCostCents (Spreadconnect b2bPrice)
+ *
+ * Important: linked Spreadconnect products must not be repriced from the manual fallback cost
+ * when b2bPrice is missing. In that case we keep the saved Spreadconnect retail/list price
+ * instead of accidentally selling below production cost.
  */
 
 import { wearApparelBucketFromProduct } from "@/lib/wear-apparel-scope";
@@ -120,11 +124,18 @@ export function shouldUseInternalWearPricing(): boolean {
  * List price (pre–affiliate markup) in cents — what the platform charges before partner margin.
  */
 export function calculateWearInternalListCents(args: {
+  priceCents?: number | null;
   supplyCostCents: number | null | undefined;
+  externalFulfillmentId?: string | null;
+  spreadconnectArticleId?: number | null;
   spreadconnectProductTypeName?: string | null;
   spreadconnectCategoryData?: unknown;
 }, config: WearInternalPricingConfig = DEFAULT_WEAR_INTERNAL_PRICING_CONFIG): number {
   const category = wearInternalCategoryFromProduct(args);
+  const linkedToSpreadconnect = Boolean(args.externalFulfillmentId || args.spreadconnectArticleId);
+  if (args.supplyCostCents == null && linkedToSpreadconnect && typeof args.priceCents === "number" && args.priceCents > 0) {
+    return args.priceCents;
+  }
   const costCents = args.supplyCostCents ?? eurToCents(config.fallbackCostsEur[category]);
   const rule = config.rules[category];
   if (rule.type === "fixed") {
@@ -135,17 +146,27 @@ export function calculateWearInternalListCents(args: {
 
 /** Enforce paid unit ≥ COGS (supply or fallback cost for category). */
 export function wearEffectiveCostCents(args: {
+  priceCents?: number | null;
   supplyCostCents: number | null | undefined;
+  externalFulfillmentId?: string | null;
+  spreadconnectArticleId?: number | null;
   spreadconnectProductTypeName?: string | null;
   spreadconnectCategoryData?: unknown;
 }, config: WearInternalPricingConfig = DEFAULT_WEAR_INTERNAL_PRICING_CONFIG): number {
   const category = wearInternalCategoryFromProduct(args);
+  const linkedToSpreadconnect = Boolean(args.externalFulfillmentId || args.spreadconnectArticleId);
+  if (args.supplyCostCents == null && linkedToSpreadconnect && typeof args.priceCents === "number" && args.priceCents > 0) {
+    return args.priceCents;
+  }
   return args.supplyCostCents ?? eurToCents(config.fallbackCostsEur[category]);
 }
 
 export function assertWearUnitNotBelowCost(args: {
   unitPriceCents: number;
+  priceCents?: number | null;
   supplyCostCents: number | null | undefined;
+  externalFulfillmentId?: string | null;
+  spreadconnectArticleId?: number | null;
   spreadconnectProductTypeName?: string | null;
   spreadconnectCategoryData?: unknown;
 }, config: WearInternalPricingConfig = DEFAULT_WEAR_INTERNAL_PRICING_CONFIG): void {
@@ -160,6 +181,8 @@ export function mapWearProductRowToInternalPrices<
   T extends {
     priceCents: number;
     supplyCostCents?: number | null;
+    externalFulfillmentId?: string | null;
+    spreadconnectArticleId?: number | null;
     spreadconnectProductTypeName?: string | null;
     spreadconnectCategoryData?: unknown;
     variants: Array<{ priceCents: number | null }>;
@@ -173,6 +196,8 @@ export function mapWearProductRowToInternalPricesWithConfig<
   T extends {
     priceCents: number;
     supplyCostCents?: number | null;
+    externalFulfillmentId?: string | null;
+    spreadconnectArticleId?: number | null;
     spreadconnectProductTypeName?: string | null;
     spreadconnectCategoryData?: unknown;
     variants: Array<{ priceCents: number | null }>;
@@ -180,7 +205,10 @@ export function mapWearProductRowToInternalPricesWithConfig<
 >(row: T, config: WearInternalPricingConfig): T {
   if (!shouldUseInternalWearPricing()) return row;
   const list = calculateWearInternalListCents({
+    priceCents: row.priceCents,
     supplyCostCents: row.supplyCostCents ?? null,
+    externalFulfillmentId: row.externalFulfillmentId,
+    spreadconnectArticleId: row.spreadconnectArticleId,
     spreadconnectProductTypeName: row.spreadconnectProductTypeName,
     spreadconnectCategoryData: row.spreadconnectCategoryData,
   }, config);

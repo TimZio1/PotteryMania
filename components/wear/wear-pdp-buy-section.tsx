@@ -131,9 +131,9 @@ export function WearPdpBuySection({
   }
 
   return (
-    <div>
+    <div className="mt-5 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:mt-6 sm:p-5 lg:border-0 lg:p-0 lg:shadow-none">
       {needsVariant ? (
-        <div className="mt-2 space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-stone-500">Color</p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -174,7 +174,7 @@ export function WearPdpBuySection({
         </div>
       ) : null}
 
-      <p className="mt-6 text-2xl text-amber-950">
+      <p className="mt-5 text-2xl text-amber-950">
         {needsVariant && !selected ? (
           <>
             <span className="text-stone-500">From </span>
@@ -185,7 +185,24 @@ export function WearPdpBuySection({
         )}
       </p>
 
-      <div className="mt-5 grid gap-2 rounded-2xl border border-amber-950/10 bg-amber-50/70 p-4 text-xs leading-5 text-stone-700 sm:grid-cols-2">
+      <div className="mt-5">
+        {canAdd ? (
+          <WearAddToCartButton
+            productId={productId}
+            variantId={needsVariant ? selected?.id ?? null : null}
+            studioId={studioId}
+            viewCartHref={viewCartHref}
+            label={`Add to bag — ${formatWearMoney(displayCents, currency)}`}
+            className="inline-flex h-12 w-full min-h-12 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-semibold tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60"
+          />
+        ) : (
+          <p className="rounded-xl bg-stone-50 px-4 py-3 text-center text-sm font-medium text-stone-600">
+            {soldOut ? "This option is sold out." : needsVariant && !selectedColor ? "Pick a color to continue." : "Pick a size to continue."}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-2 rounded-2xl border border-amber-950/10 bg-amber-50/70 p-4 text-xs leading-5 text-stone-700 sm:grid-cols-2">
         <p>
           <strong className="text-amber-950">Fit:</strong> regular everyday fit. Pick your usual size.
         </p>
@@ -201,43 +218,6 @@ export function WearPdpBuySection({
         <p className="sm:col-span-2">
           <strong className="text-amber-950">Returns:</strong> 30 days for unworn apparel.
         </p>
-      </div>
-
-      <div className="mt-10 hidden md:block">
-        {canAdd ? (
-          <WearAddToCartButton
-            productId={productId}
-            variantId={needsVariant ? selected?.id ?? null : null}
-            studioId={studioId}
-            viewCartHref={viewCartHref}
-            label={`Add to bag — ${formatWearMoney(displayCents, currency)}`}
-          />
-        ) : (
-          <p className="text-sm text-stone-500">
-            {soldOut ? "This option is sold out." : needsVariant && !selectedColor ? "Pick a color to continue." : "Pick a size to continue."}
-          </p>
-        )}
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200/90 bg-[#f7f2ec]/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
-        <div className="mx-auto flex max-w-lg items-center gap-3">
-          <div className="min-w-0 flex-1">
-            {canAdd ? (
-              <WearAddToCartButton
-                productId={productId}
-                variantId={needsVariant ? selected?.id ?? null : null}
-                studioId={studioId}
-                viewCartHref={viewCartHref}
-                label={`Add to bag — ${formatWearMoney(displayCents, currency)}`}
-                className="inline-flex h-12 w-full min-h-12 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-semibold tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60"
-              />
-            ) : (
-              <p className="text-center text-xs font-medium text-stone-600">
-                {soldOut ? "Sold out" : needsVariant && !selectedColor ? "Pick a color above" : "Pick a size above"}
-              </p>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

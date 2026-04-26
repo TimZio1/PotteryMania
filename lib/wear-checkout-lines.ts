@@ -164,7 +164,10 @@ export async function resolveWearCheckoutLines(args: {
       : mapWearProductRowToInternalPrices(p);
     const baseCents = internalPricing
       ? calculateWearInternalListCents({
+          priceCents: priced.priceCents,
           supplyCostCents: priced.supplyCostCents,
+          externalFulfillmentId: priced.externalFulfillmentId,
+          spreadconnectArticleId: priced.spreadconnectArticleId,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
         }, internalPricingConfig)
@@ -177,7 +180,10 @@ export async function resolveWearCheckoutLines(args: {
       try {
         assertWearUnitNotBelowCost({
           unitPriceCents: unitCents,
+          priceCents: priced.priceCents,
           supplyCostCents: priced.supplyCostCents,
+          externalFulfillmentId: priced.externalFulfillmentId,
+          spreadconnectArticleId: priced.spreadconnectArticleId,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
         }, internalPricingConfig);
@@ -187,7 +193,10 @@ export async function resolveWearCheckoutLines(args: {
     }
     const supplyFloor = internalPricing
       ? wearEffectiveCostCents({
+          priceCents: priced.priceCents,
           supplyCostCents: priced.supplyCostCents,
+          externalFulfillmentId: priced.externalFulfillmentId,
+          spreadconnectArticleId: priced.spreadconnectArticleId,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
         }, internalPricingConfig)
