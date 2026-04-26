@@ -106,8 +106,8 @@ jobs:
           npx prisma validate
           npx prisma generate --no-engine
 
-      - name: Apply migrations (same as Railway pre-deploy)
-        run: npx prisma migrate deploy
+      - name: Prepare clean CI database
+        run: npx prisma db push --skip-generate
 
       - name: Build
         run: npm run build:ci
