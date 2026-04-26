@@ -15,6 +15,7 @@ import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { formatWearMoney } from "@/lib/wear-money";
+import { wearDisplayName } from "@/lib/wear-display-name";
 
 export const dynamic = "force-dynamic";
 
@@ -33,9 +34,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       path: `/wear/${slug}`,
     });
   }
-  const desc = p.subtitle ?? p.description ?? p.name;
+  const displayName = wearDisplayName(p);
+  const desc = p.subtitle ?? p.description ?? displayName;
   return buildMetadata({
-      title: `${p.name} — Shop`,
+      title: `${displayName} — Shop`,
       description: desc.slice(0, 160),
       path: `/wear/${slug}`,
     });
@@ -54,6 +56,7 @@ export default async function WearProductPage({ params }: Props) {
   });
   if (!pRaw) notFound();
   const p = mapWearProductRowToInternalPrices(pRaw);
+  const displayName = wearDisplayName(p);
   const category = resolveWearCatalogCategory({
     slug: p.slug,
     name: p.name,
@@ -79,8 +82,8 @@ export default async function WearProductPage({ params }: Props) {
   const jsonLd = toJsonLdScript([
     productJsonLd({
       path: `/wear/${p.slug}`,
-      name: p.name,
-      description: p.subtitle ?? p.description ?? `${p.name} — wear.`,
+      name: displayName,
+      description: p.subtitle ?? p.description ?? `${displayName} — wear.`,
       imageUrls: images.map((image) => image.url),
       brandName: "PotteryMania",
       category: category.categoryLabel,
@@ -91,7 +94,7 @@ export default async function WearProductPage({ params }: Props) {
     breadcrumbJsonLd([
       { name: "Home", path: "/" },
       { name: "Shop", path: "/wear/shop" },
-      { name: p.name, path: `/wear/${p.slug}` },
+      { name: displayName, path: `/wear/${p.slug}` },
     ]),
   ]);
 
@@ -128,7 +131,7 @@ export default async function WearProductPage({ params }: Props) {
       <div className="mx-auto max-w-6xl rounded-3xl border border-stone-200/80 bg-white p-5 shadow-[0_22px_80px_-32px_rgba(120,77,42,0.18)] sm:p-7 lg:p-8">
         <WearProductGallery
           productId={p.id}
-          productName={p.name}
+          productName={displayName}
           images={images}
           variants={variantProps}
           basePriceCents={p.priceCents}
@@ -163,6 +166,7 @@ export default async function WearProductPage({ params }: Props) {
             {related.map((rp) => {
               const imgs = wearImageUrlsFromJson(rp.images);
               const src = imgs[0];
+              const relatedName = wearDisplayName(rp);
               return (
                 <li key={rp.id}>
                   <Link href={`/wear/${rp.slug}`} className="group block">
@@ -170,7 +174,7 @@ export default async function WearProductPage({ params }: Props) {
                       {src ? (
                         <Image
                           src={wearListingImageSrc(src, 560)}
-                          alt={rp.name}
+                          alt={relatedName}
                           fill
                           className="object-cover transition duration-500 group-hover:scale-[1.03]"
                           sizes="(max-width: 640px) 92vw, 25vw"
@@ -182,7 +186,7 @@ export default async function WearProductPage({ params }: Props) {
                       ) : null}
                     </div>
                     <div className="mt-3 flex items-baseline justify-between gap-3">
-                      <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{rp.name}</h3>
+                      <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{relatedName}</h3>
                       <p className="shrink-0 text-sm font-semibold text-amber-950">{formatWearMoney(rp.priceCents, rp.currency)}</p>
                     </div>
                   </Link>

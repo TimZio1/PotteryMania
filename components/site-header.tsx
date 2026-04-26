@@ -180,7 +180,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                     <Link href="/" className={linkClass("/")}>
                       Home
                     </Link>
-                    <Link href="/wear/shop" className={linkClass("/wear/shop")}>
+                    <Link href="/wear/shop" className={cn(ui.buttonMarketing, "min-h-10 px-5")}>
                       Shop
                     </Link>
                     <Link href="/wear/partner" className={linkClass("/wear/partner")}>
@@ -211,7 +211,14 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                 </Link>
               )}
               {showPublicSignIn ? (
-                <Link href="/login" className={cn(linkClass("/login"), "hidden md:inline-flex")}>
+                <Link
+                  href="/login"
+                  className={cn(
+                    ui.buttonGhost,
+                    "hidden min-h-10 px-3 text-sm text-[var(--muted)] hover:text-[var(--foreground)] md:inline-flex",
+                    pathname === "/login" ? "bg-[var(--surface-elevated)]" : "",
+                  )}
+                >
                   Sign in
                 </Link>
               ) : null}
@@ -356,7 +363,11 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                 )}
                 <hr className="my-2 border-[var(--border)]" />
                 {showPublicSignIn ? (
-                  <Link href="/login" className={mobileLinkClass("/login")} onClick={close}>
+                  <Link
+                    href="/login"
+                    className={cn(mobileLinkClass("/login"), "text-sm text-[var(--muted)]")}
+                    onClick={close}
+                  >
                     Sign in
                   </Link>
                 ) : null}

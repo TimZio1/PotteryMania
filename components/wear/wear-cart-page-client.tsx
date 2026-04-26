@@ -16,6 +16,7 @@ import { WEAR_LISTING_CURRENCY, WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-cur
 import { formatWearMoney } from "@/lib/wear-money";
 import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
 import { WEAR_SHIPPING_CART_NOTE } from "@/lib/wear-shipping-copy";
+import { wearDisplayName } from "@/lib/wear-display-name";
 
 type VariantRow = {
   id: string;
@@ -40,18 +41,19 @@ function resolveLine(
 ): { ok: boolean; title: string; unitCents: number; currency: string } {
   const p = byId.get(line.productId);
   if (!p) return { ok: false, title: "Unknown item", unitCents: 0, currency: "EUR" };
+  const displayName = wearDisplayName(p);
 
   if (p.variants.length > 0) {
     const vid = line.variantId?.trim() || "";
-    if (!vid) return { ok: false, title: p.name, unitCents: 0, currency: p.currency };
+    if (!vid) return { ok: false, title: displayName, unitCents: 0, currency: p.currency };
     const v = p.variants.find((x) => x.id === vid);
-    if (!v) return { ok: false, title: p.name, unitCents: 0, currency: p.currency };
+    if (!v) return { ok: false, title: displayName, unitCents: 0, currency: p.currency };
     const unit = v.priceCents ?? p.priceCents;
-    return { ok: true, title: `${p.name} — ${v.label}`, unitCents: unit, currency: p.currency };
+    return { ok: true, title: `${displayName} — ${v.label}`, unitCents: unit, currency: p.currency };
   }
 
-  if (line.variantId) return { ok: false, title: p.name, unitCents: 0, currency: p.currency };
-  return { ok: true, title: p.name, unitCents: p.priceCents, currency: p.currency };
+  if (line.variantId) return { ok: false, title: displayName, unitCents: 0, currency: p.currency };
+  return { ok: true, title: displayName, unitCents: p.priceCents, currency: p.currency };
 }
 
 export function WearCartPageClient() {

@@ -30,7 +30,7 @@ const APPAREL_KEYWORDS = [
   "potter apparel",
   "artist hoodies",
   "print on demand shirts",
-  "studio merch",
+  "ceramic artist apparel",
   "creative apparel",
   "affiliate apparel program",
   "PotteryMania shop",
@@ -47,6 +47,12 @@ export const siteMetadata = {
     return [...(isApparelOnlyLaunch() ? APPAREL_KEYWORDS : FULL_KEYWORDS)];
   },
 };
+
+function keywordsForPath(path: string | undefined) {
+  const normalized = path || "/";
+  if (normalized === "/" || normalized.startsWith("/wear")) return [...APPAREL_KEYWORDS];
+  return [...siteMetadata.keywords];
+}
 
 export function buildAbsoluteUrl(path = "/") {
   return new URL(path, siteMetadata.url).toString();
@@ -82,7 +88,7 @@ export function buildMetadata(input: {
   return {
     title: input.title,
     description: input.description,
-    keywords: [...siteMetadata.keywords, ...(input.keywords ?? [])],
+    keywords: [...keywordsForPath(input.path), ...(input.keywords ?? [])],
     robots: input.robots,
     verification: envVerification(),
     alternates: {

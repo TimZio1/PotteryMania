@@ -310,6 +310,8 @@ model Studio {
   orderItems           OrderItem[]
   stripeAccount        StripeAccount?
   commissionRules      CommissionRule[]
+  affiliateCommissionCredits AffiliateCommissionCredit[]
+  affiliatePayouts     AffiliatePayout[]
   calendarConnections  CalendarConnection[]
   vendorDomains        VendorDomain[]
   analyticsSnapshots   AnalyticsSnapshot[]
@@ -656,6 +658,7 @@ model WearOrder {
   coupon Coupon? @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items  WearOrderItem[]
   discountRedemption DiscountRedemption?
+  affiliateCommissionCredit AffiliateCommissionCredit?
   fulfillmentJobs WearFulfillmentJob[]
   events WearOrderEvent[]
 
@@ -794,6 +797,62 @@ model StudioWearProduct {
   @@unique([studioId, wearProductId])
   @@index([studioId, sortOrder])
   @@map("studio_wear_products")
+}
+
+enum AffiliateCommissionCreditStatus {
+  pending
+  payout_pending
+  paid
+  void
+}
+
+enum AffiliatePayoutStatus {
+  pending
+  paid
+  failed
+}
+
+model AffiliateCommissionCredit {
+  id                    String                          @id @default(uuid()) @db.Uuid
+  studioId              String                          @map("studio_id") @db.Uuid
+  wearOrderId           String                          @unique @map("wear_order_id") @db.Uuid
+  payoutId              String?                         @map("payout_id") @db.Uuid
+  amountCents           Int                             @map("amount_cents")
+  currency              String                          @default("EUR")
+  status                AffiliateCommissionCreditStatus @default(pending)
+  sourceStripePaymentId String?                         @map("source_stripe_payment_id")
+  creditedAt            DateTime                        @default(now()) @map("credited_at")
+  paidAt                DateTime?                       @map("paid_at")
+  createdAt             DateTime                        @default(now()) @map("created_at")
+  updatedAt             DateTime                        @updatedAt @map("updated_at")
+
+  studio    Studio           @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  wearOrder WearOrder        @relation(fields: [wearOrderId], references: [id], onDelete: Cascade)
+  payout    AffiliatePayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([studioId, status, currency])
+  @@index([payoutId])
+  @@map("affiliate_commission_credits")
+}
+
+model AffiliatePayout {
+  id                    String                @id @default(uuid()) @db.Uuid
+  studioId              String                @map("studio_id") @db.Uuid
+  amountCents           Int                   @map("amount_cents")
+  currency              String                @default("EUR")
+  status                AffiliatePayoutStatus @default(pending)
+  stripeAccountId       String                @map("stripe_account_id")
+  stripeTransferId      String?               @unique @map("stripe_transfer_id")
+  failureReason         String?               @map("failure_reason") @db.Text
+  createdAt             DateTime              @default(now()) @map("created_at")
+  paidAt                DateTime?             @map("paid_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  studio  Studio                      @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  credits AffiliateCommissionCredit[]
+
+  @@index([studioId, status, currency])
+  @@map("affiliate_payouts")
 }
 
 model Product {

@@ -4,14 +4,9 @@
  * `adminLinks` is the full list (kept short on purpose; less-used screens are reachable
  * from their related hub pages — Settings, Content, etc).
  *
- * `apparelOnlyAdminLinks` is the curated subset shown when `featureFlags.apparelOnly`
- * is on: only the surfaces a single operator needs to run an apparel-only launch
- * (Wear catalog + sales + analytics, coupons, money, users, system, settings).
- *
- * Hidden links **stay routable** — the page files live on disk and can be reached by
- * pasting the URL or by the "Hidden in apparel-only" expander on the home admin page.
- * No code is deleted: when the studio platform reopens, swap the flag and the full nav
- * comes back automatically.
+ * `apparelOnlyAdminLinks` is the operator surface for the apparel-only launch.
+ * Studio/booking/marketplace infrastructure stays routable on disk, but it is not
+ * advertised in the admin panel while PotteryMania is focused on apparel + affiliates.
  */
 
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
@@ -60,13 +55,13 @@ export const adminLinks: readonly AdminLink[] = [
  */
 export const apparelOnlyAdminLinks: readonly AdminLink[] = [
   { href: "/admin", label: "Home" },
-  { href: "/admin/wear-products", label: "Wear · products" },
-  { href: "/admin/wear-orders", label: "Wear · sales" },
-  { href: "/admin/wear-analytics", label: "Wear · analytics" },
+  { href: "/admin/wear-products", label: "Products" },
+  { href: "/admin/wear-orders", label: "Orders" },
+  { href: "/admin/affiliates", label: "Affiliates" },
+  { href: "/admin/wear-analytics", label: "Analytics" },
   { href: "/admin/coupons", label: "Coupons" },
   { href: "/admin/revenue", label: "Revenue" },
-  { href: "/admin/finance", label: "Finance" },
-  { href: "/admin/users", label: "Users" },
+  { href: "/admin/users", label: "Customers" },
   { href: "/admin/notifications", label: "Inbox" },
   { href: "/admin/audit", label: "Audit" },
   { href: "/admin/system", label: "System" },

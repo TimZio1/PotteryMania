@@ -27,7 +27,7 @@ function entry(
 function staticSitemapFallback(): MetadataRoute.Sitemap {
   const now = new Date();
   if (isApparelOnlyLaunch()) {
-    const paths = ["/", "/shop", "/about", "/wear/shop", "/wear/partner", "/login", "/register", "/terms", "/privacy", "/refunds"];
+    const paths = ["/", "/shop", "/about", "/wear/shop", "/wear/partner", "/wear/partner/apply", "/login", "/register", "/terms", "/privacy", "/refunds"];
     return paths.map((path) => entry(path, now, path === "/" ? 1 : 0.6, path === "/" ? "daily" : "weekly"));
   }
   const paths = isPreregistrationOnly()
@@ -69,6 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         entry("/about", now, 0.75, "monthly"),
         entry("/wear/shop", now, 0.95, "daily"),
         entry("/wear/partner", now, 0.8, "weekly"),
+        entry("/wear/partner/apply", now, 0.65, "monthly"),
         entry("/login", now, 0.3, "monthly"),
         entry("/register", now, 0.4, "monthly"),
         entry("/terms", now, 0.2, "monthly"),

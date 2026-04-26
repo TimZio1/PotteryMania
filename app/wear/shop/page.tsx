@@ -19,6 +19,7 @@ import { WEAR_ACTIVE_DROP, wearDropDefaultTitle } from "@/lib/wear-drop-config";
 import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import { wearDisplayName } from "@/lib/wear-display-name";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
@@ -362,6 +363,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                           {sub.products.map((p) => {
                             const imgs = wearImageUrlsFromJson(p.images);
                             const src = imgs[0];
+                            const displayName = wearDisplayName(p);
                             return (
                               <li key={p.id}>
                                 <Link href={`/wear/${p.slug}`} className="group block">
@@ -369,7 +371,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                     {src ? (
                                       <Image
                                         src={wearListingImageSrc(src, 640)}
-                                        alt={p.name}
+                                        alt={displayName}
                                         fill
                                         className="object-cover transition duration-500 group-hover:scale-[1.02]"
                                         sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 30vw"
@@ -386,7 +388,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                     )}
                                   </div>
                                   <div className="mt-4 flex items-baseline justify-between gap-3">
-                                    <h4 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{p.name}</h4>
+                                    <h4 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{displayName}</h4>
                                     <p className="shrink-0 text-sm font-semibold text-amber-950">
                                       {formatWearMoney(p.priceCents, p.currency)}
                                     </p>
@@ -415,6 +417,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                     {block.products.map((p) => {
                       const imgs = wearImageUrlsFromJson(p.images);
                       const src = imgs[0];
+                      const displayName = wearDisplayName(p);
                       return (
                         <li key={p.id}>
                           <Link href={`/wear/${p.slug}`} className="group block">
@@ -422,7 +425,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                               {src ? (
                                 <Image
                                   src={wearListingImageSrc(src, 640)}
-                                  alt={p.name}
+                                  alt={displayName}
                                   fill
                                   className="object-cover transition duration-500 group-hover:scale-[1.02]"
                                   sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 30vw"
@@ -439,7 +442,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                               )}
                             </div>
                             <div className="mt-4 flex items-baseline justify-between gap-3">
-                              <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{p.name}</h3>
+                              <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{displayName}</h3>
                               <p className="shrink-0 text-sm font-semibold text-amber-950">{formatWearMoney(p.priceCents, p.currency)}</p>
                             </div>
                             {p.isFeatured ? (

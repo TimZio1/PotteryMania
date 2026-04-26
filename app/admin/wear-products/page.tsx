@@ -9,7 +9,6 @@ import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import { loadWearCatalogValueSnapshot } from "@/lib/wear-spreadconnect-stats";
 import { formatWearMoney } from "@/lib/wear-money";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
-import WearSpreadconnectDevTools from "@/components/admin/wear-spreadconnect-dev-tools";
 
 import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
@@ -107,39 +106,6 @@ export default async function AdminWearProductsPage({
     console.error("[admin/wear-products] catalog value snapshot failed", err);
   }
 
-  let initialBuilderJobs: {
-    id: string;
-    state: string;
-    designImageUrl: string | null;
-    errorMessage: string | null;
-    wearProductId: string | null;
-    createdAt: string;
-  }[] = [];
-  try {
-    const recentBuilderJobs = await prisma.wearBuilderJob.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      select: {
-        id: true,
-        state: true,
-        designImageUrl: true,
-        errorMessage: true,
-        wearProductId: true,
-        createdAt: true,
-      },
-    });
-    initialBuilderJobs = recentBuilderJobs.map((j) => ({
-      id: j.id,
-      state: j.state,
-      designImageUrl: j.designImageUrl,
-      errorMessage: j.errorMessage,
-      wearProductId: j.wearProductId,
-      createdAt: j.createdAt.toISOString(),
-    }));
-  } catch (err) {
-    console.error("[admin/wear-products] wearBuilderJob query failed", err);
-  }
-
   const dbErrorLines = [productListError, healthSnapshotError].filter((x): x is string => Boolean(x));
   const dbErrorCombined = dbErrorLines.length > 0;
   const likelyMissingMigration = dbErrorLines.some(looksLikeMissingDbColumn);
@@ -157,9 +123,9 @@ export default async function AdminWearProductsPage({
           href="/admin/settings#wear-markup"
           className="font-medium text-amber-900 underline-offset-2 hover:underline"
         >
-          Platform retail markup on Spreadconnect base cost
+          Platform retail markup on saved supply cost
         </Link>
-        <span className="text-[var(--muted)]"> — default %, min/max, lock studio editing.</span>
+        <span className="text-[var(--muted)]"> — pricing uses saved DB data, not a live catalog fetch.</span>
       </p>
 
       {catalogValue ? (
@@ -243,7 +209,7 @@ export default async function AdminWearProductsPage({
             </div>
           </dl>
           <p className="mt-3 text-[11px] text-stone-500">
-            Read-only snapshot — refresh on every page load. JSON:{" "}
+            Read-only DB snapshot. JSON:{" "}
             <span className="font-mono">GET /api/admin/wear/catalog-value</span>
           </p>
         </section>
@@ -260,15 +226,15 @@ export default async function AdminWearProductsPage({
         className="mt-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-950"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="font-semibold">Daily price refresh from Spreadconnect</p>
+          <p className="font-semibold">Scheduled price refresh from Spreadconnect</p>
           <span className="rounded-full border border-emerald-300 bg-white px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-800">
-            Auto · 24h
+            Cron only
           </span>
         </div>
         <p className="mt-1 text-emerald-900/95">
           The catalog cron pulls every linked article&apos;s <strong>d2cPrice</strong> (list) and{" "}
-          <strong>b2bPrice</strong> (supply / COGS) once a day and writes them to the wear catalog. Use the{" "}
-          <em>Sync Spreadconnect catalog</em> button below to force a refresh now.
+          <strong>b2bPrice</strong> (supply / COGS) and writes them to the wear catalog. The admin page uses the
+          saved database catalog only; real-time manual catalog sync is disabled because Spreadconnect can fail.
         </p>
         <p className="mt-2 text-[11px] text-emerald-900/80">
           Cron path: <span className="font-mono">GET /api/cron/wear-catalog-sync</span> · auth:{" "}
@@ -321,21 +287,6 @@ export default async function AdminWearProductsPage({
           </details>
         </div>
       ) : null}
-
-      {process.env.SPREADCONNECT_PROBE_ENABLED === "true" ? (
-        <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50/80 px-4 py-3 text-xs text-violet-950">
-          <p className="font-semibold">Spreadconnect API probes (enabled)</p>
-          <p className="mt-1 text-violet-900">
-            <span className="font-mono">GET /api/admin/wear-spreadconnect/probe</span> — metadata.{" "}
-            <span className="font-mono">POST</span> with <span className="font-mono">action</span>:{" "}
-            <span className="font-mono">authentication</span>, <span className="font-mono">design_from_url</span> +{" "}
-            <span className="font-mono">imageUrl</span>, or <span className="font-mono">create_article</span> +{" "}
-            <span className="font-mono">article</span> (OpenAPI ArticleCreation). Use staging first; 60 req/min.
-          </p>
-        </div>
-      ) : null}
-
-      <WearSpreadconnectDevTools initialJobs={initialBuilderJobs} />
 
       {health.spreadconnectWarning ? (
         <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-100/80 px-4 py-3 text-sm text-amber-950">
@@ -411,7 +362,7 @@ export default async function AdminWearProductsPage({
           <p className="mt-2 text-xs font-medium text-red-900">Sync error flag: {health.lastSyncError}</p>
         ) : null}
         <p className="mt-3 text-xs text-[var(--muted)]">
-          Schedule: partial cron often; <strong>full discovery</strong> daily (or use the sync checkbox below once).
+          Schedule: keep the catalog cron running daily. Manual real-time catalog sync is disabled in admin.
           Trust requires a fresh <strong>full</strong> sync within ~36h, no duplicate SKUs, and skip ratio under 85%.
         </p>
       </div>

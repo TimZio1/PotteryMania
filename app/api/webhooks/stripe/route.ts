@@ -28,6 +28,11 @@ import { runCheckoutCompletionSideEffects, settleCheckoutOrderPayment } from "@/
 import { settleBookingRemainderPayment } from "@/lib/bookings/remainder";
 import { orderPaymentFailedCopy, sendOrderEmails } from "@/lib/email/order-notify";
 import { resolvePublicSiteUrl } from "@/lib/public-site-url";
+import {
+  attemptWearAffiliatePayoutForStudio,
+  recordWearAffiliateCommissionAndMaybePayout,
+} from "@/lib/wear-affiliate-payouts";
+import { sendWearAffiliateSaleEmail } from "@/lib/wear-affiliate-sale-email";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -67,6 +72,36 @@ export async function POST(req: Request) {
   if (await handleCustomerSubscriptionDeleted(event)) return ack();
   if (await handleCustomerSubscriptionUpdated(event)) return ack();
   if (await handleInvoicePaymentFailed(event)) return ack();
+
+  if (event.type === "account.updated") {
+    const account = event.data.object as Stripe.Account;
+    const row = await prisma.stripeAccount.findUnique({
+      where: { stripeAccountId: account.id },
+      select: { studioId: true },
+    });
+    if (!row) return ack();
+
+    const updated = await prisma.stripeAccount.update({
+      where: { studioId: row.studioId },
+      data: {
+        chargesEnabled: Boolean(account.charges_enabled),
+        payoutsEnabled: Boolean(account.payouts_enabled),
+        detailsSubmitted: Boolean(account.details_submitted),
+        onboardingStatus:
+          account.payouts_enabled && account.details_submitted
+            ? "connected"
+            : account.requirements?.disabled_reason
+              ? "restricted"
+              : "pending",
+      },
+    });
+    if (updated.payoutsEnabled && updated.detailsSubmitted) {
+      await runStripeWebhookSideEffect(event.id, `wear_affiliate_payout_ready:${row.studioId}`, async () => {
+        await attemptWearAffiliatePayoutForStudio({ studioId: row.studioId, currency: "EUR" });
+      });
+    }
+    return ack();
+  }
 
   if (event.type === "invoice.payment_succeeded") {
     const invoice = event.data.object as Stripe.Invoice;
@@ -627,6 +662,16 @@ export async function POST(req: Request) {
 
           if (applied) {
             scheduleWearOrderNotification("order_confirmed", wearOrderId);
+            await runStripeWebhookSideEffect(event.id, `wear_affiliate_payout:${wearOrderId}`, async () => {
+              await recordWearAffiliateCommissionAndMaybePayout(wearOrderId);
+            });
+            await runStripeWebhookSideEffect(event.id, `wear_affiliate_sale_email:${wearOrderId}`, async () => {
+              await sendWearAffiliateSaleEmail({
+                wearOrderId,
+                buyerEmail: session.customer_details?.email ?? null,
+                buyerCountry: session.customer_details?.address?.country ?? null,
+              });
+            });
             await runStripeWebhookSideEffect(event.id, `wear_spreadconnect:${wearOrderId}`, async () => {
               const stripe = getStripe();
               const fullSession = await stripe.checkout.sessions.retrieve(session.id, {

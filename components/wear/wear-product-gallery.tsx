@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { WEAR_CURRENCY_PDP_LINE } from "@/lib/wear-currency-policy";
-import { WEAR_SHIPPING_PDP_LINE } from "@/lib/wear-shipping-copy";
 import { WearPdpBuySection, type WearPdpVariant } from "@/components/wear/wear-pdp-buy-section";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
@@ -113,6 +112,21 @@ export function WearProductGallery({
     const matching = images.filter((image) => normalizeColorKey(image.appearanceName) === key);
     return matching.length > 0 ? matching : images;
   }, [images, selectedColor]);
+
+  const colorPreviewImages = useMemo(
+    () =>
+      colorOptions
+        .map((color) => {
+          const key = normalizeColorKey(color);
+          const image =
+            images.find((row) => normalizeColorKey(row.appearanceName) === key && row.perspective?.toLowerCase().includes("front")) ??
+            images.find((row) => normalizeColorKey(row.appearanceName) === key) ??
+            null;
+          return image ? { color, image } : null;
+        })
+        .filter((row): row is { color: string; image: WearGalleryImage } => row !== null),
+    [colorOptions, images],
+  );
 
   useEffect(() => {
     const nextImage = imagesForColor.find((image) => image.id === selectedImageId) ?? imagesForColor[0] ?? null;
@@ -264,6 +278,53 @@ export function WearProductGallery({
             </p>
           </div>
         </details>
+        {colorPreviewImages.length > 1 ? (
+          <section className="mt-5 rounded-xl border border-stone-200/80 bg-stone-50/70 px-4 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-stone-500">Color previews</p>
+                <p className="mt-1 text-xs text-stone-500">Tap a thumbnail to sync image and color.</p>
+              </div>
+              <p className="shrink-0 text-xs font-medium text-amber-950">{selectedColor}</p>
+            </div>
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              {colorPreviewImages.map(({ color, image }) => {
+                const isActive = normalizeColorKey(color) === normalizeColorKey(selectedColor);
+                return (
+                  <button
+                    key={`${color}-${image.id}`}
+                    type="button"
+                    onClick={() => {
+                      setSelectedColor(color);
+                      setSelectedImageId(image.id);
+                    }}
+                    aria-pressed={isActive}
+                    aria-label={`Select ${color}`}
+                    className={`group relative h-20 w-16 shrink-0 overflow-hidden rounded-xl border bg-white transition sm:h-24 sm:w-20 ${
+                      isActive
+                        ? "border-amber-500 ring-2 ring-amber-500/40"
+                        : "border-stone-200 hover:border-amber-300"
+                    }`}
+                  >
+                    <Image
+                      src={wearListingImageSrc(image.url, 320)}
+                      alt={wearPdpImageAlt(productName, image)}
+                      fill
+                      className="object-cover transition duration-300 group-hover:scale-[1.03]"
+                      sizes="96px"
+                      quality={62}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <span className="absolute inset-x-1 bottom-1 truncate rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium text-stone-800 shadow-sm">
+                      {color}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
         <WearPdpBuySection
           productId={productId}
           basePriceCents={basePriceCents}

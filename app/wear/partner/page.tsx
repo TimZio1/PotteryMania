@@ -48,14 +48,14 @@ export default async function WearPartnerPage() {
             </div>
             <div>
               <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">Payouts</dt>
-              <dd className="mt-1 font-serif text-3xl text-amber-950">Monthly</dd>
+              <dd className="mt-1 font-serif text-3xl text-amber-950">€50</dd>
             </div>
           </div>
         ) : null}
         <p className="mt-6 text-sm leading-relaxed text-stone-700">
           {apparelOnly
             ? "Drop your link, post your favourite tee, and get 10% on every qualifying sale — calculated on the final paid amount, after any active discount. We handle printing, shipping, and customer support."
-            : "This is not a marketplace pitch. Partners invite people who already identify with making things — teachers, studios, and creators who live in clay, wood, metal, or ink."}
+            : "Share apparel with people who already identify with making things — teachers, artists, and creators who live in clay, wood, metal, or ink."}
         </p>
 
         {!apparelOnly ? (
@@ -84,7 +84,7 @@ export default async function WearPartnerPage() {
             <ol className="space-y-3 text-sm leading-relaxed text-stone-700">
               <li className="flex gap-3">
                 <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 font-semibold text-amber-900">1</span>
-                Apply below. Once approved, you get a tracked share link.
+              Apply below. Once approved, you get a tracked share link.
               </li>
               <li className="flex gap-3">
                 <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 font-semibold text-amber-900">2</span>
@@ -110,14 +110,10 @@ export default async function WearPartnerPage() {
             {apparelOnly ? "Links & tracking" : "Creators & affiliates"}
           </h2>
           <p className="text-sm leading-relaxed text-stone-700">
-            <strong>Share links:</strong> approved partners can use a short code so your link looks like{" "}
+            <strong>Share links:</strong> approved affiliates can use a short code so your link looks like{" "}
             <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">yoursite.com/w/your-code</code> and
-            opens the shop with attribution. You can also append{" "}
-            <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">?ref=YOUR_STUDIO_ID</code> to{" "}
-            <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">/wear</code> URLs (e.g.{" "}
-            <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">/wear/shop?ref=…</code>
-            ). Attribution is stored in the buyer&apos;s browser (typically <strong>30 days</strong>) and passed at checkout
-            when eligible.
+            opens the shop with attribution. Attribution is stored in the buyer&apos;s browser for{" "}
+            <strong>30 days</strong> and passed at checkout when eligible.
           </p>
           {!apparelOnly ? (
             <p className="text-sm leading-relaxed text-stone-700">
@@ -129,8 +125,8 @@ export default async function WearPartnerPage() {
             <p className="text-sm leading-relaxed text-stone-700">
               <strong>10% commission</strong> is calculated on the final paid amount of every qualifying order — after
               any active discount, before tax and shipping. Cookies last <strong>30 days</strong>, last-touch.
-              Payouts are sent monthly via bank transfer or PayPal once your balance reaches €25. No multi-level
-              structure, no hidden fees.
+              Payouts are sent through Stripe to your connected account once your unpaid commission reaches €50. No
+              multi-level structure, no hidden fees.
             </p>
           )}
           <p className="text-sm leading-relaxed text-stone-600">

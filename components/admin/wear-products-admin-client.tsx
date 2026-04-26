@@ -32,9 +32,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [promoting, setPromoting] = useState(false);
-  const [fullSpreadconnectDiscovery, setFullSpreadconnectDiscovery] = useState(false);
 
   const refresh = useCallback(async () => {
     const q = includeArchived ? "?includeArchived=1" : "";
@@ -83,62 +81,6 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     await refresh();
   }
 
-  async function syncFromSpreadconnect() {
-    setBusy(true);
-    setSyncing(true);
-    setErr("");
-    setMsg("");
-    const ac = new AbortController();
-    const timeoutMs = fullSpreadconnectDiscovery ? 600_000 : 120_000;
-    const t = window.setTimeout(() => ac.abort(), timeoutMs);
-    try {
-      const r = await fetch("/api/admin/wear-products/sync-spreadconnect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullDiscovery: fullSpreadconnectDiscovery }),
-        signal: ac.signal,
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        setErr((j as { error?: string }).error ?? "Spreadconnect sync failed");
-        return;
-      }
-      const result = j as {
-        syncedProducts?: number;
-        createdProducts?: number;
-        updatedProducts?: number;
-        skippedUnchangedProducts?: number;
-        archivedProducts?: number;
-        skippedArticles?: number;
-        refreshedByArticleId?: number;
-        discoveryListPages?: number;
-        fullCatalogScanCompleted?: boolean;
-        syncMode?: string;
-        skipRatio?: number;
-      };
-      const ratioPct =
-        typeof result.skipRatio === "number" ? ` · skip ratio ${(result.skipRatio * 100).toFixed(1)}%` : "";
-      const modeNote = result.syncMode ? ` · mode ${result.syncMode}` : "";
-      setMsg(
-        `Spreadconnect sync complete: ${result.syncedProducts ?? 0} checked · ${result.createdProducts ?? 0} created · ${result.updatedProducts ?? 0} updated · ${result.skippedUnchangedProducts ?? 0} unchanged · ${result.archivedProducts ?? 0} archived · ${result.skippedArticles ?? 0} skipped (API) · ${result.refreshedByArticleId ?? 0} refreshed by id · ${result.discoveryListPages ?? 0} list page(s)${
-          result.fullCatalogScanCompleted ? " (list end reached)" : ""
-        }${modeNote}${ratioPct}`,
-      );
-      await refresh();
-      router.refresh();
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") {
-        setErr(`Spreadconnect sync timed out after ${timeoutMs / 1000}s. Try again or check server logs.`);
-      } else {
-        setErr(e instanceof Error ? e.message : "Spreadconnect sync failed");
-      }
-    } finally {
-      window.clearTimeout(t);
-      setBusy(false);
-      setSyncing(false);
-    }
-  }
-
   async function backfillAssetHealth() {
     setBusy(true);
     setPromoting(true);
@@ -173,34 +115,10 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
       {msg ? <p className={ui.successText}>{msg}</p> : null}
 
       <div className="flex flex-col gap-3">
-        <label className="flex max-w-xl cursor-pointer items-start gap-2 text-sm text-stone-900">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={fullSpreadconnectDiscovery}
-            disabled={busy}
-            onChange={(e) => setFullSpreadconnectDiscovery(e.target.checked)}
-          />
-          <span>
-            <span className="font-medium text-stone-900">Full catalog scan</span> — list every Spreadconnect page
-            (slow, heavy on their API). Leave off for routine updates: we refresh each known article by id, list only the
-            first page to discover new ones, and skip database writes when nothing changed.
-          </span>
-        </label>
         <div className="flex flex-wrap items-center gap-3">
         <Link href="/admin/wear-products/new" className={ui.buttonPrimary}>
           New wear product
         </Link>
-        <button type="button" disabled={busy} onClick={syncFromSpreadconnect} className={ui.buttonSecondary}>
-          {syncing ? (
-            <span className="inline-flex items-center gap-2">
-              <Spinner size="sm" className="text-stone-600" />
-              Syncing Spreadconnect…
-            </span>
-          ) : (
-            "Sync Spreadconnect catalog"
-          )}
-        </button>
         <button type="button" disabled={busy} onClick={backfillAssetHealth} className={ui.buttonGhost}>
           {promoting ? (
             <span className="inline-flex items-center gap-2">

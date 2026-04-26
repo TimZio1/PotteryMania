@@ -6,7 +6,6 @@ import { PrivateGuideForm } from "@/app/early-access/private-guide-form";
 import { HomeLaunchStats } from "@/app/home-launch-stats";
 import { HomeScrollReset } from "@/app/home-scroll-reset";
 import { buildMetadata } from "@/lib/seo";
-import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { organizationJsonLd, toJsonLdScript, websiteJsonLd } from "@/lib/structured-data";
 import { WEAR_VISUAL_IMAGES } from "@/lib/wear-config";
 import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
@@ -15,30 +14,17 @@ import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { formatWearMoney } from "@/lib/wear-money";
 import { ui } from "@/lib/ui-styles";
 import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import { wearDisplayName } from "@/lib/wear-display-name";
 
 export const dynamic = "force-dynamic";
 
 const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (isApparelOnlyLaunch()) {
-    const base = buildMetadata({
-      title: "PotteryMania — T-Shirts & Apparel for Makers",
-      description:
-        "Shop T-shirts, hoodies, and apparel for potters, artists, makers, and creative people. Join our affiliate program and share the culture.",
-      path: "/",
-    });
-    return {
-      ...base,
-      other: {
-        "impact-site-verification": IMPACT_SITE_VERIFICATION,
-      },
-    };
-  }
   const base = buildMetadata({
-    title: "PotteryMania — apparel for makers, printed on demand",
+    title: "PotteryMania — T-Shirts & Apparel for Makers",
     description:
-      "Small-batch clothes for people who build things with their hands. Shop the drop — printed when you order. Studios can join early access for the maker platform.",
+      "Shop T-shirts, hoodies, and apparel for potters, artists, makers, and creative people. Printed on demand and easy to buy.",
     path: "/",
   });
   return {
@@ -122,10 +108,10 @@ async function ApparelHome() {
                   <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
                 </Link>
                 <Link
-                  href="/wear/partner"
+                  href="/wear/shop"
                   className="inline-flex items-center gap-1 text-sm font-semibold text-amber-900 underline-offset-4 hover:underline"
                 >
-                  Earn 10% as an affiliate <span aria-hidden>→</span>
+                  Browse the collection <span aria-hidden>→</span>
                 </Link>
               </div>
 
@@ -154,7 +140,7 @@ async function ApparelHome() {
                     return src ? (
                       <Image
                         src={wearListingImageSrc(src, 1100)}
-                        alt={heroAnchor.name}
+                        alt={wearDisplayName(heroAnchor)}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 50vw"
@@ -193,7 +179,7 @@ async function ApparelHome() {
                       <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">
                         Featured
                       </span>
-                      <span className="mt-0.5 font-medium">{heroAnchor.name}</span>
+                      <span className="mt-0.5 font-medium">{wearDisplayName(heroAnchor)}</span>
                     </span>
                     <span className="flex items-center gap-2 text-sm font-semibold text-amber-950">
                       {formatWearMoney(heroAnchor.priceCents, heroAnchor.currency)}
@@ -234,6 +220,7 @@ async function ApparelHome() {
                   const imgs = wearImageUrlsFromJson(p.images);
                   const src = imgs[0];
                   const isHero = idx === 0 && showcase.length >= 5;
+                  const displayName = wearDisplayName(p);
                   return (
                     <li key={p.id} className={isHero ? "sm:col-span-2 sm:row-span-2" : undefined}>
                       <Link href={`/wear/${p.slug}`} className="group block">
@@ -245,7 +232,7 @@ async function ApparelHome() {
                           {src ? (
                             <Image
                               src={wearListingImageSrc(src, isHero ? 900 : 560)}
-                              alt={p.name}
+                              alt={displayName}
                               fill
                               className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
                               sizes={isHero ? "(max-width: 640px) 92vw, 50vw" : "(max-width: 640px) 92vw, 25vw"}
@@ -265,7 +252,7 @@ async function ApparelHome() {
                           </span>
                         </div>
                         <div className="mt-3 flex items-baseline justify-between gap-3">
-                          <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{p.name}</h3>
+                          <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{displayName}</h3>
                           <p className="shrink-0 text-sm font-semibold text-amber-950">
                             {formatWearMoney(p.priceCents, p.currency)}
                           </p>
@@ -347,6 +334,25 @@ async function ApparelHome() {
           </div>
         </section>
 
+        <section className="bg-white py-12 sm:py-16" aria-labelledby="shop-next">
+          <div className={`${ui.pageContainer} text-center`}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700">Shop first</p>
+            <h2 id="shop-next" className="mt-2 font-serif text-3xl text-amber-950 sm:text-4xl">
+              Choose the piece. Pick color and size. Checkout securely.
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-stone-600">
+              Printed on demand, ships in 2–5 business days, with 30-day returns on unworn apparel.
+            </p>
+            <Link
+              href="/wear/shop"
+              className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-950 px-8 text-sm font-semibold text-white transition hover:bg-amber-900"
+            >
+              Shop T-shirts & hoodies
+              <span aria-hidden>→</span>
+            </Link>
+          </div>
+        </section>
+
         {/* ── 6. Affiliate band ──────────────────────────── */}
         <section className="relative overflow-hidden border-y border-amber-950/15 bg-[#1a1816] py-16 text-white sm:py-20">
           <div
@@ -390,7 +396,7 @@ async function ApparelHome() {
                 {[
                   { k: "10%", v: "commission on every sale" },
                   { k: "30 days", v: "tracking cookie window" },
-                  { k: "Monthly", v: "automatic payouts" },
+                  { k: "€50", v: "automatic Stripe payouts" },
                   { k: "€0", v: "to start — no inventory risk" },
                 ].map((item) => (
                   <div
@@ -429,7 +435,7 @@ async function ApparelHome() {
                 },
                 {
                   q: "How does the affiliate program pay out?",
-                  a: "10% commission on the final paid amount of every qualifying sale, calculated after any active discount. Cookies last 30 days. Payouts go out monthly via bank transfer or PayPal.",
+                  a: "10% commission on the final paid amount of every qualifying sale, calculated after any active discount. Cookies last 30 days. Payouts transfer through Stripe once unpaid commission reaches €50.",
                 },
                 {
                   q: "Is checkout secure?",

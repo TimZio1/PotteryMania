@@ -39,11 +39,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   )}
                   title={apparelOnly ? "Apparel-only launch mode is on" : undefined}
                 >
-                  {apparelOnly ? "Hyperadmin · apparel" : "Hyperadmin"}
+                  {apparelOnly ? "Apparel admin" : "Hyperadmin"}
                 </span>
-                <Link href="/dashboard" className="text-xs font-medium text-stone-700 hover:text-amber-950">
-                  Studio view
-                </Link>
+                {apparelOnly ? (
+                  <Link href="/wear/shop" className="text-xs font-medium text-stone-700 hover:text-amber-950">
+                    View shop
+                  </Link>
+                ) : (
+                  <Link href="/dashboard" className="text-xs font-medium text-stone-700 hover:text-amber-950">
+                    Studio view
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -64,10 +70,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             {apparelOnly ? (
               <div className="border-t border-stone-200/80 px-4 py-3 text-[11px] text-stone-500">
-                <p>
-                  Studio + marketplace nav is hidden under apparel-only mode. Routes still exist —
-                  see <Link href="/admin#hidden-sections" className="font-medium text-amber-900 hover:underline">hidden sections</Link>.
-                </p>
+                <p>Only apparel sales, products, customers, inbox, and affiliate operations are shown.</p>
               </div>
             ) : null}
 
@@ -90,7 +93,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       : "border-stone-200 bg-white text-stone-700",
                   )}
                 >
-                  {apparelOnly ? "Hyperadmin · apparel" : "Hyperadmin"}
+                  {apparelOnly ? "Apparel admin" : "Hyperadmin"}
                 </span>
                 <AdminMobileNav links={links} />
               </div>

@@ -1,9 +1,8 @@
 /**
- * Public env: external form (Typeform, HubSpot, etc.) or an internal path like `/early-access`.
- * When unset or invalid, CTAs fall back to sign-up with shop setup.
+ * Public env: external form (Typeform, HubSpot, etc.) or an internal path.
+ * When unset or invalid, CTAs fall back to the built-in affiliate application.
  */
-export const WEAR_RESELLER_DEFAULT_HREF =
-  "/register?callbackUrl=" + encodeURIComponent("/dashboard/studio/new?setup=shop");
+export const WEAR_RESELLER_DEFAULT_HREF = "/wear/partner/apply";
 
 export function resolveWearResellerApplicationHref(
   fallback: string = WEAR_RESELLER_DEFAULT_HREF,

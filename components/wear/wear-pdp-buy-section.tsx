@@ -185,6 +185,24 @@ export function WearPdpBuySection({
         )}
       </p>
 
+      <div className="mt-5 grid gap-2 rounded-2xl border border-amber-950/10 bg-amber-50/70 p-4 text-xs leading-5 text-stone-700 sm:grid-cols-2">
+        <p>
+          <strong className="text-amber-950">Fit:</strong> regular everyday fit. Pick your usual size.
+        </p>
+        <p>
+          <strong className="text-amber-950">Fabric:</strong> soft cotton feel, printed on demand.
+        </p>
+        <p>
+          <strong className="text-amber-950">Delivery:</strong> prints in 2-5 business days, tracking by email.
+        </p>
+        <p>
+          <strong className="text-amber-950">Checkout:</strong> Stripe, cards, Apple Pay, Google Pay, Link.
+        </p>
+        <p className="sm:col-span-2">
+          <strong className="text-amber-950">Returns:</strong> 30 days for unworn apparel.
+        </p>
+      </div>
+
       <div className="mt-10 hidden md:block">
         {canAdd ? (
           <WearAddToCartButton

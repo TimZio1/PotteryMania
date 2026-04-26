@@ -117,10 +117,10 @@ export async function getWearCatalogHealthSnapshot() {
   if (shopVisibleCount > 0 && syncedShopVisibleCount === 0) {
     if (!spreadconnectConfigured) {
       catalogImportHint =
-        "The public shop is still showing the built-in demo catalog from the database, not your Spreadconnect (SPOD) articles. Set a real SPREADCONNECT_API_KEY on the host, redeploy, then click “Sync from Spreadconnect” below. After a successful sync, placeholder products without variant SKUs are archived automatically.";
+        "The public shop is showing the saved database catalog. Set a real SPREADCONNECT_API_KEY on the host for the scheduled catalog cron; admin pages do not run real-time Spreadconnect catalog sync.";
     } else {
       catalogImportHint =
-        "Spreadconnect is configured, but the live shop has no imported catalog rows yet (no products with variant SKUs or an external fulfillment id). Use “Sync Spreadconnect catalog” below (default mode lists only the first page of articles and is gentle on their API). To import a large catalog, either run several syncs, enable “Full catalog scan” once, or raise `SPREADCONNECT_SYNC_DISCOVER_MAX_PAGES` on the server. Articles without images, SKUs, or prices are skipped — check sync counts for “skipped”.";
+        "Spreadconnect is configured, but the live shop has no imported catalog rows yet (no products with variant SKUs or an external fulfillment id). Let the scheduled catalog cron refresh saved DB data; admin pages intentionally do not run real-time Spreadconnect catalog fetches.";
     }
   }
 

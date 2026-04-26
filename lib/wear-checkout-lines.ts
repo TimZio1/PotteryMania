@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import {
-  calculateWearMarginCents,
   calculateWearPrice,
   resolveStudioMarginBps,
   resolveWearGlobalPricing,
@@ -13,6 +12,7 @@ import {
   shouldUseInternalWearPricing,
   wearEffectiveCostCents,
 } from "@/lib/wear-internal-pricing";
+import { wearDisplayName } from "@/lib/wear-display-name";
 
 export type MergedWearLine = { productId: string; variantId: string | null; quantity: number };
 
@@ -187,7 +187,8 @@ export async function resolveWearCheckoutLines(args: {
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
         })
       : (priced.supplyCostCents ?? null);
-    const lineName = variant ? `${p.name} — ${variant.label}` : p.name;
+    const displayName = wearDisplayName(p);
+    const lineName = variant ? `${displayName} — ${variant.label}` : displayName;
     const key = wearLineMergeKey(line.productId, line.variantId);
 
     resolved.push({
@@ -248,15 +249,8 @@ export function wearStudioMarginTotals(args: {
     return { totalStudioMarginCents: 0, platformRevenueCents: subtotalAfterCents, subtotalAfterCents };
   }
 
-  let totalStudioMarginCents = 0;
-  for (const r of resolved) {
-    const after = lineTotalAfterByKey[r.key] ?? r.unitCents * r.quantity;
-    const qty = r.quantity;
-    if (qty <= 0) continue;
-    const newUnit = Math.round(after / qty);
-    totalStudioMarginCents += calculateWearMarginCents(r.baseCents, newUnit) * qty;
-  }
-
+  const bps = Math.max(0, Math.min(10000, Math.floor(studioMarginBps)));
+  const totalStudioMarginCents = Math.round((subtotalAfterCents * bps) / 10000);
   const platformRevenueCents = subtotalAfterCents - totalStudioMarginCents;
   return { totalStudioMarginCents, platformRevenueCents, subtotalAfterCents };
 }
