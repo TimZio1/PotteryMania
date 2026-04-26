@@ -57,6 +57,13 @@ export default async function WearPartnerPage() {
         <section className="mt-8 space-y-4 rounded-2xl border border-stone-200/80 bg-white/80 p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500">Creators &amp; affiliates</h2>
           <p className="text-sm leading-relaxed text-stone-700">
+            <strong>Share links:</strong> append <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">?ref=YOUR_STUDIO_ID</code>{" "}
+            to any <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">/wear</code> URL (for example{" "}
+            <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">/wear/shop?ref=…</code>
+            ). We store that for <strong>30 days</strong> in the buyer&apos;s browser and pass it at checkout when wearables are
+            enabled for your studio — margins apply only for eligible studios.
+          </p>
+          <p className="text-sm leading-relaxed text-stone-700">
             Commission percentage, cookie duration (typically <strong>30 days</strong> last-touch where tracking is
             enabled), and payout thresholds are defined in your partner agreement after approval — we keep the rules
             simple so you can talk like a friend, not a salesperson.

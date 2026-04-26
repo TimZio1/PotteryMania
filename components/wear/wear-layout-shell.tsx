@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { MarketingLayout } from "@/components/marketing-layout";
+import { WearReferralCaptureBoundary } from "@/components/wear/wear-referral-capture-boundary";
 import { WearSubnav } from "@/components/wear/wear-subnav";
 export async function WearLayoutShell({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
@@ -11,6 +12,7 @@ export async function WearLayoutShell({ children }: { children: ReactNode }) {
     <MarketingLayout apparelStorefront>
       {/* Isolate from marketing shell `text-[var(--foreground)]` — wear uses light cream/white surfaces */}
       <div className="isolate !text-stone-900 antialiased [color-scheme:light]">
+        <WearReferralCaptureBoundary />
         <WearSubnav initialCount={initialCount} />
         {children}
       </div>

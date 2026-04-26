@@ -15,6 +15,8 @@ const META_KEY_MAX: Record<string, number> = {
   utm_campaign: 120,
   variantSku: 120,
   sessionId: 200,
+  referring_studio_id: 128,
+  item_count: 10,
 };
 
 /** Allowlisted `meta` keys only — blocks accidental PII in analytics payloads. */

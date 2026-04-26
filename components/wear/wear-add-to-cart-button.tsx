@@ -10,6 +10,7 @@ import {
   type WearCartLine,
 } from "@/lib/wear-cart";
 import { WEAR_EVENT_KINDS, trackWearEvent } from "@/lib/wear-analytics-client";
+import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
 
 type Props = {
   productId: string;
@@ -40,9 +41,11 @@ export function WearAddToCartButton({ productId, variantId = null, studioId, cla
           throw new Error("Could not add wearable to cart");
         }
         notifyWearCartChanged();
+        const refId = getWearPartnerReferralStudioId();
         trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
           productId,
           variantId: variantId ?? undefined,
+          meta: refId ? { referring_studio_id: refId } : undefined,
         });
         return;
       }
@@ -70,9 +73,11 @@ export function WearAddToCartButton({ productId, variantId = null, studioId, cla
       if (!merged) next.push(incoming);
       localStorage.setItem(WEAR_CART_STORAGE_KEY, serializeWearCart(next));
       notifyWearCartChanged();
+      const refId = getWearPartnerReferralStudioId();
       trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
         productId,
         variantId: variantId ?? undefined,
+        meta: refId ? { referring_studio_id: refId } : undefined,
       });
     } finally {
       setBusy(false);

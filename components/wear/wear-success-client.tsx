@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { WEAR_CART_STORAGE_KEY, notifyWearCartChanged } from "@/lib/wear-cart";
+import { clearWearPartnerReferral } from "@/lib/wear-referral-storage";
 
 export function WearSuccessClient() {
   const searchParams = useSearchParams();
@@ -13,6 +14,7 @@ export function WearSuccessClient() {
     if (typeof window === "undefined" || !sessionId) return;
     localStorage.removeItem(WEAR_CART_STORAGE_KEY);
     notifyWearCartChanged();
+    clearWearPartnerReferral();
   }, [sessionId]);
 
   return (

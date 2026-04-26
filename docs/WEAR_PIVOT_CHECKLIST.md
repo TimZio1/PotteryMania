@@ -4,7 +4,7 @@
 
 **How to use:** Mark items `- [x]` when done. Update this file after each completed task (or batch).
 
-**Last updated:** 2026-04-26 (currency copy, Drop 01 lock in `wear-drop-config`, pricing + Stripe/SC + analytics docs)
+**Last updated:** 2026-04-26 (partner `?ref=` capture, checkout attribution fix, EUR cart guard, analytics `wear_referral_capture`)
 
 ---
 
@@ -33,8 +33,8 @@
 
 ### Affiliate / partner
 
-- [ ] Locate partner/reseller entry points (footer, components, external form).
-- [ ] Document commission rules as implemented (%, caps, cookies, attribution window if any).
+- [x] Locate partner/reseller entry points (footer, components, external form). → *`/wear/partner`, footer Partner, `WearResellerProgramLink`; share URLs documented on partner page.*
+- [x] Document commission rules as implemented (%, caps, cookies, attribution window if any). → *Partner page + `?ref=` 30-day browser storage; margin only if `StudioWearConfig.enabled`.*
 - [ ] Document payout process (manual, tool, min threshold).
 
 ### Content & SEO
@@ -133,7 +133,7 @@
 ### QA
 
 - [ ] Test purchase: EU + non-EU scenario (shipping display + total).
-- [ ] Test affiliate link end-to-end if applicable.
+- [ ] Test affiliate link end-to-end if applicable. → *Implementation: `/wear/*?ref=STUDIO_ID` → cart → checkout; verify order `studioId` only when wear enabled.*
 - [ ] Basic a11y / performance spot-check on PDP and cart.
 
 ### Launch

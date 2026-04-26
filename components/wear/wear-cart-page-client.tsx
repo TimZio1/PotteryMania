@@ -12,8 +12,9 @@ import {
   type WearCartLine,
 } from "@/lib/wear-cart";
 import { WEAR_EVENT_KINDS, trackWearEvent } from "@/lib/wear-analytics-client";
+import { WEAR_LISTING_CURRENCY, WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-currency-policy";
 import { formatWearMoney } from "@/lib/wear-money";
-import { WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-currency-policy";
+import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
 import { WEAR_SHIPPING_CART_NOTE } from "@/lib/wear-shipping-copy";
 
 type VariantRow = {
@@ -152,6 +153,20 @@ export function WearCartPageClient() {
 
   const currency = products[0]?.currency ?? "EUR";
 
+  const cartCurrencyIssue = useMemo(() => {
+    if (lines.length === 0) return null;
+    const currencies = new Set<string>();
+    for (const l of lines) {
+      const p = byId.get(l.productId);
+      if (!p) continue;
+      currencies.add((p.currency ?? WEAR_LISTING_CURRENCY).toUpperCase());
+    }
+    if (currencies.size > 1) return "mixed" as const;
+    const only = [...currencies][0];
+    if (only && only !== WEAR_LISTING_CURRENCY) return "non_eur" as const;
+    return null;
+  }, [lines, byId]);
+
   const onCheckout = useCallback(async () => {
     setCheckoutError(null);
     setNameError(null);
@@ -174,14 +189,24 @@ export function WearCartPageClient() {
       setCheckoutError("Your cart is empty.");
       return;
     }
+    if (cartCurrencyIssue) {
+      setCheckoutError(
+        cartCurrencyIssue === "mixed"
+          ? "Your cart mixes currencies — remove items until everything matches."
+          : `This shop path is EUR-only right now. Remove items priced outside ${WEAR_LISTING_CURRENCY} or contact support.`,
+      );
+      return;
+    }
     setCheckoutBusy(true);
     try {
+      const partnerStudioId = getWearPartnerReferralStudioId();
       const res = await fetch("/api/wear/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerName: customerName.trim(),
           customerEmail: customerEmail.trim().toLowerCase(),
+          ...(partnerStudioId ? { studioId: partnerStudioId } : {}),
           items: lines.map((l) => ({
             productId: l.productId,
             quantity: l.quantity,
@@ -200,9 +225,13 @@ export function WearCartPageClient() {
       }
       if (data.url) {
         if (data.orderId) {
+          const refId = getWearPartnerReferralStudioId();
           trackWearEvent(WEAR_EVENT_KINDS.checkoutStarted, {
             orderId: data.orderId,
-            meta: { item_count: lines.length },
+            meta: {
+              item_count: lines.length,
+              ...(refId ? { referring_studio_id: refId } : {}),
+            },
           });
         }
         window.location.href = data.url;
@@ -214,7 +243,7 @@ export function WearCartPageClient() {
     } finally {
       setCheckoutBusy(false);
     }
-  }, [customerEmail, customerName, lines]);
+  }, [cartCurrencyIssue, customerEmail, customerName, lines]);
 
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
 
@@ -369,9 +398,19 @@ export function WearCartPageClient() {
 
             {checkoutError ? <p className="mt-4 text-sm text-red-700">{checkoutError}</p> : null}
 
+            {cartCurrencyIssue ? (
+              <p className="mt-4 rounded-xl border border-amber-300/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+                {cartCurrencyIssue === "mixed"
+                  ? "This cart mixes currencies. Adjust quantities or remove lines so every item uses the same currency before checkout."
+                  : `The public wear shop is priced in ${WEAR_LISTING_CURRENCY}. Remove non-${WEAR_LISTING_CURRENCY} items to continue.`}
+              </p>
+            ) : null}
+
             <button
               type="button"
-              disabled={checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid}
+              disabled={
+                checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid || cartCurrencyIssue != null
+              }
               onClick={onCheckout}
               className="mt-8 w-full min-h-12 rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-50"
             >

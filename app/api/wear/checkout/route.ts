@@ -147,14 +147,16 @@ export async function POST(req: Request) {
     });
   }
 
-  const referringStudioId = typeof body.studioId === "string" ? body.studioId.trim() || null : null;
+  const requestingStudioId = typeof body.studioId === "string" ? body.studioId.trim() || null : null;
+  let attributedStudioId: string | null = null;
   let studioMarginBps = 0;
-  if (referringStudioId) {
+  if (requestingStudioId) {
     const wearConfig = await prisma.studioWearConfig.findUnique({
-      where: { studioId: referringStudioId },
+      where: { studioId: requestingStudioId },
       select: { enabled: true, marginBps: true },
     });
     if (wearConfig?.enabled) {
+      attributedStudioId = requestingStudioId;
       const global = await resolveWearGlobalPricing();
       studioMarginBps = resolveStudioMarginBps(wearConfig.marginBps, global);
       for (const r of resolved) {
@@ -169,7 +171,7 @@ export async function POST(req: Request) {
   }
 
   let totalStudioMarginCents = 0;
-  if (referringStudioId && studioMarginBps > 0) {
+  if (attributedStudioId && studioMarginBps > 0) {
     for (const r of resolved) {
       const baseCents = r.variant?.priceCents ?? r.product.priceCents;
       totalStudioMarginCents += calculateWearMarginCents(baseCents, r.unitCents) * r.quantity;
@@ -180,7 +182,7 @@ export async function POST(req: Request) {
   const orderId = await prisma.$transaction(async (tx) => {
     const order = await tx.wearOrder.create({
       data: {
-        studioId: referringStudioId,
+        studioId: attributedStudioId,
         customerEmail,
         customerName,
         status: "pending",
@@ -248,13 +250,13 @@ export async function POST(req: Request) {
       metadata: {
         type: "wear_order",
         wearOrderId: orderId,
-        ...(referringStudioId ? { studioId: referringStudioId } : {}),
+        ...(attributedStudioId ? { studioId: attributedStudioId } : {}),
       },
       payment_intent_data: {
         metadata: {
           type: "wear_order",
           wearOrderId: orderId,
-          ...(referringStudioId ? { studioId: referringStudioId } : {}),
+          ...(attributedStudioId ? { studioId: attributedStudioId } : {}),
         },
       },
     });

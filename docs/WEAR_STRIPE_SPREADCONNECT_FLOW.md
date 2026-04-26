@@ -2,9 +2,9 @@
 
 ## Happy path (buyer)
 
-1. **Browse** `/wear/shop` → PDP `/wear/[slug]` — prices from DB + margin rules for studio-attributed carts (if any).
+1. **Browse** `/wear/shop` → PDP `/wear/[slug]` — prices from DB + margin rules for studio-attributed carts (if any). Partner links: `?ref=STUDIO_ID` (or `studio` / `studioId`) on any `/wear/*` URL; stored client-side for 30 days and sent as `studioId` on checkout when valid.
 2. **Cart** — `localStorage` + `/api/wear/products` hydration; client posts to checkout.
-3. **Checkout** — `POST /api/wear/checkout` creates `WearOrder` + line items, builds Stripe Checkout Session in the cart’s single `currency`, redirects to Stripe.
+3. **Checkout** — `POST /api/wear/checkout` creates `WearOrder` + line items, builds Stripe Checkout Session in the cart’s single `currency`, redirects to Stripe. `studioId` is persisted on the order **only** if that studio has wear enabled (eligible attribution).
 4. **Pay** — Customer completes payment; Stripe sends webhooks (payment intent / session completed — see app webhook handlers).
 5. **Fulfillment** — Worker / job submits the order to Spreadconnect (`lib/wear-order-spreadconnect.ts`) using synced SKUs; SC returns production / ship state.
 

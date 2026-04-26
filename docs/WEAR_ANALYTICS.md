@@ -12,8 +12,11 @@ Kinds live in `lib/wear-event-kinds.ts`; client helper: `lib/wear-analytics-clie
 | `wear_add_to_cart` | Add to cart (`wear-add-to-cart-button.tsx`). |
 | `wear_checkout_started` | Cart checkout submit (`wear-cart-page-client.tsx`). |
 | `wear_purchase_success` | Stripe webhook / completion path (server writes event). |
+| `wear_referral_capture` | Valid `?ref=` / `?studio=` / `?studioId=` on a `/wear/*` URL; `meta.referring_studio_id` + `meta.path`. |
 
 Payload may include `productId`, `variantId`, `orderId`, and `meta`.
+
+`meta` allowlist includes `referring_studio_id`, `path`, `item_count`, and UTM fields (see `app/api/wear/events/route.ts`). Add-to-cart and checkout-started may include `referring_studio_id` when a partner link was captured.
 
 ### GA4-only on `/wear` landing (`wear-analytics.tsx`)
 

@@ -4,6 +4,8 @@ export const WEAR_EVENT_KINDS = {
   addToCart: "wear_add_to_cart",
   checkoutStarted: "wear_checkout_started",
   purchaseSuccess: "wear_purchase_success",
+  /** Query param captured a partner studio id (`?ref=` / `?studio=`). */
+  referralCaptured: "wear_referral_capture",
 } as const;
 
 export type WearEventKind = (typeof WEAR_EVENT_KINDS)[keyof typeof WEAR_EVENT_KINDS];
