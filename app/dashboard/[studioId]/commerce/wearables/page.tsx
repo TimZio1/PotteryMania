@@ -17,6 +17,7 @@ type CatalogProduct = {
 
 type WearConfig = {
   enabled: boolean;
+  wearAffiliateCode?: string | null;
   marginBps: number;
   marginLocked: boolean;
   minMarginBps: number;
@@ -43,6 +44,8 @@ export default function StudioWearablesPage() {
 
   const [enabled, setEnabled] = useState(false);
   const [marginBps, setMarginBps] = useState(2000);
+  const [affiliateCodeDraft, setAffiliateCodeDraft] = useState("");
+  const [publicOrigin, setPublicOrigin] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
@@ -53,6 +56,7 @@ export default function StudioWearablesPage() {
       setConfig(data);
       setEnabled(data.enabled);
       setMarginBps(data.marginBps);
+      setAffiliateCodeDraft(data.wearAffiliateCode ?? "");
       setSelected(new Set(data.selectedProductIds));
       if (typeof data.activeCreators === "number") setActiveCreators(data.activeCreators);
     } catch {
@@ -63,6 +67,10 @@ export default function StudioWearablesPage() {
   }, [studioId]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    setPublicOrigin(typeof window !== "undefined" ? window.location.origin : "");
+  }, []);
 
   async function save() {
     setSaving(true);
@@ -75,6 +83,7 @@ export default function StudioWearablesPage() {
         body: JSON.stringify({
           enabled,
           marginBps,
+          wearAffiliateCode: affiliateCodeDraft.trim() === "" ? null : affiliateCodeDraft.trim(),
           selectedProductIds: [...selected],
         }),
       });
@@ -164,6 +173,43 @@ export default function StudioWearablesPage() {
             <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0"}`} />
           </button>
         </div>
+      </section>
+
+      <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+        <p className="font-medium text-stone-900">Wear shop short link</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          Share a clean URL on Instagram, Linktree, or your own site. It sends buyers to the global drop and attributes
+          sales to your studio (same as <code className="rounded bg-stone-100 px-1">?ref=…</code>). Charges only apply when
+          wearables are on and your studio is eligible.
+        </p>
+        <label className="mt-3 block">
+          <span className="text-xs font-medium text-stone-700">Short code</span>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-sm text-[var(--muted)]">/w/</span>
+            <input
+              type="text"
+              value={affiliateCodeDraft}
+              onChange={(e) => setAffiliateCodeDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+              className="min-h-10 flex-1 rounded-lg border border-stone-200 bg-white px-3 text-sm text-stone-900 placeholder:text-stone-400"
+              placeholder="your-studio"
+              maxLength={32}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </div>
+        </label>
+        {affiliateCodeDraft.trim().length > 0 && publicOrigin ? (
+          <p className="mt-2 break-all font-mono text-xs text-stone-600">
+            {publicOrigin}/w/{affiliateCodeDraft.trim()}
+          </p>
+        ) : affiliateCodeDraft.trim().length > 0 ? (
+          <p className="mt-2 font-mono text-xs text-stone-600">/w/{affiliateCodeDraft.trim()}</p>
+        ) : (
+          <p className="mt-2 text-xs text-stone-500">Save a code to get your full link. Use 3–32 characters (a–z, 0–9, hyphens).</p>
+        )}
+        {!enabled && affiliateCodeDraft.trim().length > 0 ? (
+          <p className="mt-2 text-xs text-amber-800">Turn on wearables above for this link to work for buyers.</p>
+        ) : null}
       </section>
 
       {enabled && (

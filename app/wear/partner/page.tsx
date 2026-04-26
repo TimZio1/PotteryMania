@@ -57,8 +57,12 @@ export default async function WearPartnerPage() {
         <section className="mt-8 space-y-4 rounded-2xl border border-stone-200/80 bg-white/80 p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500">Creators &amp; affiliates</h2>
           <p className="text-sm leading-relaxed text-stone-700">
-            <strong>Share links:</strong> append <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">?ref=YOUR_STUDIO_ID</code>{" "}
-            to any <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">/wear</code> URL (for example{" "}
+            <strong>Share links:</strong> approved studios can set a short code in{" "}
+            <strong>Dashboard → Wearables</strong> — your link looks like{" "}
+            <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">yoursite.com/w/your-code</code> and
+            jumps to the shop with attribution. Alternatively append{" "}
+            <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">?ref=YOUR_STUDIO_ID</code> to any{" "}
+            <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">/wear</code> URL (e.g.{" "}
             <code className="rounded bg-stone-100 px-1.5 py-0.5 font-mono text-xs">/wear/shop?ref=…</code>
             ). We store that for <strong>30 days</strong> in the buyer&apos;s browser and pass it at checkout when wearables are
             enabled for your studio — margins apply only for eligible studios.

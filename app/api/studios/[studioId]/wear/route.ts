@@ -8,6 +8,7 @@ import {
 } from "@/lib/wear-commission";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+import { normalizeWearAffiliateCode } from "@/lib/wear-affiliate-code";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -42,6 +43,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   return NextResponse.json({
     activeCreators,
     enabled: config?.enabled ?? false,
+    wearAffiliateCode: config?.wearAffiliateCode ?? null,
     marginBps: effectiveMarginBps,
     marginLocked: global.marginLocked || (config?.marginLocked ?? false),
     minMarginBps: global.minMarginBps,
@@ -66,6 +68,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     enabled?: boolean;
     marginBps?: number;
     selectedProductIds?: string[];
+    wearAffiliateCode?: string | null;
   };
   try {
     body = await req.json();
@@ -75,6 +78,29 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
   const global = await resolveWearGlobalPricing();
 
+  let wearAffiliateCodeUpdate: string | null | undefined;
+  if (body.wearAffiliateCode !== undefined) {
+    if (body.wearAffiliateCode === null || body.wearAffiliateCode === "") {
+      wearAffiliateCodeUpdate = null;
+    } else {
+      const normalized = normalizeWearAffiliateCode(body.wearAffiliateCode);
+      if (!normalized) {
+        return NextResponse.json(
+          { error: "Invalid short link. Use 3–32 characters: lowercase letters, numbers, single hyphens (not at ends)." },
+          { status: 400 },
+        );
+      }
+      const taken = await prisma.studioWearConfig.findFirst({
+        where: { wearAffiliateCode: normalized, NOT: { studioId } },
+        select: { id: true },
+      });
+      if (taken) {
+        return NextResponse.json({ error: "That short link is already taken. Try another." }, { status: 409 });
+      }
+      wearAffiliateCodeUpdate = normalized;
+    }
+  }
+
   const config = await prisma.studioWearConfig.upsert({
     where: { studioId },
     create: {
@@ -83,12 +109,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
       marginBps: typeof body.marginBps === "number"
         ? resolveStudioMarginBps(body.marginBps, global)
         : global.defaultMarginBps,
+      ...(wearAffiliateCodeUpdate !== undefined ? { wearAffiliateCode: wearAffiliateCodeUpdate } : {}),
     },
     update: {
       ...(typeof body.enabled === "boolean" ? { enabled: body.enabled } : {}),
       ...(typeof body.marginBps === "number" && !global.marginLocked
         ? { marginBps: resolveStudioMarginBps(body.marginBps, global) }
         : {}),
+      ...(wearAffiliateCodeUpdate !== undefined ? { wearAffiliateCode: wearAffiliateCodeUpdate } : {}),
     },
   });
 
@@ -114,5 +142,6 @@ export async function PATCH(req: Request, ctx: Ctx) {
   return NextResponse.json({
     enabled: config.enabled,
     marginBps: config.marginBps,
+    wearAffiliateCode: config.wearAffiliateCode ?? null,
   });
 }

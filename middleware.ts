@@ -52,6 +52,8 @@ function publicAllowlist(): string[] {
     "/gift-cards",
     "/category",
     "/marketplace",
+    /** Partner short links: `/w/{code}` → wear shop + ref */
+    "/w",
     "/wear",
     /**
      * `/cart` and `/checkout` are intentionally public: guests can review items,
