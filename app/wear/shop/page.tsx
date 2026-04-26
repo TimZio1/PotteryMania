@@ -21,7 +21,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Shop — the drop",
-  description: "Limited apparel — printed on demand. Shipping calculated at checkout.",
+  description:
+    "Apparel from our print-on-demand catalog — synced from production. Shipping calculated at checkout.",
   path: "/wear/shop",
 });
 
@@ -39,9 +40,6 @@ type WearShopProduct = WearPublicListingRow & {
 };
 
 const CATEGORY_DISPLAY_ORDER = ["tops", "hoodies", "headwear", "accessories", "other"] as const;
-
-/** Hide category chips when the catalog is a small drop (less friction). */
-const WEAR_SMALL_CATALOG_MAX = 8;
 
 export default async function WearShopPage({ searchParams }: WearShopProps) {
   const partnerHref = resolveWearResellerApplicationHref();
@@ -116,9 +114,6 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     ? categoryNavItems.filter((category) => category.slug !== "tops")
     : categoryNavItems;
 
-  const hideCategoryNav =
-    normalized.length > 0 && normalized.length <= WEAR_SMALL_CATALOG_MAX && !activeCategory && !activeTopSub;
-
   type ShopBlock =
     | {
         kind: "category";
@@ -167,9 +162,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
         <h1 className="mt-3 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-stone-700">
-          Limited pieces. Printed and shipped after you order.
+          Catalog stays in sync with production — what you see is what you can order. Each piece is printed and shipped
+          after you check out.
         </p>
-        {!hideCategoryNav && hasTopsInCatalog ? (
+        {hasTopsInCatalog ? (
           <div className="mx-auto mt-5 max-w-4xl">
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max items-center gap-2 pb-1">
@@ -200,8 +196,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             </div>
           </div>
         ) : null}
-        {!hideCategoryNav ? (
-          <div className="mx-auto mt-3 max-w-4xl">
+        <div className="mx-auto mt-3 max-w-4xl">
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max items-center gap-2 pb-1">
                 <Link
@@ -230,7 +225,6 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               </div>
             </div>
           </div>
-        ) : null}
 
         {visible.length === 0 ? (
           <div className="mx-auto mt-12 max-w-md text-center">
@@ -241,7 +235,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 ? activeTopSub
                   ? `Nothing in ${wearTopSubcategoryLabel(activeTopSub)} right now — check back soon.`
                   : `Nothing in this category right now — check back soon.`
-                : "Between drops. New pieces land here first — check back soon."}
+                : "Nothing is listed in the shop yet — check back after the next catalog sync."}
             </p>
             <p className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-stone-500">
               <Link href="/wear" className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline">

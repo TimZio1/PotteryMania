@@ -4,14 +4,14 @@
 
 **How to use:** Mark items `- [x]` when done. Update this file after each completed task (or batch).
 
-**Last updated:** 2026-04-26 (partner page + mobile PDP bar)
+**Last updated:** 2026-04-26 (Spreadconnect catalog — no 3-SKU cap)
 
 ---
 
 ## Phase 0 — Lock the target
 
 - [x] Write the one-line brand promise for apparel (one sentence, no pottery/booking words). → *Shipped on `/wear` hero: “Clothes for people who build things with their hands.”*
-- [ ] Freeze catalog: 2 tees + 1 hoodie only until Drop 02 is defined.
+- [ ] ~~Freeze catalog: 2 tees + 1 hoodie only until Drop 02 is defined.~~ **Skipped** — catalog is whatever is live in Spreadconnect / synced to the site.
 - [ ] Pick primary storefront currency (or rule: show X, charge at checkout in Y).
 - [ ] Paste Spreadconnect COGS + typical shipping per SKU/region into a spreadsheet (pricing source of truth).
 
@@ -59,7 +59,7 @@
 ### Store structure
 
 - [x] Gap closed: Wear landing ≤3 sections (hero + drop + proof/shipping) or documented exception.
-- [x] Gap closed: No unnecessary categories/filters for 3 SKUs (removed or hidden). → *Shop hides category chips when catalog ≤ 8 SKUs and no filter query.*
+- [x] Gap closed: No unnecessary categories/filters for 3 SKUs (removed or hidden). → **Superseded:** category filters always available when the synced catalog has categories (no artificial hide-by-count).
 
 ### Pricing
 
@@ -97,12 +97,12 @@
 ### Pricing & catalog
 
 - [ ] Set retail prices from spreadsheet; verify margin vs wear admin config (`wear_*_margin_bps`).
-- [ ] Hide/disable any wear SKUs not in the 3-SKU drop (catalog flags / admin).
+- [ ] ~~Hide/disable any wear SKUs not in the 3-SKU drop (catalog flags / admin).~~ **Skipped** — manage assortment in Spreadconnect / admin visibility as you already do.
 
 ### Wear UX (minimal store)
 
 - [x] Rebuild `/wear` landing to 3 sections: hero, drop row, shipping/trust strip.
-- [x] Simplify `/wear/shop` to single list of 3 products (no clutter). → *Small-catalog mode hides filters; grid unchanged.*
+- [x] Simplify `/wear/shop` to single list of 3 products (no clutter). → **Adjusted:** shop shows full synced catalog with category chips when applicable; copy reflects production sync.
 - [x] Tighten wear layout / subnav: Shop · Cart · Partner (or fewer). → *Subnav: Drop · Shop · Cart · Partner.*
 
 ### PDP
@@ -149,7 +149,7 @@
 - [x] Affiliate can explain the offer in one sentence + link. → *“Share the drop — earn on pieces people actually wear” + `/wear/partner`.*
 - [x] No booking/directory confusion on shop + checkout paths. → *Apparel header/footer on all `/wear/*`.*
 - [x] Shipping clear before pay; prices feel premium but fair. → *Copy in place; pricing still business-owned.*
-- [ ] Only three live apparel SKUs with a named drop and story.
+- [ ] ~~Only three live apparel SKUs with a named drop and story.~~ **Skipped** — SKU count follows Spreadconnect / DB; “Drop 01” remains narrative framing only.
 
 ---
 
@@ -161,3 +161,4 @@
 - 2026-04-26: **Code shipped** — `lib/wear-shipping-copy.ts`; `/wear` 3-section `WearPage`; `WearSubnav` + `WearLayoutShell` partner link; shop small-catalog filter hide + empty-state CTAs; PDP hook/benefits/shipping strip; cart shipping note; metadata tweaks. See git diff for files touched.
 - 2026-04-26: **`apparelStorefront`** — `MarketingLayout` + `SiteHeader` props from `WearLayoutShell`: minimal shop footer, guest nav Shop/Drop, cart → `/wear/cart`, strip studio/booking noise for logged-out buyers on wear routes.
 - 2026-04-26: **`/wear/partner`** — program copy + apply CTA; subnav Partner → page; apparel footer link; success page hook; mobile PDP sticky ATC.
+- 2026-04-26: **Catalog scope** — Removed small-catalog filter hiding; shop copy + meta describe sync with production (Spreadconnect-driven assortment). Explicit 3-SKU tasks marked skipped in checklist.
