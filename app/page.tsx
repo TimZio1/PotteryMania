@@ -91,7 +91,6 @@ async function ApparelHome() {
 
               <p className="mt-6 max-w-xl text-base leading-relaxed text-stone-700 sm:text-lg">
                 Soft, durable apparel for potters, artists, and anyone who builds with their hands.
-                Printed when you order — ships in 2–5 days.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
