@@ -49,6 +49,7 @@ type WearShopProduct = WearPublicListingRow & {
 };
 
 const CATEGORY_DISPLAY_ORDER = ["tops", "hoodies", "headwear", "accessories", "other"] as const;
+const DEFAULT_TOPS_SUBCATEGORY: WearTopSubcategory = "short_sleeve";
 
 const NEW_THRESHOLD_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -112,8 +113,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   });
 
   const rawCategory = sp.category?.trim().toLowerCase() || null;
-  const activeCategory = rawCategory === "all" ? null : rawCategory;
-  const activeTopSub = isWearTopSubcategory(sp.sub) ? sp.sub : null;
+  const explicitTopSub = isWearTopSubcategory(sp.sub) ? sp.sub : null;
+  const useDefaultTopsCategory = rawCategory == null && explicitTopSub == null;
+  const activeCategory = useDefaultTopsCategory ? "tops" : rawCategory === "all" ? null : rawCategory;
+  const activeTopSub = useDefaultTopsCategory ? DEFAULT_TOPS_SUBCATEGORY : explicitTopSub;
 
   let visible: WearShopProduct[] = activeCategory
     ? normalized.filter((p) => p.categorySlug === activeCategory)
@@ -272,7 +275,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max items-center gap-2 pb-1">
                 <Link
-                  href={apparelOnly ? "/wear/shop?category=all" : "/wear/shop"}
+                  href="/wear/shop?category=all"
                   className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium ${
                     activeCategory == null
                       ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
