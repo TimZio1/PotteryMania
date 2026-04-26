@@ -31,11 +31,6 @@ export function websiteJsonLd() {
     name: siteMetadata.name,
     url: siteMetadata.url,
     description: siteMetadata.description,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${siteMetadata.url.replace(/\/$/, "")}/marketplace?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
   };
 }
 

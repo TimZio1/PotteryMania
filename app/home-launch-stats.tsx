@@ -77,8 +77,9 @@ export function HomeLaunchStats() {
 
       <div className="rounded-xl border border-white/15 bg-white/5 p-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
-          Studios worldwide
+          Makers in the network
         </p>
+        <p className="mt-1 text-[10px] text-white/55">Est. studios + early-access signups</p>
         <p className="mt-2 text-2xl font-semibold text-white">{worldwideTotal.toLocaleString("en-US")}</p>
       </div>
     </div>

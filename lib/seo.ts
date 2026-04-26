@@ -6,12 +6,13 @@ const siteUrl = resolvePublicSiteUrl();
 export const siteMetadata = {
   name: "PotteryMania",
   description:
-    "PotteryMania: the global network and directory for independent pottery artists and studios.",
+    "Apparel for makers, printed on demand — and tools for independent pottery studios to get discovered, take bookings, and sell work.",
   url: siteUrl,
   ogImage: "/og-default.png",
   keywords: [
-    "global pottery directory",
-    "pottery artists directory",
+    "maker apparel",
+    "on demand printing",
+    "pottery studio merch",
     "independent pottery artists",
     "pottery studios directory",
     "pottery studio software",

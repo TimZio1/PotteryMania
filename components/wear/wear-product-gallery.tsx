@@ -107,7 +107,7 @@ export function WearProductGallery({
         </div>
         {imagesForColor.length > 1 ? (
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {imagesForColor.map((image, index) => {
+            {imagesForColor.map((image) => {
               const isActive = image.id === selectedImage?.id;
               return (
                 <button
