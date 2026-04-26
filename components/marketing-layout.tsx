@@ -43,7 +43,7 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
   const onPotterymania = isPotterymaniaMarketingHost(normalizedHost || null);
   const renderLegacy = shouldRenderLegacyShell(apparelStorefront);
   const apparelShell = !renderLegacy;
-  const showSignIn = !isPreregistrationOnly();
+  const showSignIn = apparelShell || !isPreregistrationOnly();
 
   return (
     <div className="pm-marketing-shell flex min-h-screen flex-col text-[var(--foreground)]">

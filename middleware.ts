@@ -52,14 +52,18 @@ const BASE_PUBLIC_CORE = [
 
 function preregistrationGuestAllowlist(): string[] {
   if (isApparelOnlyLaunch()) return [...APPAREL_ONLY_PUBLIC_PATHS];
-  return [...BASE_PUBLIC_CORE];
+  // The launch homepage now defaults to apparel even when Railway misses
+  // NEXT_PUBLIC_LAUNCH_MODE at build time, so the matching apparel routes must
+  // stay public too. Otherwise landing-page CTAs to /wear/shop look broken by
+  // redirecting straight back to /.
+  return [...BASE_PUBLIC_CORE, ...APPAREL_ONLY_PUBLIC_PATHS];
 }
 
 function publicAllowlist(): string[] {
   if (isApparelOnlyLaunch()) {
     return [...APPAREL_ONLY_PUBLIC_PATHS];
   }
-  if (isPreregistrationOnly()) return [...BASE_PUBLIC_CORE];
+  if (isPreregistrationOnly()) return [...BASE_PUBLIC_CORE, ...APPAREL_ONLY_PUBLIC_PATHS];
   return [
     ...BASE_PUBLIC_CORE,
     "/classes",
