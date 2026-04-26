@@ -3,9 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const adminUserRouteMocks = vi.hoisted(() => ({
   requireAdminUser: vi.fn(),
   userFindUnique: vi.fn(),
+  userFindUniqueOrThrow: vi.fn(),
   userCount: vi.fn(),
   userUpdate: vi.fn(),
+  customerProfileUpsert: vi.fn(),
   orderAggregate: vi.fn(),
+  transaction: vi.fn(),
   normalizeAdminTags: vi.fn(),
   logAdminAction: vi.fn(),
 }));
@@ -16,10 +19,15 @@ vi.mock("@/lib/auth-session", () => ({
 
 vi.mock("@/lib/db", () => ({
   prisma: {
+    $transaction: adminUserRouteMocks.transaction,
     user: {
       findUnique: adminUserRouteMocks.userFindUnique,
+      findUniqueOrThrow: adminUserRouteMocks.userFindUniqueOrThrow,
       count: adminUserRouteMocks.userCount,
       update: adminUserRouteMocks.userUpdate,
+    },
+    customerProfile: {
+      upsert: adminUserRouteMocks.customerProfileUpsert,
     },
     order: {
       aggregate: adminUserRouteMocks.orderAggregate,
@@ -60,6 +68,26 @@ describe("API contract: PATCH /api/admin/users/[id]", () => {
       suspendedReason: null,
       adminTags: [],
     });
+    adminUserRouteMocks.userFindUniqueOrThrow.mockResolvedValue({
+      id: "u-target",
+      email: "target@example.com",
+      role: "customer",
+      suspendedAt: null,
+      suspendedReason: null,
+      adminTags: [],
+    });
+    adminUserRouteMocks.customerProfileUpsert.mockResolvedValue({});
+    adminUserRouteMocks.transaction.mockImplementation((fn) =>
+      fn({
+        user: {
+          update: adminUserRouteMocks.userUpdate,
+          findUniqueOrThrow: adminUserRouteMocks.userFindUniqueOrThrow,
+        },
+        customerProfile: {
+          upsert: adminUserRouteMocks.customerProfileUpsert,
+        },
+      }),
+    );
     adminUserRouteMocks.normalizeAdminTags.mockReturnValue([]);
     adminUserRouteMocks.logAdminAction.mockResolvedValue(undefined);
   });
