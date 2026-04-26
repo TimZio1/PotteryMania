@@ -4,7 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
+import { WEAR_SHIPPING_PDP_LINE } from "@/lib/wear-shipping-copy";
 import { WearPdpBuySection, type WearPdpVariant } from "@/components/wear/wear-pdp-buy-section";
+
+const PDP_HOOK = "For makers who care how things feel — not just how they look.";
+
+const PDP_BENEFITS = [
+  "Printed when you order — less waste, no stale stock.",
+  "Cut and sewn for everyday wear; designed to age with you.",
+  "Shipping from production close to you when possible.",
+] as const;
 
 type WearGalleryImage = {
   id: string;
@@ -134,11 +143,23 @@ export function WearProductGallery({
           ← Back to shop
         </Link>
         <h1 className="mt-6 font-serif text-3xl leading-tight tracking-tight text-amber-950 sm:text-4xl">{productName}</h1>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
+        <p className="mt-4 text-sm font-medium leading-relaxed text-stone-700">{PDP_HOOK}</p>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
           {categoryLabel}
           {topSubLabel ? <> · {topSubLabel}</> : null}
         </p>
         {subtitle ? <p className="mt-3 text-lg text-stone-600">{subtitle}</p> : null}
+        <ul className="mt-6 space-y-2 text-sm leading-relaxed text-stone-600">
+          {PDP_BENEFITS.map((line) => (
+            <li key={line} className="flex gap-2">
+              <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-amber-600" aria-hidden />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6 rounded-xl border border-stone-200/80 bg-stone-50/80 px-4 py-3 text-xs leading-relaxed text-stone-600">
+          {WEAR_SHIPPING_PDP_LINE}
+        </p>
         <WearPdpBuySection
           productId={productId}
           basePriceCents={basePriceCents}

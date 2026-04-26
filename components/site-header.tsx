@@ -18,9 +18,11 @@ function isVendorRole(role: string | undefined) {
 
 type SiteHeaderProps = {
   showPublicSignIn?: boolean;
+  /** Wear shop shell: trim studio/booking CTAs; point cart at `/wear/cart`. */
+  apparelStorefront?: boolean;
 };
 
-export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
+export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false }: SiteHeaderProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -37,6 +39,7 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
   const role = session?.user?.role;
   const createStudioHref = authed ? "/dashboard/studio/new?setup=both" : "/demo";
   const createStudioActiveHref = authed ? "/dashboard/studio/new" : "/demo";
+  const shopCartHref = "/wear/cart";
 
   useEffect(() => {
     if (!open) return;
@@ -122,20 +125,22 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                   Dashboard
                 </Link>
               ) : null}
-              {!isVendorRole(role) && !isAdminRole(role) ? (
+              {!apparelStorefront && !isVendorRole(role) && !isAdminRole(role) ? (
                 <Link href={createStudioHref} className={linkClass(createStudioActiveHref)}>
                   Create your studio
                 </Link>
               ) : null}
               {!isAdminRole(role) ? (
                 <>
-                  <Link href="/my-bookings" className={linkClass("/my-bookings")}>
-                    My bookings
-                  </Link>
+                  {!apparelStorefront ? (
+                    <Link href="/my-bookings" className={linkClass("/my-bookings")}>
+                      My bookings
+                    </Link>
+                  ) : null}
                   <Link href="/my-orders" className={linkClass("/my-orders")}>
                     My orders
                   </Link>
-                  <Link href="/cart" className={linkClass("/cart")}>
+                  <Link href={apparelStorefront ? shopCartHref : "/cart"} className={linkClass(apparelStorefront ? shopCartHref : "/cart")}>
                     Cart
                   </Link>
                 </>
@@ -154,16 +159,35 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
-                <Link href="/vision" className={linkClass("/vision")}>
-                  Our vision
+                {apparelStorefront ? (
+                  <>
+                    <Link href="/wear/shop" className={linkClass("/wear/shop")}>
+                      Shop
+                    </Link>
+                    <Link href="/wear" className={linkClass("/wear")}>
+                      Drop
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/vision" className={linkClass("/vision")}>
+                      Our vision
+                    </Link>
+                    <Link href="/#register-studio" className={linkClass("/")}>
+                      Register for free
+                    </Link>
+                  </>
+                )}
+              </div>
+              {apparelStorefront ? (
+                <Link href="/wear/shop" className={`${ui.buttonMarketing} md:hidden`}>
+                  Shop
                 </Link>
-                <Link href="/#register-studio" className={linkClass("/")}>
+              ) : (
+                <Link href="/#register-studio" className={`${ui.buttonMarketing} md:hidden`}>
                   Register for free
                 </Link>
-              </div>
-              <Link href="/#register-studio" className={`${ui.buttonMarketing} md:hidden`}>
-                Register for free
-              </Link>
+              )}
               {showPublicSignIn ? (
                 <Link href="/login" className={cn(linkClass("/login"), "hidden md:inline-flex")}>
                   Sign in
@@ -226,20 +250,22 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
                     Dashboard
                   </Link>
                 ) : null}
-                {!isVendorRole(role) && !isAdminRole(role) ? (
+                {!apparelStorefront && !isVendorRole(role) && !isAdminRole(role) ? (
                   <Link href="/dashboard/studio/new?setup=both" className={mobileLinkClass("/dashboard/studio/new")} onClick={close}>
                     Create your studio
                   </Link>
                 ) : null}
                 {!isAdminRole(role) ? (
                   <>
-                    <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")} onClick={close}>
-                      My bookings
-                    </Link>
+                    {!apparelStorefront ? (
+                      <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")} onClick={close}>
+                        My bookings
+                      </Link>
+                    ) : null}
                     <Link href="/my-orders" className={mobileLinkClass("/my-orders")} onClick={close}>
                       My orders
                     </Link>
-                    <Link href="/cart" className={mobileLinkClass("/cart")} onClick={close}>
+                    <Link href={apparelStorefront ? shopCartHref : "/cart"} className={mobileLinkClass(apparelStorefront ? shopCartHref : "/cart")} onClick={close}>
                       Cart
                     </Link>
                   </>
@@ -260,13 +286,26 @@ export function SiteHeader({ showPublicSignIn = true }: SiteHeaderProps) {
               </>
             ) : (
               <>
-                <Link href="/vision" className={mobileLinkClass("/vision")} onClick={close}>
-                  Our vision
-                </Link>
-                <hr className="my-2 border-[var(--border)]" />
-                <Link href="/#register-studio" className={mobileLinkClass("/")} onClick={close}>
-                  Register for free
-                </Link>
+                {apparelStorefront ? (
+                  <>
+                    <Link href="/wear/shop" className={mobileLinkClass("/wear/shop")} onClick={close}>
+                      Shop
+                    </Link>
+                    <Link href="/wear" className={mobileLinkClass("/wear")} onClick={close}>
+                      Drop
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/vision" className={mobileLinkClass("/vision")} onClick={close}>
+                      Our vision
+                    </Link>
+                    <hr className="my-2 border-[var(--border)]" />
+                    <Link href="/#register-studio" className={mobileLinkClass("/")} onClick={close}>
+                      Register for free
+                    </Link>
+                  </>
+                )}
                 <hr className="my-2 border-[var(--border)]" />
                 {showPublicSignIn ? (
                   <Link href="/login" className={mobileLinkClass("/login")} onClick={close}>

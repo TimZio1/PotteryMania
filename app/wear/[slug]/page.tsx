@@ -30,10 +30,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const desc = p.subtitle ?? p.description ?? p.name;
   return buildMetadata({
-    title: `${p.name} — Wear`,
-    description: desc.slice(0, 160),
-    path: `/wear/${slug}`,
-  });
+      title: `${p.name} — Shop`,
+      description: desc.slice(0, 160),
+      path: `/wear/${slug}`,
+    });
 }
 
 export default async function WearProductPage({ params }: Props) {
@@ -76,7 +76,7 @@ export default async function WearProductPage({ params }: Props) {
       name: p.name,
       description: p.subtitle ?? p.description ?? `${p.name} — wear.`,
       imageUrls: images.map((image) => image.url),
-      brandName: "Wear",
+      brandName: "PotteryMania",
       category: category.categoryLabel,
       price: (inStockVariant?.priceCents ?? p.priceCents) / 100,
       currency: p.currency,
@@ -84,7 +84,7 @@ export default async function WearProductPage({ params }: Props) {
     }),
     breadcrumbJsonLd([
       { name: "Home", path: "/" },
-      { name: "Wear", path: "/wear/shop" },
+      { name: "Shop", path: "/wear/shop" },
       { name: p.name, path: `/wear/${p.slug}` },
     ]),
   ]);

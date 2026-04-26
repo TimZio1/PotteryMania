@@ -5,8 +5,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Wear cart",
-  description: "Review your wearables and head to checkout.",
+  title: "Cart",
+  description: "Review your order — shipping calculated at checkout.",
   path: "/wear/cart",
 });
 

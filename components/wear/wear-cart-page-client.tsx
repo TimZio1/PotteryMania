@@ -13,6 +13,7 @@ import {
 } from "@/lib/wear-cart";
 import { WEAR_EVENT_KINDS, trackWearEvent } from "@/lib/wear-analytics-client";
 import { formatWearMoney } from "@/lib/wear-money";
+import { WEAR_SHIPPING_CART_NOTE } from "@/lib/wear-shipping-copy";
 
 type VariantRow = {
   id: string;
@@ -326,9 +327,7 @@ export function WearCartPageClient() {
               <span className="font-medium text-stone-800">Subtotal</span>
               <span className="text-amber-950">{formatWearMoney(subtotalCents, currency)}</span>
             </div>
-            <p className="mt-2 text-xs text-stone-600">
-              Shipping is added at checkout (standard rate). Taxes may apply, depending on your region.
-            </p>
+            <p className="mt-2 text-xs leading-relaxed text-stone-600">{WEAR_SHIPPING_CART_NOTE}</p>
 
             <div className="mt-10 space-y-4">
               <div>

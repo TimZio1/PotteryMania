@@ -14,13 +14,14 @@ import {
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { findWearPublicProductsWithVariantsRetrying, type WearPublicListingRow } from "@/lib/wear-public-catalog-query";
+import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Wear shop",
-  description: "Limited drops — shirts, hoodies, headwear, and accessories, printed to order.",
+  title: "Shop — the drop",
+  description: "Limited apparel — printed on demand. Shipping calculated at checkout.",
   path: "/wear/shop",
 });
 
@@ -39,7 +40,11 @@ type WearShopProduct = WearPublicListingRow & {
 
 const CATEGORY_DISPLAY_ORDER = ["tops", "hoodies", "headwear", "accessories", "other"] as const;
 
+/** Hide category chips when the catalog is a small drop (less friction). */
+const WEAR_SMALL_CATALOG_MAX = 8;
+
 export default async function WearShopPage({ searchParams }: WearShopProps) {
+  const partnerHref = resolveWearResellerApplicationHref();
   const sp = await searchParams;
   const activeCategory = sp.category?.trim().toLowerCase() || null;
   const activeTopSub = isWearTopSubcategory(sp.sub) ? sp.sub : null;
@@ -111,6 +116,9 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     ? categoryNavItems.filter((category) => category.slug !== "tops")
     : categoryNavItems;
 
+  const hideCategoryNav =
+    normalized.length > 0 && normalized.length <= WEAR_SMALL_CATALOG_MAX && !activeCategory && !activeTopSub;
+
   type ShopBlock =
     | {
         kind: "category";
@@ -161,7 +169,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-stone-700">
           Limited pieces. Printed and shipped after you order.
         </p>
-        {hasTopsInCatalog ? (
+        {!hideCategoryNav && hasTopsInCatalog ? (
           <div className="mx-auto mt-5 max-w-4xl">
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max items-center gap-2 pb-1">
@@ -192,35 +200,37 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             </div>
           </div>
         ) : null}
-        <div className="mx-auto mt-3 max-w-4xl">
-          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex min-w-max items-center gap-2 pb-1">
-              <Link
-                href="/wear/shop"
-                className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
-                  activeCategory == null
-                    ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
-                    : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
-                }`}
-              >
-                All
-              </Link>
-              {secondaryCategoryNavItems.map((category) => (
+        {!hideCategoryNav ? (
+          <div className="mx-auto mt-3 max-w-4xl">
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-max items-center gap-2 pb-1">
                 <Link
-                  key={category.slug}
-                  href={`/wear/shop?category=${category.slug}`}
+                  href="/wear/shop"
                   className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
-                    activeCategory === category.slug
+                    activeCategory == null
                       ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
                       : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                   }`}
                 >
-                  {category.label}
+                  All
                 </Link>
-              ))}
+                {secondaryCategoryNavItems.map((category) => (
+                  <Link
+                    key={category.slug}
+                    href={`/wear/shop?category=${category.slug}`}
+                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
+                      activeCategory === category.slug
+                        ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                        : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
+                    }`}
+                  >
+                    {category.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         {visible.length === 0 ? (
           <div className="mx-auto mt-12 max-w-md text-center">
@@ -233,17 +243,24 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   : `Nothing in this category right now — check back soon.`
                 : "Between drops. New pieces land here first — check back soon."}
             </p>
-            <p className="mt-6 text-sm text-stone-500">
+            <p className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-stone-500">
               <Link href="/wear" className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline">
-                Wear home
+                Drop home
               </Link>
-              <span className="mx-2 text-stone-600">/</span>
-              <Link
-                href="/demo"
-                className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline"
-              >
-                Create your studio
-              </Link>
+              <span className="text-stone-400">·</span>
+              {partnerHref.startsWith("http") ? (
+                <a
+                  href={partnerHref}
+                  className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline"
+                  rel="noopener noreferrer"
+                >
+                  Partner program
+                </a>
+              ) : (
+                <Link href={partnerHref} className="text-amber-950 underline-offset-4 hover:text-amber-800 hover:underline">
+                  Partner program
+                </Link>
+              )}
             </p>
             {dbUnavailable ? (
               <div className="mt-2 flex justify-center">
