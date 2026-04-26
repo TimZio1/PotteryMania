@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { WearResellerProgramLink } from "@/components/wear/wear-reseller-program-link";
 import {
   WEAR_CART_CHANGED_EVENT,
   WEAR_CART_STORAGE_KEY,
@@ -20,13 +19,7 @@ function cartItemCount(): number {
   return lines.reduce((n, l) => n + l.quantity, 0);
 }
 
-export function WearSubnav({
-  initialCount = 0,
-  partnerHref,
-}: {
-  initialCount?: number;
-  partnerHref: string;
-}) {
+export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
   const pathname = usePathname() || "/wear";
   const [count, setCount] = useState(initialCount);
 
@@ -62,9 +55,12 @@ export function WearSubnav({
           >
             Cart{count > 0 ? <span className="ml-1.5 font-medium !text-stone-900">({count})</span> : null}
           </Link>
-          <WearResellerProgramLink href={partnerHref} className={linkBase}>
+          <Link
+            href="/wear/partner"
+            className={pathname.startsWith("/wear/partner") ? `${linkBase} ${linkOn}` : linkBase}
+          >
             Partner
-          </WearResellerProgramLink>
+          </Link>
         </nav>
         <p className="hidden text-center text-[11px] font-medium uppercase tracking-[0.25em] !text-stone-700 sm:block">
           Apparel

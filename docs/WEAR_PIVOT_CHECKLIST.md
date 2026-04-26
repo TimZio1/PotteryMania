@@ -4,7 +4,7 @@
 
 **How to use:** Mark items `- [x]` when done. Update this file after each completed task (or batch).
 
-**Last updated:** 2026-04-26 (wear shell: header + footer apparel mode)
+**Last updated:** 2026-04-26 (partner page + mobile PDP bar)
 
 ---
 
@@ -78,8 +78,8 @@
 
 ### Affiliate
 
-- [ ] Gap closed: Partner page documents %, cookie duration, payout, natural content angles.
-- [ ] Gap closed: Affiliate hooks not salesy on primary shop path.
+- [x] Gap closed: Partner page documents %, cookie duration, payout, natural content angles. → *`/wear/partner` + live default studio margin from admin; affiliate terms “in agreement”.*
+- [x] Gap closed: Affiliate hooks not salesy on primary shop path. → *Hero links to `/wear/partner`; post-checkout one line only.*
 
 ### Drop system
 
@@ -112,13 +112,13 @@
 
 ### Cart & checkout
 
-- [ ] Mobile pass: PDP → cart → checkout (thumb reach, no extra steps).
+- [x] Mobile pass: PDP → cart → checkout (thumb reach, no extra steps). → *Sticky add-to-cart bar on PDP (`md:hidden`); extra bottom padding on PDP main.*
 - [x] Cart/checkout shipping copy matches PDP (transparent shipping).
 
 ### Affiliate
 
-- [ ] Publish/refresh partner page: commission %, cookie length, payout rules, content angles.
-- [ ] Entry points: footer + optional post-purchase; no hero clutter.
+- [x] Publish/refresh partner page: commission %, cookie length, payout rules, content angles.
+- [x] Entry points: footer + optional post-purchase; no hero clutter.
 
 ### Drop & brand
 
@@ -160,3 +160,4 @@
 - 2026-04-25: Checklist file created; no execution tasks marked complete yet.
 - 2026-04-26: **Code shipped** — `lib/wear-shipping-copy.ts`; `/wear` 3-section `WearPage`; `WearSubnav` + `WearLayoutShell` partner link; shop small-catalog filter hide + empty-state CTAs; PDP hook/benefits/shipping strip; cart shipping note; metadata tweaks. See git diff for files touched.
 - 2026-04-26: **`apparelStorefront`** — `MarketingLayout` + `SiteHeader` props from `WearLayoutShell`: minimal shop footer, guest nav Shop/Drop, cart → `/wear/cart`, strip studio/booking noise for logged-out buyers on wear routes.
+- 2026-04-26: **`/wear/partner`** — program copy + apply CTA; subnav Partner → page; apparel footer link; success page hook; mobile PDP sticky ATC.

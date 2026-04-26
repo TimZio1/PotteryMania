@@ -9,7 +9,6 @@ import {
 import { WEAR_SHIPPING_DELIVERY_RANGES, WEAR_SHIPPING_LANDING_STRIP } from "@/lib/wear-shipping-copy";
 import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
-import { WearResellerProgramLink } from "./wear-reseller-program-link";
 
 const heroCtaClass =
   "inline-flex min-h-12 items-center justify-center border border-amber-300/60 bg-white px-8 text-sm font-medium tracking-wide text-stone-900 transition hover:bg-amber-50/90";
@@ -20,13 +19,7 @@ const sectionCtaClass =
 const textLinkClass =
   "text-sm font-medium text-stone-600 underline decoration-stone-400/60 underline-offset-4 transition hover:text-amber-950 hover:decoration-amber-700/60";
 
-export function WearPage({
-  previewItems,
-  resellerProgramHref,
-}: {
-  previewItems?: WearPreviewItem[];
-  resellerProgramHref: string;
-}) {
+export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] }) {
   const spreadshopUrl = getWearSpreadshopUrl();
   const tiles = previewItems?.length ? previewItems : WEAR_PREVIEW_ITEMS;
 
@@ -48,9 +41,9 @@ export function WearPage({
               <Link href="/wear/shop" className={heroCtaClass}>
                 Shop the drop
               </Link>
-              <WearResellerProgramLink href={resellerProgramHref} className={textLinkClass}>
+              <Link href="/wear/partner" className={textLinkClass}>
                 Partner program
-              </WearResellerProgramLink>
+              </Link>
               {spreadshopUrl ? (
                 <WearOutboundLink
                   href={spreadshopUrl}
@@ -127,9 +120,9 @@ export function WearPage({
             <p className="mt-3 text-sm leading-relaxed text-stone-600">{WEAR_SHIPPING_DELIVERY_RANGES}</p>
             <p className="mt-8 text-xs text-stone-500">
               Questions?{" "}
-              <WearResellerProgramLink href={resellerProgramHref} className={textLinkClass}>
+              <Link href="/wear/partner" className={textLinkClass}>
                 Partners
-              </WearResellerProgramLink>{" "}
+              </Link>{" "}
               ·{" "}
               <Link href="/wear/cart" className={textLinkClass}>
                 Cart

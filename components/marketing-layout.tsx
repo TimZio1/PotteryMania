@@ -60,6 +60,9 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
                 <Link href="/wear/cart" className="transition hover:text-[var(--foreground)]">
                   Cart
                 </Link>
+                <Link href="/wear/partner" className="transition hover:text-[var(--foreground)]">
+                  Partner
+                </Link>
                 <Link href="/" className="transition hover:text-[var(--foreground)]">
                   Site home
                 </Link>

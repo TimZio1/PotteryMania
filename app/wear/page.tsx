@@ -3,8 +3,6 @@ import { WearPage } from "@/components/wear/wear-page";
 import { buildMetadata } from "@/lib/seo";
 import { WEAR_PREVIEW_ITEMS } from "@/lib/wear-config";
 import { getWearPreviewItemsFromDb } from "@/lib/wear-preview-items";
-import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
-
 /** Prisma (Railway internal DB host) is not reachable during image build / prerender. */
 export const dynamic = "force-dynamic";
 
@@ -16,10 +14,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function WearRoute() {
-  const [fromDb, resellerProgramHref] = await Promise.all([
-    getWearPreviewItemsFromDb(),
-    Promise.resolve(resolveWearResellerApplicationHref()),
-  ]);
+  const fromDb = await getWearPreviewItemsFromDb();
   const previewItems = fromDb.length > 0 ? fromDb : WEAR_PREVIEW_ITEMS;
-  return <WearPage previewItems={previewItems} resellerProgramHref={resellerProgramHref} />;
+  return <WearPage previewItems={previewItems} />;
 }

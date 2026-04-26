@@ -26,7 +26,13 @@ export function WearSuccessClient() {
         {sessionId ? (
           <p className="mt-4 font-mono text-[11px] text-stone-500 break-all">Ref: {sessionId}</p>
         ) : null}
-        <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center">
+        <p className="mt-8 text-sm text-stone-600">
+          Love the brand?{" "}
+          <Link href="/wear/partner" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-800">
+            Partner program
+          </Link>
+        </p>
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/wear/shop"
             className="inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium text-white hover:bg-amber-900"
@@ -37,7 +43,7 @@ export function WearSuccessClient() {
             href="/wear"
             className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 bg-white px-6 text-sm font-medium text-stone-700 hover:border-amber-300/60 hover:bg-amber-50/60"
           >
-            Identity
+            Drop home
           </Link>
         </div>
       </div>
