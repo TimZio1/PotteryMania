@@ -10,7 +10,7 @@ import {
   assertWearUnitNotBelowCost,
   calculateWearInternalListCents,
   mapWearProductRowToInternalPrices,
-  useInternalWearPricing,
+  shouldUseInternalWearPricing,
   wearEffectiveCostCents,
 } from "@/lib/wear-internal-pricing";
 
@@ -156,7 +156,8 @@ export async function resolveWearCheckoutLines(args: {
     }
 
     const priced = mapWearProductRowToInternalPrices(p);
-    const baseCents = useInternalWearPricing()
+    const internalPricing = shouldUseInternalWearPricing();
+    const baseCents = internalPricing
       ? calculateWearInternalListCents({
           supplyCostCents: priced.supplyCostCents,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
@@ -167,7 +168,7 @@ export async function resolveWearCheckoutLines(args: {
     if (attributedStudioId && studioMarginBps > 0) {
       unitCents = calculateWearPrice(baseCents, studioMarginBps);
     }
-    if (useInternalWearPricing()) {
+    if (internalPricing) {
       try {
         assertWearUnitNotBelowCost({
           unitPriceCents: unitCents,
@@ -179,7 +180,7 @@ export async function resolveWearCheckoutLines(args: {
         return { ok: false, status: 400, error: "Pricing configuration error — contact support." };
       }
     }
-    const supplyFloor = useInternalWearPricing()
+    const supplyFloor = internalPricing
       ? wearEffectiveCostCents({
           supplyCostCents: priced.supplyCostCents,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,

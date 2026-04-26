@@ -38,7 +38,7 @@ export function wearInternalCategoryFromProduct(fields: {
   return "tshirt";
 }
 
-export function useInternalWearPricing(): boolean {
+export function shouldUseInternalWearPricing(): boolean {
   if (isApparelOnlyLaunch()) return true;
   return process.env.NEXT_PUBLIC_INTERNAL_WEAR_PRICING?.trim().toLowerCase() === "true";
 }
@@ -92,7 +92,7 @@ export function mapWearProductRowToInternalPrices<
     variants: Array<{ priceCents: number | null }>;
   },
 >(row: T): T {
-  if (!useInternalWearPricing()) return row;
+  if (!shouldUseInternalWearPricing()) return row;
   const list = calculateWearInternalListCents({
     supplyCostCents: row.supplyCostCents ?? null,
     spreadconnectProductTypeName: row.spreadconnectProductTypeName,

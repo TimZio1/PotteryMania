@@ -54,7 +54,7 @@ function minRevenueForLine(line: WearDiscountEngineLine): number {
 function snapDiscountForLineDivisibility(lineTotalCents: number, qty: number, requestedDiscount: number): number {
   if (qty <= 0) return 0;
   let d = Math.min(Math.max(0, requestedDiscount), lineTotalCents);
-  let post = lineTotalCents - d;
+  const post = lineTotalCents - d;
   const r = ((post % qty) + qty) % qty;
   if (r !== 0) d = Math.min(lineTotalCents, d + r);
   return d;
@@ -185,7 +185,7 @@ export function computeWearCouponDiscount(args: {
     };
   }
 
-  let discountByKey: Record<string, number> = {};
+  const discountByKey: Record<string, number> = {};
   for (const l of lines) {
     discountByKey[l.key] = 0;
   }

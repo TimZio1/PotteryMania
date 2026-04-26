@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import {
   calculateWearInternalListCents,
-  useInternalWearPricing,
+  shouldUseInternalWearPricing,
   wearEffectiveCostCents,
 } from "@/lib/wear-internal-pricing";
 
@@ -89,11 +89,11 @@ export async function loadWearCatalogValueSnapshot(): Promise<WearCatalogValueSn
     },
   });
 
-  const internalPricing = useInternalWearPricing();
+  const internalPricing = shouldUseInternalWearPricing();
   let totalCatalogValueCents = 0;
   let totalCatalogCostCents = 0;
   let totalVariants = 0;
-  let totalProducts = products.length;
+  const totalProducts = products.length;
   let activeProducts = 0;
   let spreadconnectLinkedProducts = 0;
   let currency = "EUR";
