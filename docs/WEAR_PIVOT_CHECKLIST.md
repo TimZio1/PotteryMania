@@ -4,7 +4,7 @@
 
 **How to use:** Mark items `- [x]` when done. Update this file after each completed task (or batch).
 
-**Last updated:** 2026-04-26 (admin wear markup %, PDP image sort by Spreadconnect perspective, richer alts)
+**Last updated:** 2026-04-26 (wear-first `/` + header Shop/Drop/Early access; wear cart from home when signed in)
 
 ---
 
@@ -23,7 +23,7 @@
 
 - [ ] List all public URLs that mention pottery, studios, classes, bookings, marketplace, or directory.
 - [ ] Map `/wear` tree: home (`/wear`), shop (`/wear/shop`), PDP (`/wear/[slug]`), cart, checkout success, errors.
-- [ ] Map global nav: links on marketing home vs wear layout vs footer (booking vs shop leakage).
+- [x] Map global nav: links on marketing home vs wear layout vs footer (booking vs shop leakage). → *`/` uses buyer-first header: Shop, Drop, Early access (`/#register-studio`); signed-in cart → `/wear/cart` on `/`. `/vision` and other marketing pages unchanged.*
 
 ### Commerce
 

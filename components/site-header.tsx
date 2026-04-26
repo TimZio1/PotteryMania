@@ -40,6 +40,9 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
   const createStudioHref = authed ? "/dashboard/studio/new?setup=both" : "/demo";
   const createStudioActiveHref = authed ? "/dashboard/studio/new" : "/demo";
   const shopCartHref = "/wear/cart";
+  /** Marketing home is wear-first; use the same buyer nav + wear cart as the `/wear` shell. */
+  const buyerFirstMarketing = apparelStorefront || pathname === "/";
+  const cartHref = buyerFirstMarketing ? shopCartHref : "/cart";
 
   useEffect(() => {
     if (!open) return;
@@ -140,7 +143,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                   <Link href="/my-orders" className={linkClass("/my-orders")}>
                     My orders
                   </Link>
-                  <Link href={apparelStorefront ? shopCartHref : "/cart"} className={linkClass(apparelStorefront ? shopCartHref : "/cart")}>
+                  <Link href={cartHref} className={linkClass(cartHref)}>
                     Cart
                   </Link>
                 </>
@@ -159,7 +162,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
-                {apparelStorefront ? (
+                {buyerFirstMarketing ? (
                   <>
                     <Link href="/wear/shop" className={linkClass("/wear/shop")}>
                       Shop
@@ -167,6 +170,11 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                     <Link href="/wear" className={linkClass("/wear")}>
                       Drop
                     </Link>
+                    {pathname === "/" ? (
+                      <Link href="/#register-studio" className={linkClass("/")}>
+                        Early access
+                      </Link>
+                    ) : null}
                   </>
                 ) : (
                   <>
@@ -179,7 +187,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                   </>
                 )}
               </div>
-              {apparelStorefront ? (
+              {buyerFirstMarketing ? (
                 <Link href="/wear/shop" className={`${ui.buttonMarketing} md:hidden`}>
                   Shop
                 </Link>
@@ -265,7 +273,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                     <Link href="/my-orders" className={mobileLinkClass("/my-orders")} onClick={close}>
                       My orders
                     </Link>
-                    <Link href={apparelStorefront ? shopCartHref : "/cart"} className={mobileLinkClass(apparelStorefront ? shopCartHref : "/cart")} onClick={close}>
+                    <Link href={cartHref} className={mobileLinkClass(cartHref)} onClick={close}>
                       Cart
                     </Link>
                   </>
@@ -286,7 +294,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
               </>
             ) : (
               <>
-                {apparelStorefront ? (
+                {buyerFirstMarketing ? (
                   <>
                     <Link href="/wear/shop" className={mobileLinkClass("/wear/shop")} onClick={close}>
                       Shop
@@ -294,6 +302,11 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                     <Link href="/wear" className={mobileLinkClass("/wear")} onClick={close}>
                       Drop
                     </Link>
+                    {pathname === "/" ? (
+                      <Link href="/#register-studio" className={mobileLinkClass("/")} onClick={close}>
+                        Early access
+                      </Link>
+                    ) : null}
                   </>
                 ) : (
                   <>
