@@ -146,7 +146,7 @@
 ## Phase 4 — Done definition (acceptance)
 
 - [ ] Shop path: a new visitor can buy without understanding pottery SaaS.
-- [ ] Affiliate can explain the offer in one sentence + link.
+- [x] Affiliate can explain the offer in one sentence + link. → *“Share the drop — earn on pieces people actually wear” + `/wear/partner`.*
 - [x] No booking/directory confusion on shop + checkout paths. → *Apparel header/footer on all `/wear/*`.*
 - [x] Shipping clear before pay; prices feel premium but fair. → *Copy in place; pricing still business-owned.*
 - [ ] Only three live apparel SKUs with a named drop and story.
