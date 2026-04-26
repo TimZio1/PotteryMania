@@ -26,6 +26,13 @@ function normalizeColorKey(value: string | null | undefined) {
   return value?.trim().toLowerCase() || "";
 }
 
+function wearPdpImageAlt(productName: string, image: WearGalleryImage): string {
+  const bits = [productName];
+  if (image.appearanceName?.trim()) bits.push(image.appearanceName.trim());
+  if (image.perspective?.trim()) bits.push(image.perspective.trim());
+  return bits.join(" — ");
+}
+
 export function WearProductGallery({
   productId,
   productName,
@@ -84,7 +91,7 @@ export function WearProductGallery({
           {selectedImage ? (
             <Image
               src={wearListingImageSrc(selectedImage.url, 960)}
-              alt={productName}
+              alt={wearPdpImageAlt(productName, selectedImage)}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -111,7 +118,7 @@ export function WearProductGallery({
                     if (image.appearanceName) setSelectedColor(image.appearanceName);
                   }}
                   aria-pressed={isActive}
-                  aria-label={`Show ${productName} image ${index + 1}`}
+                  aria-label={`Show ${wearPdpImageAlt(productName, image)}`}
                   className={`relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border bg-stone-100 transition sm:h-24 sm:w-20 ${
                     isActive
                       ? "border-amber-500 ring-2 ring-amber-500/40"
@@ -120,7 +127,7 @@ export function WearProductGallery({
                 >
                   <Image
                     src={wearListingImageSrc(image.url, 320)}
-                    alt={`${productName} detail view`}
+                    alt={wearPdpImageAlt(productName, image)}
                     fill
                     className="object-cover"
                     sizes="96px"

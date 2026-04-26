@@ -6,7 +6,7 @@ import {
   resolveWearCatalogCategory,
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
-import { wearImagesFromJson } from "@/lib/wear-product-json";
+import { sortWearCatalogImagesForDisplay, wearImagesFromJson } from "@/lib/wear-product-json";
 import { WearProductGallery } from "@/components/wear/wear-product-gallery";
 import { breadcrumbJsonLd, productJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
@@ -56,7 +56,7 @@ export default async function WearProductPage({ params }: Props) {
     spreadconnectProductTypeName: p.spreadconnectProductTypeName,
     spreadconnectCategoryData: p.spreadconnectCategoryData,
   });
-  const images = wearImagesFromJson(p.images).map((image, index) => ({
+  const images = sortWearCatalogImagesForDisplay(wearImagesFromJson(p.images)).map((image, index) => ({
     id: String(image.imageId ?? `${index}-${image.url}`),
     url: image.url,
     appearanceName: image.appearanceName,

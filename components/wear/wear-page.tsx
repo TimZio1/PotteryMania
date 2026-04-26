@@ -72,7 +72,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center font-serif text-2xl text-amber-950 sm:text-3xl">The drop</h2>
             <p className="mx-auto mt-3 max-w-lg text-center text-sm text-stone-600">
-              Three pieces to start. Tap through for size, color, and checkout.
+              Preview what&apos;s live in the shop — sizes, colors, and checkout on each product page.
             </p>
             <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {tiles.map((item) => {

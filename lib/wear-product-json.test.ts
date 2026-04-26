@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   mergeWearImageUrlsWithExistingMetadata,
+  sortWearCatalogImagesForDisplay,
   wearImagesFromJson,
 } from "./wear-product-json";
 
@@ -64,5 +65,32 @@ describe("wear product image json", () => {
         imageId: 100,
       },
     ]);
+  });
+
+  it("sorts PDP images by perspective tier (front before back before detail)", () => {
+    const sorted = sortWearCatalogImagesForDisplay([
+      {
+        url: "https://cdn.example.com/z.jpg",
+        appearanceName: "Black",
+        appearanceId: 1,
+        perspective: "DETAIL",
+        imageId: 3,
+      },
+      {
+        url: "https://cdn.example.com/a.jpg",
+        appearanceName: "Black",
+        appearanceId: 1,
+        perspective: "BACK",
+        imageId: 2,
+      },
+      {
+        url: "https://cdn.example.com/f.jpg",
+        appearanceName: "Black",
+        appearanceId: 1,
+        perspective: "FRONT",
+        imageId: 1,
+      },
+    ]);
+    expect(sorted.map((i) => i.perspective)).toEqual(["FRONT", "BACK", "DETAIL"]);
   });
 });

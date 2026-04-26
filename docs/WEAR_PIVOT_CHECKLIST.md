@@ -4,7 +4,7 @@
 
 **How to use:** Mark items `- [x]` when done. Update this file after each completed task (or batch).
 
-**Last updated:** 2026-04-26 (Spreadconnect catalog — no 3-SKU cap)
+**Last updated:** 2026-04-26 (admin wear markup %, PDP image sort by Spreadconnect perspective, richer alts)
 
 ---
 
@@ -74,7 +74,7 @@
 ### Product pages
 
 - [x] Gap closed: PDP copy = hook + identity + 3 benefit bullets + delivery + light proof.
-- [ ] Gap closed: Image order = hero → front → detail → context. → *Still driven by product JSON / Spreadconnect assets; verify ordering in admin.*
+- [x] Gap closed: Image order = hero → front → detail → context. → *`sortWearCatalogImagesForDisplay` on `/wear/[slug]` (and studio wearables PDP) using `perspective` from sync; JSON array order for unknowns.*
 
 ### Affiliate
 
@@ -108,7 +108,7 @@
 ### PDP
 
 - [x] Apply conversion wireframe to each `wear/[slug]`: hook, identity, benefits, variants, CTA, delivery block. → *`wear-product-gallery.tsx` + shared shipping copy.*
-- [ ] Set image order and alt text per PDP.
+- [x] Set image order and alt text per PDP. → *Perspective-based sort + alt includes name, appearance, perspective.*
 
 ### Cart & checkout
 

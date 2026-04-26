@@ -9,7 +9,7 @@ import { resolveStudioPublicTheme } from "@/lib/studio-theme/resolve";
 import { buildMetadata } from "@/lib/seo";
 import { resolveWearGlobalPricing, resolveStudioMarginBps, calculateWearPrice } from "@/lib/wear-commission";
 import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
-import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { sortWearCatalogImagesForDisplay, wearImagesFromJson } from "@/lib/wear-product-json";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 export const dynamic = "force-dynamic";
@@ -63,7 +63,12 @@ export default async function StudioWearPdpPage({ params }: Props) {
   const global = await resolveWearGlobalPricing();
   const marginBps = resolveStudioMarginBps(config.marginBps, global);
   const priceCents = calculateWearPrice(product.priceCents, marginBps);
-  const images = wearImageUrlsFromJson(product.images);
+  const images = sortWearCatalogImagesForDisplay(wearImagesFromJson(product.images)).map((image, index) => ({
+    id: String(image.imageId ?? `${index}-${image.url}`),
+    url: image.url,
+    appearanceName: image.appearanceName,
+    perspective: image.perspective,
+  }));
   const theme = resolveStudioPublicTheme(studio);
   const category = resolveWearCatalogCategory({
     slug: product.slug,
@@ -90,12 +95,7 @@ export default async function StudioWearPdpPage({ params }: Props) {
             <WearProductGallery
               productId={product.id}
               productName={product.name}
-              images={images.map((src, index) => ({
-                id: `${index}-${src}`,
-                url: src,
-                appearanceName: null,
-                perspective: null,
-              }))}
+              images={images}
               variants={product.variants.map((v) => ({
                 id: v.id,
                 label: v.label,

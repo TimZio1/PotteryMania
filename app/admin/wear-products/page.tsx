@@ -141,6 +141,15 @@ export default async function AdminWearProductsPage({
         Catalog for the PotteryMania-native wear storefront. Archive removes pieces from the public shop without deleting
         order history. Variants drive size/color SKUs and optional per-option pricing.
       </p>
+      <p className="mt-2 text-sm">
+        <Link
+          href="/admin/settings#wear-markup"
+          className="font-medium text-amber-900 underline-offset-2 hover:underline"
+        >
+          Platform retail markup on Spreadconnect base cost
+        </Link>
+        <span className="text-[var(--muted)]"> — default %, min/max, lock studio editing.</span>
+      </p>
 
       {dbErrorCombined ? (
         <div

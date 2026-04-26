@@ -48,6 +48,33 @@ function normalizeWearCatalogImage(image: WearCatalogImage): WearCatalogImage {
   };
 }
 
+/**
+ * Order images for storefront PDPs: front/hero first, then angles, back, detail, lifestyle/context.
+ * Uses Spreadconnect `perspective` when present; unknown perspectives keep sync order (stable tie-break).
+ */
+export function sortWearCatalogImagesForDisplay(images: WearCatalogImage[]): WearCatalogImage[] {
+  const rank = (perspective: string | null): number => {
+    const u = (perspective ?? "").toUpperCase();
+    if (!u.trim()) return 40;
+    if (/\b(FRONT|MAIN|HERO|PRIMARY|DEFAULT)\b/.test(u)) return 0;
+    if (/\b(SIDE|ANGLE|PROFILE|QUARTER)\b/.test(u)) return 10;
+    if (/\b(BACK|REAR)\b/.test(u)) return 20;
+    if (/\b(DETAIL|CLOSE|ZOOM|LABEL|NECK|COLLAR)\b/.test(u)) return 30;
+    if (/\b(LIFE|CONTEXT|MODEL|ONBODY|FLAT|LAY)\b/.test(u)) return 45;
+    return 35;
+  };
+
+  return [...images].sort((a, b) => {
+    const ra = rank(a.perspective);
+    const rb = rank(b.perspective);
+    if (ra !== rb) return ra - rb;
+    const ia = a.imageId ?? Number.MAX_SAFE_INTEGER;
+    const ib = b.imageId ?? Number.MAX_SAFE_INTEGER;
+    if (ia !== ib) return ia - ib;
+    return a.url.localeCompare(b.url);
+  });
+}
+
 export function wearImagesFromJson(images: Prisma.JsonValue): WearCatalogImage[] {
   if (!Array.isArray(images)) return [];
 

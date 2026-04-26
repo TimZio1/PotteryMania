@@ -164,7 +164,7 @@ export function CommissionForm() {
       const j = await r.json().catch(() => ({} as { error?: string }));
       if (!r.ok) throw new Error(j.error ?? "Failed to update wearables pricing");
       await load();
-      setMsg("Reseller margin settings updated.");
+      setMsg("Wear markup settings updated.");
     } catch (error) {
       setMsg(error instanceof Error ? error.message : "Could not save wearables pricing");
     } finally {
@@ -391,47 +391,59 @@ export function CommissionForm() {
           Save tier pricing and commission matrix
         </button>
       </div>
-      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-[var(--foreground)]">Reseller margin (wearables)</p>
+      <div id="wear-markup" className="scroll-mt-24 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <p className="text-sm font-semibold text-[var(--foreground)]">Wear retail markup (Spreadconnect)</p>
         <p className="mt-2 text-sm text-[var(--foreground)]">
-          Default margin applies to new studios and to marketing copy on the homepage, <code className="rounded bg-stone-100 px-1 text-xs">/wear</code>, and the studio wearables dashboard. Control the default, allowed range, and whether studios can adjust their own margin.
+          Synced SKUs carry a base cost from Spreadconnect. This markup is added on top of that base to set the buyer-facing
+          price. It also drives the default studio reseller share, homepage and{" "}
+          <code className="rounded bg-stone-100 px-1 text-xs">/wear</code> copy, and the studio wearables dashboard. Set the
+          default markup, the allowed range when studios can tune their share, and whether studio editing is locked.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block">
-            <span className={ui.label}>Default margin (bps)</span>
+            <span className={ui.label}>Default markup (%)</span>
             <input
               type="number"
               min={0}
-              max={10000}
+              max={100}
+              step={0.1}
               className={`${ui.input} mt-1`}
-              value={wearDefault}
-              onChange={(e) => setWearDefault(Math.max(0, parseInt(e.target.value, 10) || 0))}
+              value={Number.isFinite(wearDefault / 100) ? wearDefault / 100 : 0}
+              onChange={(e) =>
+                setWearDefault(Math.max(0, Math.min(10000, Math.round((parseFloat(e.target.value) || 0) * 100))))
+              }
             />
-            <span className="mt-0.5 block text-xs text-stone-400">{(wearDefault / 100).toFixed(1)}%</span>
+            <span className="mt-0.5 block text-xs text-stone-400">{wearDefault} bps (basis points)</span>
           </label>
           <label className="block">
-            <span className={ui.label}>Min margin (bps)</span>
+            <span className={ui.label}>Min markup (%)</span>
             <input
               type="number"
               min={0}
-              max={10000}
+              max={100}
+              step={0.1}
               className={`${ui.input} mt-1`}
-              value={wearMin}
-              onChange={(e) => setWearMin(Math.max(0, parseInt(e.target.value, 10) || 0))}
+              value={Number.isFinite(wearMin / 100) ? wearMin / 100 : 0}
+              onChange={(e) =>
+                setWearMin(Math.max(0, Math.min(10000, Math.round((parseFloat(e.target.value) || 0) * 100))))
+              }
             />
-            <span className="mt-0.5 block text-xs text-stone-400">{(wearMin / 100).toFixed(1)}%</span>
+            <span className="mt-0.5 block text-xs text-stone-400">{wearMin} bps</span>
           </label>
           <label className="block">
-            <span className={ui.label}>Max margin (bps)</span>
+            <span className={ui.label}>Max markup (%)</span>
             <input
               type="number"
               min={0}
-              max={10000}
+              max={100}
+              step={0.1}
               className={`${ui.input} mt-1`}
-              value={wearMax}
-              onChange={(e) => setWearMax(Math.max(0, parseInt(e.target.value, 10) || 0))}
+              value={Number.isFinite(wearMax / 100) ? wearMax / 100 : 0}
+              onChange={(e) =>
+                setWearMax(Math.max(0, Math.min(10000, Math.round((parseFloat(e.target.value) || 0) * 100))))
+              }
             />
-            <span className="mt-0.5 block text-xs text-stone-400">{(wearMax / 100).toFixed(1)}%</span>
+            <span className="mt-0.5 block text-xs text-stone-400">{wearMax} bps</span>
           </label>
           <label className="flex items-center gap-2 self-end pb-1">
             <input
@@ -449,7 +461,7 @@ export function CommissionForm() {
           disabled={saving}
           onClick={() => void saveWearPricing()}
         >
-          Save reseller margin settings
+          Save wear markup settings
         </button>
       </div>
     </div>
