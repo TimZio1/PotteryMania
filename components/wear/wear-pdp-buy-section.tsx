@@ -71,7 +71,11 @@ export function WearPdpBuySection({
   const sizes = useMemo(() => [...new Set(colorVariants.map((variant) => variant.size))], [colorVariants]);
 
   useEffect(() => {
-    setSelectedSize((current) => (sizes.includes(current) ? current : ""));
+    setSelectedSize((current) => {
+      if (sizes.length === 0) return "";
+      if (sizes.length === 1) return sizes[0]!;
+      return sizes.includes(current) ? current : "";
+    });
   }, [sizes]);
 
   const selected = useMemo(
