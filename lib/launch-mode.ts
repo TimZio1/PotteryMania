@@ -17,6 +17,15 @@ export function isApparelOnlyLaunch(): boolean {
 }
 
 /**
+ * The operator admin defaults to the apparel control surface during the current launch.
+ * Set NEXT_PUBLIC_ADMIN_MODE=legacy only when the old studio/booking hyperadmin is needed.
+ */
+export function isApparelAdminMode(): boolean {
+  const raw = process.env.NEXT_PUBLIC_ADMIN_MODE?.trim().toLowerCase();
+  return raw !== "legacy" && raw !== "hyperadmin";
+}
+
+/**
  * Feature visibility for the launch pivot. All flags derive from `NEXT_PUBLIC_LAUNCH_MODE`
  * except wearables + affiliates, which stay on for this phase.
  */

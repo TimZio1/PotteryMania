@@ -23,7 +23,7 @@ function CloseIcon({ className }: { className?: string }) {
   );
 }
 
-export function AdminMobileNav({ links }: { links: readonly AdminLink[] }) {
+export function AdminMobileNav({ links, apparelOnly = false }: { links: readonly AdminLink[]; apparelOnly?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -103,7 +103,7 @@ export function AdminMobileNav({ links }: { links: readonly AdminLink[] }) {
           <div className="flex shrink-0 items-center justify-between border-b border-stone-200/90 px-4 py-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">Navigate</p>
-              <p className="text-base font-semibold text-stone-900">Hyperadmin</p>
+              <p className="text-base font-semibold text-stone-900">{apparelOnly ? "Apparel admin" : "Hyperadmin"}</p>
             </div>
             <button
               type="button"
@@ -138,11 +138,11 @@ export function AdminMobileNav({ links }: { links: readonly AdminLink[] }) {
 
           <div className="shrink-0 border-t border-stone-200/90 bg-[#f3f0ea] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <Link
-              href="/dashboard"
+              href={apparelOnly ? "/wear/shop" : "/dashboard"}
               onClick={close}
               className="flex min-h-11 w-full items-center justify-center rounded-xl border border-stone-300/80 bg-white px-3 text-sm font-medium text-stone-800 shadow-sm transition hover:bg-stone-50"
             >
-              Studio view
+              {apparelOnly ? "View shop" : "Studio view"}
             </Link>
           </div>
         </div>

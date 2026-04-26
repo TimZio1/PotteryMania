@@ -5,7 +5,7 @@ import { metaAdminPage } from "@/lib/seo-routes";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { platformUi } from "@/lib/ui-styles";
-import { isApparelOnlyLaunch } from "@/lib/launch-mode";
+import { isApparelAdminMode } from "@/lib/launch-mode";
 import { AdminSignOut } from "./admin-sign-out";
 import { AdminMobileNav } from "./admin-mobile-nav";
 import { adminLinks, getActiveAdminLinks } from "./admin-links";
@@ -20,7 +20,7 @@ export const metadata: Metadata = metaAdminPage(
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const links = getActiveAdminLinks();
-  const apparelOnly = isApparelOnlyLaunch();
+  const apparelOnly = isApparelAdminMode();
 
   return (
     <div className="pm-visual-platform admin-light-tokens min-h-screen" data-pm-visual="platform">
@@ -95,7 +95,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 >
                   {apparelOnly ? "Apparel admin" : "Hyperadmin"}
                 </span>
-                <AdminMobileNav links={links} />
+                <AdminMobileNav links={links} apparelOnly={apparelOnly} />
               </div>
             </div>
           </div>

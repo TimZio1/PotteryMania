@@ -9,7 +9,7 @@
  * advertised in the admin panel while PotteryMania is focused on apparel + affiliates.
  */
 
-import { isApparelOnlyLaunch } from "@/lib/launch-mode";
+import { isApparelAdminMode } from "@/lib/launch-mode";
 
 export type AdminLink = {
   href: string;
@@ -70,12 +70,12 @@ export const apparelOnlyAdminLinks: readonly AdminLink[] = [
 
 /** Returns the appropriate nav for the current launch mode. */
 export function getActiveAdminLinks(): readonly AdminLink[] {
-  return isApparelOnlyLaunch() ? apparelOnlyAdminLinks : adminLinks;
+  return isApparelAdminMode() ? apparelOnlyAdminLinks : adminLinks;
 }
 
 /** Links that exist but are hidden right now — surfaced on the admin home for ops. */
 export function getHiddenAdminLinks(): readonly AdminLink[] {
-  if (!isApparelOnlyLaunch()) return [];
+  if (!isApparelAdminMode()) return [];
   const visible = new Set(apparelOnlyAdminLinks.map((l) => l.href));
   return adminLinks.filter((l) => !visible.has(l.href));
 }
