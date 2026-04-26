@@ -6,6 +6,8 @@ import { requireHyperAdminUser } from "@/lib/auth-session";
 import { Spinner } from "@/components/ui/spinner";
 import { loadWearCatalogHealthSnapshot } from "@/lib/wear-catalog-health";
 import { resolveWearCatalogCategory } from "@/lib/wear-categories";
+import { loadWearCatalogValueSnapshot } from "@/lib/wear-spreadconnect-stats";
+import { formatWearMoney } from "@/lib/wear-money";
 import WearProductsAdminClient from "@/components/admin/wear-products-admin-client";
 import WearSpreadconnectDevTools from "@/components/admin/wear-spreadconnect-dev-tools";
 
@@ -96,6 +98,15 @@ export default async function AdminWearProductsPage({
 
   const { snapshot: health, error: healthSnapshotError } = await loadWearCatalogHealthSnapshot();
 
+  let catalogValue: Awaited<ReturnType<typeof loadWearCatalogValueSnapshot>> | null = null;
+  let catalogValueError: string | null = null;
+  try {
+    catalogValue = await loadWearCatalogValueSnapshot();
+  } catch (err) {
+    catalogValueError = err instanceof Error ? err.message : String(err);
+    console.error("[admin/wear-products] catalog value snapshot failed", err);
+  }
+
   let initialBuilderJobs: {
     id: string;
     state: string;
@@ -150,6 +161,127 @@ export default async function AdminWearProductsPage({
         </Link>
         <span className="text-[var(--muted)]"> — default %, min/max, lock studio editing.</span>
       </p>
+
+      {catalogValue ? (
+        <section
+          aria-label="Spreadconnect catalog value"
+          className="mt-6 rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-stone-50 p-5 shadow-sm"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-800">
+                Spreadconnect catalog value
+              </p>
+              <p className="mt-1 text-sm text-stone-700">
+                Sum across <strong>{catalogValue.activeProducts}</strong> active products ·{" "}
+                <strong>{catalogValue.totalVariants}</strong> live variants. One unit per saleable variant —
+                stock is unbounded for POD.
+              </p>
+            </div>
+            <span
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                catalogValue.usingInternalPricing
+                  ? "border border-emerald-300 bg-emerald-50 text-emerald-900"
+                  : "border border-stone-300 bg-white text-stone-700"
+              }`}
+            >
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${
+                  catalogValue.usingInternalPricing ? "bg-emerald-500" : "bg-stone-400"
+                }`}
+              />
+              {catalogValue.usingInternalPricing ? "Internal pricing on" : "DB list prices"}
+            </span>
+          </div>
+          <dl className="mt-5 grid gap-4 sm:grid-cols-4">
+            <div className="rounded-xl border border-amber-200 bg-white px-4 py-3 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-700">
+                Catalog value
+              </dt>
+              <dd className="mt-1 text-2xl font-semibold tracking-tight text-amber-950">
+                {formatWearMoney(catalogValue.totalCatalogValueCents, catalogValue.currency)}
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">
+                Sum of list prices · 1 unit per live variant
+              </p>
+            </div>
+            <div className="rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+                Catalog cost (COGS)
+              </dt>
+              <dd className="mt-1 text-2xl font-semibold tracking-tight text-stone-800">
+                {formatWearMoney(catalogValue.totalCatalogCostCents, catalogValue.currency)}
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">
+                Spreadconnect supply cost or fallback floor
+              </p>
+            </div>
+            <div className="rounded-xl border border-emerald-200 bg-white px-4 py-3 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                Estimated margin
+              </dt>
+              <dd className="mt-1 text-2xl font-semibold tracking-tight text-emerald-800">
+                {formatWearMoney(catalogValue.totalCatalogMarginCents, catalogValue.currency)}
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">
+                Catalog value − catalog cost (per-unit, pre-discount)
+              </p>
+            </div>
+            <div className="rounded-xl border border-sky-200 bg-white px-4 py-3 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700">
+                Spreadconnect-linked
+              </dt>
+              <dd className="mt-1 text-2xl font-semibold tracking-tight text-sky-900">
+                {catalogValue.spreadconnectLinkedProducts}
+                <span className="ml-1 text-base font-medium text-stone-500">
+                  / {catalogValue.totalProducts}
+                </span>
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">
+                Products with externalFulfillmentId or article id
+              </p>
+            </div>
+          </dl>
+          <p className="mt-3 text-[11px] text-stone-500">
+            Read-only snapshot — refresh on every page load. JSON:{" "}
+            <span className="font-mono">GET /api/admin/wear/catalog-value</span>
+          </p>
+        </section>
+      ) : null}
+
+      {catalogValueError ? (
+        <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Could not load Spreadconnect catalog value: {catalogValueError}
+        </p>
+      ) : null}
+
+      <section
+        aria-label="Daily Spreadconnect price refresh"
+        className="mt-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-950"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="font-semibold">Daily price refresh from Spreadconnect</p>
+          <span className="rounded-full border border-emerald-300 bg-white px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-800">
+            Auto · 24h
+          </span>
+        </div>
+        <p className="mt-1 text-emerald-900/95">
+          The catalog cron pulls every linked article&apos;s <strong>d2cPrice</strong> (list) and{" "}
+          <strong>b2bPrice</strong> (supply / COGS) once a day and writes them to the wear catalog. Use the{" "}
+          <em>Sync Spreadconnect catalog</em> button below to force a refresh now.
+        </p>
+        <p className="mt-2 text-[11px] text-emerald-900/80">
+          Cron path: <span className="font-mono">GET /api/cron/wear-catalog-sync</span> · auth:{" "}
+          <span className="font-mono">Authorization: Bearer $CRON_SECRET</span> · recommended schedule:{" "}
+          <span className="font-mono">0 4 * * *</span> (04:00 UTC daily).
+        </p>
+        <p className="mt-1 text-[11px] text-emerald-900/80">
+          Last sync:{" "}
+          <span className="font-mono">{health.lastSyncAt ?? "—"}</span> (
+          {health.lastSyncMode ?? "—"}) ·{" "}
+          {health.spreadconnectConfigured ? "API key set" : "API key NOT configured"}
+        </p>
+      </section>
 
       {dbErrorCombined ? (
         <div

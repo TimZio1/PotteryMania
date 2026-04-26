@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { platformUi } from "@/lib/ui-styles";
-import { adminLinks } from "./admin-links";
+import type { AdminLink } from "./admin-links";
 
 function MenuIcon({ className }: { className?: string }) {
   return (
@@ -23,7 +23,7 @@ function CloseIcon({ className }: { className?: string }) {
   );
 }
 
-export function AdminMobileNav() {
+export function AdminMobileNav({ links }: { links: readonly AdminLink[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -119,7 +119,7 @@ export function AdminMobileNav() {
           </div>
 
           <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" aria-label="Admin mobile nav">
-            {adminLinks.map((link) => (
+            {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

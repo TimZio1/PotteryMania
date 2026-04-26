@@ -4,6 +4,10 @@ import { prisma } from "@/lib/db";
 import { requireAdminUser } from "@/lib/auth-session";
 import { AdminOverview } from "./admin-overview";
 import { cn } from "@/lib/cn";
+import { loadWearCatalogValueSnapshot } from "@/lib/wear-spreadconnect-stats";
+import { formatWearMoney } from "@/lib/wear-money";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
+import { getHiddenAdminLinks } from "./admin-links";
 
 import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
@@ -179,6 +183,13 @@ export default async function AdminPage() {
 
   const topStudios = buildTopStudios(paidOrdersMonth);
 
+  let wearCatalogValue: Awaited<ReturnType<typeof loadWearCatalogValueSnapshot>> | null = null;
+  try {
+    wearCatalogValue = await loadWearCatalogValueSnapshot();
+  } catch (err) {
+    console.error("[admin] wear catalog value snapshot failed", err);
+  }
+
   const founderSummary = [
     `${formatCurrency(grossRevenueMonthCents)} moved through studio sales this month. Platform take: ${formatCurrency(platformCommissionMonthCents)}. Booking cash collected: ${formatCurrency(bookingCashMonthCents)}.`,
     `${activatedStudiosCount} studios live. ${pending.length} waiting for review. ${bookingsAwaitingApprovalCount} bookings waiting on a studio.`,
@@ -215,7 +226,9 @@ export default async function AdminPage() {
   const orderTrend = buildTrend(currentOrders30, last30Start, () => 1);
   const bookingTrend = buildTrend(currentBookings30, last30Start, () => 1);
 
-  const navCards = [
+  const apparelOnly = isApparelOnlyLaunch();
+
+  const fullNavCards = [
     { href: "/admin/war-room", title: "War room", desc: "Queues, pulse, and recent events." },
     { href: "/admin/operations", title: "Operations", desc: "Reviews, leads, bookings, recovery." },
     { href: "/admin/studios", title: "Studios", desc: "Approve, inspect, and manage studios." },
@@ -229,6 +242,22 @@ export default async function AdminPage() {
     { href: "/admin/settings", title: "Settings", desc: "Commissions and platform config." },
     { href: "/admin/features", title: "Plans & features", desc: "Tiers and feature gating." },
   ] as const;
+
+  const apparelNavCards = [
+    { href: "/admin/wear-products", title: "Wear · products", desc: "Catalog, Spreadconnect sync, supply cost." },
+    { href: "/admin/wear-orders", title: "Wear · sales", desc: "Apparel orders, fulfillment, refunds." },
+    { href: "/admin/wear-analytics", title: "Wear · analytics", desc: "AOV, conversion, SKU mix." },
+    { href: "/admin/coupons", title: "Coupons", desc: "% / fixed / 3+1 bundles, scope, limits." },
+    { href: "/admin/revenue", title: "Revenue", desc: "Sales, take rate, refunds." },
+    { href: "/admin/finance", title: "Finance", desc: "Ledger and profitability." },
+    { href: "/admin/users", title: "Users", desc: "Customers, affiliates, admins." },
+    { href: "/admin/audit", title: "Audit", desc: "Log of admin changes." },
+    { href: "/admin/system", title: "System", desc: "Flags, health, environment." },
+    { href: "/admin/settings", title: "Settings", desc: "Commissions, wear markup, affiliate %." },
+  ] as const;
+
+  const navCards = apparelOnly ? apparelNavCards : fullNavCards;
+  const hiddenLinks = apparelOnly ? getHiddenAdminLinks() : [];
 
   return (
     <div>
@@ -352,11 +381,98 @@ export default async function AdminPage() {
         opportunities={opportunities}
       />
 
+      {wearCatalogValue ? (
+        <section
+          aria-label="Spreadconnect catalog value"
+          className="mt-10 rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-stone-50 p-6 shadow-sm sm:p-8"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
+                Spreadconnect · catalog value
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight text-amber-950">
+                What the live wear catalog is worth right now.
+              </h2>
+              <p className="mt-2 max-w-xl text-sm text-stone-600">
+                Sum of one unit per saleable variant — print-on-demand has no stock to multiply against.
+                Use this to size promotions and check margin at a glance.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
+              <span
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 ${
+                  wearCatalogValue.usingInternalPricing
+                    ? "border border-emerald-300 bg-emerald-50 text-emerald-900"
+                    : "border border-stone-300 bg-white text-stone-700"
+                }`}
+              >
+                <span
+                  className={`inline-block h-1.5 w-1.5 rounded-full ${
+                    wearCatalogValue.usingInternalPricing ? "bg-emerald-500" : "bg-stone-400"
+                  }`}
+                />
+                {wearCatalogValue.usingInternalPricing ? "Internal pricing" : "DB list prices"}
+              </span>
+              <Link
+                href="/admin/wear-products"
+                className="rounded-full border border-amber-900/30 bg-white px-3 py-1 text-amber-900 transition hover:bg-amber-50"
+              >
+                Wear products →
+              </Link>
+            </div>
+          </div>
+          <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl border border-amber-200 bg-white px-5 py-4 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-700">Catalog value</dt>
+              <dd className="mt-2 text-3xl font-semibold tracking-tight text-amber-950">
+                {formatWearMoney(wearCatalogValue.totalCatalogValueCents, wearCatalogValue.currency)}
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">List price × 1 unit per live variant</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white px-5 py-4 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">Catalog cost</dt>
+              <dd className="mt-2 text-3xl font-semibold tracking-tight text-stone-800">
+                {formatWearMoney(wearCatalogValue.totalCatalogCostCents, wearCatalogValue.currency)}
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">Spreadconnect supply cost or category floor</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-200 bg-white px-5 py-4 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                Estimated margin
+              </dt>
+              <dd className="mt-2 text-3xl font-semibold tracking-tight text-emerald-800">
+                {formatWearMoney(wearCatalogValue.totalCatalogMarginCents, wearCatalogValue.currency)}
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">Pre-discount, per-unit · cap by current rules</p>
+            </div>
+            <div className="rounded-2xl border border-sky-200 bg-white px-5 py-4 shadow-sm">
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700">
+                Linked to Spreadconnect
+              </dt>
+              <dd className="mt-2 text-3xl font-semibold tracking-tight text-sky-900">
+                {wearCatalogValue.spreadconnectLinkedProducts}
+                <span className="ml-1 text-base font-medium text-stone-500">
+                  / {wearCatalogValue.totalProducts}
+                </span>
+              </dd>
+              <p className="mt-1 text-[11px] text-stone-500">
+                {wearCatalogValue.activeProducts} active · {wearCatalogValue.totalVariants} variants
+              </p>
+            </div>
+          </dl>
+        </section>
+      ) : null}
+
       <section className="mt-10">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Jump to</p>
-        <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">Main sections</h2>
+        <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">
+          {apparelOnly ? "Apparel launch · main sections" : "Main sections"}
+        </h2>
         <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-          Use the sidebar or pick a section below.
+          {apparelOnly
+            ? "Only the surfaces you need to run the apparel-only launch. Studio/marketplace pages still exist — see hidden sections below."
+            : "Use the sidebar or pick a section below."}
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {navCards.map((card) => (
@@ -375,6 +491,46 @@ export default async function AdminPage() {
           ))}
         </div>
       </section>
+
+      {hiddenLinks.length > 0 ? (
+        <section id="hidden-sections" className="mt-10 scroll-mt-24">
+          <details className="group rounded-2xl border border-stone-200 bg-stone-50/60 p-5 open:bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium text-stone-800 outline-none">
+              <span className="flex items-center gap-2">
+                <span className="rounded-full border border-stone-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-600">
+                  Hidden in apparel-only
+                </span>
+                <span>
+                  {hiddenLinks.length} infra section{hiddenLinks.length === 1 ? "" : "s"} kept available for ops
+                </span>
+              </span>
+              <span aria-hidden className="text-stone-400 transition group-open:rotate-180">
+                ▾
+              </span>
+            </summary>
+            <p className="mt-3 text-xs text-stone-500">
+              Studio, marketplace, and bookings admin pages still exist on disk. They are reachable here so
+              you can fix data, drain queues, or re-enable the studio platform later — no rebuild needed.
+            </p>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {hiddenLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="block rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-700 transition hover:border-amber-900/25 hover:text-amber-900"
+                  >
+                    {link.label}
+                    <span className="ml-1 font-mono text-[11px] text-stone-400">{link.href}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-[11px] text-stone-500">
+              To bring everything back, unset <span className="font-mono">NEXT_PUBLIC_LAUNCH_MODE=apparel_only</span> and redeploy.
+            </p>
+          </details>
+        </section>
+      ) : null}
     </div>
   );
 }

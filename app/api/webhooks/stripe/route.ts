@@ -555,6 +555,15 @@ export async function POST(req: Request) {
             if (!order || order.status !== "pending") return false;
 
             const paidNow = new Date();
+            const sessionEmail = session.customer_details?.email?.trim().toLowerCase() ?? null;
+            const sessionName = session.customer_details?.name?.trim() || null;
+            const backfillIdentity: { customerEmail?: string; customerName?: string } = {};
+            if (sessionEmail && (!order.customerEmail || order.customerEmail.length === 0)) {
+              backfillIdentity.customerEmail = sessionEmail;
+            }
+            if (sessionName && (!order.customerName || order.customerName.length === 0)) {
+              backfillIdentity.customerName = sessionName;
+            }
             await tx.wearOrder.update({
               where: { id: wearOrderId },
               data: {
@@ -563,6 +572,7 @@ export async function POST(req: Request) {
                 stripeCheckoutSessionId: session.id,
                 stripePaymentIntentId: piId,
                 ...(amountTotal != null ? { amountTotalCents: amountTotal } : {}),
+                ...backfillIdentity,
               },
             });
 
@@ -593,6 +603,25 @@ export async function POST(req: Request) {
                 },
               },
             });
+
+            const couponSnap = await tx.wearOrder.findUnique({
+              where: { id: wearOrderId },
+              select: { couponId: true, discountCents: true },
+            });
+            if (couponSnap?.couponId && couponSnap.discountCents > 0) {
+              await tx.coupon.update({
+                where: { id: couponSnap.couponId },
+                data: { redeemedCount: { increment: 1 } },
+              });
+              await tx.discountRedemption.create({
+                data: {
+                  couponId: couponSnap.couponId,
+                  wearOrderId,
+                  amountCents: couponSnap.discountCents,
+                },
+              });
+            }
+
             return true;
           });
 

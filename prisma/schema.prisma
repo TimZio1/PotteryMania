@@ -555,6 +555,8 @@ model WearProduct {
   spreadconnectCategoryData         Json?   @map("spreadconnect_category_data")
   /// SHA-256 (hex) of synced catalog fields; unchanged fingerprints skip DB writes.
   spreadconnectCatalogFingerprint   String? @map("spreadconnect_catalog_fingerprint") @db.VarChar(64)
+  /// Optional COGS floor (cents). Discounts cannot reduce unit price below this when set.
+  supplyCostCents       Int?     @map("supply_cost_cents")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
@@ -596,10 +598,26 @@ model WearProductVariant {
   @@map("wear_product_variants")
 }
 
+enum CouponChannel {
+  general
+  wear_only
+  marketplace_only
+}
+
+enum WearCouponDiscountMode {
+  standard
+  bundle
+}
+
 model WearOrder {
   id                      String          @id @default(uuid()) @db.Uuid
   /// Studio that referred this sale (null = direct platform purchase).
   studioId                String?         @map("studio_id") @db.Uuid
+  couponId                String?         @map("coupon_id") @db.Uuid
+  /// Subtotal in cents after affiliate markup, before coupon discount.
+  preDiscountSubtotalCents Int?         @map("pre_discount_subtotal_cents")
+  /// Coupon discount applied to merchandise subtotal (cents).
+  discountCents           Int             @default(0) @map("discount_cents")
   orderId                 String?         @unique @map("order_id") @db.Uuid
   stripeCheckoutSessionId String?         @unique @map("stripe_checkout_session_id")
   stripePaymentIntentId   String?         @map("stripe_payment_intent_id")
@@ -635,7 +653,9 @@ model WearOrder {
 
   order  Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
   studio Studio? @relation(fields: [studioId], references: [id], onDelete: SetNull)
+  coupon Coupon? @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items  WearOrderItem[]
+  discountRedemption DiscountRedemption?
   fulfillmentJobs WearFulfillmentJob[]
   events WearOrderEvent[]
 
@@ -2860,11 +2880,29 @@ model Coupon {
   validFrom        DateTime? @map("valid_from")
   validUntil       DateTime? @map("valid_until")
   isActive         Boolean  @default(true) @map("is_active")
+  /// Which checkout surfaces may use this code.
+  channel          CouponChannel @default(general) @map("channel")
+  /// For wear checkout: standard (% / fixed on eligible lines) vs buy-X-get-Y bundle.
+  wearDiscountMode WearCouponDiscountMode @default(standard) @map("wear_discount_mode")
+  /// Bundle: buy N (e.g. 3) …
+  bundleBuy        Int?     @map("bundle_buy")
+  /// …get M free (e.g. 1). Free units are the cheapest eligible units in each pool.
+  bundleGet        Int?     @map("bundle_get")
+  /// same_product | category | all
+  bundleAppliesTo  String?  @map("bundle_applies_to")
+  /// all | tshirts | hoodies | specific_products
+  wearAppliesTo    String?  @map("wear_applies_to")
+  /// When wearAppliesTo is specific_products: JSON string[] of wear product UUIDs.
+  wearProductIds   Json?    @map("wear_product_ids")
+  stackable        Boolean  @default(false) @map("stackable")
+  /// When set, affiliate commission uses this bps of final (post-discount) merchandise subtotal instead of proportional markup split.
+  affiliateCommissionBpsOverride Int? @map("affiliate_commission_bps_override")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   studio      Studio?               @relation(fields: [studioId], references: [id], onDelete: SetNull)
   redemptions DiscountRedemption[]
+  wearOrders  WearOrder[]
 
   @@index([studioId, isActive])
   @@map("coupons")
@@ -2874,15 +2912,18 @@ model DiscountRedemption {
   id        String   @id @default(uuid()) @db.Uuid
   couponId  String   @map("coupon_id") @db.Uuid
   orderId   String?  @map("order_id") @db.Uuid
+  wearOrderId String? @unique @map("wear_order_id") @db.Uuid
   userId    String?  @map("user_id") @db.Uuid
   amountCents Int    @map("amount_cents")
   createdAt DateTime @default(now()) @map("created_at")
 
   coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
   order  Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  wearOrder WearOrder? @relation(fields: [wearOrderId], references: [id], onDelete: SetNull)
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([couponId])
+  @@index([wearOrderId])
   @@map("discount_redemptions")
 }
 

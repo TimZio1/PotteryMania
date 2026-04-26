@@ -15,6 +15,13 @@ import {
 } from "@/lib/csrf-protection";
 import { resolveBackofficeSiteUrl, resolveFrontdeskSiteUrl } from "@/lib/public-site-url";
 import { canBrowseDuringPreregistration, isPreregistrationOnly } from "@/lib/preregistration";
+import {
+  APPAREL_ONLY_PUBLIC_PATHS,
+  APPAREL_ONLY_REDIRECT_PREFIXES,
+  APPAREL_ONLY_REDIRECT_TO_SHOP_IF_AUTH_PATHS,
+  APPAREL_ONLY_REDIRECT_TO_SHOP_PATHS,
+  isApparelOnlyLaunch,
+} from "@/lib/launch-mode";
 
 const LOGIN_REQUIRED = [
   "/dashboard",
@@ -43,7 +50,15 @@ const BASE_PUBLIC_CORE = [
   "/unauthorized-admin",
 ];
 
+function preregistrationGuestAllowlist(): string[] {
+  if (isApparelOnlyLaunch()) return [...APPAREL_ONLY_PUBLIC_PATHS];
+  return [...BASE_PUBLIC_CORE];
+}
+
 function publicAllowlist(): string[] {
+  if (isApparelOnlyLaunch()) {
+    return [...APPAREL_ONLY_PUBLIC_PATHS];
+  }
   if (isPreregistrationOnly()) return [...BASE_PUBLIC_CORE];
   return [
     ...BASE_PUBLIC_CORE,
@@ -64,6 +79,11 @@ function publicAllowlist(): string[] {
     "/cart",
     "/checkout",
   ];
+}
+
+function apparelOnlyShouldRedirect(path: string): boolean {
+  if (!isApparelOnlyLaunch()) return false;
+  return matchesPath(path, [...APPAREL_ONLY_REDIRECT_PREFIXES]);
 }
 
 /**
@@ -128,6 +148,26 @@ export default auth(async (req) => {
   }
 
   const suspended = Boolean(req.auth?.user && (req.auth.user as { suspended?: boolean }).suspended);
+  const userRole = (req.auth?.user as { role?: string } | undefined)?.role;
+
+  if (!isApiPath && isApparelOnlyLaunch() && userRole !== "admin" && userRole !== "hyper_admin") {
+    if (matchesPath(path, [...APPAREL_ONLY_REDIRECT_TO_SHOP_PATHS])) {
+      return NextResponse.redirect(new URL("/wear/shop", req.url));
+    }
+    if (
+      req.auth &&
+      matchesPath(path, [...APPAREL_ONLY_REDIRECT_TO_SHOP_IF_AUTH_PATHS])
+    ) {
+      return NextResponse.redirect(new URL("/wear/shop", req.url));
+    }
+  }
+
+  if (!isApiPath && apparelOnlyShouldRedirect(path)) {
+    if (userRole !== "admin" && userRole !== "hyper_admin") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+  }
+
   if (req.auth && suspended) {
     /**
      * Clear the session cookies inline and send the user straight to /login,
@@ -138,8 +178,11 @@ export default auth(async (req) => {
     return clearAuthCookies(NextResponse.redirect(dest));
   }
 
-  const userRole = (req.auth?.user as { role?: string } | undefined)?.role;
-  if (isPreregistrationOnly() && !canBrowseDuringPreregistration(userRole) && !matchesPath(path, BASE_PUBLIC_CORE)) {
+  if (
+    isPreregistrationOnly() &&
+    !canBrowseDuringPreregistration(userRole) &&
+    !matchesPath(path, preregistrationGuestAllowlist())
+  ) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -189,7 +232,7 @@ export default auth(async (req) => {
           if (res.ok) {
             const data = (await res.json()) as { studioId?: unknown };
             const studioId = typeof data.studioId === "string" ? data.studioId : null;
-            if (studioId) {
+            if (studioId && !isApparelOnlyLaunch()) {
               const canon = canonicalPublicOrigin();
               const onStudioPage =
                 path === `/studios/${studioId}` || path.startsWith(`/studios/${studioId}/`);
@@ -212,7 +255,7 @@ export default auth(async (req) => {
     }
   }
 
-  const impersonatorId = (req.auth?.user as { impersonatorId?: string })?.impersonatorId;
+  const impersonatorId = (req.auth?.user as { impersonatorId?: string } | undefined)?.impersonatorId;
   if (impersonatorId && (path === "/admin" || path.startsWith("/admin/"))) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }

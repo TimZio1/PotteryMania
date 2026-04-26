@@ -8,6 +8,7 @@ import {
   WEAR_CART_STORAGE_KEY,
   parseWearCart,
 } from "@/lib/wear-cart";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 const linkBase =
   "!text-stone-800 text-xs font-medium uppercase tracking-[0.2em] transition hover:!text-stone-950";
@@ -22,6 +23,7 @@ function cartItemCount(): number {
 export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
   const pathname = usePathname() || "/wear";
   const [count, setCount] = useState(initialCount);
+  const apparelOnly = isApparelOnlyLaunch();
 
   useEffect(() => {
     function sync() {
@@ -40,8 +42,11 @@ export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
     <div className="border-b border-stone-200/90 bg-white/95 !text-stone-900 shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 sm:justify-between sm:px-6">
         <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:gap-x-8" aria-label="Shop">
-          <Link href="/wear" className={pathname === "/wear" ? `${linkBase} ${linkOn}` : linkBase}>
-            Drop
+          <Link
+            href={apparelOnly ? "/" : "/wear"}
+            className={(apparelOnly ? pathname === "/" : pathname === "/wear") ? `${linkBase} ${linkOn}` : linkBase}
+          >
+            {apparelOnly ? "Home" : "Drop"}
           </Link>
           <Link
             href="/wear/shop"
@@ -59,11 +64,11 @@ export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
             href="/wear/partner"
             className={pathname.startsWith("/wear/partner") ? `${linkBase} ${linkOn}` : linkBase}
           >
-            Partner
+            {apparelOnly ? "Affiliate" : "Partner"}
           </Link>
         </nav>
         <p className="hidden text-center text-[11px] font-medium uppercase tracking-[0.25em] !text-stone-700 sm:block">
-          Apparel
+          {apparelOnly ? "Makers apparel" : "Apparel"}
         </p>
       </div>
     </div>

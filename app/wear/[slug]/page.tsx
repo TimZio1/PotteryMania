@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -6,10 +8,13 @@ import {
   resolveWearCatalogCategory,
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
-import { sortWearCatalogImagesForDisplay, wearImagesFromJson } from "@/lib/wear-product-json";
+import { sortWearCatalogImagesForDisplay, wearImagesFromJson, wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { WearProductGallery } from "@/components/wear/wear-product-gallery";
 import { breadcrumbJsonLd, productJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import { wearListingImageSrc } from "@/lib/wear-listing-image";
+import { formatWearMoney } from "@/lib/wear-money";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function WearProductPage({ params }: Props) {
   const { slug } = await params;
-  const p = await prisma.wearProduct.findFirst({
+  const pRaw = await prisma.wearProduct.findFirst({
     where: { ...wearPublicProductWhere(), slug },
     include: {
       variants: {
@@ -47,7 +52,8 @@ export default async function WearProductPage({ params }: Props) {
       },
     },
   });
-  if (!p) notFound();
+  if (!pRaw) notFound();
+  const p = mapWearProductRowToInternalPrices(pRaw);
   const category = resolveWearCatalogCategory({
     slug: p.slug,
     name: p.name,
@@ -89,6 +95,34 @@ export default async function WearProductPage({ params }: Props) {
     ]),
   ]);
 
+  const relatedRaw = await prisma.wearProduct.findMany({
+    where: {
+      ...wearPublicProductWhere(),
+      slug: { not: slug },
+    },
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    take: 12,
+    include: {
+      variants: {
+        where: { isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+      },
+    },
+  });
+  const relatedNormalized = relatedRaw.map(mapWearProductRowToInternalPrices);
+  const sameCategory = relatedNormalized.filter((row) => {
+    const c = resolveWearCatalogCategory({
+      slug: row.slug,
+      name: row.name,
+      subtitle: row.subtitle,
+      description: row.description,
+      spreadconnectProductTypeName: row.spreadconnectProductTypeName,
+      spreadconnectCategoryData: row.spreadconnectCategoryData,
+    });
+    return c.fallbackCategory === category.fallbackCategory;
+  });
+  const related = (sameCategory.length >= 4 ? sameCategory : relatedNormalized).slice(0, 4);
+
   return (
     <main className="bg-[#f7f2ec] px-4 py-12 pb-28 text-stone-900 sm:px-6 sm:py-16 md:pb-16">
       <div className="mx-auto max-w-6xl rounded-3xl border border-stone-200/80 bg-white p-5 shadow-[0_22px_80px_-32px_rgba(120,77,42,0.18)] sm:p-7 lg:p-8">
@@ -108,6 +142,57 @@ export default async function WearProductPage({ params }: Props) {
           description={p.description}
         />
       </div>
+
+      {related.length > 0 ? (
+        <section className="mx-auto mt-12 max-w-6xl" aria-labelledby="related-products">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700">More to wear</p>
+              <h2 id="related-products" className="mt-1 font-serif text-2xl text-amber-950 sm:text-3xl">
+                You might also like
+              </h2>
+            </div>
+            <Link
+              href="/wear/shop"
+              className="text-sm font-semibold text-amber-900 underline-offset-4 hover:underline"
+            >
+              Browse all →
+            </Link>
+          </div>
+          <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {related.map((rp) => {
+              const imgs = wearImageUrlsFromJson(rp.images);
+              const src = imgs[0];
+              return (
+                <li key={rp.id}>
+                  <Link href={`/wear/${rp.slug}`} className="group block">
+                    <div className="relative aspect-3/4 overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-stone-200">
+                      {src ? (
+                        <Image
+                          src={wearListingImageSrc(src, 560)}
+                          alt={rp.name}
+                          fill
+                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                          sizes="(max-width: 640px) 92vw, 25vw"
+                          quality={68}
+                          loading="lazy"
+                          decoding="async"
+                          unoptimized
+                        />
+                      ) : null}
+                    </div>
+                    <div className="mt-3 flex items-baseline justify-between gap-3">
+                      <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{rp.name}</h3>
+                      <p className="shrink-0 text-sm font-semibold text-amber-950">{formatWearMoney(rp.priceCents, rp.currency)}</p>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
     </main>
   );

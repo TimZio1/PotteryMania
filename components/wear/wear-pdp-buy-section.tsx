@@ -192,25 +192,17 @@ export function WearPdpBuySection({
             variantId={needsVariant ? selected?.id ?? null : null}
             studioId={studioId}
             viewCartHref={viewCartHref}
-            label="Add to cart"
+            label={`Add to bag — ${formatWearMoney(displayCents, currency)}`}
           />
         ) : (
-          <p className="text-sm text-stone-500">{soldOut ? "This option is sold out." : "Pick a size to continue."}</p>
+          <p className="text-sm text-stone-500">
+            {soldOut ? "This option is sold out." : needsVariant && !selectedColor ? "Pick a color to continue." : "Pick a size to continue."}
+          </p>
         )}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200/90 bg-[#f7f2ec]/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          <p className="min-w-0 shrink text-sm font-semibold text-amber-950">
-            {needsVariant && !selected ? (
-              <>
-                <span className="text-stone-500">From </span>
-                {formatWearMoney(fromCents, currency)}
-              </>
-            ) : (
-              formatWearMoney(displayCents, currency)
-            )}
-          </p>
           <div className="min-w-0 flex-1">
             {canAdd ? (
               <WearAddToCartButton
@@ -218,12 +210,12 @@ export function WearPdpBuySection({
                 variantId={needsVariant ? selected?.id ?? null : null}
                 studioId={studioId}
                 viewCartHref={viewCartHref}
-                label="Add to cart"
-                className="inline-flex h-11 w-full min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60"
+                label={`Add to bag — ${formatWearMoney(displayCents, currency)}`}
+                className="inline-flex h-12 w-full min-h-12 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-semibold tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60"
               />
             ) : (
-              <p className="text-center text-xs text-stone-500">
-                {soldOut ? "Sold out" : "Pick a size"}
+              <p className="text-center text-xs font-medium text-stone-600">
+                {soldOut ? "Sold out" : needsVariant && !selectedColor ? "Pick a color above" : "Pick a size above"}
               </p>
             )}
           </div>

@@ -6,6 +6,7 @@ import {
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
 import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
+import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export async function GET(req: Request) {
     const rows = result.rows;
 
     const products = rows
+      .map((raw) => mapWearProductRowToInternalPrices(raw))
       .map((r) => {
         const category = resolveWearCatalogCategory({
           slug: r.slug,

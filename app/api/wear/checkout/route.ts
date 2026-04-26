@@ -6,21 +6,21 @@ import { WEAR_CHECKOUT_SHIPPING_COUNTRIES } from "@/lib/wear-shipping";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { logApiError } from "@/lib/monitoring";
 import {
-  calculateWearMarginCents,
-  calculateWearPrice,
-  resolveStudioMarginBps,
-  resolveWearGlobalPricing,
-} from "@/lib/wear-commission";
-import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+  MIN_DISCOUNTED_SUBTOTAL_CENTS,
+  normalizeCouponCode,
+  validateCouponState,
+} from "@/lib/coupon-checkout";
+import {
+  mergeWearRequestLines,
+  resolveWearCheckoutLines,
+  wearStudioMarginTotals,
+  wearStudioMarginWithCommissionOverride,
+} from "@/lib/wear-checkout-lines";
+import { buildWearEngineLinesFromResolved, computeWearCouponDiscount } from "@/lib/wear-discount-engine";
+import type { Coupon, Prisma } from "@prisma/client";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-}
-
-type BodyLine = { productId?: unknown; variantId?: unknown; quantity?: unknown };
-
-function lineMergeKey(productId: string, variantId: string | null) {
-  return `${productId}::${variantId ?? ""}`;
 }
 
 export async function POST(req: Request) {
@@ -30,10 +30,11 @@ export async function POST(req: Request) {
   }
 
   let body: {
-    items?: BodyLine[];
+    items?: unknown[];
     customerEmail?: string;
     customerName?: string;
     studioId?: string;
+    couponCode?: string;
   };
   try {
     body = await req.json();
@@ -41,148 +42,109 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // Identity is now collected by Stripe Checkout (email + shipping name) and
+  // backfilled into `WearOrder.customerEmail` / `customerName` from the
+  // `checkout.session.completed` webhook. We accept any value the client
+  // happens to send (legacy clients) but never require it.
   const customerName = typeof body.customerName === "string" ? body.customerName.trim() : "";
   const customerEmail = typeof body.customerEmail === "string" ? body.customerEmail.trim().toLowerCase() : "";
-  if (!customerName || !customerEmail) {
-    return NextResponse.json({ error: "customerName and customerEmail required" }, { status: 400 });
-  }
 
-  const rawItems = Array.isArray(body.items) ? body.items : [];
-  const merged = new Map<string, { productId: string; variantId: string | null; quantity: number }>();
-
-  for (const line of rawItems) {
-    const productId = typeof line.productId === "string" ? line.productId.trim() : "";
-    const vRaw = line.variantId;
-    const variantId =
-      typeof vRaw === "string" && vRaw.trim().length > 0 ? vRaw.trim() : null;
-    const qRaw = line.quantity;
-    const q =
-      typeof qRaw === "number"
-        ? Math.floor(qRaw)
-        : typeof qRaw === "string"
-          ? parseInt(qRaw, 10)
-          : NaN;
-    if (!productId || !Number.isFinite(q)) continue;
-    const qty = Math.min(99, Math.max(1, q));
-    const key = lineMergeKey(productId, variantId);
-    const prev = merged.get(key);
-    merged.set(key, {
-      productId,
-      variantId,
-      quantity: (prev?.quantity ?? 0) + qty,
-    });
-  }
-
-  if (merged.size === 0) {
+  const merged = mergeWearRequestLines(Array.isArray(body.items) ? body.items : []);
+  if (merged.length === 0) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
   }
 
-  const lines = [...merged.values()];
-  const productIds = [...new Set(lines.map((l) => l.productId))];
-
-  const products = await prisma.wearProduct.findMany({
-    where: {
-      ...wearPublicProductWhere(),
-      id: { in: productIds },
-    },
-    include: {
-      variants: { where: { isActive: true } },
-    },
-  });
-
-  if (products.length !== productIds.length) {
-    return NextResponse.json({ error: "One or more products are unavailable" }, { status: 400 });
-  }
-
-  const productById = new Map(products.map((p) => [p.id, p]));
-  const currency = (products[0]?.currency ?? "EUR").toLowerCase();
-  for (const p of products) {
-    if (p.currency.toLowerCase() !== currency) {
-      return NextResponse.json({ error: "Mixed currencies are not supported" }, { status: 400 });
-    }
-  }
-
-  type Resolved = {
-    product: (typeof products)[0];
-    variant: (typeof products)[0]["variants"][0] | null;
-    quantity: number;
-    unitCents: number;
-    lineName: string;
-  };
-
-  const resolved: Resolved[] = [];
-
-  for (const line of lines) {
-    const p = productById.get(line.productId);
-    if (!p) return NextResponse.json({ error: "Invalid product" }, { status: 400 });
-
-    const activeVariantCount = p.variants.length;
-    let variant: (typeof p.variants)[0] | null = null;
-
-    if (activeVariantCount > 0) {
-      if (!line.variantId) {
-        return NextResponse.json({ error: "Variant required for one or more items" }, { status: 400 });
-      }
-      variant = p.variants.find((v) => v.id === line.variantId) ?? null;
-      if (!variant) {
-        return NextResponse.json({ error: "Invalid variant" }, { status: 400 });
-      }
-      // POD / print-on-demand: `stockQuantity` null means not tracked (infinite). Only enforce when set.
-      if (variant.stockQuantity != null && variant.stockQuantity < line.quantity) {
-        return NextResponse.json({ error: `Insufficient stock: ${p.name}` }, { status: 409 });
-      }
-    } else if (line.variantId) {
-      return NextResponse.json({ error: "This product has no variants" }, { status: 400 });
-    }
-
-    const unitCents = variant?.priceCents ?? p.priceCents;
-    const lineName = variant ? `${p.name} — ${variant.label}` : p.name;
-
-    resolved.push({
-      product: p,
-      variant,
-      quantity: line.quantity,
-      unitCents,
-      lineName,
-    });
-  }
-
   const requestingStudioId = typeof body.studioId === "string" ? body.studioId.trim() || null : null;
-  let attributedStudioId: string | null = null;
-  let studioMarginBps = 0;
-  if (requestingStudioId) {
-    const wearConfig = await prisma.studioWearConfig.findUnique({
-      where: { studioId: requestingStudioId },
-      select: { enabled: true, marginBps: true },
-    });
-    if (wearConfig?.enabled) {
-      attributedStudioId = requestingStudioId;
-      const global = await resolveWearGlobalPricing();
-      studioMarginBps = resolveStudioMarginBps(wearConfig.marginBps, global);
-      for (const r of resolved) {
-        r.unitCents = calculateWearPrice(r.unitCents, studioMarginBps);
-      }
-    }
+  const resolvedPack = await resolveWearCheckoutLines({ mergedLines: merged, requestingStudioId });
+  if (!resolvedPack.ok) {
+    return NextResponse.json({ error: resolvedPack.error }, { status: resolvedPack.status });
   }
 
-  let subtotalCents = 0;
-  for (const r of resolved) {
-    subtotalCents += r.unitCents * r.quantity;
+  let coupon: Coupon | null = null;
+  let discountCents = 0;
+  let lineTotalAfterByKey: Record<string, number> = {};
+  for (const r of resolvedPack.resolved) {
+    lineTotalAfterByKey[r.key] = r.unitCents * r.quantity;
+  }
+
+  const rawCoupon = typeof body.couponCode === "string" ? body.couponCode.trim() : "";
+  if (rawCoupon.length > 0) {
+    const code = normalizeCouponCode(rawCoupon);
+    coupon = await prisma.coupon.findUnique({ where: { code } });
+    if (!coupon) {
+      return NextResponse.json({ error: "Unknown coupon code" }, { status: 400 });
+    }
+    const couponErr = validateCouponState(coupon, { surface: "wear" });
+    if (couponErr) {
+      return NextResponse.json({ error: couponErr }, { status: 400 });
+    }
+
+    const engineLines = buildWearEngineLinesFromResolved({
+      resolved: resolvedPack.resolved.map((r) => ({
+        key: r.key,
+        productId: r.productId,
+        variantId: r.variantId,
+        quantity: r.quantity,
+        unitCents: r.unitCents,
+        baseCents: r.baseCents,
+        supplyCostCents: r.supplyCostCents,
+        product: r.product,
+      })),
+    });
+
+    const disc = computeWearCouponDiscount({ coupon, lines: engineLines });
+    if (!disc.ok) {
+      return NextResponse.json({ error: disc.error }, { status: 400 });
+    }
+    discountCents = disc.discountCents;
+    lineTotalAfterByKey = disc.lineTotalAfterByKey;
+  }
+
+  const preDiscountSubtotalCents = resolvedPack.preDiscountSubtotalCents;
+  const subtotalCents = preDiscountSubtotalCents - discountCents;
+
+  if (subtotalCents < MIN_DISCOUNTED_SUBTOTAL_CENTS) {
+    return NextResponse.json(
+      {
+        error: `After discounts, merchandise must be at least €${(MIN_DISCOUNTED_SUBTOTAL_CENTS / 100).toFixed(2)}.`,
+      },
+      { status: 400 },
+    );
   }
 
   let totalStudioMarginCents = 0;
-  if (attributedStudioId && studioMarginBps > 0) {
-    for (const r of resolved) {
-      const baseCents = r.variant?.priceCents ?? r.product.priceCents;
-      totalStudioMarginCents += calculateWearMarginCents(baseCents, r.unitCents) * r.quantity;
+  let platformRevenueCents = subtotalCents;
+
+  if (resolvedPack.attributedStudioId && resolvedPack.studioMarginBps > 0) {
+    const override = coupon?.affiliateCommissionBpsOverride;
+    if (override != null && override > 0) {
+      const m = wearStudioMarginWithCommissionOverride({
+        subtotalAfterCents: subtotalCents,
+        affiliateCommissionBpsOverride: override,
+      });
+      totalStudioMarginCents = m.totalStudioMarginCents;
+      platformRevenueCents = m.platformRevenueCents;
+    } else {
+      const m = wearStudioMarginTotals({
+        resolved: resolvedPack.resolved,
+        attributedStudioId: resolvedPack.attributedStudioId,
+        studioMarginBps: resolvedPack.studioMarginBps,
+        lineTotalAfterByKey,
+      });
+      totalStudioMarginCents = m.totalStudioMarginCents;
+      platformRevenueCents = m.platformRevenueCents;
     }
   }
-  const platformRevenueCents = subtotalCents - totalStudioMarginCents;
+
+  const currency = resolvedPack.currency;
 
   const orderId = await prisma.$transaction(async (tx) => {
     const order = await tx.wearOrder.create({
       data: {
-        studioId: attributedStudioId,
+        studioId: resolvedPack.attributedStudioId,
+        couponId: coupon?.id ?? null,
+        preDiscountSubtotalCents: coupon ? preDiscountSubtotalCents : null,
+        discountCents,
         customerEmail,
         customerName,
         status: "pending",
@@ -192,14 +154,16 @@ export async function POST(req: Request) {
         currency: currency.toUpperCase(),
       },
     });
-    for (const r of resolved) {
+    for (const r of resolvedPack.resolved) {
+      const after = lineTotalAfterByKey[r.key] ?? r.unitCents * r.quantity;
+      const unitForStripe = Math.round(after / r.quantity);
       await tx.wearOrderItem.create({
         data: {
           orderId: order.id,
-          wearProductId: r.product.id,
+          wearProductId: r.productId,
           wearProductVariantId: r.variant?.id ?? null,
           quantity: r.quantity,
-          unitPriceCents: r.unitCents,
+          unitPriceCents: unitForStripe,
           productNameSnapshot: r.lineName,
           variantLabelSnapshot: r.variant?.label ?? null,
         },
@@ -209,15 +173,17 @@ export async function POST(req: Request) {
   });
 
   const stripe = getStripe();
-  const line_items = resolved.map((r) => {
-    const imgs = wearImageUrlsFromJson(r.product.images);
+  const line_items = resolvedPack.resolved.map((r) => {
+    const imgs = wearImageUrlsFromJson(r.product.images as Prisma.JsonValue);
     const primary = imgs[0];
     const desc = [r.product.subtitle, r.variant?.label].filter(Boolean).join(" · ") || undefined;
+    const after = lineTotalAfterByKey[r.key] ?? r.unitCents * r.quantity;
+    const unitAmount = Math.round(after / r.quantity);
     return {
       quantity: r.quantity,
       price_data: {
         currency,
-        unit_amount: r.unitCents,
+        unit_amount: unitAmount,
         product_data: {
           name: r.lineName,
           ...(desc ? { description: desc } : {}),
@@ -227,12 +193,27 @@ export async function POST(req: Request) {
     };
   });
 
+  const metaCoupon: Record<string, string> =
+    coupon && discountCents > 0
+      ? {
+          couponId: coupon.id,
+          discountCents: String(discountCents),
+          preDiscountSubtotalCents: String(preDiscountSubtotalCents),
+        }
+      : {};
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      customer_email: customerEmail,
+      // When `customer_email` is omitted, Stripe Checkout collects the email
+      // itself and unlocks 1-tap autofill for returning Stripe Link users.
+      // Apple Pay / Google Pay / Link / cards are auto-shown when the merchant
+      // is configured in the Stripe Dashboard and we don't restrict
+      // `payment_method_types`.
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
       line_items,
       phone_number_collection: { enabled: true },
+      billing_address_collection: "auto",
       success_url: `${baseUrl()}/wear/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl()}/wear/cart?cancelled=1`,
       shipping_address_collection: {
@@ -250,13 +231,15 @@ export async function POST(req: Request) {
       metadata: {
         type: "wear_order",
         wearOrderId: orderId,
-        ...(attributedStudioId ? { studioId: attributedStudioId } : {}),
+        ...(resolvedPack.attributedStudioId ? { studioId: resolvedPack.attributedStudioId } : {}),
+        ...metaCoupon,
       },
       payment_intent_data: {
         metadata: {
           type: "wear_order",
           wearOrderId: orderId,
-          ...(attributedStudioId ? { studioId: attributedStudioId } : {}),
+          ...(resolvedPack.attributedStudioId ? { studioId: resolvedPack.attributedStudioId } : {}),
+          ...metaCoupon,
         },
       },
     });

@@ -9,6 +9,7 @@ import {
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 import { normalizeWearAffiliateCode } from "@/lib/wear-affiliate-code";
+import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -23,7 +24,13 @@ export async function GET(_req: Request, ctx: Ctx) {
     prisma.wearProduct.findMany({
       where: wearPublicProductWhere(),
       orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-      select: { id: true, name: true, priceCents: true, images: true, slug: true },
+      include: {
+        variants: {
+          where: { isActive: true },
+          orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+          select: { priceCents: true },
+        },
+      },
     }),
   ]);
 
@@ -49,13 +56,16 @@ export async function GET(_req: Request, ctx: Ctx) {
     minMarginBps: global.minMarginBps,
     maxMarginBps: global.maxMarginBps,
     selectedProductIds: selectedIds,
-    catalog: catalog.map((p) => ({
-      id: p.id,
-      name: p.name,
-      basePriceCents: p.priceCents,
-      finalPriceCents: calculateWearPrice(p.priceCents, effectiveMarginBps),
-      image: wearImageUrlsFromJson(p.images)[0] ?? null,
-    })),
+    catalog: catalog.map((raw) => {
+      const p = mapWearProductRowToInternalPrices(raw);
+      return {
+        id: p.id,
+        name: p.name,
+        basePriceCents: p.priceCents,
+        finalPriceCents: calculateWearPrice(p.priceCents, effectiveMarginBps),
+        image: wearImageUrlsFromJson(p.images)[0] ?? null,
+      };
+    }),
   });
 }
 

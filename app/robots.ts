@@ -1,22 +1,20 @@
 import { isPreregistrationOnly } from "@/lib/preregistration";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { siteMetadata } from "@/lib/seo";
 
 export default function robots() {
   const prereg = isPreregistrationOnly();
+  const apparel = isApparelOnlyLaunch();
   return {
     rules: [
       {
         userAgent: "*",
         allow: ["/", "/unauthorized-admin"],
-        disallow: prereg
-          ? ["/dashboard", "/admin", "/api", "/login", "/register", "/marketplace", "/classes", "/studios", "/cart"]
-          : [
+        disallow: apparel
+          ? [
               "/dashboard",
               "/admin",
               "/api",
-              "/cart",
-              "/checkout",
-              "/checkout/success",
               "/account",
               "/my-bookings",
               "/my-orders",
@@ -25,7 +23,36 @@ export default function robots() {
               "/my-waitlist",
               "/my-loyalty",
               "/reviews/new",
-            ],
+              "/marketplace",
+              "/classes",
+              "/studios",
+              "/category",
+              "/gift-cards",
+              "/blog",
+              "/embed",
+              "/pricing",
+              "/demo",
+              "/vision",
+              "/early-access",
+            ]
+          : prereg
+            ? ["/dashboard", "/admin", "/api", "/login", "/register", "/marketplace", "/classes", "/studios", "/cart"]
+            : [
+                "/dashboard",
+                "/admin",
+                "/api",
+                "/cart",
+                "/checkout",
+                "/checkout/success",
+                "/account",
+                "/my-bookings",
+                "/my-orders",
+                "/my-packages",
+                "/my-memberships",
+                "/my-waitlist",
+                "/my-loyalty",
+                "/reviews/new",
+              ],
       },
       {
         userAgent: "GPTBot",

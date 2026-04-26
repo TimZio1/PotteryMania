@@ -393,6 +393,57 @@ body {
   color: var(--st-heading);
 }
 
+/* ── Apparel landing animations (homepage) ─────────────── */
+@keyframes pm-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.pm-marquee-track {
+  animation: pm-marquee 36s linear infinite;
+  will-change: transform;
+}
+
+.pm-marquee-track--fast {
+  animation-duration: 22s;
+}
+
+.pm-marquee-track--reverse {
+  animation-direction: reverse;
+}
+
+@keyframes pm-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.pm-shimmer-text {
+  background: linear-gradient(90deg, currentColor 0%, currentColor 40%, rgba(255,255,255,0.65) 50%, currentColor 60%, currentColor 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: pm-shimmer 5s linear infinite;
+}
+
+@keyframes pm-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.85); }
+}
+
+.pm-live-dot {
+  animation: pm-pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes pm-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pm-fade-up {
+  animation: pm-fade-up 0.7s ease-out both;
+}
+
 /* Leaflet divIcon markers (near-results-map) */
 .near-map-div-icon {
   background: transparent !important;

@@ -118,6 +118,7 @@ export async function POST(req: Request) {
     const couponErr = validateCouponState(coupon, {
       studioId,
       subtotalCents: subtotal,
+      surface: "marketplace",
     });
     if (couponErr) {
       return NextResponse.json({ error: couponErr }, { status: 400 });

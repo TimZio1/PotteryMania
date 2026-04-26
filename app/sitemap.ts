@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { isPreregistrationOnly } from "@/lib/preregistration";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { captureError } from "@/lib/monitoring";
 import { siteMetadata } from "@/lib/seo";
 import { listSitemapBlogPosts } from "@/lib/blog";
@@ -8,7 +9,12 @@ import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 
 const SITEMAP_LIMIT = 1000;
 
-function entry(path: string, lastModified: Date, priority?: number, changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"]) {
+function entry(
+  path: string,
+  lastModified: Date,
+  priority?: number,
+  changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"],
+) {
   return {
     url: new URL(path, siteMetadata.url).toString(),
     lastModified,
@@ -20,6 +26,10 @@ function entry(path: string, lastModified: Date, priority?: number, changeFreque
 /** Lets `next build` succeed when no DB is reachable (CI, fresh clone). */
 function staticSitemapFallback(): MetadataRoute.Sitemap {
   const now = new Date();
+  if (isApparelOnlyLaunch()) {
+    const paths = ["/", "/shop", "/about", "/wear/shop", "/wear/partner", "/login", "/register", "/terms", "/privacy", "/refunds"];
+    return paths.map((path) => entry(path, now, path === "/" ? 1 : 0.6, path === "/" ? "daily" : "weekly"));
+  }
   const paths = isPreregistrationOnly()
     ? ["/", "/pricing", "/terms", "/privacy", "/vendor-terms"]
     : [
@@ -46,6 +56,27 @@ function staticSitemapFallback(): MetadataRoute.Sitemap {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const now = new Date();
+
+    if (isApparelOnlyLaunch()) {
+      const wearProducts = await prisma.wearProduct.findMany({
+        where: wearPublicProductWhere(),
+        select: { slug: true, updatedAt: true },
+        take: SITEMAP_LIMIT,
+      });
+      return [
+        entry("/", now, 1, "daily"),
+        entry("/shop", now, 0.95, "weekly"),
+        entry("/about", now, 0.75, "monthly"),
+        entry("/wear/shop", now, 0.95, "daily"),
+        entry("/wear/partner", now, 0.8, "weekly"),
+        entry("/login", now, 0.3, "monthly"),
+        entry("/register", now, 0.4, "monthly"),
+        entry("/terms", now, 0.2, "monthly"),
+        entry("/privacy", now, 0.2, "monthly"),
+        entry("/refunds", now, 0.25, "monthly"),
+        ...wearProducts.map((product) => entry(`/wear/${product.slug}`, product.updatedAt, 0.7, "weekly")),
+      ];
+    }
 
     if (isPreregistrationOnly()) {
       return [

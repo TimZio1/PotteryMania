@@ -5,9 +5,10 @@ import { metaAdminPage } from "@/lib/seo-routes";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { platformUi } from "@/lib/ui-styles";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { AdminSignOut } from "./admin-sign-out";
 import { AdminMobileNav } from "./admin-mobile-nav";
-import { adminLinks } from "./admin-links";
+import { adminLinks, getActiveAdminLinks } from "./admin-links";
 
 export { adminLinks };
 
@@ -18,6 +19,9 @@ export const metadata: Metadata = metaAdminPage(
 );
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const links = getActiveAdminLinks();
+  const apparelOnly = isApparelOnlyLaunch();
+
   return (
     <div className="pm-visual-platform admin-light-tokens min-h-screen" data-pm-visual="platform">
       <div className="mx-auto grid min-h-screen max-w-[1480px] gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -26,8 +30,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div className="border-b border-stone-200/80 px-5 py-5">
               <BrandLogo href="/" size="sm" className="!text-stone-900" />
               <div className="mt-4 flex items-center justify-between gap-3">
-                <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
-                  Hyperadmin
+                <span
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide",
+                    apparelOnly
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                      : "border-stone-200 bg-white text-stone-700",
+                  )}
+                  title={apparelOnly ? "Apparel-only launch mode is on" : undefined}
+                >
+                  {apparelOnly ? "Hyperadmin · apparel" : "Hyperadmin"}
                 </span>
                 <Link href="/dashboard" className="text-xs font-medium text-stone-700 hover:text-amber-950">
                   Studio view
@@ -36,7 +48,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </div>
 
             <nav aria-label="Hyperadmin sections" className="flex-1 space-y-1 px-3 py-4">
-              {adminLinks.map((link) => (
+              {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -50,6 +62,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
 
+            {apparelOnly ? (
+              <div className="border-t border-stone-200/80 px-4 py-3 text-[11px] text-stone-500">
+                <p>
+                  Studio + marketplace nav is hidden under apparel-only mode. Routes still exist —
+                  see <Link href="/admin#hidden-sections" className="font-medium text-amber-900 hover:underline">hidden sections</Link>.
+                </p>
+              </div>
+            ) : null}
+
             <div className="border-t border-stone-200/80 px-3 py-4">
               <AdminSignOut />
             </div>
@@ -61,10 +82,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div className="flex w-full items-center justify-between gap-3">
               <BrandLogo href="/" size="sm" className="!text-stone-900" />
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700">
-                  Hyperadmin
+                <span
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide",
+                    apparelOnly
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                      : "border-stone-200 bg-white text-stone-700",
+                  )}
+                >
+                  {apparelOnly ? "Hyperadmin · apparel" : "Hyperadmin"}
                 </span>
-                <AdminMobileNav />
+                <AdminMobileNav links={links} />
               </div>
             </div>
           </div>

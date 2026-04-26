@@ -13,7 +13,10 @@ type SpreadconnectArticleVariant = {
   sku?: string | null;
   sizeName?: string | null;
   appearanceName?: string | null;
+  /** Final price for the customer (Spreadshop direct-to-consumer). */
   d2cPrice?: number | null;
+  /** Wholesale / B2B price — what we pay Spreadconnect per unit. Used as our `supplyCostCents` floor. */
+  b2bPrice?: number | null;
 };
 
 type SpreadconnectArticleImage = {
@@ -38,6 +41,8 @@ type SyncedVariant = {
   optionSize: string | null;
   optionColor: string | null;
   priceCents: number | null;
+  /** Per-variant wholesale cost (cents). Captured for analytics; product-level floor is taken from the min. */
+  supplyCostCents: number | null;
   sortOrder: number;
 };
 
@@ -48,6 +53,8 @@ type PreparedArticle = {
   description: string | null;
   images: WearCatalogImage[];
   priceCents: number;
+  /** Cheapest b2b price across active variants (cents). Used as `WearProduct.supplyCostCents` floor. */
+  supplyCostCents: number | null;
   currency: string;
   externalFulfillmentId: string | null;
   spreadconnectProductTypeId: number | null;
@@ -186,6 +193,7 @@ function catalogFingerprint(prepared: PreparedArticle): string {
       }))
       .sort((a, b) => a.url.localeCompare(b.url)),
     priceCents: prepared.priceCents,
+    supplyCostCents: prepared.supplyCostCents,
     spreadconnectProductTypeId: prepared.spreadconnectProductTypeId,
     spreadconnectProductTypeName: prepared.spreadconnectProductTypeName,
     spreadconnectCategoryData: prepared.spreadconnectCategoryData,
@@ -196,6 +204,7 @@ function catalogFingerprint(prepared: PreparedArticle): string {
         optionSize: v.optionSize,
         optionColor: v.optionColor,
         priceCents: v.priceCents,
+        supplyCostCents: v.supplyCostCents,
         sortOrder: v.sortOrder,
       }))
       .sort((a, b) => a.sku.localeCompare(b.sku)),
@@ -357,6 +366,7 @@ async function prepareArticle(
         optionSize: variant.sizeName?.trim() || null,
         optionColor: variant.appearanceName?.trim() || null,
         priceCents: centsFromAmount(variant.d2cPrice),
+        supplyCostCents: centsFromAmount(variant.b2bPrice),
         sortOrder: index,
       } satisfies SyncedVariant;
     })
@@ -386,6 +396,11 @@ async function prepareArticle(
   const priceCandidates = mappedVariants.map((variant) => variant.priceCents).filter((value): value is number => value != null);
   if (priceCandidates.length === 0) return null;
 
+  const supplyCandidates = mappedVariants
+    .map((variant) => variant.supplyCostCents)
+    .filter((value): value is number => value != null);
+  const minSupplyCostCents = supplyCandidates.length > 0 ? Math.min(...supplyCandidates) : null;
+
   const spreadconnectProductTypeId = dominantProductTypeId(sourceVariants);
   const spreadconnectProductTypeName = dominantProductTypeName(sourceVariants, spreadconnectProductTypeId);
   let spreadconnectCategoryData: Prisma.InputJsonValue | null = null;
@@ -405,6 +420,7 @@ async function prepareArticle(
     description: article.description?.trim() || null,
     images: mappedImages,
     priceCents: Math.min(...priceCandidates),
+    supplyCostCents: minSupplyCostCents,
     currency: preferredCurrency(),
     externalFulfillmentId: mappedVariants.length === 1 ? mappedVariants[0].sku : null,
     spreadconnectProductTypeId,
@@ -489,6 +505,9 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
   const articleIdData =
     prepared.articleId != null ? { spreadconnectArticleId: prepared.articleId } : {};
 
+  const supplyCostData =
+    prepared.supplyCostCents != null ? { supplyCostCents: prepared.supplyCostCents } : {};
+
   const product = existing
     ? await prisma.wearProduct.update({
         where: { id: existing.id },
@@ -506,6 +525,7 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           spreadconnectProductTypeName: prepared.spreadconnectProductTypeName,
           spreadconnectCategoryData: nullableJsonInput(prepared.spreadconnectCategoryData),
           spreadconnectCatalogFingerprint: fp,
+          ...supplyCostData,
           ...articleIdData,
           ...assetHealthData,
         },
@@ -525,6 +545,7 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
           spreadconnectProductTypeName: prepared.spreadconnectProductTypeName,
           spreadconnectCategoryData: nullableJsonInput(prepared.spreadconnectCategoryData),
           spreadconnectCatalogFingerprint: fp,
+          ...supplyCostData,
           ...articleIdData,
           ...assetHealthData,
         },

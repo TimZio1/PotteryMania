@@ -6,7 +6,7 @@ import { GoogleAnalytics } from "@/components/google-analytics";
 import { MetaPixel } from "@/components/meta-pixel";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { BRAND_ICON_PUBLIC_PATH } from "@/lib/brand";
-import { siteMetadata } from "@/lib/seo";
+import { defaultPublicTitle, siteMetadata } from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +34,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteMetadata.url),
   title: {
-    default: "PotteryMania",
+    default: defaultPublicTitle(),
     template: "%s | PotteryMania",
   },
   description: siteMetadata.description,
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: { capable: true, title: "PotteryMania" },
   openGraph: {
-    title: "PotteryMania",
+    title: defaultPublicTitle(),
     description: siteMetadata.description,
     siteName: siteMetadata.name,
     url: siteMetadata.url,
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "PotteryMania",
+    title: defaultPublicTitle(),
     description: siteMetadata.description,
     images: [siteMetadata.ogImage],
   },

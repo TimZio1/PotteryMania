@@ -7,14 +7,49 @@ import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { WEAR_CURRENCY_PDP_LINE } from "@/lib/wear-currency-policy";
 import { WEAR_SHIPPING_PDP_LINE } from "@/lib/wear-shipping-copy";
 import { WearPdpBuySection, type WearPdpVariant } from "@/components/wear/wear-pdp-buy-section";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
-const PDP_HOOK = "For makers who care how things feel — not just how they look.";
+const PDP_HOOK_CLASSIC = "For makers who care how things feel — not just how they look.";
 
-const PDP_BENEFITS = [
+const PDP_BENEFITS_CLASSIC = [
   "Printed when you order — less waste, no stale stock.",
   "Cut and sewn for everyday wear; designed to age with you.",
   "Shipping from production close to you when possible.",
 ] as const;
+
+const PDP_HOOK_APPAREL = "Soft, durable apparel — printed when you order.";
+
+const PDP_BENEFITS_APPAREL = [
+  "Pick your size and color, then check out — shipping is calculated before you pay.",
+  "Printed in the EU and shipped within 2–5 business days.",
+  "Secure checkout via Stripe — Apple Pay, Google Pay, and card supported.",
+] as const;
+
+const SIZE_CHART = {
+  tops: [
+    { size: "S", chest: "48 cm", length: "70 cm" },
+    { size: "M", chest: "51 cm", length: "72 cm" },
+    { size: "L", chest: "54 cm", length: "74 cm" },
+    { size: "XL", chest: "57 cm", length: "76 cm" },
+    { size: "2XL", chest: "60 cm", length: "78 cm" },
+  ],
+  hoodies: [
+    { size: "S", chest: "53 cm", length: "68 cm" },
+    { size: "M", chest: "56 cm", length: "70 cm" },
+    { size: "L", chest: "59 cm", length: "72 cm" },
+    { size: "XL", chest: "62 cm", length: "74 cm" },
+    { size: "2XL", chest: "65 cm", length: "76 cm" },
+  ],
+} as const;
+
+function formatEtaRange(now: Date = new Date()): string {
+  const start = new Date(now.getTime());
+  start.setDate(start.getDate() + 4);
+  const end = new Date(now.getTime());
+  end.setDate(end.getDate() + 8);
+  const fmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return `${fmt(start)} – ${fmt(end)}`;
+}
 
 type WearGalleryImage = {
   id: string;
@@ -89,6 +124,9 @@ export function WearProductGallery({
   const selectedImage = images.find((image) => image.id === selectedImageId) ?? imagesForColor[0] ?? null;
 
   const resolvedViewCartHref = viewCartHref ?? (studioId ? "/cart" : "/wear/cart");
+  const apparelLaunch = isApparelOnlyLaunch();
+  const pdpHook = apparelLaunch ? PDP_HOOK_APPAREL : PDP_HOOK_CLASSIC;
+  const pdpBenefits = apparelLaunch ? PDP_BENEFITS_APPAREL : PDP_BENEFITS_CLASSIC;
 
   return (
     <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
@@ -156,23 +194,76 @@ export function WearProductGallery({
           ← Back to shop
         </Link>
         <h1 className="mt-6 font-serif text-3xl leading-tight tracking-tight text-amber-950 sm:text-4xl">{productName}</h1>
-        <p className="mt-4 text-sm font-medium leading-relaxed text-stone-700">{PDP_HOOK}</p>
+        <p className="mt-4 text-sm font-medium leading-relaxed text-stone-700">{pdpHook}</p>
         <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
           {categoryLabel}
           {topSubLabel ? <> · {topSubLabel}</> : null}
         </p>
         {subtitle ? <p className="mt-3 text-lg text-stone-600">{subtitle}</p> : null}
         <ul className="mt-6 space-y-2 text-sm leading-relaxed text-stone-600">
-          {PDP_BENEFITS.map((line) => (
+          {pdpBenefits.map((line) => (
             <li key={line} className="flex gap-2">
               <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-amber-600" aria-hidden />
               <span>{line}</span>
             </li>
           ))}
         </ul>
-        <p className="mt-6 rounded-xl border border-stone-200/80 bg-stone-50/80 px-4 py-3 text-xs leading-relaxed text-stone-600">
-          {WEAR_SHIPPING_PDP_LINE} {WEAR_CURRENCY_PDP_LINE}
+        <div className="mt-6 grid gap-3 rounded-xl border border-stone-200/80 bg-stone-50/80 px-4 py-3 text-xs leading-relaxed text-stone-700 sm:grid-cols-2">
+          <p className="flex items-start gap-2">
+            <span aria-hidden className="mt-0.5">📦</span>
+            <span><span className="font-semibold text-amber-950">Estimated delivery:</span> {formatEtaRange()}</span>
+          </p>
+          <p className="flex items-start gap-2">
+            <span aria-hidden className="mt-0.5">↩</span>
+            <span><span className="font-semibold text-amber-950">30-day returns</span> on defective items</span>
+          </p>
+          <p className="flex items-start gap-2">
+            <span aria-hidden className="mt-0.5">🔒</span>
+            <span><span className="font-semibold text-amber-950">Secure checkout</span> · Apple Pay & Google Pay</span>
+          </p>
+          <p className="flex items-start gap-2">
+            <span aria-hidden className="mt-0.5">🌍</span>
+            <span><span className="font-semibold text-amber-950">Worldwide shipping</span> from the EU</span>
+          </p>
+        </div>
+        <p className="mt-3 text-[11px] leading-relaxed text-stone-500">
+          {WEAR_CURRENCY_PDP_LINE} See{" "}
+          <Link href="/refunds" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-900">
+            refunds &amp; returns
+          </Link>
+          {" "}for full terms.
         </p>
+        <details className="group mt-4 rounded-xl border border-stone-200/80 bg-white px-4 py-3 text-sm">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-medium text-amber-950">
+            <span className="flex items-center gap-2">
+              <span aria-hidden>📏</span> Size guide
+            </span>
+            <span aria-hidden className="text-amber-700 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="text-stone-500">
+                  <th className="pb-2 font-semibold uppercase tracking-wider">Size</th>
+                  <th className="pb-2 font-semibold uppercase tracking-wider">Chest (half)</th>
+                  <th className="pb-2 font-semibold uppercase tracking-wider">Length</th>
+                </tr>
+              </thead>
+              <tbody className="text-stone-700">
+                {(categoryLabel?.toLowerCase().includes("hoodie") ? SIZE_CHART.hoodies : SIZE_CHART.tops).map((row) => (
+                  <tr key={row.size} className="border-t border-stone-200">
+                    <td className="py-2 font-medium text-amber-950">{row.size}</td>
+                    <td className="py-2">{row.chest}</td>
+                    <td className="py-2">{row.length}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-3 text-[11px] text-stone-500">
+              Measurements are approximate. If between sizes, we recommend sizing up for hoodies.
+            </p>
+          </div>
+        </details>
         <WearPdpBuySection
           productId={productId}
           basePriceCents={basePriceCents}

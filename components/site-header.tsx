@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 function isAdminRole(role: string | undefined) {
   return role === "admin" || role === "hyper_admin";
@@ -40,8 +41,20 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
   const createStudioHref = authed ? "/dashboard/studio/new?setup=both" : "/demo";
   const createStudioActiveHref = authed ? "/dashboard/studio/new" : "/demo";
   const shopCartHref = "/wear/cart";
-  /** Marketing home is wear-first; use the same buyer nav + wear cart as the `/wear` shell. */
-  const buyerFirstMarketing = apparelStorefront || pathname === "/";
+  const apparelOnly = isApparelOnlyLaunch();
+  /**
+   * Apparel nav is the unconditional default — it renders unless an operator explicitly
+   * opts back into the legacy SaaS nav with `NEXT_PUBLIC_HOMEPAGE_MODE=studio_legacy`
+   * AND apparel-only launch mode is off. This protects against silent regressions when
+   * `NEXT_PUBLIC_LAUNCH_MODE` is missing from the build env.
+   */
+  const legacyOptIn =
+    !apparelOnly &&
+    !apparelStorefront &&
+    process.env.NEXT_PUBLIC_HOMEPAGE_MODE === "studio_legacy";
+  const apparelNav = !legacyOptIn;
+  const storeMode = apparelNav;
+  const buyerFirstMarketing = apparelNav || pathname === "/";
   const cartHref = buyerFirstMarketing ? shopCartHref : "/cart";
 
   useEffect(() => {
@@ -128,14 +141,14 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                   Dashboard
                 </Link>
               ) : null}
-              {!apparelStorefront && !isVendorRole(role) && !isAdminRole(role) ? (
+              {!storeMode && !isVendorRole(role) && !isAdminRole(role) ? (
                 <Link href={createStudioHref} className={linkClass(createStudioActiveHref)}>
                   Create your studio
                 </Link>
               ) : null}
               {!isAdminRole(role) ? (
                 <>
-                  {!apparelStorefront ? (
+                  {!storeMode ? (
                     <Link href="/my-bookings" className={linkClass("/my-bookings")}>
                       My bookings
                     </Link>
@@ -162,19 +175,20 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
-                {buyerFirstMarketing ? (
+                {apparelNav ? (
                   <>
+                    <Link href="/" className={linkClass("/")}>
+                      Home
+                    </Link>
                     <Link href="/wear/shop" className={linkClass("/wear/shop")}>
                       Shop
                     </Link>
-                    <Link href="/wear" className={linkClass("/wear")}>
-                      Drop
+                    <Link href="/wear/partner" className={linkClass("/wear/partner")}>
+                      Affiliate
                     </Link>
-                    {pathname === "/" ? (
-                      <Link href="/#register-studio" className={linkClass("/")}>
-                        Early access
-                      </Link>
-                    ) : null}
+                    <Link href="/about" className={linkClass("/about")}>
+                      About
+                    </Link>
                   </>
                 ) : (
                   <>
@@ -187,7 +201,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                   </>
                 )}
               </div>
-              {buyerFirstMarketing ? (
+              {apparelNav ? (
                 <Link href="/wear/shop" className={`${ui.buttonMarketing} md:hidden`}>
                   Shop
                 </Link>
@@ -258,14 +272,14 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                     Dashboard
                   </Link>
                 ) : null}
-                {!apparelStorefront && !isVendorRole(role) && !isAdminRole(role) ? (
+                {!storeMode && !isVendorRole(role) && !isAdminRole(role) ? (
                   <Link href="/dashboard/studio/new?setup=both" className={mobileLinkClass("/dashboard/studio/new")} onClick={close}>
                     Create your studio
                   </Link>
                 ) : null}
                 {!isAdminRole(role) ? (
                   <>
-                    {!apparelStorefront ? (
+                    {!storeMode ? (
                       <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")} onClick={close}>
                         My bookings
                       </Link>
@@ -294,19 +308,40 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
               </>
             ) : (
               <>
-                {buyerFirstMarketing ? (
+                {apparelNav ? (
                   <>
+                    <Link href="/" className={mobileLinkClass("/")} onClick={close}>
+                      Home
+                    </Link>
                     <Link href="/wear/shop" className={mobileLinkClass("/wear/shop")} onClick={close}>
                       Shop
                     </Link>
-                    <Link href="/wear" className={mobileLinkClass("/wear")} onClick={close}>
-                      Drop
+                    <Link
+                      href="/wear/shop?category=tops"
+                      className={mobileLinkClass("/wear/shop?category=tops")}
+                      onClick={close}
+                    >
+                      T-shirts
                     </Link>
-                    {pathname === "/" ? (
-                      <Link href="/#register-studio" className={mobileLinkClass("/")} onClick={close}>
-                        Early access
-                      </Link>
-                    ) : null}
+                    <Link
+                      href="/wear/shop?category=hoodies"
+                      className={mobileLinkClass("/wear/shop?category=hoodies")}
+                      onClick={close}
+                    >
+                      Hoodies
+                    </Link>
+                    <Link href="/wear/cart" className={mobileLinkClass("/wear/cart")} onClick={close}>
+                      Cart
+                    </Link>
+                    <Link href="/wear/partner" className={mobileLinkClass("/wear/partner")} onClick={close}>
+                      Affiliate program
+                    </Link>
+                    <Link href="/about" className={mobileLinkClass("/about")} onClick={close}>
+                      About
+                    </Link>
+                    <Link href="/refunds" className={mobileLinkClass("/refunds")} onClick={close}>
+                      Returns & refunds
+                    </Link>
                   </>
                 ) : (
                   <>

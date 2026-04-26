@@ -17,19 +17,22 @@ import { findWearPublicProductsWithVariantsRetrying, type WearPublicListingRow }
 import { WEAR_CURRENCY_SHOP_LINE } from "@/lib/wear-currency-policy";
 import { WEAR_ACTIVE_DROP, wearDropDefaultTitle } from "@/lib/wear-drop-config";
 import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
+import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: `Shop — ${wearDropDefaultTitle()}`,
-  description:
-    "Apparel from our print-on-demand catalog — synced from production. Prices in EUR; shipping and taxes at checkout.",
+  title: isApparelOnlyLaunch() ? "Shop T-shirts & apparel — PotteryMania" : `Shop — ${wearDropDefaultTitle()}`,
+  description: isApparelOnlyLaunch()
+    ? "Browse T-shirts, hoodies, and maker apparel — printed on demand. Shipping and taxes at checkout."
+    : "Apparel from our print-on-demand catalog — synced from production. Prices in EUR; shipping and taxes at checkout.",
   path: "/wear/shop",
 });
 
 type WearShopProps = {
-  searchParams: Promise<{ category?: string; sub?: string }>;
+  searchParams: Promise<{ category?: string; sub?: string; popular?: string; new?: string }>;
 };
 
 type WearShopProduct = WearPublicListingRow & {
@@ -43,11 +46,29 @@ type WearShopProduct = WearPublicListingRow & {
 
 const CATEGORY_DISPLAY_ORDER = ["tops", "hoodies", "headwear", "accessories", "other"] as const;
 
+const NEW_THRESHOLD_MS = 90 * 24 * 60 * 60 * 1000;
+
+function wearShopHref(opts: {
+  category?: string | null;
+  sub?: WearTopSubcategory | null;
+  popular?: boolean;
+  new?: boolean;
+}) {
+  const q = new URLSearchParams();
+  if (opts.category) q.set("category", opts.category);
+  if (opts.sub) q.set("sub", opts.sub);
+  if (opts.popular) q.set("popular", "1");
+  if (opts.new) q.set("new", "1");
+  const s = q.toString();
+  return s ? `/wear/shop?${s}` : "/wear/shop";
+}
+
 export default async function WearShopPage({ searchParams }: WearShopProps) {
   const partnerHref = resolveWearResellerApplicationHref();
   const sp = await searchParams;
-  const activeCategory = sp.category?.trim().toLowerCase() || null;
-  const activeTopSub = isWearTopSubcategory(sp.sub) ? sp.sub : null;
+  const apparelOnly = isApparelOnlyLaunch();
+  const popularOnly = sp.popular === "1";
+  const newOnly = sp.new === "1";
 
   const catalogResult = await findWearPublicProductsWithVariantsRetrying();
   const dbUnavailable = !catalogResult.ok;
@@ -62,16 +83,17 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     spreadconnectCategoryData: p.spreadconnectCategoryData,
   });
 
-  const normalized: WearShopProduct[] = products.map((p) => {
+  const normalized: WearShopProduct[] = products.map((raw) => {
+    const p = mapWearProductRowToInternalPrices(raw);
     const category = resolveWearCatalogCategory(catInput(p));
     return {
       ...p,
       categorySlug: category.fallbackCategory,
       categoryLabel:
-        category.fallbackCategory === "tops" && category.topSub
-          ? "Tops"
+        category.fallbackCategory === "tops"
+          ? "T-shirts"
           : category.fallbackCategory === "hoodies"
-            ? "Hoodies & Sweatshirts"
+            ? "Hoodies"
             : category.fallbackCategory === "headwear"
               ? "Headwear"
               : category.fallbackCategory === "accessories"
@@ -84,11 +106,22 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     };
   });
 
+  const rawCategory = sp.category?.trim().toLowerCase() || null;
+  const activeCategory = rawCategory === "all" ? null : rawCategory;
+  const activeTopSub = isWearTopSubcategory(sp.sub) ? sp.sub : null;
+
   let visible: WearShopProduct[] = activeCategory
     ? normalized.filter((p) => p.categorySlug === activeCategory)
     : normalized;
   if (activeTopSub) {
     visible = visible.filter((p) => p.topSub === activeTopSub);
+  }
+  if (popularOnly) {
+    visible = visible.filter((p) => p.isFeatured);
+  }
+  if (newOnly) {
+    const cutoff = Date.now() - NEW_THRESHOLD_MS;
+    visible = visible.filter((p) => new Date(p.createdAt).getTime() >= cutoff);
   }
 
   const topsSubsInCatalog = new Set(
@@ -162,33 +195,62 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-10 text-stone-900 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
-        <h1 className="mt-3 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
+        <h1 className="mt-3 text-center font-serif text-3xl text-amber-950 sm:text-4xl">
+          {apparelOnly ? "T-shirts & Hoodies" : "The drop"}
+        </h1>
         <p className="mx-auto mt-2 max-w-xl text-center text-xs font-medium text-stone-600">
-          {WEAR_ACTIVE_DROP.sequenceLabel} · {WEAR_ACTIVE_DROP.theme} · {WEAR_ACTIVE_DROP.launchWindowLabel}
+          {apparelOnly
+            ? "Printed on demand · ships in 2–5 days"
+            : `${WEAR_ACTIVE_DROP.sequenceLabel} · ${WEAR_ACTIVE_DROP.theme} · ${WEAR_ACTIVE_DROP.launchWindowLabel}`}
         </p>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-stone-700">
-          Catalog stays in sync with production — what you see is what you can order. Each piece is printed and shipped
-          after you check out. {WEAR_CURRENCY_SHOP_LINE}
+          {apparelOnly
+            ? `Pick a tee or hoodie, choose your size and color, check out securely. ${WEAR_CURRENCY_SHOP_LINE}`
+            : `Catalog stays in sync with production — what you see is what you can order. Each piece is printed and shipped after you check out. ${WEAR_CURRENCY_SHOP_LINE}`}
         </p>
+        {apparelOnly ? (
+          <div className="mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2">
+            <Link
+              href={wearShopHref({ popular: true })}
+              className={`inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 py-2 text-xs font-medium ${
+                popularOnly
+                  ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                  : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
+              }`}
+            >
+              Popular
+            </Link>
+            <Link
+              href={wearShopHref({ new: true })}
+              className={`inline-flex min-h-11 shrink-0 items-center rounded-full border px-4 py-2 text-xs font-medium ${
+                newOnly
+                  ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
+                  : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
+              }`}
+            >
+              New
+            </Link>
+          </div>
+        ) : null}
         {hasTopsInCatalog ? (
           <div className="mx-auto mt-5 max-w-4xl">
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max items-center gap-2 pb-1">
                 <Link
                   href="/wear/shop?category=tops"
-                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
+                  className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium ${
                     activeCategory === "tops" && activeTopSub == null
                       ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
                       : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
                   }`}
                 >
-                  All tops
+                  All T-shirts
                 </Link>
                 {topSubNavItems.map((sub) => (
                   <Link
                     key={sub}
                     href={`/wear/shop?category=tops&sub=${sub}`}
-                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
+                    className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium ${
                       activeCategory === "tops" && activeTopSub === sub
                         ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
                         : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
@@ -205,8 +267,8 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex min-w-max items-center gap-2 pb-1">
                 <Link
-                  href="/wear/shop"
-                  className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
+                  href={apparelOnly ? "/wear/shop?category=all" : "/wear/shop"}
+                  className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium ${
                     activeCategory == null
                       ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
                       : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
@@ -218,7 +280,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   <Link
                     key={category.slug}
                     href={`/wear/shop?category=${category.slug}`}
-                    className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium ${
+                    className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium ${
                       activeCategory === category.slug
                         ? "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm"
                         : "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950"
@@ -323,27 +385,15 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                       </div>
                                     )}
                                   </div>
-                                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                                    <h4 className="font-medium text-stone-900">{p.name}</h4>
-                                    {p.isFeatured ? (
-                                      <span className="rounded-full border border-amber-300 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-900">
-                                        Featured
-                                      </span>
-                                    ) : null}
-                                  </div>
-                                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-                                    {block.heading}
-                                    {sub.label ? ` · ${sub.label}` : ""}
-                                  </p>
-                                  {p.providerCategoryLabel ? (
-                                    <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-stone-400">
-                                      {p.providerCategoryLabel}
+                                  <div className="mt-4 flex items-baseline justify-between gap-3">
+                                    <h4 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{p.name}</h4>
+                                    <p className="shrink-0 text-sm font-semibold text-amber-950">
+                                      {formatWearMoney(p.priceCents, p.currency)}
                                     </p>
+                                  </div>
+                                  {p.isFeatured ? (
+                                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">★ Featured</p>
                                   ) : null}
-                                  {p.subtitle ? <p className="mt-1 text-sm text-stone-500">{p.subtitle}</p> : null}
-                                  <p className="mt-2 text-sm text-stone-700">
-                                    {formatWearMoney(p.priceCents, p.currency)}
-                                  </p>
                                 </Link>
                               </li>
                             );
@@ -388,24 +438,13 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                 </div>
                               )}
                             </div>
-                            <div className="mt-4 flex flex-wrap items-center gap-2">
-                              <h3 className="font-medium text-stone-900">{p.name}</h3>
-                              {p.isFeatured ? (
-                                <span className="rounded-full border border-amber-300 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-900">
-                                  Featured
-                                </span>
-                              ) : null}
+                            <div className="mt-4 flex items-baseline justify-between gap-3">
+                              <h3 className="text-sm font-medium text-stone-900 group-hover:text-amber-950">{p.name}</h3>
+                              <p className="shrink-0 text-sm font-semibold text-amber-950">{formatWearMoney(p.priceCents, p.currency)}</p>
                             </div>
-                            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-                              {block.heading}
-                            </p>
-                            {p.providerCategoryLabel ? (
-                              <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-stone-400">
-                                {p.providerCategoryLabel}
-                              </p>
+                            {p.isFeatured ? (
+                              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">★ Featured</p>
                             ) : null}
-                            {p.subtitle ? <p className="mt-1 text-sm text-stone-500">{p.subtitle}</p> : null}
-                            <p className="mt-2 text-sm text-stone-700">{formatWearMoney(p.priceCents, p.currency)}</p>
                           </Link>
                         </li>
                       );

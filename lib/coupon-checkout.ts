@@ -14,7 +14,11 @@ type CouponValidationContext = {
   now?: Date;
   studioId?: string;
   subtotalCents?: number;
+  /** When set, enforces channel rules for marketplace vs wear checkout. */
+  surface?: "marketplace" | "wear";
 };
+
+const BUNDLE_APPLIES = new Set(["same_product", "category", "all"]);
 
 export function validateCouponState(coupon: Coupon, context: CouponValidationContext = {}): string | null {
   const now = context.now ?? new Date();
@@ -34,12 +38,28 @@ export function validateCouponState(coupon: Coupon, context: CouponValidationCon
   ) {
     return `Coupon requires a minimum subtotal of €${(coupon.minSubtotalCents / 100).toFixed(2)}`;
   }
-  const pct = coupon.percentOff;
-  const amt = coupon.amountOffCents;
-  const hasPct = pct != null && pct > 0;
-  const hasAmt = amt != null && amt > 0;
-  if (!hasPct && !hasAmt) return "Coupon is misconfigured";
-  if (hasPct && hasAmt) return "Coupon is misconfigured";
+  if (context.surface === "marketplace") {
+    if (coupon.channel === "wear_only") return "This code is for the apparel shop.";
+    if (coupon.wearDiscountMode === "bundle") return "This code isn’t valid for this checkout.";
+  }
+  if (context.surface === "wear") {
+    if (coupon.channel === "marketplace_only") return "This code isn’t valid on the apparel checkout.";
+  }
+  if (coupon.wearDiscountMode === "bundle") {
+    const buy = coupon.bundleBuy ?? 0;
+    const get = coupon.bundleGet ?? 0;
+    const applies = coupon.bundleAppliesTo ?? "";
+    if (buy < 1 || get < 1 || !BUNDLE_APPLIES.has(applies)) {
+      return "Coupon is misconfigured";
+    }
+  } else {
+    const pct = coupon.percentOff;
+    const amt = coupon.amountOffCents;
+    const hasPct = pct != null && pct > 0;
+    const hasAmt = amt != null && amt > 0;
+    if (!hasPct && !hasAmt) return "Coupon is misconfigured";
+    if (hasPct && hasAmt) return "Coupon is misconfigured";
+  }
   if (coupon.maxRedemptions != null && coupon.redeemedCount >= coupon.maxRedemptions) {
     return "Coupon has reached its maximum redemptions";
   }

@@ -62,13 +62,10 @@ export function WearCartPageClient() {
   const [lines, setLines] = useState<WearCartLine[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
+  const [serverPricing, setServerPricing] = useState<{ preCents: number; currency: string } | null>(null);
 
   const refreshFromStorage = useCallback(() => {
     setLines(parseWearCart(typeof window !== "undefined" ? localStorage.getItem(WEAR_CART_STORAGE_KEY) : null));
@@ -152,6 +149,52 @@ export function WearCartPageClient() {
   }, [lines, byId]);
 
   const currency = products[0]?.currency ?? "EUR";
+  const displayCurrency = serverPricing?.currency ?? currency;
+
+  const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
+
+  useEffect(() => {
+    if (!catalogReady || lines.length === 0 || linesInvalid) {
+      setServerPricing(null);
+      return;
+    }
+    const ac = new AbortController();
+    (async () => {
+      const partnerStudioId = getWearPartnerReferralStudioId();
+      try {
+        const res = await fetch("/api/wear/cart-pricing", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: ac.signal,
+          body: JSON.stringify({
+            items: lines.map((l) => ({
+              productId: l.productId,
+              quantity: l.quantity,
+              ...(l.variantId ? { variantId: l.variantId } : {}),
+            })),
+            ...(partnerStudioId ? { studioId: partnerStudioId } : {}),
+          }),
+        });
+        const data = (await res.json()) as {
+          preDiscountSubtotalCents?: number;
+          currency?: string;
+          error?: string;
+        };
+        if (ac.signal.aborted) return;
+        if (!res.ok) {
+          setServerPricing(null);
+          return;
+        }
+        setServerPricing({
+          preCents: data.preDiscountSubtotalCents ?? 0,
+          currency: (data.currency ?? "EUR").toUpperCase(),
+        });
+      } catch {
+        if (!ac.signal.aborted) setServerPricing(null);
+      }
+    })();
+    return () => ac.abort();
+  }, [catalogReady, lines, linesInvalid]);
 
   const cartCurrencyIssue = useMemo(() => {
     if (lines.length === 0) return null;
@@ -169,22 +212,6 @@ export function WearCartPageClient() {
 
   const onCheckout = useCallback(async () => {
     setCheckoutError(null);
-    setNameError(null);
-    setEmailError(null);
-    let hasFieldErr = false;
-    if (!customerName.trim()) {
-      setNameError("Please add your full name.");
-      hasFieldErr = true;
-    }
-    const emailVal = customerEmail.trim();
-    if (!emailVal) {
-      setEmailError("Please add your email.");
-      hasFieldErr = true;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-      setEmailError("That email doesn’t look right — double-check it.");
-      hasFieldErr = true;
-    }
-    if (hasFieldErr) return;
     if (lines.length === 0) {
       setCheckoutError("Your cart is empty.");
       return;
@@ -204,8 +231,6 @@ export function WearCartPageClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: customerName.trim(),
-          customerEmail: customerEmail.trim().toLowerCase(),
           ...(partnerStudioId ? { studioId: partnerStudioId } : {}),
           items: lines.map((l) => ({
             productId: l.productId,
@@ -243,9 +268,7 @@ export function WearCartPageClient() {
     } finally {
       setCheckoutBusy(false);
     }
-  }, [cartCurrencyIssue, customerEmail, customerName, lines]);
-
-  const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
+  }, [cartCurrencyIssue, lines]);
 
   return (
     <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 !text-stone-900 sm:px-6 sm:py-20">
@@ -325,22 +348,32 @@ export function WearCartPageClient() {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3 sm:justify-end">
-                    <label className="sr-only" htmlFor={`qty-${key}`}>
-                      Quantity for {r.title}
-                    </label>
-                    <input
-                      id={`qty-${key}`}
-                      type="number"
-                      min={1}
-                      max={99}
-                      value={l.quantity}
-                      onChange={(e) => setQty(key, parseInt(e.target.value, 10) || 1)}
-                      className="min-h-11 w-16 rounded-xl border border-stone-200 bg-white px-2 py-2 text-center text-sm text-stone-900"
-                    />
+                    <div className="flex items-center rounded-full border border-stone-200 bg-white" role="group" aria-label={`Quantity for ${r.title}`}>
+                      <button
+                        type="button"
+                        onClick={() => setQty(key, l.quantity - 1)}
+                        disabled={l.quantity <= 1}
+                        aria-label="Decrease quantity"
+                        className="inline-flex h-11 w-11 items-center justify-center text-lg text-stone-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        −
+                      </button>
+                      <span className="min-w-8 text-center text-sm font-semibold text-stone-900" aria-live="polite">{l.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(key, l.quantity + 1)}
+                        disabled={l.quantity >= 99}
+                        aria-label="Increase quantity"
+                        className="inline-flex h-11 w-11 items-center justify-center text-lg text-stone-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeLine(key)}
-                      className="min-h-11 px-2 text-xs font-medium uppercase tracking-wider text-stone-700 hover:text-red-700"
+                      aria-label={`Remove ${r.title}`}
+                      className="min-h-11 px-2 text-xs font-medium uppercase tracking-wider text-stone-600 transition hover:text-red-700"
                     >
                       Remove
                     </button>
@@ -353,48 +386,27 @@ export function WearCartPageClient() {
 
         {lines.length > 0 ? (
           <>
-            <div className="mt-10 flex justify-between border-t border-stone-200/80 pt-8 text-sm">
-              <span className="font-medium text-stone-800">Subtotal</span>
-              <span className="text-amber-950">{formatWearMoney(subtotalCents, currency)}</span>
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-stone-600">{WEAR_SHIPPING_CART_NOTE}</p>
-            <p className="mt-2 text-xs leading-relaxed text-stone-500">{WEAR_CURRENCY_POLICY_FULL}</p>
+            <dl className="mt-10 space-y-2 border-t border-stone-200/80 pt-8 text-sm">
+              <div className="flex justify-between">
+                <dt className="font-medium text-stone-800">Merchandise</dt>
+                <dd className="text-amber-950">
+                  {formatWearMoney(serverPricing?.preCents ?? subtotalCents, displayCurrency)}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-stone-600">Shipping</dt>
+                <dd className="text-stone-600">Calculated at checkout</dd>
+              </div>
+              <div className="flex justify-between border-t border-stone-200/80 pt-3 text-base">
+                <dt className="font-semibold text-amber-950">Estimated total</dt>
+                <dd className="font-semibold text-amber-950">
+                  {formatWearMoney(serverPricing?.preCents ?? subtotalCents, displayCurrency)}
+                  <span className="ml-1 text-xs font-normal text-stone-500">+ shipping</span>
+                </dd>
+              </div>
+            </dl>
 
-            <div className="mt-10 space-y-4">
-              <div>
-                <label htmlFor="wear-cart-name" className="block text-xs font-medium uppercase tracking-wider text-stone-700">
-                  Full name
-                </label>
-                <input
-                  id="wear-cart-name"
-                  autoComplete="name"
-                  value={customerName}
-                  onChange={(e) => { setCustomerName(e.target.value); setNameError(null); }}
-                  aria-invalid={!!nameError}
-                  aria-describedby={nameError ? "wear-cart-name-err" : undefined}
-                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 ${nameError ? "border-red-500" : "border-stone-200"}`}
-                  placeholder="Alex Maker"
-                />
-                {nameError ? <p id="wear-cart-name-err" className="mt-1 text-xs text-red-700">{nameError}</p> : null}
-              </div>
-              <div>
-                <label htmlFor="wear-cart-email" className="block text-xs font-medium uppercase tracking-wider text-stone-700">
-                  Email
-                </label>
-                <input
-                  id="wear-cart-email"
-                  type="email"
-                  autoComplete="email"
-                  value={customerEmail}
-                  onChange={(e) => { setCustomerEmail(e.target.value); setEmailError(null); }}
-                  aria-invalid={!!emailError}
-                  aria-describedby={emailError ? "wear-cart-email-err" : undefined}
-                  className={`mt-2 w-full rounded-xl border bg-white px-4 py-3 text-sm text-stone-900 placeholder:text-stone-400 ${emailError ? "border-red-500" : "border-stone-200"}`}
-                  placeholder="you@example.com"
-                />
-                {emailError ? <p id="wear-cart-email-err" className="mt-1 text-xs text-red-700">{emailError}</p> : null}
-              </div>
-            </div>
+            <p className="mt-3 text-xs leading-relaxed text-stone-600">{WEAR_SHIPPING_CART_NOTE}</p>
 
             {checkoutError ? <p className="mt-4 text-sm text-red-700">{checkoutError}</p> : null}
 
@@ -406,20 +418,38 @@ export function WearCartPageClient() {
               </p>
             ) : null}
 
+            <ul className="mt-8 grid grid-cols-3 gap-2 text-[11px] leading-tight text-stone-600">
+              <li className="flex flex-col items-center gap-1 rounded-xl border border-stone-200/80 bg-white px-2 py-3 text-center">
+                <span aria-hidden className="text-base">🔒</span>
+                <span>Secure Stripe</span>
+              </li>
+              <li className="flex flex-col items-center gap-1 rounded-xl border border-stone-200/80 bg-white px-2 py-3 text-center">
+                <span aria-hidden className="text-base">↩</span>
+                <span>30-day returns</span>
+              </li>
+              <li className="flex flex-col items-center gap-1 rounded-xl border border-stone-200/80 bg-white px-2 py-3 text-center">
+                <span aria-hidden className="text-base">🌍</span>
+                <span>Worldwide shipping</span>
+              </li>
+            </ul>
+
             <button
               type="button"
               disabled={
                 checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid || cartCurrencyIssue != null
               }
               onClick={onCheckout}
-              className="mt-8 w-full min-h-12 rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-50"
+              className="mt-6 w-full min-h-14 rounded-full border border-amber-800/50 bg-amber-950 px-6 text-base font-semibold tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-50"
             >
-              {checkoutBusy ? "Redirecting…" : "Pay securely"}
+              {checkoutBusy
+                ? "Redirecting to Stripe…"
+                : `Pay ${formatWearMoney(serverPricing?.preCents ?? subtotalCents, displayCurrency)} — secure checkout`}
             </button>
             <p className="mt-3 flex items-center justify-center gap-2 text-xs text-stone-600">
-              <span aria-hidden="true">🔒</span>
-              Secure Stripe checkout
+              <span aria-hidden>🔒</span>
+              Apple Pay · Google Pay · Card · Link
             </p>
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-stone-500">{WEAR_CURRENCY_POLICY_FULL}</p>
           </>
         ) : null}
 
@@ -427,9 +457,9 @@ export function WearCartPageClient() {
           <button
             type="button"
             onClick={() => router.push("/wear/shop")}
-            className="text-sm text-stone-700 underline underline-offset-4 hover:text-amber-800"
+            className="text-sm font-medium text-stone-700 underline underline-offset-4 hover:text-amber-800"
           >
-            Continue shopping
+            ← Continue shopping
           </button>
         </p>
       </div>
