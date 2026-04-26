@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { buildAbsoluteUrl } from "@/lib/seo";
 import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
@@ -36,10 +37,10 @@ export type MetaWearFeedProduct = {
   description: string | null;
   priceCents: number;
   currency: string;
-  images: unknown;
+  images: Prisma.JsonValue;
   variants: MetaWearFeedVariant[];
   spreadconnectProductTypeName?: string | null;
-  spreadconnectCategoryData?: unknown;
+  spreadconnectCategoryData?: Prisma.JsonValue | null;
 };
 
 type MetaWearFeedRow = Record<(typeof META_WEAR_FEED_HEADERS)[number], string>;
