@@ -4,11 +4,18 @@ import {
   resolveWearGlobalPricing,
   updateWearGlobalPricing,
 } from "@/lib/wear-commission";
+import {
+  resolveWearInternalPricingConfig,
+  saveWearInternalPricingConfig,
+} from "@/lib/wear-internal-pricing";
 
 export async function GET() {
   if (!(await requireAdminUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const config = await resolveWearGlobalPricing();
-  return NextResponse.json(config);
+  const [affiliate, retail] = await Promise.all([
+    resolveWearGlobalPricing(),
+    resolveWearInternalPricingConfig(),
+  ]);
+  return NextResponse.json({ ...affiliate, retail });
 }
 
 export async function PATCH(req: Request) {
@@ -27,6 +34,11 @@ export async function PATCH(req: Request) {
   if (typeof body.maxMarginBps === "number") patch.maxMarginBps = Math.round(Math.max(0, body.maxMarginBps));
   if (typeof body.marginLocked === "boolean") patch.marginLocked = body.marginLocked;
 
-  const config = await updateWearGlobalPricing(patch);
-  return NextResponse.json(config);
+  const [affiliate, retail] = await Promise.all([
+    updateWearGlobalPricing(patch),
+    body.retail && typeof body.retail === "object"
+      ? saveWearInternalPricingConfig(body.retail as Parameters<typeof saveWearInternalPricingConfig>[0])
+      : resolveWearInternalPricingConfig(),
+  ]);
+  return NextResponse.json({ ...affiliate, retail });
 }

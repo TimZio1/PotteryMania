@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import {
   calculateWearInternalListCents,
+  resolveWearInternalPricingConfig,
   shouldUseInternalWearPricing,
   wearEffectiveCostCents,
 } from "@/lib/wear-internal-pricing";
@@ -38,24 +39,32 @@ type ProductRow = {
   variants: { priceCents: number | null; isActive: boolean }[];
 };
 
-function unitPriceCents(p: ProductRow, internalPricing: boolean): number {
+function unitPriceCents(
+  p: ProductRow,
+  internalPricing: boolean,
+  config: Awaited<ReturnType<typeof resolveWearInternalPricingConfig>>,
+): number {
   if (internalPricing) {
     return calculateWearInternalListCents({
       supplyCostCents: p.supplyCostCents,
       spreadconnectProductTypeName: p.spreadconnectProductTypeName,
       spreadconnectCategoryData: p.spreadconnectCategoryData,
-    });
+    }, config);
   }
   return p.priceCents;
 }
 
-function unitCostCents(p: ProductRow, internalPricing: boolean): number {
+function unitCostCents(
+  p: ProductRow,
+  internalPricing: boolean,
+  config: Awaited<ReturnType<typeof resolveWearInternalPricingConfig>>,
+): number {
   if (internalPricing) {
     return wearEffectiveCostCents({
       supplyCostCents: p.supplyCostCents,
       spreadconnectProductTypeName: p.spreadconnectProductTypeName,
       spreadconnectCategoryData: p.spreadconnectCategoryData,
-    });
+    }, config);
   }
   return p.supplyCostCents ?? 0;
 }
@@ -90,6 +99,7 @@ export async function loadWearCatalogValueSnapshot(): Promise<WearCatalogValueSn
   });
 
   const internalPricing = shouldUseInternalWearPricing();
+  const internalPricingConfig = await resolveWearInternalPricingConfig();
   let totalCatalogValueCents = 0;
   let totalCatalogCostCents = 0;
   let totalVariants = 0;
@@ -109,8 +119,8 @@ export async function loadWearCatalogValueSnapshot(): Promise<WearCatalogValueSn
 
     if (!isLive) continue;
 
-    const computedUnit = unitPriceCents(p, internalPricing);
-    const cost = unitCostCents(p, internalPricing);
+    const computedUnit = unitPriceCents(p, internalPricing, internalPricingConfig);
+    const cost = unitCostCents(p, internalPricing, internalPricingConfig);
 
     if (activeVariantPrices.length === 0) {
       totalCatalogValueCents += computedUnit;

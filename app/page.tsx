@@ -13,7 +13,10 @@ import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { formatWearMoney } from "@/lib/wear-money";
 import { ui } from "@/lib/ui-styles";
-import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import {
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+} from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function ApparelHome() {
   const catalog = await findWearPublicProductsWithVariantsRetrying();
-  const rows = catalog.ok ? catalog.rows.map(mapWearProductRowToInternalPrices) : [];
+  const internalPricingConfig = await resolveWearInternalPricingConfig();
+  const rows = catalog.ok
+    ? catalog.rows.map((row) => mapWearProductRowToInternalPricesWithConfig(row, internalPricingConfig))
+    : [];
   const featured = rows.filter((p) => p.isFeatured).slice(0, 8);
   const showcase = featured.length >= 4 ? featured : rows.slice(0, 8);
   const isHoodieLike = (p: (typeof rows)[number]) =>

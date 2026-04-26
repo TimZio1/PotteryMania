@@ -9,6 +9,8 @@ import {
   assertWearUnitNotBelowCost,
   calculateWearInternalListCents,
   mapWearProductRowToInternalPrices,
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
   shouldUseInternalWearPricing,
   wearEffectiveCostCents,
 } from "@/lib/wear-internal-pricing";
@@ -111,6 +113,8 @@ export async function resolveWearCheckoutLines(args: {
 
   const productById = new Map(products.map((p) => [p.id, p]));
   const currency = (products[0]?.currency ?? "EUR").toLowerCase();
+  const internalPricing = shouldUseInternalWearPricing();
+  const internalPricingConfig = await resolveWearInternalPricingConfig();
   for (const p of products) {
     if (p.currency.toLowerCase() !== currency) {
       return { ok: false, status: 400, error: "Mixed currencies are not supported" };
@@ -155,14 +159,15 @@ export async function resolveWearCheckoutLines(args: {
       return { ok: false, status: 400, error: "This product has no variants" };
     }
 
-    const priced = mapWearProductRowToInternalPrices(p);
-    const internalPricing = shouldUseInternalWearPricing();
+    const priced = internalPricing
+      ? mapWearProductRowToInternalPricesWithConfig(p, internalPricingConfig)
+      : mapWearProductRowToInternalPrices(p);
     const baseCents = internalPricing
       ? calculateWearInternalListCents({
           supplyCostCents: priced.supplyCostCents,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
-        })
+        }, internalPricingConfig)
       : (variant?.priceCents ?? priced.priceCents);
     let unitCents = baseCents;
     if (attributedStudioId && studioMarginBps > 0) {
@@ -175,7 +180,7 @@ export async function resolveWearCheckoutLines(args: {
           supplyCostCents: priced.supplyCostCents,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
-        });
+        }, internalPricingConfig);
       } catch {
         return { ok: false, status: 400, error: "Pricing configuration error — contact support." };
       }
@@ -185,7 +190,7 @@ export async function resolveWearCheckoutLines(args: {
           supplyCostCents: priced.supplyCostCents,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
-        })
+        }, internalPricingConfig)
       : (priced.supplyCostCents ?? null);
     const displayName = wearDisplayName(p);
     const lineName = variant ? `${displayName} — ${variant.label}` : displayName;

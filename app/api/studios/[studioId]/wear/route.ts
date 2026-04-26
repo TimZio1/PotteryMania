@@ -9,7 +9,10 @@ import {
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 import { normalizeWearAffiliateCode } from "@/lib/wear-affiliate-code";
-import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import {
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+} from "@/lib/wear-internal-pricing";
 
 type Ctx = { params: Promise<{ studioId: string }> };
 
@@ -18,7 +21,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   const auth = await requireStudioOwner(studioId);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const [config, global, catalog] = await Promise.all([
+  const [config, global, catalog, internalPricingConfig] = await Promise.all([
     prisma.studioWearConfig.findUnique({ where: { studioId } }),
     resolveWearGlobalPricing(),
     prisma.wearProduct.findMany({
@@ -32,6 +35,7 @@ export async function GET(_req: Request, ctx: Ctx) {
         },
       },
     }),
+    resolveWearInternalPricingConfig(),
   ]);
 
   const selectedIds = config
@@ -57,7 +61,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     maxMarginBps: global.maxMarginBps,
     selectedProductIds: selectedIds,
     catalog: catalog.map((raw) => {
-      const p = mapWearProductRowToInternalPrices(raw);
+      const p = mapWearProductRowToInternalPricesWithConfig(raw, internalPricingConfig);
       return {
         id: p.id,
         name: p.name,

@@ -12,7 +12,10 @@ import { sortWearCatalogImagesForDisplay, wearImagesFromJson, wearImageUrlsFromJ
 import { WearProductGallery } from "@/components/wear/wear-product-gallery";
 import { breadcrumbJsonLd, productJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
-import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import {
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+} from "@/lib/wear-internal-pricing";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { formatWearMoney } from "@/lib/wear-money";
 import { wearDisplayName } from "@/lib/wear-display-name";
@@ -55,7 +58,8 @@ export default async function WearProductPage({ params }: Props) {
     },
   });
   if (!pRaw) notFound();
-  const p = mapWearProductRowToInternalPrices(pRaw);
+  const internalPricingConfig = await resolveWearInternalPricingConfig();
+  const p = mapWearProductRowToInternalPricesWithConfig(pRaw, internalPricingConfig);
   const displayName = wearDisplayName(p);
   const category = resolveWearCatalogCategory({
     slug: p.slug,
@@ -112,7 +116,7 @@ export default async function WearProductPage({ params }: Props) {
       },
     },
   });
-  const relatedNormalized = relatedRaw.map(mapWearProductRowToInternalPrices);
+  const relatedNormalized = relatedRaw.map((row) => mapWearProductRowToInternalPricesWithConfig(row, internalPricingConfig));
   const sameCategory = relatedNormalized.filter((row) => {
     const c = resolveWearCatalogCategory({
       slug: row.slug,

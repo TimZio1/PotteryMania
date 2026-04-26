@@ -6,7 +6,10 @@ import {
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
 import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
-import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import {
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+} from "@/lib/wear-internal-pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +25,10 @@ export async function GET(req: Request) {
       throw result.error instanceof Error ? result.error : new Error("wear catalog query failed");
     }
     const rows = result.rows;
+    const internalPricingConfig = await resolveWearInternalPricingConfig();
 
     const products = rows
-      .map((raw) => mapWearProductRowToInternalPrices(raw))
+      .map((raw) => mapWearProductRowToInternalPricesWithConfig(raw, internalPricingConfig))
       .map((r) => {
         const category = resolveWearCatalogCategory({
           slug: r.slug,

@@ -18,7 +18,10 @@ import { WEAR_CURRENCY_SHOP_LINE } from "@/lib/wear-currency-policy";
 import { WEAR_ACTIVE_DROP, wearDropDefaultTitle } from "@/lib/wear-drop-config";
 import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
-import { mapWearProductRowToInternalPrices } from "@/lib/wear-internal-pricing";
+import {
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+} from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
@@ -74,6 +77,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const catalogResult = await findWearPublicProductsWithVariantsRetrying();
   const dbUnavailable = !catalogResult.ok;
   const products: WearPublicListingRow[] = catalogResult.ok ? catalogResult.rows : [];
+  const internalPricingConfig = await resolveWearInternalPricingConfig();
 
   const catInput = (p: (typeof products)[number]) => ({
     slug: p.slug,
@@ -85,7 +89,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   });
 
   const normalized: WearShopProduct[] = products.map((raw) => {
-    const p = mapWearProductRowToInternalPrices(raw);
+    const p = mapWearProductRowToInternalPricesWithConfig(raw, internalPricingConfig);
     const category = resolveWearCatalogCategory(catInput(p));
     return {
       ...p,
