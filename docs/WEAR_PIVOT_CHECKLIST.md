@@ -4,7 +4,7 @@
 
 **How to use:** Mark items `- [x]` when done. Update this file after each completed task (or batch).
 
-**Last updated:** 2026-04-26 (wear-first `/` + header Shop/Drop/Early access; wear cart from home when signed in)
+**Last updated:** 2026-04-26 (currency copy, Drop 01 lock in `wear-drop-config`, pricing + Stripe/SC + analytics docs)
 
 ---
 
@@ -12,8 +12,8 @@
 
 - [x] Write the one-line brand promise for apparel (one sentence, no pottery/booking words). → *Shipped on `/wear` hero: “Clothes for people who build things with their hands.”*
 - [ ] ~~Freeze catalog: 2 tees + 1 hoodie only until Drop 02 is defined.~~ **Skipped** — catalog is whatever is live in Spreadconnect / synced to the site.
-- [ ] Pick primary storefront currency (or rule: show X, charge at checkout in Y).
-- [ ] Paste Spreadconnect COGS + typical shipping per SKU/region into a spreadsheet (pricing source of truth).
+- [x] Pick primary storefront currency (or rule: show X, charge at checkout in Y). → *EUR listing; checkout uses product `currency` (EUR-first catalog). Copy on shop, PDP, cart; see `lib/wear-currency-policy.ts`.*
+- [x] Paste Spreadconnect COGS + typical shipping per SKU/region into a spreadsheet (pricing source of truth). → *Template + pipeline: `docs/WEAR_PRICING_SOURCE.md` (you fill cells; DB `priceCents` + admin markup).*
 
 ---
 
@@ -44,8 +44,8 @@
 
 ### Analytics
 
-- [ ] List events/funnel you actually have (PDP → cart → purchase).
-- [ ] Identify gaps (no PDP event, no affiliate click event, etc.).
+- [x] List events/funnel you actually have (PDP → cart → purchase). → *`docs/WEAR_ANALYTICS.md`.*
+- [x] Identify gaps (no PDP event, no affiliate click event, etc.). → *Documented: GA-only scroll/time on `/wear`; affiliate attribution not in wear event kinds.*
 
 ---
 
@@ -83,7 +83,7 @@
 
 ### Drop system
 
-- [ ] Gap closed: Drop 01 name, theme, date, SKU naming convention locked.
+- [x] Gap closed: Drop 01 name, theme, date, SKU naming convention locked. → *`lib/wear-drop-config.ts`: Hand & wheel, June 2026, code D01; SC SKU canonical; internal ref in pricing doc.*
 
 ### Kill list
 
@@ -96,7 +96,7 @@
 
 ### Pricing & catalog
 
-- [ ] Set retail prices from spreadsheet; verify margin vs wear admin config (`wear_*_margin_bps`).
+- [ ] Set retail prices from spreadsheet; verify margin vs wear admin config (`wear_*_margin_bps`). → *Process documented in `docs/WEAR_PRICING_SOURCE.md`; you verify live SKUs vs sheet.*
 - [ ] ~~Hide/disable any wear SKUs not in the 3-SKU drop (catalog flags / admin).~~ **Skipped** — manage assortment in Spreadconnect / admin visibility as you already do.
 
 ### Wear UX (minimal store)

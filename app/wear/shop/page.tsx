@@ -14,15 +14,17 @@ import {
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { findWearPublicProductsWithVariantsRetrying, type WearPublicListingRow } from "@/lib/wear-public-catalog-query";
+import { WEAR_CURRENCY_SHOP_LINE } from "@/lib/wear-currency-policy";
+import { WEAR_ACTIVE_DROP, wearDropDefaultTitle } from "@/lib/wear-drop-config";
 import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Shop — the drop",
+  title: `Shop — ${wearDropDefaultTitle()}`,
   description:
-    "Apparel from our print-on-demand catalog — synced from production. Shipping calculated at checkout.",
+    "Apparel from our print-on-demand catalog — synced from production. Prices in EUR; shipping and taxes at checkout.",
   path: "/wear/shop",
 });
 
@@ -161,9 +163,12 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
       <div className="mx-auto max-w-6xl">
         <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
         <h1 className="mt-3 text-center font-serif text-3xl text-amber-950 sm:text-4xl">The drop</h1>
+        <p className="mx-auto mt-2 max-w-xl text-center text-xs font-medium text-stone-600">
+          {WEAR_ACTIVE_DROP.sequenceLabel} · {WEAR_ACTIVE_DROP.theme} · {WEAR_ACTIVE_DROP.launchWindowLabel}
+        </p>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-stone-700">
           Catalog stays in sync with production — what you see is what you can order. Each piece is printed and shipped
-          after you check out.
+          after you check out. {WEAR_CURRENCY_SHOP_LINE}
         </p>
         {hasTopsInCatalog ? (
           <div className="mx-auto mt-5 max-w-4xl">

@@ -13,6 +13,7 @@ import {
 } from "@/lib/wear-cart";
 import { WEAR_EVENT_KINDS, trackWearEvent } from "@/lib/wear-analytics-client";
 import { formatWearMoney } from "@/lib/wear-money";
+import { WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-currency-policy";
 import { WEAR_SHIPPING_CART_NOTE } from "@/lib/wear-shipping-copy";
 
 type VariantRow = {
@@ -328,6 +329,7 @@ export function WearCartPageClient() {
               <span className="text-amber-950">{formatWearMoney(subtotalCents, currency)}</span>
             </div>
             <p className="mt-2 text-xs leading-relaxed text-stone-600">{WEAR_SHIPPING_CART_NOTE}</p>
+            <p className="mt-2 text-xs leading-relaxed text-stone-500">{WEAR_CURRENCY_POLICY_FULL}</p>
 
             <div className="mt-10 space-y-4">
               <div>

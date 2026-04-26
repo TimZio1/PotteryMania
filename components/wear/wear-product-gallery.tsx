@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
+import { WEAR_CURRENCY_PDP_LINE } from "@/lib/wear-currency-policy";
 import { WEAR_SHIPPING_PDP_LINE } from "@/lib/wear-shipping-copy";
 import { WearPdpBuySection, type WearPdpVariant } from "@/components/wear/wear-pdp-buy-section";
 
@@ -165,7 +166,7 @@ export function WearProductGallery({
           ))}
         </ul>
         <p className="mt-6 rounded-xl border border-stone-200/80 bg-stone-50/80 px-4 py-3 text-xs leading-relaxed text-stone-600">
-          {WEAR_SHIPPING_PDP_LINE}
+          {WEAR_SHIPPING_PDP_LINE} {WEAR_CURRENCY_PDP_LINE}
         </p>
         <WearPdpBuySection
           productId={productId}

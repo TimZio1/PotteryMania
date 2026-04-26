@@ -397,7 +397,9 @@ export function CommissionForm() {
           Synced SKUs carry a base cost from Spreadconnect. This markup is added on top of that base to set the buyer-facing
           price. It also drives the default studio reseller share, homepage and{" "}
           <code className="rounded bg-stone-100 px-1 text-xs">/wear</code> copy, and the studio wearables dashboard. Set the
-          default markup, the allowed range when studios can tune their share, and whether studio editing is locked.
+          default markup, the allowed range when studios can tune their share, and whether studio editing is locked. COGS
+          spreadsheet template and retail pipeline notes:{" "}
+          <code className="rounded bg-stone-100 px-1 text-xs">docs/WEAR_PRICING_SOURCE.md</code>.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block">

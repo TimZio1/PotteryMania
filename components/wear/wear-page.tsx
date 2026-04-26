@@ -6,6 +6,8 @@ import {
   WEAR_VISUAL_IMAGES,
   type WearPreviewItem,
 } from "@/lib/wear-config";
+import { WEAR_CURRENCY_LANDING_LINE } from "@/lib/wear-currency-policy";
+import { wearActiveDropEyebrow } from "@/lib/wear-drop-config";
 import { WEAR_SHIPPING_DELIVERY_RANGES, WEAR_SHIPPING_LANDING_STRIP } from "@/lib/wear-shipping-copy";
 import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
@@ -30,7 +32,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
         {/* Section 1 — Hero (identity + single CTA) */}
         <section className="border-b border-stone-200/80 px-4 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">Drop 01</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">{wearActiveDropEyebrow()}</p>
             <h1 className="mt-4 font-serif text-3xl leading-snug tracking-tight text-amber-950 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
               Clothes for people who build things with their hands.
             </h1>
@@ -118,6 +120,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">How it ships</p>
             <p className="mt-4 text-sm leading-relaxed text-stone-700">{WEAR_SHIPPING_LANDING_STRIP}</p>
             <p className="mt-3 text-sm leading-relaxed text-stone-600">{WEAR_SHIPPING_DELIVERY_RANGES}</p>
+            <p className="mt-3 text-xs leading-relaxed text-stone-500">{WEAR_CURRENCY_LANDING_LINE}</p>
             <p className="mt-8 text-xs text-stone-500">
               Questions?{" "}
               <Link href="/wear/partner" className={textLinkClass}>
