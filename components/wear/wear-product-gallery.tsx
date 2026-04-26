@@ -42,6 +42,7 @@ export function WearProductGallery({
   basePriceCents,
   currency,
   studioId,
+  viewCartHref,
   backHref,
   categoryLabel,
   topSubLabel,
@@ -55,6 +56,8 @@ export function WearProductGallery({
   basePriceCents: number;
   currency: string;
   studioId?: string;
+  /** Defaults: `/wear/cart` or `/cart` when `studioId` is set. */
+  viewCartHref?: string;
   backHref: string;
   categoryLabel: string;
   topSubLabel?: string | null;
@@ -84,6 +87,8 @@ export function WearProductGallery({
   }, [imagesForColor, selectedImageId]);
 
   const selectedImage = images.find((image) => image.id === selectedImageId) ?? imagesForColor[0] ?? null;
+
+  const resolvedViewCartHref = viewCartHref ?? (studioId ? "/cart" : "/wear/cart");
 
   return (
     <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
@@ -174,6 +179,7 @@ export function WearProductGallery({
           currency={currency}
           variants={variants}
           studioId={studioId}
+          viewCartHref={resolvedViewCartHref}
           selectedColor={selectedColor}
           onSelectedColorChange={setSelectedColor}
         />

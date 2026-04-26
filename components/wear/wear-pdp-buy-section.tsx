@@ -18,6 +18,7 @@ export function WearPdpBuySection({
   currency,
   variants,
   studioId,
+  viewCartHref,
   selectedColor: controlledSelectedColor,
   onSelectedColorChange,
 }: {
@@ -26,6 +27,7 @@ export function WearPdpBuySection({
   currency: string;
   variants: WearPdpVariant[];
   studioId?: string;
+  viewCartHref?: string;
   selectedColor?: string;
   onSelectedColorChange?: (color: string) => void;
 }) {
@@ -189,6 +191,7 @@ export function WearPdpBuySection({
             productId={productId}
             variantId={needsVariant ? selected?.id ?? null : null}
             studioId={studioId}
+            viewCartHref={viewCartHref}
             label="Add to cart"
           />
         ) : (
@@ -214,6 +217,7 @@ export function WearPdpBuySection({
                 productId={productId}
                 variantId={needsVariant ? selected?.id ?? null : null}
                 studioId={studioId}
+                viewCartHref={viewCartHref}
                 label="Add to cart"
                 className="inline-flex h-11 w-full min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60"
               />
