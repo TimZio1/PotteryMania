@@ -200,8 +200,33 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
                     {o.createdAt.slice(0, 19).replace("T", " ")}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-stone-900">{o.customerName}</div>
-                    <div className="text-xs text-stone-600">{o.customerEmail}</div>
+                    {o.customerEmail.trim() || o.customerName.trim() ? (
+                      <>
+                        <div className="font-medium text-stone-900">{o.customerName.trim() || "—"}</div>
+                        <div className="text-xs text-stone-600">{o.customerEmail.trim() || "—"}</div>
+                      </>
+                    ) : (
+                      <div className="space-y-1 text-xs text-stone-500">
+                        <p className="font-medium text-stone-700">Not in database yet</p>
+                        <p className="leading-snug">
+                          {o.status === "pending"
+                            ? "Buyer hasn’t finished Stripe Checkout, or email is only on the session."
+                            : "Paid orders should show email after the fix; open Stripe for this session if it’s still blank."}
+                        </p>
+                        {o.stripeCheckoutSessionId ? (
+                          <a
+                            href={`https://dashboard.stripe.com/checkout/sessions/${encodeURIComponent(o.stripeCheckoutSessionId)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex font-mono text-[11px] font-medium text-amber-900 underline underline-offset-2 hover:text-amber-800"
+                          >
+                            Session {o.stripeCheckoutSessionId.slice(0, 14)}…
+                          </a>
+                        ) : (
+                          <span className="font-mono text-[11px] text-stone-400">No Stripe session id</span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span

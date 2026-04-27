@@ -53,9 +53,16 @@ export async function settleCheckoutOrderPayment(
   },
 ): Promise<SettledCheckoutOrder> {
   const rows = await tx.$queryRawUnsafe<
-    { id: string; order_status: string; payment_status: string; customer_user_id: string | null }[]
+    {
+      id: string;
+      order_status: string;
+      payment_status: string;
+      customer_user_id: string | null;
+      customer_email: string;
+      customer_name: string;
+    }[]
   >(
-    `SELECT id, order_status::text, payment_status::text, customer_user_id
+    `SELECT id, order_status::text, payment_status::text, customer_user_id, customer_email, customer_name
      FROM orders
      WHERE id = $1::uuid
      FOR UPDATE`,
@@ -276,6 +283,18 @@ export async function settleCheckoutOrderPayment(
       }
     }
     if (!wearStockFailed) {
+      const orderEmail = rows[0]!.customer_email?.trim() ?? "";
+      const orderName = rows[0]!.customer_name?.trim() ?? "";
+      const identityPatch: { customerEmail?: string; customerName?: string } = {};
+      if (
+        orderEmail &&
+        (!pendingWearOrder.customerEmail || pendingWearOrder.customerEmail.trim().length === 0)
+      ) {
+        identityPatch.customerEmail = orderEmail.toLowerCase();
+      }
+      if (orderName && (!pendingWearOrder.customerName || pendingWearOrder.customerName.trim().length === 0)) {
+        identityPatch.customerName = orderName;
+      }
       await tx.wearOrder.update({
         where: { id: pendingWearOrder.id },
         data: {
@@ -286,6 +305,7 @@ export async function settleCheckoutOrderPayment(
           ...(typeof input.stripeTotalCents === "number"
             ? { amountTotalCents: Math.max(0, input.stripeTotalCents) }
             : {}),
+          ...identityPatch,
         },
       });
       await tx.wearAnalyticsEvent.create({

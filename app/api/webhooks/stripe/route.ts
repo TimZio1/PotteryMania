@@ -34,6 +34,7 @@ import {
   recordWearAffiliateCommissionAndMaybePayout,
 } from "@/lib/wear-affiliate-payouts";
 import { sendWearAffiliateSaleEmail } from "@/lib/wear-affiliate-sale-email";
+import { resolveCheckoutSessionBuyerIdentity } from "@/lib/stripe-checkout-buyer-identity";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
@@ -591,13 +592,12 @@ export async function POST(req: Request) {
             if (!order || order.status !== "pending") return false;
 
             const paidNow = new Date();
-            const sessionEmail = session.customer_details?.email?.trim().toLowerCase() ?? null;
-            const sessionName = session.customer_details?.name?.trim() || null;
+            const { email: sessionEmail, name: sessionName } = resolveCheckoutSessionBuyerIdentity(session);
             const backfillIdentity: { customerEmail?: string; customerName?: string } = {};
-            if (sessionEmail && (!order.customerEmail || order.customerEmail.length === 0)) {
+            if (sessionEmail && (!order.customerEmail || order.customerEmail.trim().length === 0)) {
               backfillIdentity.customerEmail = sessionEmail;
             }
-            if (sessionName && (!order.customerName || order.customerName.length === 0)) {
+            if (sessionName && (!order.customerName || order.customerName.trim().length === 0)) {
               backfillIdentity.customerName = sessionName;
             }
             await tx.wearOrder.update({
@@ -644,7 +644,11 @@ export async function POST(req: Request) {
               where: { id: wearOrderId },
               select: { couponId: true, discountCents: true },
             });
-            if (couponSnap?.couponId && couponSnap.discountCents > 0) {
+            const couponDiscountCents = parseInt(session.metadata?.couponDiscountCents ?? "", 10);
+            const couponRedemptionAmountCents = Number.isFinite(couponDiscountCents)
+              ? couponDiscountCents
+              : (couponSnap?.discountCents ?? 0);
+            if (couponSnap?.couponId && couponRedemptionAmountCents > 0) {
               await tx.coupon.update({
                 where: { id: couponSnap.couponId },
                 data: { redeemedCount: { increment: 1 } },
@@ -653,7 +657,7 @@ export async function POST(req: Request) {
                 data: {
                   couponId: couponSnap.couponId,
                   wearOrderId,
-                  amountCents: couponSnap.discountCents,
+                  amountCents: couponRedemptionAmountCents,
                 },
               });
             }
@@ -668,9 +672,10 @@ export async function POST(req: Request) {
               await recordWearAffiliateCommissionAndMaybePayout(wearOrderId);
             });
             await runStripeWebhookSideEffect(event.id, `wear_affiliate_sale_email:${wearOrderId}`, async () => {
+              const buyerId = resolveCheckoutSessionBuyerIdentity(session);
               await sendWearAffiliateSaleEmail({
                 wearOrderId,
-                buyerEmail: session.customer_details?.email ?? null,
+                buyerEmail: buyerId.email ?? session.customer_details?.email ?? null,
                 buyerCountry: session.customer_details?.address?.country ?? null,
               });
             });

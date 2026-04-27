@@ -13,6 +13,7 @@ import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import { ensureSpreadconnectSubmitDeferred } from "@/lib/wear-fulfillment-defer";
 import { escalateWearOrderSpreadconnectFailure } from "@/lib/wear-order-escalate";
+import { resolveCheckoutSessionBuyerIdentity } from "@/lib/stripe-checkout-buyer-identity";
 
 /**
  * Resolve ship-to for Spreadconnect from a completed Checkout Session.
@@ -379,8 +380,9 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
     process.env.SPREADCONNECT_FALLBACK_PHONE?.trim() ||
     "+0000000000";
 
+  const sessionBuyer = resolveCheckoutSessionBuyerIdentity(session);
   const email =
-    orderRow.customerEmail.trim() || session.customer_details?.email?.trim() || "";
+    orderRow.customerEmail.trim() || sessionBuyer.email || session.customer_details?.email?.trim() || "";
   if (!email) {
     await recordFailure("missing_customer_email", {
       reason: "missing_customer_email",
