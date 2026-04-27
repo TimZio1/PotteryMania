@@ -68,8 +68,12 @@ function wearShopHref(opts: {
   return s ? `/wear/shop?${s}` : "/wear/shop";
 }
 
-const filterChipClass =
-  "inline-flex min-h-11 shrink-0 snap-start items-center whitespace-nowrap rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em]";
+const filterChipBase =
+  "inline-flex shrink-0 snap-start items-center justify-center rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em]";
+/** Single-line chips (e.g. Hot picks, All). */
+const filterChipClass = `${filterChipBase} min-h-11 whitespace-nowrap`;
+/** Category / tops pills with a second line for “from …”. */
+const filterChipClassStacked = `${filterChipBase} min-h-[2.875rem] flex-col gap-0.5 whitespace-normal py-2.5`;
 const filterChipActive =
   "border-[var(--heat)] bg-[var(--ink)] text-[var(--clay)] shadow-[0_8px_24px_-12px_rgba(0,0,0,0.35)]";
 const filterChipIdle =
@@ -114,6 +118,35 @@ const WEAR_FILTER_ALIASES: Record<string, "popular" | "new"> = {
   sale: "popular",
   new: "new",
 };
+
+function minWearListingPrice(products: WearShopProduct[]): { cents: number; currency: string } | null {
+  if (products.length === 0) return null;
+  let best = products[0]!;
+  for (let i = 1; i < products.length; i++) {
+    const p = products[i]!;
+    if (p.priceCents < best.priceCents) best = p;
+  }
+  return { cents: best.priceCents, currency: best.currency };
+}
+
+function CategoryChipFromLine({
+  minPrice,
+  active,
+}: {
+  minPrice: { cents: number; currency: string } | null;
+  active: boolean;
+}) {
+  if (!minPrice) return null;
+  return (
+    <span
+      className={`text-[9px] font-medium normal-case tracking-normal tabular-nums ${
+        active ? "text-[var(--clay)]/80" : "text-[var(--shadow)]"
+      }`}
+    >
+      from {formatWearMoney(minPrice.cents, minPrice.currency)}
+    </span>
+  );
+}
 
 export default async function WearShopPage({ searchParams }: WearShopProps) {
   const partnerHref = resolveWearResellerApplicationHref();
@@ -231,6 +264,21 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     ? categoryNavItems.filter((category) => category.slug !== "tops")
     : categoryNavItems;
 
+  const allCatalogMinPrice = minWearListingPrice(normalized);
+  const minPriceByCategorySlug = Object.fromEntries(
+    categoryNavItems.map(({ slug }) => [
+      slug,
+      minWearListingPrice(normalized.filter((p) => p.categorySlug === slug)),
+    ]),
+  ) as Record<string, { cents: number; currency: string } | null>;
+  const topsAllMinPrice = minWearListingPrice(normalized.filter((p) => p.categorySlug === "tops"));
+  const topsSubMinPrices = Object.fromEntries(
+    topSubNavItems.map((sub) => [
+      sub,
+      minWearListingPrice(normalized.filter((p) => p.categorySlug === "tops" && p.topSub === sub)),
+    ]),
+  ) as Record<WearTopSubcategory, { cents: number; currency: string } | null>;
+
   type ShopBlock =
     | {
         kind: "category";
@@ -340,20 +388,28 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 <Link
                   scroll={false}
                   href="/wear/shop?category=tops"
-                  className={`${filterChipClass} ${activeCategory === "tops" && activeTopSub == null ? filterChipActive : filterChipIdle}`}
+                  className={`${filterChipClassStacked} ${activeCategory === "tops" && activeTopSub == null ? filterChipActive : filterChipIdle}`}
                   aria-pressed={activeCategory === "tops" && activeTopSub == null}
                 >
-                  All T-shirts
+                  <span className="whitespace-nowrap">All T-shirts</span>
+                  <CategoryChipFromLine
+                    minPrice={topsAllMinPrice}
+                    active={activeCategory === "tops" && activeTopSub == null}
+                  />
                 </Link>
                 {topSubNavItems.map((sub) => (
                   <Link
                     key={sub}
                     scroll={false}
                     href={`/wear/shop?category=tops&sub=${sub}`}
-                    className={`${filterChipClass} ${activeCategory === "tops" && activeTopSub === sub ? filterChipActive : filterChipIdle}`}
+                    className={`${filterChipClassStacked} ${activeCategory === "tops" && activeTopSub === sub ? filterChipActive : filterChipIdle}`}
                     aria-pressed={activeCategory === "tops" && activeTopSub === sub}
                   >
-                    {wearTopSubcategoryLabel(sub)}
+                    <span className="whitespace-nowrap">{wearTopSubcategoryLabel(sub)}</span>
+                    <CategoryChipFromLine
+                      minPrice={topsSubMinPrices[sub] ?? null}
+                      active={activeCategory === "tops" && activeTopSub === sub}
+                    />
                   </Link>
                 ))}
               </div>
@@ -366,22 +422,30 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               <Link
                 scroll={false}
                 href="/wear/shop?category=all"
-                className={`${filterChipClass} ${activeCategory == null && !popularOnly && !newOnly ? filterChipActive : filterChipIdle}`}
+                className={`${filterChipClassStacked} ${activeCategory == null && !popularOnly && !newOnly ? filterChipActive : filterChipIdle}`}
                 aria-pressed={activeCategory == null && !popularOnly && !newOnly}
               >
-                All
+                <span className="whitespace-nowrap">All</span>
+                <CategoryChipFromLine
+                  minPrice={allCatalogMinPrice}
+                  active={activeCategory == null && !popularOnly && !newOnly}
+                />
               </Link>
-              {secondaryCategoryNavItems.map((category) => (
-                <Link
-                  key={category.slug}
-                  scroll={false}
-                  href={`/wear/shop?category=${category.slug}`}
-                  className={`${filterChipClass} ${activeCategory === category.slug ? filterChipActive : filterChipIdle}`}
-                  aria-pressed={activeCategory === category.slug}
-                >
-                  {category.label}
-                </Link>
-              ))}
+              {secondaryCategoryNavItems.map((category) => {
+                const catActive = activeCategory === category.slug;
+                return (
+                  <Link
+                    key={category.slug}
+                    scroll={false}
+                    href={`/wear/shop?category=${category.slug}`}
+                    className={`${filterChipClassStacked} ${catActive ? filterChipActive : filterChipIdle}`}
+                    aria-pressed={catActive}
+                  >
+                    <span className="whitespace-nowrap">{category.label}</span>
+                    <CategoryChipFromLine minPrice={minPriceByCategorySlug[category.slug] ?? null} active={catActive} />
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
