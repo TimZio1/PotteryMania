@@ -12,6 +12,7 @@ import {
 } from "@/lib/stripe-webhook-dedup";
 import { runStripeWebhookSideEffect } from "@/lib/webhook-event-store";
 import { scheduleWearOrderNotification } from "@/lib/wear-order-notifications";
+import { scheduleWearOrderOperatorAlert } from "@/lib/wear-order-operator-alert";
 import { logApiError } from "@/lib/monitoring";
 import {
   mapStripeSubscriptionStatus,
@@ -662,6 +663,7 @@ export async function POST(req: Request) {
 
           if (applied) {
             scheduleWearOrderNotification("order_confirmed", wearOrderId);
+            scheduleWearOrderOperatorAlert("new_order", wearOrderId);
             await runStripeWebhookSideEffect(event.id, `wear_affiliate_payout:${wearOrderId}`, async () => {
               await recordWearAffiliateCommissionAndMaybePayout(wearOrderId);
             });
@@ -751,6 +753,7 @@ export async function POST(req: Request) {
       });
       if (wearOrder) {
         scheduleWearOrderNotification("order_confirmed", wearOrder.id);
+        scheduleWearOrderOperatorAlert("new_order", wearOrder.id);
         await runStripeWebhookSideEffect(event.id, `mixed_wear_spreadconnect:${wearOrder.id}`, async () => {
           const fullSession = await getStripe().checkout.sessions.retrieve(session.id, {
             expand: ["shipping_cost.shipping_rate"],
@@ -768,6 +771,29 @@ export async function POST(req: Request) {
 
   if (event.type === "payment_intent.payment_failed") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const wearOrderId =
+      paymentIntent.metadata?.type === "wear_order" && typeof paymentIntent.metadata?.wearOrderId === "string"
+        ? paymentIntent.metadata.wearOrderId
+        : "";
+    if (wearOrderId) {
+      try {
+        const failureReason =
+          paymentIntent.last_payment_error?.code ||
+          paymentIntent.last_payment_error?.decline_code ||
+          paymentIntent.last_payment_error?.message ||
+          null;
+        await runStripeWebhookSideEffect(event.id, `wear_order_payment_failed_alert:${wearOrderId}`, async () => {
+          scheduleWearOrderOperatorAlert(
+            "payment_failed",
+            wearOrderId,
+            failureReason ? { failureReason } : undefined,
+          );
+        });
+      } catch (e) {
+        logApiError("stripe_webhook_wear_payment_failed", e, { wearOrderId }, req);
+      }
+      return ack();
+    }
     const orderId = typeof paymentIntent.metadata?.orderId === "string" ? paymentIntent.metadata.orderId : "";
     if (!orderId) return ack();
 
