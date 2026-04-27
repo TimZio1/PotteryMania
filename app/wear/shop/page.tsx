@@ -116,8 +116,9 @@ const filterChipActive =
 const filterChipIdle =
   "border-[var(--ink)]/12 bg-white/95 text-[var(--ink)] hover:border-[var(--heat)]/70 hover:text-[var(--ink)]";
 
-const filterRowClass =
-  "shop-filter-row -mx-4 overflow-x-auto px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0";
+const filterRowClass = "shop-filter-row";
+
+const filterChipWrapRowClass = "flex flex-wrap items-center justify-center gap-2 pb-2";
 
 /**
  * Marketing/legacy URL slugs that should be reinterpreted as a known wear category.
@@ -450,7 +451,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         {hasTopsInCatalog ? (
           <div className="mx-auto mt-5 max-w-4xl">
             <div className={filterRowClass}>
-              <div className="flex min-w-max snap-x snap-proximity items-center gap-2 pb-2">
+              <div className={filterChipWrapRowClass}>
                 <Link
                   scroll={false}
                   href={wearShopHref({ category: "tops", sort: activeSort })}
@@ -484,7 +485,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         ) : null}
         <div className="mx-auto mt-3 max-w-4xl">
           <div className={filterRowClass}>
-            <div className="flex min-w-max snap-x snap-proximity items-center gap-2 pb-2">
+            <div className={filterChipWrapRowClass}>
               <Link
                 scroll={false}
                 href={wearShopHref({ category: "all", sort: activeSort })}
