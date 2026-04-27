@@ -30,7 +30,6 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
-  const onWearStorefront = (pathname ?? "").startsWith("/wear");
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -248,12 +247,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                 )}
               </div>
               {apparelNav ? (
-                <div className="flex items-center gap-2 md:hidden">
-                  {!onWearStorefront ? (
-                    <Link href="/wear/shop" className={ui.buttonMarketing}>
-                      Shop
-                    </Link>
-                  ) : null}
+                <div className="flex shrink-0 items-center gap-2 md:hidden">
                   <Link
                     href="/wear/cart"
                     className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-card)] border border-[var(--border)] text-[var(--foreground)]"
