@@ -139,6 +139,8 @@ async function ApparelHome() {
             Built different
             <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
             30-day returns
+            <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
+            Worldwide shipping
           </p>
         </div>
 
