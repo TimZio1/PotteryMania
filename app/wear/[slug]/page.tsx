@@ -30,24 +30,53 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const p = await prisma.wearProduct.findFirst({
+  const pRaw = await prisma.wearProduct.findFirst({
     where: { ...wearPublicProductWhere(), slug },
-    select: { name: true, subtitle: true, description: true },
+    select: {
+      name: true,
+      subtitle: true,
+      description: true,
+      images: true,
+      priceCents: true,
+      currency: true,
+      variants: { where: { isActive: true }, select: { stockQuantity: true, priceCents: true } },
+    },
   });
-  if (!p) {
+  if (!pRaw) {
     return buildMetadata({
       title: "Wear",
       description: "This piece isn’t available anymore.",
       path: `/wear/${slug}`,
     });
   }
-  const displayName = wearDisplayName(p);
-  const desc = p.subtitle ?? p.description ?? displayName;
+  const displayName = wearDisplayName(pRaw);
+  const desc = pRaw.subtitle ?? pRaw.description ?? displayName;
+  const heroImage = wearImageUrlsFromJson(pRaw.images)[0];
+  const inStockVariant = pRaw.variants.find((v) => (v.stockQuantity ?? 0) > 0);
+  const priceCents = inStockVariant?.priceCents ?? pRaw.priceCents;
+  const inStock = pRaw.variants.some((v) => (v.stockQuantity ?? 0) > 0);
   return buildMetadata({
-      title: `${displayName} — Shop`,
-      description: desc.slice(0, 160),
-      path: `/wear/${slug}`,
-    });
+    title: `${displayName} — Shop`,
+    description: desc.slice(0, 160),
+    path: `/wear/${slug}`,
+    image: heroImage,
+    imageAlt: `${displayName} — PotteryMania apparel`,
+    ogType: "product",
+    /**
+     * Facebook product OG tags + Pinterest Rich Pin equivalents — keep an FB Catalog / Shop integration
+     * possible without code changes, and give AI search structured price/availability without
+     * needing JSON-LD parsing.
+     */
+    other: {
+      "product:price:amount": (priceCents / 100).toFixed(2),
+      "product:price:currency": pRaw.currency.toUpperCase(),
+      "product:availability": inStock ? "instock" : "oos",
+      "product:condition": "new",
+      "product:brand": "PotteryMania",
+      "og:price:amount": (priceCents / 100).toFixed(2),
+      "og:price:currency": pRaw.currency.toUpperCase(),
+    },
+  });
 }
 
 export default async function WearProductPage({ params, searchParams }: Props) {

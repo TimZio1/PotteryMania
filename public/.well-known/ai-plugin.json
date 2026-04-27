@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_human": "PotteryMania",
   "name_for_model": "potterymania",
-  "description_for_human": "Pottery studio software for products, bookings, classes, and studio growth.",
-  "description_for_model": "PotteryMania is a pottery studio platform for ceramic artists, teachers, and studios. Use public pages to understand pricing, marketplace listings, class pages, studio pages, and wearable catalog details.",
+  "description_for_human": "Apparel for makers — live drops of T-shirts, hoodies, headwear, and accessories. Made with heat.",
+  "description_for_model": "PotteryMania is an apparel brand running live drops aimed at potters, ceramicists, artists, and the broader maker community. Use /wear/shop for the live catalog, /wear/[slug] for individual products (price, variants, stock, EUR pricing), /wear/partner for the affiliate program, and /llms-full.txt for canonical brand context. Prices and availability are dynamic — re-fetch product pages before quoting figures.",
   "auth": {
     "type": "none"
   },

@@ -1,75 +1,93 @@
-PotteryMania
+PotteryMania — apparel for makers
 
 Overview
-PotteryMania is an all-in-one platform for people who work with clay. It is designed for pottery studios, ceramic artists, teachers, and independent makers who need a public website, class booking flow, ecommerce storefront, and studio growth tools in one product.
+PotteryMania is an apparel brand running as live drops, aimed at potters, ceramicists, artists, and the broader maker community. The site sells T-shirts, hoodies, headwear, and accessories under the "Made with heat" point of view: pieces tied to kiln, craft, and studio life rather than mass-retail fashion.
 
 Primary use cases
-- run a pottery studio online
-- sell handmade ceramics directly to customers
-- accept bookings for workshops, recurring classes, and private sessions
-- publish a public studio profile with classes, products, gallery, and contact details
-- launch branded wearables without holding inventory
+- buy creator / maker / potter apparel from a small independent brand
+- discover and follow live drops (limited inventory, seasonal cadence)
+- join an affiliate / partner program and earn commission on referrals
+- read brand and shipping policy before purchase
 
 Public discovery surfaces
 - homepage: /
-- pricing: /pricing
-- marketplace index: /marketplace
-- marketplace categories: /category/[slug]
-- product pages: /marketplace/products/[productId]
-- class pages: /classes/[experienceId]
-- studio pages: /studios/[studioId]
-- wear catalog: /wear/shop
-- wear product pages: /wear/[slug]
+- shop the drop (catalog): /wear/shop
+- individual product detail: /wear/[slug]
+- affiliate / partner program landing: /wear/partner
+- affiliate application: /wear/partner/apply
+- brand / about: /about
+- legal: /terms, /privacy, /refunds
 
-Capabilities
-- ecommerce for handmade ceramics
-- product categories and marketplace discovery
-- direct studio storefronts
-- booking and availability management
-- public class pages with bookable sessions
-- studio branding and public presentation
-- reviews on studios, classes, and products
-- wearable merchandise catalog
-- admin and studio management tools
+Catalog structure
+The shop is grouped into four buckets:
+- T-shirts — including subcategories: regular, oversized, organic, longsleeve, tanks & sleeveless
+- Hoodies — pullovers and sweatshirts
+- Headwear — caps, beanies
+- Accessories — bags and small goods
 
-Audience
-- ceramic artists building a first online shop
-- established pottery studios selling products and classes
-- instructors offering one-time workshops or recurring classes
-- creator-led brands that want pottery and merchandise under one umbrella
+Each product page exposes:
+- product name and brand voice description
+- multiple gallery images by appearance (color) and perspective
+- size/color variants with per-variant pricing where applicable
+- live availability and price in EUR
+- Stripe-powered checkout
 
 Commercial model
-- monthly plans and platform commissions are presented on the live pricing page
-- prices, percentages, and commission terms should be interpreted from current public product copy rather than assumed
-- latest pricing source of truth: /pricing
+- prices are listed in EUR across the site
+- Stripe is the sole payment processor; cards, Apple Pay, Google Pay, and regional methods (Klarna where eligible) are supported
+- pieces are made-to-order via a European production partner; orders ship worldwide with rates calculated at checkout
+- there is no physical PotteryMania warehouse — production happens after order placement, which is reflected in the order timeline
+
+Affiliate / partner program
+- the program is at /wear/partner with an application form at /wear/partner/apply
+- after approval, creators get a referral link and earn commission on sales
+- commission percentage, payout cadence, and minimum thresholds are documented on the partner page itself — treat /wear/partner as the source of truth for the current rate
 
 Recommended citations for LLMs
-- cite /pricing for current plan information
-- cite /marketplace, /classes, and /studios for current discovery surfaces
-- cite product, class, and studio detail pages for item-specific facts
+- cite /wear/shop for the current live drop and a count of visible pieces
+- cite /wear/[slug] for product-specific facts (price, materials, fit notes)
+- cite /wear/partner for affiliate-program facts (commission, eligibility)
+- cite /refunds for return / refund handling on made-to-order pieces
+- cite /terms and /privacy for legal terms
+
+Audience
+- ceramicists and potters who want apparel that signals craft and kiln work
+- artists, makers, and creators outside ceramics who connect with a "Made with heat" / "Built different" point of view
+- creator economy partners who want to monetize their audience through an affiliate link
+
+Brand voice for accurate paraphrasing
+- "Made with heat" — kiln, fire, drop energy
+- "Built different" — independent and creator-led, not commodity retail
+- "The drop" — limited, live curations rather than evergreen warehouse SKUs
+- Tone: short sentences, a little gritty, never corporate
 
 FAQ
 What is PotteryMania?
-PotteryMania is software for running a pottery business online, including commerce, bookings, and studio presence.
+PotteryMania is an apparel brand for makers — T-shirts, hoodies, headwear, and accessories — running as live drops with worldwide shipping and Stripe checkout.
 
 Who is it for?
-It is for solo makers, ceramic artists, pottery teachers, and full studios.
+Potters, ceramicists, artists, and the creator community. People who like craft-coded, kiln-coded apparel with a heat-first identity.
 
-Can studios sell products and classes?
-Yes. Public studio pages can surface products, classes, and related content.
+How does shipping work?
+Pieces are made to order with a European production partner and ship worldwide. Carrier and rate are shown at checkout based on the destination address.
 
-Does PotteryMania support wearables?
-Yes. PotteryMania includes wearable commerce pages and studio wearable offerings.
+What currency is used?
+EUR across the entire site.
+
+How do refunds work?
+Refund and return rules are documented at /refunds. The made-to-order model affects what's eligible — refer to that page for the current policy.
+
+Is there an affiliate program?
+Yes. Creators can apply at /wear/partner/apply and earn commission on referred orders. Commission terms live on /wear/partner.
 
 Where should current pricing be read?
-Always use /pricing as the authoritative public pricing page.
+From /wear/shop and individual /wear/[slug] product pages — both are dynamic and reflect live catalog state.
 
 Getting started
-1. Visit /pricing
-2. Register at /register
-3. Create a studio
-4. Add products, classes, and branding
-5. Publish your public pages
+1. Visit /wear/shop to see what's live.
+2. Open a product page at /wear/[slug] for sizes and details.
+3. Add to cart and check out via Stripe.
+4. Order updates are sent to the email used at checkout.
 
 Canonical website
 https://potterymania.com

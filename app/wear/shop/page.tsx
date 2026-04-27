@@ -24,6 +24,7 @@ import {
   resolveWearInternalPricingConfig,
 } from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
+import { breadcrumbJsonLd, itemListJsonLd, toJsonLdScript } from "@/lib/structured-data";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
@@ -305,6 +306,26 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
       minWearListingPrice(normalized.filter((p) => p.categorySlug === "tops" && p.topSub === sub)),
     ]),
   ) as Record<WearTopSubcategory, { cents: number; currency: string } | null>;
+
+  /**
+   * JSON-LD for the shop listing — Breadcrumb gives Google the site hierarchy,
+   * ItemList makes the visible products legible to AI search (Perplexity / OpenAI / Google AI Overviews)
+   * even when they don't crawl every PDP. Cap at 30 to keep the head light.
+   */
+  const shopJsonLd = toJsonLdScript([
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/wear/shop" },
+    ]),
+    itemListJsonLd({
+      name: `PotteryMania apparel — ${wearActiveDropEyebrow()}`,
+      path: "/wear/shop",
+      items: normalized.slice(0, 30).map((p) => ({
+        name: wearDisplayName(p),
+        path: `/wear/${p.slug}`,
+      })),
+    }),
+  ]);
 
   type ShopBlock =
     | {
@@ -702,6 +723,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
           </div>
         )}
       </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: shopJsonLd }} />
     </main>
   );
 }

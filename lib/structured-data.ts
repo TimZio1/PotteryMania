@@ -24,6 +24,19 @@ export function breadcrumbJsonLd(items: BreadcrumbItem[]) {
   };
 }
 
+/**
+ * Comma-separated env override for Organization.sameAs (Instagram, TikTok, X, Facebook page, etc.).
+ * Helps Google's knowledge panel link the brand to its social presence.
+ */
+function envSocialProfiles(): string[] {
+  const raw = process.env.NEXT_PUBLIC_SOCIAL_PROFILES?.trim();
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && /^https?:\/\//i.test(s));
+}
+
 export function websiteJsonLd() {
   return {
     "@context": "https://schema.org",
@@ -31,6 +44,18 @@ export function websiteJsonLd() {
     name: siteMetadata.name,
     url: siteMetadata.url,
     description: siteMetadata.description,
+    /**
+     * Sitelinks search box — lets Google offer in-result search to your domain.
+     * Pointed at /wear/shop with `?q=` so the apparel storefront is the primary discovery surface.
+     */
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteMetadata.url}/wear/shop?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
   };
 }
 
@@ -41,8 +66,29 @@ export function organizationJsonLd() {
     name: siteMetadata.name,
     url: siteMetadata.url,
     logo: buildAbsoluteUrl("/potterymania-icon.svg"),
-    sameAs: [],
+    sameAs: envSocialProfiles(),
     description: siteMetadata.description,
+  };
+}
+
+/** Generic itemList for category / shop listing pages so AI + Google read products as a feed. */
+export function itemListJsonLd(input: {
+  name: string;
+  path: string;
+  items: { name: string; path: string }[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: input.name,
+    url: buildAbsoluteUrl(input.path),
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: buildAbsoluteUrl(item.path),
+      name: item.name,
+    })),
   };
 }
 
