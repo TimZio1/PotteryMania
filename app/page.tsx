@@ -79,9 +79,31 @@ async function ApparelHome() {
    * is bigger.
    */
   const secondaryDrop = (() => {
-    const candidates: Array<{ category: string; href: string; label: string; tagline: string; rows: typeof rows }> = [
-      { category: "hoodies", href: "/wear/shop?category=hoodies", label: "Hoodies", tagline: "Hold the line.", rows: hoodies },
-      { category: "headwear", href: "/wear/shop?category=headwear", label: "Headwear", tagline: "Crown the work.", rows: headwear },
+    const candidates: Array<{
+      category: string;
+      href: string;
+      label: string;
+      tagline: string;
+      /** Body copy specific to the bucket — hoodies and headwear sell on different cues. */
+      body: string;
+      rows: typeof rows;
+    }> = [
+      {
+        category: "hoodies",
+        href: "/wear/shop?category=hoodies",
+        label: "Hoodies",
+        tagline: "Hold the line.",
+        body: "Heavyweight, slow-burn pieces for late nights at the wheel.",
+        rows: hoodies,
+      },
+      {
+        category: "headwear",
+        href: "/wear/shop?category=headwear",
+        label: "Headwear",
+        tagline: "Crown the work.",
+        body: "Low-profile caps and beanies built to wear in, not break in.",
+        rows: headwear,
+      },
     ];
     return candidates
       .filter((c) => c.rows.length > 0)
@@ -240,7 +262,7 @@ async function ApparelHome() {
                 <span className="text-[var(--heat)]">{secondaryDrop.tagline.split(" ").slice(-1)[0]}</span>
               </h2>
               <p className="max-w-md text-lg text-[var(--clay)]/75">
-                Heavyweight, slow-burn pieces for late nights at the wheel.
+                {secondaryDrop.body}
               </p>
               <div>
                 <Link href={secondaryDrop.href} className="pm-btn pm-btn--heat group">
