@@ -27,8 +27,8 @@ export default async function WearPartnerPage() {
               Promote PotteryMania apparel. Earn 10%.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-stone-700">
-              Share T-shirts and hoodies with your audience. You get a tracked link/code, we handle the shop, printing,
-              delivery, support, and payment. You earn commission when people buy.
+              Share tees and hoodies with your audience. You get a tracked link/code — we run the shop, fulfillment,
+              support, and payouts. You earn when people buy.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <WearResellerProgramLink
@@ -90,8 +90,8 @@ export default async function WearPartnerPage() {
             open the shop with attribution.
           </p>
           <p className="text-sm leading-relaxed text-stone-600">
-            Promote apparel people can understand instantly: maker T-shirts, hoodies, and artist-friendly clothing.
-            Typical delivery ranges after production: {WEAR_SHIPPING_DELIVERY_RANGES}.
+            Promote apparel people get instantly: maker tees, hoodies, and studio-ready layers. Buyers see timing and
+            shipping at checkout — {WEAR_SHIPPING_DELIVERY_RANGES}.
           </p>
         </section>
 

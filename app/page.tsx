@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
     title: "PotteryMania — T-Shirts & Apparel for Makers",
     description:
-      "Shop T-shirts, hoodies, and apparel for potters, artists, makers, and creative people. Printed on demand and easy to buy.",
+      "Shop T-shirts, hoodies, and apparel for potters, artists, makers, and creative people. Made with heat — enter the drop.",
     path: "/",
   });
   return {
@@ -192,7 +192,7 @@ async function ApparelHome() {
                 <span aria-hidden className="ml-3 transition group-hover:translate-x-0.5">→</span>
               </Link>
               <p className="pm-caption text-[var(--clay)]/60">
-                {totalActive} pieces · printed on order
+                {totalActive} pieces · live in the drop
               </p>
             </div>
           </div>
@@ -375,7 +375,7 @@ async function ApparelHome() {
                   Get paid.
                 </h2>
                 <p className="mt-6 max-w-md text-base text-[var(--clay)]/75">
-                  Drop your link. We print, ship, and support every order. You keep the audience.
+                  Drop your link. We run fulfillment and support — you keep the audience.
                 </p>
                 <div className="mt-10">
                   <Link href="/wear/partner" className="pm-btn group">
@@ -415,7 +415,7 @@ async function ApparelHome() {
               {[
                 {
                   q: "When does my order ship?",
-                  a: "Every piece is printed on demand and ships in 2–5 business days from our EU production partner. You get tracking the moment it leaves the print floor.",
+                  a: "Fast turnaround — most orders ship within a few business days. Tracking hits your inbox as soon as your package is on the move.",
                 },
                 {
                   q: "Do you ship internationally?",
@@ -494,7 +494,7 @@ function LegacyStudioHome() {
               Clothes for people who build things with their hands.
             </h1>
             <p className="mt-6 text-base leading-relaxed text-stone-600 sm:text-lg">
-              Small runs. No warehouse. Each piece is printed when you order — for you, not for a shelf.
+              Small runs. No filler. Each piece is for you — not for a shelf.
             </p>
             <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
               <Link

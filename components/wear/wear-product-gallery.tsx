@@ -11,16 +11,16 @@ import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 const PDP_HOOK_CLASSIC = "For makers who care how things feel — not just how they look.";
 
 const PDP_BENEFITS_CLASSIC = [
-  "Printed when you order — less waste, no stale stock.",
+  "Made for you — not stacked in a back room.",
   "Cut and sewn for everyday wear; designed to age with you.",
-  "Shipping from production close to you when possible.",
+  "Shipping timed at checkout — no last-step surprises.",
 ] as const;
 
-const PDP_HOOK_APPAREL = "Soft, durable apparel — printed when you order.";
+const PDP_HOOK_APPAREL = "Soft, durable pieces — built to wear in, not sit in a drawer.";
 
 const PDP_BENEFITS_APPAREL = [
-  "Pick your size and color, then check out — shipping is calculated before you pay.",
-  "Printed in the EU and shipped within 2–5 business days.",
+  "Pick your size and color — totals lock before you pay.",
+  "Quick production window — most orders move within a few business days.",
   "Secure checkout via Stripe — Apple Pay, Google Pay, and card supported.",
 ] as const;
 

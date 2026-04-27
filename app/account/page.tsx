@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { PlatformChrome } from "@/components/platform/platform-chrome";
+import { MarketingLayout } from "@/components/marketing-layout";
 import { buildMetadata } from "@/lib/seo";
-import { platformUi } from "@/lib/ui-styles";
 import { AccountClient } from "./account-client";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Your profile",
-  description: "Your name, phone, language, and currency — we use these to pre-fill bookings and checkout.",
+  title: "Your account",
+  description:
+    "Your PotteryMania profile, order history, shipping context, and data controls — same energy as the drop, zero clutter.",
   path: "/account",
 });
 
 export default function AccountPage() {
   return (
-    <PlatformChrome headerVariant="account">
-      <main className={`${platformUi.pageContainer} py-8 sm:py-12`}>
+    <MarketingLayout apparelStorefront>
+      <main className="pm-brand min-h-[65vh] bg-[var(--clay)] text-[var(--ink)] antialiased">
         <AccountClient />
       </main>
-    </PlatformChrome>
+    </MarketingLayout>
   );
 }

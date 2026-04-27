@@ -5,14 +5,13 @@ import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 const siteUrl = resolvePublicSiteUrl();
 
 const FULL_DESCRIPTION =
-  "Apparel for makers, printed on demand — and tools for independent pottery studios to get discovered, take bookings, and sell work.";
+  "Apparel for makers — made with heat. Plus tools for independent pottery studios to get discovered, take bookings, and sell work.";
 
 const APPAREL_DESCRIPTION =
   "Shop T-shirts, hoodies, and apparel for potters, artists, makers, and creative people. Join our affiliate program and share the culture.";
 
 const FULL_KEYWORDS = [
   "maker apparel",
-  "on demand printing",
   "pottery studio merch",
   "independent pottery artists",
   "pottery studios directory",
@@ -29,7 +28,6 @@ const APPAREL_KEYWORDS = [
   "maker t-shirts",
   "potter apparel",
   "artist hoodies",
-  "print on demand shirts",
   "ceramic artist apparel",
   "creative apparel",
   "affiliate apparel program",

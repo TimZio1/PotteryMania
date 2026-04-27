@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
   title: `${wearDropDefaultTitle()} — Shop`,
   description:
-    `Identity-led apparel — printed on demand. Prices in EUR; shipping and taxes at checkout. ${WEAR_ACTIVE_DROP.launchWindowLabel} drop window.`,
+    `Identity-led apparel — made with heat. Prices in EUR; shipping and taxes at checkout. ${WEAR_ACTIVE_DROP.launchWindowLabel} drop window.`,
   path: "/wear",
 });
 

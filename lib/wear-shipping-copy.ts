@@ -1,13 +1,14 @@
-/** Transparent shipping (Option B) — reuse on landing, PDP, and cart. */
-
-export const WEAR_SHIPPING_LANDING_STRIP =
-  "Printed on demand. Shipping is calculated at checkout from your address — no last-step surprises.";
-
-export const WEAR_SHIPPING_DELIVERY_RANGES =
-  "Typical times after production: EU 3–7 business days · US 5–10 · other regions often 7–14+.";
-
-export const WEAR_SHIPPING_PDP_LINE =
-  "Shipping & taxes calculated at checkout. Printed near you when possible.";
-
-export const WEAR_SHIPPING_CART_NOTE =
-  "Shipping is calculated at checkout from your delivery address. Typical times after production: EU 3–7 business days · US 5–10 · other regions often 7–14+. Taxes may apply by region.";
+/** Shipping lines — short, checkout-first; avoid supply-chain lecture. */
+
+export const WEAR_SHIPPING_LANDING_STRIP =
+  "Shipping and taxes calculated at checkout — you see the full picture before you pay.";
+
+export const WEAR_SHIPPING_DELIVERY_RANGES =
+  "Typical delivery windows depend on your address — shown at checkout.";
+
+export const WEAR_SHIPPING_PDP_LINE =
+  "Shipping & taxes calculated at checkout.";
+
+export const WEAR_SHIPPING_CART_NOTE =
+  "Shipping and taxes are finalized at checkout from your delivery address.";
+

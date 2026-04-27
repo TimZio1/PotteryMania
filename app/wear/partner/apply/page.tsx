@@ -17,8 +17,8 @@ export default function AffiliateApplyPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">Affiliate program</p>
           <h1 className="mt-4 font-serif text-4xl leading-tight text-amber-950">Earn 10% sharing apparel.</h1>
           <p className="mt-4 text-sm leading-7 text-amber-950/80">
-            Approved affiliates receive a tracked link. We print, ship, and support customers. You promote the pieces
-            that fit your audience.
+            Approved affiliates receive a tracked link. We handle orders, delivery, and support — you promote the
+            pieces that fit your audience.
           </p>
           <dl className="mt-6 grid gap-3 text-sm">
             <div className="rounded-2xl bg-white px-4 py-3">

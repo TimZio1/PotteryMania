@@ -61,8 +61,8 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
               <div className="max-w-md">
                 <BrandLogo size="md" className="text-[var(--foreground)]" />
                 <p className="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">
-                  T-shirts and apparel for potters, artists, and makers. Printed on demand in the EU.
-                  Shipping and taxes are calculated at checkout.
+                  T-shirts and apparel for potters, artists, and makers. Made with heat — built different.
+                  Shipping and taxes at checkout.
                 </p>
                 <div className="mt-5 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--muted)]">
                   <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-1">
@@ -70,10 +70,10 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
                     Secure checkout · Stripe
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-1">
-                    EU shipping
+                    Worldwide shipping
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-1">
-                    Print-on-demand
+                    Live drops
                   </span>
                 </div>
               </div>

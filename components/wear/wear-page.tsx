@@ -37,7 +37,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               Clothes for people who build things with their hands.
             </h1>
             <p className="mt-6 text-base leading-relaxed text-stone-600 sm:text-lg">
-              Small runs. No warehouse. Each piece is printed when you order — for you, not for a shelf.
+              Small runs. No filler. Each piece is for you — not for a shelf.
             </p>
             <div className="mt-10 flex flex-col items-center gap-4">
               <Link href="/wear/shop" className={heroCtaClass}>

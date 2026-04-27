@@ -5,7 +5,7 @@ import { buildMetadata } from "@/lib/seo";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 const APPAREL_DESCRIPTION =
-  "Returns, exchanges, and refund policy for PotteryMania apparel. Print-on-demand items, defective product handling, and how to contact us.";
+  "Returns, exchanges, and refund policy for PotteryMania apparel — defective items, sizing context, and how to reach us.";
 const STUDIO_DESCRIPTION =
   "Each studio sets its own refund and cancellation policy. Here's how to find it and what to do if something goes wrong.";
 
@@ -26,7 +26,7 @@ function ApparelRefundsContent() {
   return (
     <LegalPageShell title="Returns & refunds">
       <p>
-        <strong>Short version:</strong> every PotteryMania piece is printed when you order, so we
+        <strong>Short version:</strong> every PotteryMania piece is made to your order, so we
         can&apos;t accept change-of-mind returns. We do replace anything damaged, defective, or wrong
         — no questions asked, just send a photo.
       </p>
@@ -64,7 +64,7 @@ function ApparelRefundsContent() {
       <h2>Cancellations</h2>
       <p>
         Order changes and cancellations are only possible <strong>before production starts</strong>
-        {" "}(usually within 1–2 hours of purchase). After that, the piece has been printed
+        {" "}(usually within 1–2 hours of purchase). After that, production has started
         specifically for you and we cannot cancel it.
       </p>
 
@@ -76,8 +76,8 @@ function ApparelRefundsContent() {
 
       <h2>Your consumer rights</h2>
       <p>
-        Print-on-demand garments are exempt from the EU 14-day cooling-off period for distance
-        selling because they are made to your order (Directive 2011/83/EU, Art. 16(c)). Your other
+        Made-to-order garments are exempt from the EU 14-day cooling-off period for distance
+        selling because they are produced to your order (Directive 2011/83/EU, Art. 16(c)). Your other
         consumer rights — including the right to a remedy for defective goods — are unaffected.
       </p>
 

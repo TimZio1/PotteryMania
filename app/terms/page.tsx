@@ -5,7 +5,7 @@ import { buildMetadata } from "@/lib/seo";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 const APPAREL_DESCRIPTION =
-  "Terms of service for buying PotteryMania apparel — print-on-demand orders, payments, refunds, and your rights.";
+  "Terms of service for buying PotteryMania apparel — orders, payments, refunds, and your rights.";
 const STUDIO_DESCRIPTION = "The rules for using PotteryMania — for studios, customers, and visitors.";
 
 export const metadata: Metadata = buildMetadata({
@@ -40,7 +40,7 @@ function ApparelTermsContent() {
       <h2>1. The shop</h2>
       <p>
         PotteryMania sells T-shirts, hoodies, and other apparel for makers. Products are
-        manufactured on demand by a print-on-demand fulfilment partner once an order is placed.
+        manufactured to your order through our fulfilment partner once an order is placed.
         We may add, modify, or retire products at any time.
       </p>
 
@@ -65,7 +65,7 @@ function ApparelTermsContent() {
 
       <h2>4. Production &amp; shipping</h2>
       <p>
-        Each item is printed for you after you order. Typical lead time is 2–5 business days for
+        Each item is produced for you after you order. Typical lead time is a few business days for
         production plus carrier transit. Estimated delivery windows are shown at checkout. Custom
         items cannot be cancelled once production has started (usually within 1–2 hours of
         purchase).
@@ -77,7 +77,7 @@ function ApparelTermsContent() {
         <Link href="/refunds" className="font-medium text-amber-900 hover:underline">
           Returns &amp; refunds policy
         </Link>
-        . Print-on-demand garments are exempt from the EU 14-day cooling-off period (Directive
+        . Made-to-order garments are exempt from the EU 14-day cooling-off period (Directive
         2011/83/EU, Art. 16(c)) — your other consumer rights, including remedies for defective
         goods, are unaffected.
       </p>
@@ -112,7 +112,7 @@ function ApparelTermsContent() {
       <p>
         The website is provided &quot;as is&quot; to the extent permitted by law. We don&apos;t
         guarantee uninterrupted or error-free operation. Product photos are representative; minor
-        variations in colour and finish are normal for printed apparel.
+        variations in colour and finish are normal for apparel.
       </p>
 
       <h2>10. Limitation of liability</h2>

@@ -7,7 +7,7 @@ import { ui } from "@/lib/ui-styles";
 export const metadata: Metadata = buildMetadata({
   title: "About — PotteryMania Apparel",
   description:
-    "Apparel for makers, potters, and artists. We print on demand and ship through a production partner so you get quality pieces without the warehouse.",
+    "Apparel for makers, potters, and artists — made with heat. Built different, worn out loud.",
   path: "/about",
 });
 
@@ -19,8 +19,8 @@ export default function AboutPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">About</p>
           <h1 className="mt-4 font-serif text-3xl text-amber-950 sm:text-4xl">Made for people who make things</h1>
           <p className="mt-6 text-sm leading-relaxed text-stone-700">
-            PotteryMania apparel is for studios, potters, artists, and anyone who lives a creative life. Pieces are
-            printed when you order—less waste, no piles of unsold stock.
+            PotteryMania apparel is for studios, potters, artists, and anyone who lives a creative life. Small runs,
+            loud identity — gear that keeps up with clay, glaze, and long studio days.
           </p>
           <div className="mt-10 space-y-8 border-t border-stone-200/80 pt-10">
             <div>
@@ -36,10 +36,9 @@ export default function AboutPage() {
               </p>
             </div>
             <div>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500">Print on demand</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500">The drop</h2>
               <p className="mt-2 text-sm leading-relaxed text-stone-700">
-                We work with a production partner for printing and fulfillment. Shipping options and timelines are
-                confirmed at checkout.
+                Fresh pieces, tight curation — checkout shows shipping and timing for your address before you pay.
               </p>
             </div>
           </div>

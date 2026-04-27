@@ -59,8 +59,8 @@ async function sendWearTransactionalEmail(kind: WearOrderNotifyKind, orderId: st
         html: renderEmailShell({
           eyebrow: `Order #${ref}`,
           title: "Thanks for your order",
-          intro: `Hi ${first}, we got your order and it's heading into production. We'll email you again the moment it ships.`,
-          bodyHtml: `<p style="margin:0 0 12px;">${lineHtml}</p><p style="margin:0;"><strong>Total:</strong> ${escapeHtml(totalRaw)} ${escapeHtml(cur)}</p><p style="margin:18px 0 0;font-size:13px;color:#5f5045;">Each piece is printed for you, so production typically takes 2–5 business days plus carrier transit.</p>`,
+          intro: `Hi ${first}, we got your order — it’s in motion. We’ll email you again the moment it ships.`,
+          bodyHtml: `<p style="margin:0 0 12px;">${lineHtml}</p><p style="margin:0;"><strong>Total:</strong> ${escapeHtml(totalRaw)} ${escapeHtml(cur)}</p><p style="margin:18px 0 0;font-size:13px;color:#5f5045;">We’ll email you again the moment it’s on the way — most orders move within a few business days.</p>`,
           ctaLabel: "Track my order",
           ctaUrl: trackingUrl,
         }),
@@ -77,7 +77,7 @@ async function sendWearTransactionalEmail(kind: WearOrderNotifyKind, orderId: st
         html: renderEmailShell({
           eyebrow: `Order #${ref}`,
           title: "We're packing it up",
-          intro: `Hi ${first}, your order is printed and being prepared for shipping. You'll get a tracking link as soon as it leaves the facility.`,
+          intro: `Hi ${first}, your order is being prepared for shipping. You'll get a tracking link as soon as it leaves the facility.`,
           bodyHtml: `<p style="margin:0;">${lineHtml}</p>`,
           ctaLabel: "View order",
           ctaUrl: trackingUrl,

@@ -299,7 +299,7 @@ export function WearPdpBuySection({
         {[
           { k: "Fit", v: "Regular. Pick your usual size." },
           { k: "Fabric", v: "Soft cotton, heavy ink." },
-          { k: "Delivery", v: "Prints in 2–5 business days. Tracking by email." },
+          { k: "Delivery", v: "Quick turnaround — tracking by email when it ships." },
           { k: "Returns", v: "30 days, unworn." },
           { k: "Checkout", v: "Stripe · Apple Pay · Google Pay · Link." },
         ].map((row) => (

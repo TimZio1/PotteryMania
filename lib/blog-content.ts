@@ -188,7 +188,7 @@ Customers become visible supporters of the studio in daily life.
 People who wear the brand often stay more connected to new launches, classes, and events.
 
 4. Reduce operational complexity
-Print-on-demand and embedded storefronts remove much of the inventory risk that traditional merchandise creates.
+Embedded storefronts and partner fulfillment keep inventory off your plate while you stay on-brand.
 
 5. Strengthen the premium feel
 Wearables should feel curated, not like an afterthought. Product pages, presentation, and pricing all matter.
