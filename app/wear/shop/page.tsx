@@ -343,11 +343,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
           </span>
           {WEAR_ACTIVE_DROP.launchWindowLabel}
         </p>
-        <p className="mx-auto mt-5 max-w-xl text-center text-base font-medium leading-snug text-[var(--shadow)] sm:text-lg">
-          {apparelOnly
-            ? "Not a mall aisle — if it\u2019s on the wall, it\u2019s in play. Scroll, filter, cop. Built different."
-            : "Same voltage as the homepage — live pieces, zero filler. Find your cut and move."}
-        </p>
+        {apparelOnly ? (
+          <p className="mx-auto mt-5 max-w-xl text-center text-base font-medium leading-snug text-[var(--shadow)] sm:text-lg">
+            Not a mall aisle — if it&rsquo;s on the wall, it&rsquo;s in play. Scroll, filter, cop. Built different.
+          </p>
+        ) : null}
         <p className="pm-caption mx-auto mt-3 max-w-md text-center text-[var(--shadow)]/85">
           {WEAR_CURRENCY_SHOP_LINE} Secure Stripe checkout.
         </p>
