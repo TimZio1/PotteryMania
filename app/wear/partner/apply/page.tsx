@@ -11,31 +11,38 @@ export const metadata: Metadata = buildMetadata({
 
 export default function AffiliateApplyPage() {
   return (
-    <main className="min-h-[70vh] bg-[#f7f2ec] px-4 py-14 text-stone-900 sm:px-6 sm:py-20">
-      <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-        <section className="rounded-3xl border border-amber-200 bg-amber-50/80 p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">Affiliate program</p>
-          <h1 className="mt-4 font-serif text-4xl leading-tight text-amber-950">Earn 10% sharing apparel.</h1>
-          <p className="mt-4 text-sm leading-7 text-amber-950/80">
-            Approved affiliates receive a tracked link. We handle orders, delivery, and support — you promote the
-            pieces that fit your audience.
+    <main className="pm-brand relative min-h-screen overflow-hidden bg-(--ink) text-(--clay)">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_70%_at_30%_0%,rgba(255,74,28,0.1),transparent_45%)]"
+        aria-hidden
+      />
+      <div className="relative mx-auto grid max-w-5xl gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:gap-10">
+        <section className="lg:sticky lg:top-24">
+          <p className="pm-caption text-(--heat)">Affiliate program</p>
+          <h1 className="pm-display mt-4 text-[2.1rem] text-(--clay) sm:text-[2.75rem]">Earn 10% sharing the drop.</h1>
+          <p className="mt-5 text-sm leading-7 text-(--clay)/75 sm:text-base">
+            Approved affiliates get a tracked link. We handle orders, delivery, and support — you pick the pieces that fit
+            your audience.
           </p>
-          <dl className="mt-6 grid gap-3 text-sm">
-            <div className="rounded-2xl bg-white px-4 py-3">
-              <dt className="font-semibold text-amber-950">Commission</dt>
-              <dd className="text-stone-600">10% after discounts, before tax/shipping.</dd>
+          <dl className="mt-8 grid gap-3 text-sm">
+            <div className="rounded-xl border border-(--clay)/10 border-l-2 border-l-(--heat) bg-(--clay)/4 px-4 py-3">
+              <dt className="pm-caption text-(--clay)/70">Commission</dt>
+              <dd className="mt-1 text-(--clay)">10% after discounts, before tax and shipping.</dd>
             </div>
-            <div className="rounded-2xl bg-white px-4 py-3">
-              <dt className="font-semibold text-amber-950">Tracking</dt>
-              <dd className="text-stone-600">30-day browser cookie using your short link.</dd>
+            <div className="rounded-xl border border-(--clay)/10 bg-(--clay)/4 px-4 py-3">
+              <dt className="pm-caption text-(--clay)/70">Tracking</dt>
+              <dd className="mt-1 text-(--clay)/75">30-day browser cookie on your short link.</dd>
             </div>
-            <div className="rounded-2xl bg-white px-4 py-3">
-              <dt className="font-semibold text-amber-950">Payouts</dt>
-              <dd className="text-stone-600">Stripe payout once your balance reaches €50.</dd>
+            <div className="rounded-xl border border-(--clay)/10 bg-(--clay)/4 px-4 py-3">
+              <dt className="pm-caption text-(--clay)/70">Payouts</dt>
+              <dd className="mt-1 text-(--clay)/75">Stripe transfer when your balance reaches €50.</dd>
             </div>
           </dl>
-          <Link href="/wear/partner" className="mt-6 inline-block text-sm font-semibold text-amber-900 underline">
-            Program details
+          <Link
+            href="/wear/partner"
+            className="mt-8 inline-flex text-sm font-semibold uppercase tracking-[0.12em] text-(--clay)/80 underline decoration-(--clay)/30 underline-offset-4 transition hover:text-(--heat) hover:decoration-(--heat)"
+          >
+            ← Program details
           </Link>
         </section>
         <AffiliateApplicationForm />
