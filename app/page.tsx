@@ -70,9 +70,7 @@ async function ApparelHome() {
   }) === "headwear");
   const heroAnchor = showcase[0] ?? rows[0];
   const totalActive = rows.length;
-  const totalHoodies = hoodies.length;
   const totalTees = tees.length;
-  const totalHeadwear = headwear.length;
 
   /**
    * The second campaign slab pulls whichever bucket has the most pieces after tees, so the home

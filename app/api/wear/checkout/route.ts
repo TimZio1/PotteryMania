@@ -21,7 +21,7 @@ import {
   wearStudioMarginWithCommissionOverride,
 } from "@/lib/wear-checkout-lines";
 import { buildWearEngineLinesFromResolved, computeWearCouponDiscount } from "@/lib/wear-discount-engine";
-import { computeWearBuyXGetYDiscount, WEAR_BUY_X_GET_Y_CAMPAIGN } from "@/lib/wear-buy-x-get-y-campaign";
+import { computeWearBuyXGetYDiscount } from "@/lib/wear-buy-x-get-y-campaign";
 import type { Coupon, Prisma } from "@prisma/client";
 
 function baseUrl() {
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
       product: r.product,
     }))
     .filter((r) => r.quantity > 0);
-  let lineTotalAfterByKey: Record<string, number> = {};
+  const lineTotalAfterByKey: Record<string, number> = {};
   for (const r of resolvedPack.resolved) {
     lineTotalAfterByKey[r.key] = campaign.lineTotalAfterByKey[r.key] ?? r.unitCents * r.quantity;
   }

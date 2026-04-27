@@ -14,7 +14,7 @@ export async function GET() {
     return NextResponse.json(snapshot);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("[admin/wear/catalog-value] failed", err);
+    console.warn("[admin/wear/catalog-value] failed", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

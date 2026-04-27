@@ -49,8 +49,6 @@ const STUDIO_EDITABLE_FIELDS: Array<{
   { key: "facebookUrl", required: false, maxLen: 300 },
 ];
 
-type EditableKey = (typeof STUDIO_EDITABLE_FIELDS)[number]["key"];
-
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
