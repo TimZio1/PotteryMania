@@ -472,7 +472,7 @@ async function ApparelHome() {
               </Link>
             </div>
             <p className="pm-caption mt-10 text-[var(--clay)]/50">
-              Built different · 30-day returns · Worldwide
+              Built different · 30-day returns · Worldwide shipping
             </p>
           </div>
         </section>
