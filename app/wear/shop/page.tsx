@@ -7,6 +7,7 @@ import { formatWearMoney } from "@/lib/wear-money";
 import {
   WEAR_TOP_SUBCATEGORIES,
   type WearTopSubcategory,
+  isWearCategory,
   isWearTopSubcategory,
   resolveWearCatalogCategory,
   wearTopSubcategoryLabel,
@@ -115,8 +116,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const rawCategory = sp.category?.trim().toLowerCase() || null;
   const explicitTopSub = isWearTopSubcategory(sp.sub) ? sp.sub : null;
   const useDefaultTopsCategory = rawCategory == null && explicitTopSub == null;
-  const activeCategory = useDefaultTopsCategory ? "tops" : rawCategory === "all" ? null : rawCategory;
-  const activeTopSub = useDefaultTopsCategory ? DEFAULT_TOPS_SUBCATEGORY : explicitTopSub;
+  const categoryFromQuery =
+    rawCategory === "all" ? null : isWearCategory(rawCategory) ? rawCategory : explicitTopSub ? "tops" : null;
+  const activeCategory = useDefaultTopsCategory ? "tops" : categoryFromQuery;
+  const activeTopSub = useDefaultTopsCategory ? DEFAULT_TOPS_SUBCATEGORY : activeCategory === "tops" ? explicitTopSub : null;
 
   let visible: WearShopProduct[] = activeCategory
     ? normalized.filter((p) => p.categorySlug === activeCategory)
