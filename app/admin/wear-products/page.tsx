@@ -141,7 +141,7 @@ export default async function AdminWearProductsPage({
               <p className="mt-1 text-sm text-stone-700">
                 Sum across <strong>{catalogValue.activeProducts}</strong> active products ·{" "}
                 <strong>{catalogValue.totalVariants}</strong> live variants. One unit per saleable variant —
-                stock is unbounded for POD.
+                catalog stock is uncapped (fulfillment partner model).
               </p>
             </div>
             <span
@@ -297,7 +297,7 @@ export default async function AdminWearProductsPage({
 
       {health.catalogImportHint ? (
         <div className="mt-6 rounded-2xl border border-sky-300 bg-sky-50/90 px-4 py-3 text-sm text-sky-950">
-          <p className="font-semibold">Where are my Spreadshop / SPOD products?</p>
+          <p className="font-semibold">Where are my Spreadconnect / Spreadshop products?</p>
           <p className="mt-1 text-sky-900">{health.catalogImportHint}</p>
         </div>
       ) : null}
@@ -377,7 +377,7 @@ export default async function AdminWearProductsPage({
         <p className="font-semibold">Live shop visibility (same rules as /wear/shop)</p>
         <p className="mt-1 text-[var(--foreground)]">
           <span className="font-mono">{health.shopVisibleCount}</span> visible (
-          <span className="font-mono">{health.syncedShopVisibleCount}</span> with SPOD-linked variants or external id) ·{" "}
+          <span className="font-mono">{health.syncedShopVisibleCount}</span> with Spreadconnect-linked variants or external id) ·{" "}
           {health.totalProducts} total · {health.archivedCount} archived · {health.inactiveCount} inactive
         </p>
         {health.emptyDiagnosis ? <p className="mt-2 text-[var(--foreground)]">{health.emptyDiagnosis}</p> : null}

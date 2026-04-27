@@ -84,7 +84,7 @@ function isLinked(p: ProductRow): boolean {
  *
  * "Catalog value" = the list price you'd see if **one** of every saleable variant (or
  * standalone product) sold once. It is intentionally **not** scaled by stock, because most
- * wear products are POD with `stockQuantity = null`.
+ * wear products are partner-fulfilled with `stockQuantity = null`.
  */
 export async function loadWearCatalogValueSnapshot(): Promise<WearCatalogValueSnapshot> {
   const products = await prisma.wearProduct.findMany({

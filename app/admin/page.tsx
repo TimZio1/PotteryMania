@@ -393,8 +393,8 @@ export default async function AdminPage() {
                 What the live wear catalog is worth right now.
               </h2>
               <p className="mt-2 max-w-xl text-sm text-stone-600">
-                Sum of one unit per saleable variant — print-on-demand has no stock to multiply against.
-                Use this to size promotions and check margin at a glance.
+                Sum of one unit per saleable variant — partner-fulfilled SKUs don&apos;t use warehouse stock, so this is
+                a per-variant snapshot, not inventory × price. Use it to size promos and check margin at a glance.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">

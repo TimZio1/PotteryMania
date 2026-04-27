@@ -108,9 +108,9 @@ export async function getWearCatalogHealthSnapshot() {
   const spreadconnectPendingPlaceholder = rawKey === "__PENDING__";
   const spreadconnectConfigured = getSpreadconnectConfig() !== null;
   const spreadconnectWarning = spreadconnectPendingPlaceholder
-    ? "API key is __PENDING__ (catalog sync and POD submit disabled)"
+    ? "API key is __PENDING__ (catalog sync and paid order submit disabled)"
     : !rawKey
-      ? "SPREADCONNECT_API_KEY is not set (catalog sync and POD submit disabled)"
+      ? "SPREADCONNECT_API_KEY is not set (catalog sync and paid order submit disabled)"
       : null;
 
   let catalogImportHint: string | null = null;
@@ -217,9 +217,9 @@ export function wearCatalogHealthSnapshotUnavailable(reason: string): WearCatalo
   const spreadconnectPendingPlaceholder = rawKey === "__PENDING__";
   const spreadconnectConfigured = getSpreadconnectConfig() !== null;
   const spreadconnectWarning = spreadconnectPendingPlaceholder
-    ? "API key is __PENDING__ (catalog sync and POD submit disabled)"
+    ? "API key is __PENDING__ (catalog sync and paid order submit disabled)"
     : !rawKey
-      ? "SPREADCONNECT_API_KEY is not set (catalog sync and POD submit disabled)"
+      ? "SPREADCONNECT_API_KEY is not set (catalog sync and paid order submit disabled)"
       : null;
 
   return {
