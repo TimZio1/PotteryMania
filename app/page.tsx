@@ -307,9 +307,6 @@ async function ApparelHome() {
               <br />
               <span className="text-[var(--heat)]">make things with heat.</span>
             </h2>
-            <p className="mt-12 text-base text-[var(--clay)]/70 sm:text-lg">
-              No filler. No trends. Just the work.
-            </p>
           </div>
         </section>
 
