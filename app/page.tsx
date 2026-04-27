@@ -136,7 +136,7 @@ async function ApparelHome() {
           <p className="pm-caption mx-auto max-w-6xl px-4 py-2.5 text-center">
             Made with heat
             <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
-            Cut when you cop
+            Built different
             <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
             30-day returns
           </p>
@@ -470,7 +470,7 @@ async function ApparelHome() {
               </Link>
             </div>
             <p className="pm-caption mt-10 text-[var(--clay)]/50">
-              Cut when you cop · 30-day returns · Worldwide
+              Built different · 30-day returns · Worldwide
             </p>
           </div>
         </section>
