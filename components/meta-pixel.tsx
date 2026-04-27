@@ -6,7 +6,8 @@ import { Suspense, useEffect, useRef, useState } from "react";
 
 /**
  * Meta issue report filename confirms the production pixel id:
- * catalog622117933589214_pixel1956916491397785.
+ * catalog622117933589214_pixel1956916491397785 (Commerce catalog + pixel).
+ * Events Manager may also show Conversions API app SDK ID 916229323648933 — browser pixel still uses only the pixel id below.
  *
  * Keep env override for future migrations, but don't let a missing Railway
  * NEXT_PUBLIC_META_PIXEL_ID silently disable every catalog event.
