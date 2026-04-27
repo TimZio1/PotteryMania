@@ -16,7 +16,7 @@ import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { findWearPublicProductsWithVariantsRetrying, type WearPublicListingRow } from "@/lib/wear-public-catalog-query";
 import { WEAR_CURRENCY_SHOP_LINE } from "@/lib/wear-currency-policy";
-import { WEAR_ACTIVE_DROP, wearDropDefaultTitle } from "@/lib/wear-drop-config";
+import { WEAR_ACTIVE_DROP, wearActiveDropEyebrow, wearDropDefaultTitle } from "@/lib/wear-drop-config";
 import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import {
@@ -29,10 +29,10 @@ import { wearDisplayName } from "@/lib/wear-display-name";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: isApparelOnlyLaunch() ? "Shop T-shirts & apparel — PotteryMania" : `Shop — ${wearDropDefaultTitle()}`,
+  title: isApparelOnlyLaunch() ? "The drop — Shop apparel | PotteryMania" : `Shop — ${wearDropDefaultTitle()}`,
   description: isApparelOnlyLaunch()
-    ? "Browse T-shirts, hoodies, and maker apparel — printed on demand. Shipping and taxes at checkout."
-    : "Apparel from our print-on-demand catalog — synced from production. Prices in EUR; shipping and taxes at checkout.",
+    ? "The live PotteryMania drop — tees, hoodies, headwear. Made with heat. Prices in EUR; secure Stripe checkout."
+    : `${wearActiveDropEyebrow()} — browse the live apparel catalog. Prices in EUR; shipping and taxes at checkout.`,
   path: "/wear/shop",
 });
 
@@ -69,9 +69,11 @@ function wearShopHref(opts: {
 }
 
 const filterChipClass =
-  "inline-flex min-h-11 shrink-0 snap-start items-center whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium";
-const filterChipActive = "border-amber-500 bg-amber-200/90 text-amber-950 shadow-sm";
-const filterChipIdle = "border-stone-300 bg-white text-stone-800 hover:border-amber-400/80 hover:text-amber-950";
+  "inline-flex min-h-11 shrink-0 snap-start items-center whitespace-nowrap rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em]";
+const filterChipActive =
+  "border-[var(--heat)] bg-[var(--ink)] text-[var(--clay)] shadow-[0_8px_24px_-12px_rgba(0,0,0,0.35)]";
+const filterChipIdle =
+  "border-[var(--ink)]/12 bg-white/95 text-[var(--ink)] hover:border-[var(--heat)]/70 hover:text-[var(--ink)]";
 
 const filterRowClass =
   "shop-filter-row -mx-4 overflow-x-auto px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0";
@@ -280,21 +282,26 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         : blocks[0]!.products[0]?.id ?? null;
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-10 text-stone-900 sm:px-6 sm:py-12">
+    <main className="pm-brand min-h-[60vh] bg-[var(--clay)] px-4 py-10 text-[var(--ink)] sm:px-6 sm:py-14">
       <div className="mx-auto max-w-6xl">
-        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-600">Shop</p>
-        <h1 className="mt-3 text-center font-serif text-3xl text-amber-950 sm:text-4xl">
-          {apparelOnly ? "T-shirts & Hoodies" : "The drop"}
+        <p className="pm-caption text-center text-[var(--heat)]">Made with heat</p>
+        <h1 className="pm-display mt-4 text-center text-[2.75rem] leading-[0.98] sm:text-[4rem] lg:text-[4.75rem]">
+          The <span className="text-[var(--heat)]">drop.</span>
         </h1>
-        <p className="mx-auto mt-2 max-w-xl text-center text-xs font-medium text-stone-600">
-          {apparelOnly
-            ? "Printed on demand · ships in 2–5 days"
-            : `${WEAR_ACTIVE_DROP.sequenceLabel} · ${WEAR_ACTIVE_DROP.theme} · ${WEAR_ACTIVE_DROP.launchWindowLabel}`}
+        <p className="pm-caption mx-auto mt-4 max-w-xl text-center text-[var(--shadow)]">
+          {wearActiveDropEyebrow()}
+          <span aria-hidden className="mx-2 text-[var(--ink)]/25">
+            ·
+          </span>
+          {WEAR_ACTIVE_DROP.launchWindowLabel}
         </p>
-        <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-stone-700">
+        <p className="mx-auto mt-5 max-w-xl text-center text-base font-medium leading-snug text-[var(--shadow)] sm:text-lg">
           {apparelOnly
-            ? `Pick a tee or hoodie, choose your size and color, check out securely. ${WEAR_CURRENCY_SHOP_LINE}`
-            : `Catalog stays in sync with production — what you see is what you can order. Each piece is printed and shipped after you check out. ${WEAR_CURRENCY_SHOP_LINE}`}
+            ? "Not a mall aisle — if it\u2019s on the wall, it\u2019s in play. Scroll, filter, cop. Built different."
+            : "Same voltage as the homepage — live pieces, zero filler. Find your cut and move."}
+        </p>
+        <p className="pm-caption mx-auto mt-3 max-w-md text-center text-[var(--shadow)]/85">
+          {WEAR_CURRENCY_SHOP_LINE} Secure Stripe checkout.
         </p>
         {apparelOnly ? (
           <div className="mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2">
@@ -309,7 +316,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               className={`${filterChipClass} ${popularOnly ? filterChipActive : filterChipIdle}`}
               aria-pressed={popularOnly}
             >
-              Popular
+              Hot picks
             </Link>
             <Link
               scroll={false}
@@ -381,15 +388,15 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
 
         {visible.length === 0 ? (
           <div className="mx-auto mt-14 max-w-md text-center">
-            <p className="font-serif text-3xl text-amber-950 sm:text-4xl">Nothing here yet.</p>
-            <p className="mt-3 text-sm leading-relaxed text-stone-600">
+            <p className="pm-display text-[var(--ink)] text-3xl sm:text-4xl">Nothing here yet.</p>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--shadow)]">
               {dbUnavailable
                 ? "Couldn’t load the shop. Try again in a moment."
                 : hasActiveFilter
                 ? activeTopSub
                   ? `Nothing in ${wearTopSubcategoryLabel(activeTopSub)} on this drop.`
                   : popularOnly
-                  ? "No popular picks in this view."
+                  ? "No hot picks in this view."
                   : newOnly
                   ? "No new arrivals in this view."
                   : "Empty in this category."
@@ -400,7 +407,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 <Link
                   scroll={false}
                   href="/wear/shop?category=all"
-                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-amber-950 px-7 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-amber-900"
+                  className="pm-btn pm-btn--heat inline-flex min-h-12 items-center justify-center px-7 text-sm font-semibold uppercase tracking-[0.14em]"
                 >
                   {hasActiveFilter ? "See the full drop →" : "See the full drop →"}
                 </Link>
@@ -453,7 +460,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 <section key={block.categorySlug} aria-labelledby={`wear-cat-${block.categorySlug}`}>
                   <h2
                     id={`wear-cat-${block.categorySlug}`}
-                    className="text-sm font-semibold uppercase tracking-[0.22em] text-stone-500"
+                    className="border-b border-[var(--ink)]/10 pb-3 font-serif text-2xl text-[var(--ink)] sm:text-3xl"
                   >
                     {block.heading}
                   </h2>
@@ -462,7 +469,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                       <div key={sub.sub}>
                         <h3
                           id={`wear-tops-${sub.sub}`}
-                          className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500"
+                          className="pm-caption text-[var(--heat)]"
                         >
                           {sub.label}
                         </h3>
@@ -475,7 +482,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                             return (
                               <li key={p.id}>
                                 <Link href={`/wear/${p.slug}${pdpQuerySuffix}`} className="group block">
-                                  <div className="relative aspect-3/4 overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-stone-200">
+                                  <div className="relative aspect-3/4 overflow-hidden rounded-2xl bg-[var(--ink)]/5 ring-1 ring-[var(--ink)]/10 transition duration-300 group-hover:ring-[var(--heat)]/50">
                                     {src ? (
                                       <Image
                                         src={wearListingImageSrc(src, 640)}
@@ -491,22 +498,22 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                         unoptimized
                                       />
                                     ) : (
-                                      <div className="flex h-full flex-col items-center justify-center bg-stone-100 px-6 text-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
-                                        <span className="mt-2 text-xs text-stone-400">Photo unavailable</span>
+                                      <div className="flex h-full flex-col items-center justify-center bg-[var(--ink)]/5 px-6 text-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[var(--ink)]/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                                        <span className="mt-2 text-xs text-[var(--shadow)]">Photo unavailable</span>
                                       </div>
                                     )}
                                   </div>
                                   <div className="mt-4 flex items-baseline justify-between gap-3">
-                                    <h4 className="min-w-0 line-clamp-2 text-sm font-medium text-stone-900 group-hover:text-amber-950">
+                                    <h4 className="min-w-0 line-clamp-2 text-sm font-semibold text-[var(--ink)] group-hover:text-[var(--heat)]">
                                       {displayName}
                                     </h4>
-                                    <p className="shrink-0 text-sm font-semibold text-amber-950">
+                                    <p className="shrink-0 text-sm font-bold text-[var(--heat)]">
                                       {formatWearMoney(p.priceCents, p.currency)}
                                     </p>
                                   </div>
                                   {p.isFeatured ? (
-                                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">Drop pick</p>
+                                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--heat)]">Drop pick</p>
                                   ) : null}
                                 </Link>
                               </li>
@@ -521,7 +528,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 <section key={block.categorySlug} aria-labelledby={`wear-cat-${block.categorySlug}`}>
                   <h2
                     id={`wear-cat-${block.categorySlug}`}
-                    className="text-sm font-semibold uppercase tracking-[0.22em] text-stone-500"
+                    className="border-b border-[var(--ink)]/10 pb-3 font-serif text-2xl text-[var(--ink)] sm:text-3xl"
                   >
                     {block.heading}
                   </h2>
@@ -534,7 +541,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                       return (
                         <li key={p.id}>
                           <Link href={`/wear/${p.slug}${pdpQuerySuffix}`} className="group block">
-                            <div className="relative aspect-3/4 overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-stone-200">
+                            <div className="relative aspect-3/4 overflow-hidden rounded-2xl bg-[var(--ink)]/5 ring-1 ring-[var(--ink)]/10 transition duration-300 group-hover:ring-[var(--heat)]/50">
                               {src ? (
                                 <Image
                                   src={wearListingImageSrc(src, 640)}
@@ -550,20 +557,20 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                   unoptimized
                                 />
                               ) : (
-                                <div className="flex h-full flex-col items-center justify-center bg-stone-100 px-6 text-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
-                                  <span className="mt-2 text-xs text-stone-400">Photo unavailable</span>
+                                <div className="flex h-full flex-col items-center justify-center bg-[var(--ink)]/5 px-6 text-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[var(--ink)]/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                                  <span className="mt-2 text-xs text-[var(--shadow)]">Photo unavailable</span>
                                 </div>
                               )}
                             </div>
                             <div className="mt-4 flex items-baseline justify-between gap-3">
-                              <h3 className="min-w-0 line-clamp-2 text-sm font-medium text-stone-900 group-hover:text-amber-950">
+                              <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-[var(--ink)] group-hover:text-[var(--heat)]">
                                 {displayName}
                               </h3>
-                              <p className="shrink-0 text-sm font-semibold text-amber-950">{formatWearMoney(p.priceCents, p.currency)}</p>
+                              <p className="shrink-0 text-sm font-bold text-[var(--heat)]">{formatWearMoney(p.priceCents, p.currency)}</p>
                             </div>
                             {p.isFeatured ? (
-                              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">Drop pick</p>
+                              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--heat)]">Drop pick</p>
                             ) : null}
                           </Link>
                         </li>
