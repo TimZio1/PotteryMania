@@ -14,6 +14,7 @@ describe("wear category resolver", () => {
   it("classifies tops from tee/t-shirt keywords", () => {
     expect(resolveWearCategory({ name: "Studio Mark Tee" })).toBe("tops");
     expect(resolveWearCategory({ name: "Handmade T-Shirt" })).toBe("tops");
+    expect(resolveWearCategory({ spreadconnectProductTypeName: "Men's Short Sleeve" })).toBe("tops");
   });
 
   it("classifies hoodies and sweatshirts", () => {
@@ -72,6 +73,7 @@ describe("wear category resolver", () => {
 describe("wear tops / tee subcategories", () => {
   it("resolves organic tee line vs relaxed fit vs sleeve length vs other", () => {
     expect(resolveWearTopSubcategory({ name: "Studio Mark Tee" })).toBe("short_sleeve");
+    expect(resolveWearTopSubcategory({ spreadconnectProductTypeName: "Women's Shortsleeve" })).toBe("short_sleeve");
     expect(resolveWearTopSubcategory({ name: "Hands in the clay · longsleeve" })).toBe("long_sleeve");
     expect(resolveWearTopSubcategory({ subtitle: "Classic long sleeve tee" })).toBe("long_sleeve");
     expect(resolveWearTopSubcategory({ name: "Summer tank" })).toBe("tank");

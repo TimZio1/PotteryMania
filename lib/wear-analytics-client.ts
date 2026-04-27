@@ -2,6 +2,16 @@
 
 import { WEAR_EVENT_KINDS, type WearEventKind } from "@/lib/wear-event-kinds";
 
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() || "1956916491397785";
+
+type MetaFbq = ((...args: unknown[]) => void) & {
+  callMethod?: (...args: unknown[]) => void;
+  queue?: unknown[][];
+  loaded?: boolean;
+  version?: string;
+  push?: MetaFbq;
+};
+
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
@@ -11,6 +21,7 @@ declare global {
      * Type matches `lib/meta-pixel.ts` to keep both modules' `declare global` blocks compatible.
      */
     fbq?: (...args: unknown[]) => void;
+    _fbq?: MetaFbq;
   }
 }
 
@@ -51,6 +62,25 @@ const META_PIXEL_EVENT: Partial<Record<WearEventKind, string>> = {
   [WEAR_EVENT_KINDS.purchaseSuccess]: "Purchase",
 };
 
+function ensureMetaPixelQueue() {
+  if (typeof window === "undefined" || window.fbq || !META_PIXEL_ID) return;
+  const fbq = function (...args: unknown[]) {
+    if (fbq.callMethod) fbq.callMethod(...args);
+    else fbq.queue?.push(args);
+  } as MetaFbq;
+  fbq.queue = [];
+  fbq.loaded = true;
+  fbq.version = "2.0";
+  fbq.push = fbq;
+  window.fbq = fbq;
+  window._fbq = fbq;
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = "https://connect.facebook.net/en_US/fbevents.js";
+  document.head.appendChild(script);
+  window.fbq("init", META_PIXEL_ID);
+}
+
 export function trackWearEvent(kind: WearEventKind, opts: TrackOpts = {}) {
   if (typeof window !== "undefined" && window.gtag) {
     window.gtag("event", kind, {
@@ -62,6 +92,8 @@ export function trackWearEvent(kind: WearEventKind, opts: TrackOpts = {}) {
       ...(opts.meta ? { ...opts.meta } : {}),
     });
   }
+
+  ensureMetaPixelQueue();
 
   if (typeof window !== "undefined" && window.fbq) {
     const pixelEvent = META_PIXEL_EVENT[kind];

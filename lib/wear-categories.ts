@@ -71,7 +71,7 @@ const CATEGORY_RULES: Array<{ category: WearCategory; keywords: RegExp[] }> = [
   },
   {
     category: "tops",
-    keywords: [/\btee\b/i, /\bt-?shirt\b/i, /\blongsleeve\b/i, /\bshirt\b/i, /\bpolo\b/i],
+    keywords: [/\btee\b/i, /\bt-?shirt\b/i, /\blongsleeve\b/i, /\bshort[-\s]?sleeve\b/i, /\bshirt\b/i, /\bpolo\b/i],
   },
 ];
 

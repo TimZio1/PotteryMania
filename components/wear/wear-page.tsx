@@ -13,13 +13,13 @@ import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
 
 const heroCtaClass =
-  "inline-flex min-h-12 items-center justify-center border border-amber-300/60 bg-white px-8 text-sm font-medium tracking-wide text-stone-900 transition hover:bg-amber-50/90";
+  "pm-btn pm-btn--heat group";
 
 const sectionCtaClass =
-  "inline-flex min-h-11 items-center justify-center border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900";
+  "pm-btn group";
 
 const textLinkClass =
-  "text-sm font-medium text-stone-600 underline decoration-stone-400/60 underline-offset-4 transition hover:text-amber-950 hover:decoration-amber-700/60";
+  "text-sm font-semibold uppercase tracking-[0.14em] text-(--clay)/70 underline decoration-(--clay)/25 underline-offset-4 transition hover:text-(--heat) hover:decoration-(--heat)";
 
 export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] }) {
   const spreadshopUrl = getWearSpreadshopUrl();
@@ -28,20 +28,31 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
   return (
     <>
       <WearAnalytics />
-      <main className="bg-[#f7f2ec] text-stone-900">
-        {/* Section 1 — Hero (identity + single CTA) */}
-        <section className="border-b border-stone-200/80 px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">{wearActiveDropEyebrow()}</p>
-            <h1 className="mt-4 font-serif text-3xl leading-snug tracking-tight text-amber-950 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
-              Clothes for people who build things with their hands.
+      <main className="pm-brand bg-(--ink) text-(--clay)">
+        <section className="relative isolate min-h-[calc(100svh-8rem)] overflow-hidden bg-(--ink)">
+          <Image
+            src={WEAR_VISUAL_IMAGES.primary}
+            alt={WEAR_VISUAL_IMAGES.primaryAlt}
+            fill
+            className="object-cover opacity-55 saturate-75"
+            sizes="100vw"
+            priority
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,74,28,0.20),transparent_34%),linear-gradient(180deg,rgba(11,11,11,0.30),rgba(11,11,11,0.92)_72%)]" />
+          <div className="relative mx-auto flex min-h-[calc(100svh-8rem)] max-w-7xl flex-col justify-end px-6 py-16 sm:px-10 sm:py-24">
+            <p className="pm-caption text-(--heat)">{wearActiveDropEyebrow()}</p>
+            <h1 className="pm-display mt-6 max-w-6xl text-[4.2rem] leading-[0.88] text-(--clay) sm:text-[7rem] lg:text-[10rem]">
+              Made with
+              <br />
+              <span className="text-(--heat)">heat.</span>
             </h1>
-            <p className="mt-6 text-base leading-relaxed text-stone-600 sm:text-lg">
-              Small runs. No filler. Each piece is for you — not for a shelf.
+            <p className="mt-7 max-w-xl text-lg leading-relaxed text-(--clay)/78 sm:text-xl">
+              T-shirts and hoodies for people who don&apos;t sit still. Small runs, heavy ink, built for the hands that make the work.
             </p>
-            <div className="mt-10 flex flex-col items-center gap-4">
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
               <Link href="/wear/shop" className={heroCtaClass}>
                 Shop the drop
+                <span aria-hidden className="ml-3 transition group-hover:translate-x-0.5">→</span>
               </Link>
               <Link href="/wear/partner" className={textLinkClass}>
                 Partner program
@@ -49,54 +60,58 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               {spreadshopUrl ? (
                 <WearOutboundLink
                   href={spreadshopUrl}
-                  className="text-xs text-stone-400 underline decoration-stone-400/50 underline-offset-4 transition hover:text-amber-950"
+                  className="text-xs font-semibold uppercase tracking-[0.14em] text-(--clay)/35 underline decoration-(--clay)/20 underline-offset-4 transition hover:text-(--clay)"
                   eventName="wear_hero_spreadshop_fallback"
                 >
                   Legacy catalog
                 </WearOutboundLink>
               ) : null}
             </div>
-            <div className="relative mx-auto mt-14 aspect-[21/9] max-w-3xl overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100 sm:aspect-[2/1]">
-              <Image
-                src={WEAR_VISUAL_IMAGES.primary}
-                alt={WEAR_VISUAL_IMAGES.primaryAlt}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 48rem"
-                priority
-              />
-            </div>
+            <p className="pm-caption mt-10 text-(--clay)/45">
+              Built different · 30-day returns · Worldwide shipping
+            </p>
           </div>
         </section>
 
-        {/* Section 2 — The drop (products only) */}
-        <section className="border-b border-stone-200/80 px-4 py-14 sm:px-6 sm:py-20">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="text-center font-serif text-2xl text-amber-950 sm:text-3xl">The drop</h2>
-            <p className="mx-auto mt-3 max-w-lg text-center text-sm text-stone-600">
-              Preview what&apos;s live in the shop — sizes, colors, and checkout on each product page.
-            </p>
-            <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="bg-(--clay) px-6 py-16 text-(--ink) sm:px-10 sm:py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="pm-caption text-(--shadow)">The drop</p>
+                <h2 className="pm-display mt-3 text-[3.2rem] text-(--ink) sm:text-[5rem]">
+                  Live pieces.
+                </h2>
+              </div>
+              <p className="max-w-md text-sm leading-relaxed text-(--shadow) sm:text-right">
+                Preview what&apos;s live now. Sizes, colors, checkout, and shipping are handled on each product page.
+              </p>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {tiles.map((item) => {
                 const inner = (
                   <>
-                    <div className="relative aspect-3/4 overflow-hidden rounded-2xl bg-stone-200/90 ring-1 ring-stone-200">
+                    <div className="relative aspect-3/4 overflow-hidden bg-(--ink) ring-1 ring-(--ink)/10">
                       <Image
                         src={item.imageSrc}
                         alt={item.imageAlt}
                         fill
-                        className="object-cover"
+                        className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
+                      <span className="absolute inset-0 bg-(--ink)/0 transition group-hover:bg-(--ink)/20" />
                     </div>
-                    <h3 className="mt-4 font-medium leading-snug text-stone-900">{item.name}</h3>
-                    {item.priceLabel ? <p className="mt-1 text-sm text-stone-500">{item.priceLabel}</p> : null}
+                    <div className="mt-4 flex items-start justify-between gap-4">
+                      <h3 className="text-sm font-semibold uppercase leading-snug tracking-[0.08em] text-(--ink)">{item.name}</h3>
+                      {item.priceLabel ? (
+                        <p className="shrink-0 text-sm font-semibold text-(--heat)">{item.priceLabel}</p>
+                      ) : null}
+                    </div>
                   </>
                 );
                 return (
                   <article key={item.id} className="flex flex-col">
                     {item.slug ? (
-                      <Link href={`/wear/${item.slug}`} className="group block transition hover:opacity-90">
+                      <Link href={`/wear/${item.slug}`} className="group block">
                         {inner}
                       </Link>
                     ) : (
@@ -109,28 +124,35 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
             <div className="mt-12 text-center">
               <Link href="/wear/shop" className={sectionCtaClass}>
                 View all pieces
+                <span aria-hidden className="ml-3 transition group-hover:translate-x-0.5">→</span>
               </Link>
             </div>
           </div>
         </section>
 
-        {/* Section 3 — Trust + shipping */}
-        <section className="bg-white px-4 py-14 sm:px-6 sm:py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">How it ships</p>
-            <p className="mt-4 text-sm leading-relaxed text-stone-700">{WEAR_SHIPPING_LANDING_STRIP}</p>
-            <p className="mt-3 text-sm leading-relaxed text-stone-600">{WEAR_SHIPPING_DELIVERY_RANGES}</p>
-            <p className="mt-3 text-xs leading-relaxed text-stone-500">{WEAR_CURRENCY_LANDING_LINE}</p>
-            <p className="mt-8 text-xs text-stone-500">
-              Questions?{" "}
-              <Link href="/wear/partner" className={textLinkClass}>
-                Partners
-              </Link>{" "}
-              ·{" "}
-              <Link href="/wear/cart" className={textLinkClass}>
-                Cart
-              </Link>
-            </p>
+        <section className="bg-(--ink) px-6 py-16 text-(--clay) sm:px-10 sm:py-24">
+          <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+            <div>
+              <p className="pm-caption text-(--heat)">How it ships</p>
+              <h2 className="pm-display mt-4 text-[3rem] sm:text-[4.75rem]">
+                Cold facts.
+              </h2>
+            </div>
+            <div className="space-y-4 text-sm leading-relaxed text-(--clay)/72 sm:text-base">
+              <p>{WEAR_SHIPPING_LANDING_STRIP}</p>
+              <p>{WEAR_SHIPPING_DELIVERY_RANGES}</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-(--clay)/45">{WEAR_CURRENCY_LANDING_LINE}</p>
+              <p className="pt-4 text-xs text-(--clay)/55">
+                Questions?{" "}
+                <Link href="/wear/partner" className={textLinkClass}>
+                  Partners
+                </Link>{" "}
+                ·{" "}
+                <Link href="/wear/cart" className={textLinkClass}>
+                  Cart
+                </Link>
+              </p>
+            </div>
           </div>
         </section>
       </main>

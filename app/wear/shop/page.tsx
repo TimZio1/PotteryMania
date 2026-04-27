@@ -66,6 +66,18 @@ const CATEGORY_DISPLAY_ORDER = ["tops", "hoodies", "headwear", "accessories", "o
 
 const NEW_THRESHOLD_MS = 90 * 24 * 60 * 60 * 1000;
 
+/**
+ * "Short-sleeve tees" is a customer-facing filter, not a mutually exclusive product line.
+ * Organic and relaxed-fit T-shirts are still short-sleeve tees unless they explicitly resolve
+ * to long sleeve / tank / polo, so include them when that chip is active.
+ */
+const SHORT_SLEEVE_TEE_SUBS = new Set<WearTopSubcategory>(["organic", "relaxed_fit", "short_sleeve"]);
+
+function matchesTopSubFilter(product: WearShopProduct, sub: WearTopSubcategory) {
+  if (sub === "short_sleeve") return product.topSub != null && SHORT_SLEEVE_TEE_SUBS.has(product.topSub);
+  return product.topSub === sub;
+}
+
 function wearShopHref(opts: {
   category?: string | null;
   sub?: WearTopSubcategory | null;
@@ -256,7 +268,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     ? normalized.filter((p) => p.categorySlug === activeCategory)
     : normalized;
   if (activeTopSub) {
-    visible = visible.filter((p) => p.topSub === activeTopSub);
+    visible = visible.filter((p) => matchesTopSubFilter(p, activeTopSub));
   }
   if (popularOnly) {
     visible = visible.filter((p) => p.isFeatured);
@@ -275,7 +287,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
       )
       .map((p) => p.topSub),
   );
-  const topSubNavItems = WEAR_TOP_SUBCATEGORIES.filter((s) => topsSubsInCatalog.has(s));
+  const topSubNavItems = WEAR_TOP_SUBCATEGORIES.filter((s) =>
+    s === "short_sleeve"
+      ? [...SHORT_SLEEVE_TEE_SUBS].some((sub) => topsSubsInCatalog.has(sub))
+      : topsSubsInCatalog.has(s),
+  );
   const hasTopsInCatalog = topsSubsInCatalog.size > 0;
 
   const categoryNavItems = Array.from(
@@ -303,7 +319,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const topsSubMinPrices = Object.fromEntries(
     topSubNavItems.map((sub) => [
       sub,
-      minWearListingPrice(normalized.filter((p) => p.categorySlug === "tops" && p.topSub === sub)),
+      minWearListingPrice(normalized.filter((p) => p.categorySlug === "tops" && matchesTopSubFilter(p, sub))),
     ]),
   ) as Record<WearTopSubcategory, { cents: number; currency: string } | null>;
 
