@@ -184,7 +184,7 @@ async function ApparelHome() {
               <span className="text-[var(--heat)]">heat.</span>
             </h1>
             <p className="mt-6 max-w-md text-base text-[var(--clay)]/85 sm:text-lg">
-              T-shirts and cups for people who don&apos;t sit still.
+              T-shirts and hoodies for people who don&apos;t sit still.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
               <Link href="/wear/shop" className="pm-btn pm-btn--heat group">
