@@ -37,8 +37,20 @@ export const metadata: Metadata = buildMetadata({
 });
 
 type WearShopProps = {
-  searchParams: Promise<{ category?: string; sub?: string; popular?: string; new?: string }>;
+  searchParams: Promise<{ category?: string; sub?: string; popular?: string; new?: string; sort?: string }>;
 };
+
+type WearSortMode = "featured" | "price-asc" | "price-desc";
+
+const WEAR_SORT_OPTIONS: { value: WearSortMode; label: string }[] = [
+  { value: "featured", label: "Featured" },
+  { value: "price-asc", label: "Price \u2191" },
+  { value: "price-desc", label: "Price \u2193" },
+];
+
+function isWearSortMode(value: unknown): value is WearSortMode {
+  return value === "featured" || value === "price-asc" || value === "price-desc";
+}
 
 type WearShopProduct = WearPublicListingRow & {
   categorySlug: string;
@@ -58,14 +70,26 @@ function wearShopHref(opts: {
   sub?: WearTopSubcategory | null;
   popular?: boolean;
   new?: boolean;
+  sort?: WearSortMode | null;
 }) {
   const q = new URLSearchParams();
   if (opts.category) q.set("category", opts.category);
   if (opts.sub) q.set("sub", opts.sub);
   if (opts.popular) q.set("popular", "1");
   if (opts.new) q.set("new", "1");
+  if (opts.sort && opts.sort !== "featured") q.set("sort", opts.sort);
   const s = q.toString();
   return s ? `/wear/shop?${s}` : "/wear/shop";
+}
+
+function applyWearSort(arr: WearShopProduct[], sort: WearSortMode): WearShopProduct[] {
+  if (sort === "price-asc") {
+    return [...arr].sort((a, b) => a.priceCents - b.priceCents || a.name.localeCompare(b.name));
+  }
+  if (sort === "price-desc") {
+    return [...arr].sort((a, b) => b.priceCents - a.priceCents || a.name.localeCompare(b.name));
+  }
+  return arr;
 }
 
 const filterChipBase =
@@ -157,6 +181,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const filterAliasFlag = rawCategoryEarly && rawCategoryEarly in WEAR_FILTER_ALIASES ? WEAR_FILTER_ALIASES[rawCategoryEarly] : null;
   const popularOnly = sp.popular === "1" || filterAliasFlag === "popular";
   const newOnly = sp.new === "1" || filterAliasFlag === "new";
+  const activeSort: WearSortMode = isWearSortMode(sp.sort) ? sp.sort : "featured";
 
   const catalogResult = await findWearPublicProductsWithVariantsRetrying();
   const dbUnavailable = !catalogResult.ok;
@@ -213,14 +238,15 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     activeCategory != null || activeTopSub != null || popularOnly || newOnly;
 
   /**
-   * PDP links carry the active `popular` / `new` flag so the PDP back button can drop the user
-   * back into the same filtered shop view they came from. (Category/sub already round-trip via the
+   * PDP links carry the active filter + sort so the PDP back button can drop the user
+   * back into the same view they came from. (Category/sub already round-trip via the
    * product's own resolved category in `app/wear/[slug]/page.tsx#backHref`.)
    */
   const pdpQuerySuffix = (() => {
     const params = new URLSearchParams();
     if (popularOnly) params.set("popular", "1");
     if (newOnly) params.set("new", "1");
+    if (activeSort !== "featured") params.set("sort", activeSort);
     const qs = params.toString();
     return qs ? `?${qs}` : "";
   })();
@@ -238,6 +264,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
     const cutoff = Date.now() - NEW_THRESHOLD_MS;
     visible = visible.filter((p) => new Date(p.createdAt).getTime() >= cutoff);
   }
+  visible = applyWearSort(visible, activeSort);
 
   const topsSubsInCatalog = new Set(
     normalized
@@ -360,6 +387,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 sub: activeTopSub ?? undefined,
                 popular: !popularOnly,
                 new: newOnly,
+                sort: activeSort,
               })}
               className={`${filterChipClass} ${popularOnly ? filterChipActive : filterChipIdle}`}
               aria-pressed={popularOnly}
@@ -373,6 +401,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                 sub: activeTopSub ?? undefined,
                 popular: popularOnly,
                 new: !newOnly,
+                sort: activeSort,
               })}
               className={`${filterChipClass} ${newOnly ? filterChipActive : filterChipIdle}`}
               aria-pressed={newOnly}
@@ -387,7 +416,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               <div className="flex min-w-max snap-x snap-proximity items-center gap-2 pb-2">
                 <Link
                   scroll={false}
-                  href="/wear/shop?category=tops"
+                  href={wearShopHref({ category: "tops", sort: activeSort })}
                   className={`${filterChipClassStacked} ${activeCategory === "tops" && activeTopSub == null ? filterChipActive : filterChipIdle}`}
                   aria-pressed={activeCategory === "tops" && activeTopSub == null}
                 >
@@ -401,7 +430,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   <Link
                     key={sub}
                     scroll={false}
-                    href={`/wear/shop?category=tops&sub=${sub}`}
+                    href={wearShopHref({ category: "tops", sub, sort: activeSort })}
                     className={`${filterChipClassStacked} ${activeCategory === "tops" && activeTopSub === sub ? filterChipActive : filterChipIdle}`}
                     aria-pressed={activeCategory === "tops" && activeTopSub === sub}
                   >
@@ -421,7 +450,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             <div className="flex min-w-max snap-x snap-proximity items-center gap-2 pb-2">
               <Link
                 scroll={false}
-                href="/wear/shop?category=all"
+                href={wearShopHref({ category: "all", sort: activeSort })}
                 className={`${filterChipClassStacked} ${activeCategory == null && !popularOnly && !newOnly ? filterChipActive : filterChipIdle}`}
                 aria-pressed={activeCategory == null && !popularOnly && !newOnly}
               >
@@ -437,7 +466,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   <Link
                     key={category.slug}
                     scroll={false}
-                    href={`/wear/shop?category=${category.slug}`}
+                    href={wearShopHref({ category: category.slug, sort: activeSort })}
                     className={`${filterChipClassStacked} ${catActive ? filterChipActive : filterChipIdle}`}
                     aria-pressed={catActive}
                   >
@@ -449,6 +478,32 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             </div>
           </div>
         </div>
+
+        {visible.length > 0 ? (
+          <div className="mx-auto mt-4 flex max-w-4xl flex-wrap items-center justify-end gap-2">
+            <span className="pm-caption text-[var(--shadow)]/85">Sort</span>
+            {WEAR_SORT_OPTIONS.map((opt) => {
+              const sortActive = activeSort === opt.value;
+              return (
+                <Link
+                  key={opt.value}
+                  scroll={false}
+                  href={wearShopHref({
+                    category: activeCategory ?? undefined,
+                    sub: activeTopSub ?? undefined,
+                    popular: popularOnly,
+                    new: newOnly,
+                    sort: opt.value,
+                  })}
+                  className={`${filterChipClass} ${sortActive ? filterChipActive : filterChipIdle}`}
+                  aria-pressed={sortActive}
+                >
+                  {opt.label}
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
 
         {visible.length === 0 ? (
           <div className="mx-auto mt-14 max-w-md text-center">
