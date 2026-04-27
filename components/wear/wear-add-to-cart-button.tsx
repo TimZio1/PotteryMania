@@ -33,6 +33,10 @@ type Props = {
   viewCartHref?: string;
   className?: string;
   label?: string;
+  /** Defaults to 1; clamped to 1..99. */
+  quantity?: number;
+  /** Suppress the "Item in your bag — View cart" status text after add (used for sticky mobile CTA bars). */
+  silentSuccess?: boolean;
 };
 
 export function WearAddToCartButton({
@@ -41,7 +45,9 @@ export function WearAddToCartButton({
   studioId,
   viewCartHref = "/wear/cart",
   className,
-  label = "Add to cart",
+  label = "Cop it",
+  quantity = 1,
+  silentSuccess = false,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -65,6 +71,7 @@ export function WearAddToCartButton({
 
   const onClick = useCallback(async () => {
     setBusy(true);
+    const qty = Math.min(99, Math.max(1, Math.floor(quantity || 1)));
     try {
       if (studioId) {
         const res = await fetch("/api/cart", {
@@ -74,7 +81,7 @@ export function WearAddToCartButton({
             wearProductId: productId,
             wearProductVariantId: variantId,
             studioId,
-            quantity: 1,
+            quantity: qty,
           }),
         });
         if (!res.ok) {
@@ -95,7 +102,7 @@ export function WearAddToCartButton({
       const incoming: WearCartLine = {
         productId,
         ...(variantId ? { variantId } : {}),
-        quantity: 1,
+        quantity: qty,
       };
       const targetKey = cartLineKey(incoming);
       const next: WearCartLine[] = [];
@@ -104,7 +111,7 @@ export function WearAddToCartButton({
         if (cartLineKey(line) === targetKey) {
           next.push({
             ...line,
-            quantity: Math.min(99, line.quantity + 1),
+            quantity: Math.min(99, line.quantity + qty),
           });
           merged = true;
         } else {
@@ -124,7 +131,7 @@ export function WearAddToCartButton({
     } finally {
       setBusy(false);
     }
-  }, [productId, studioId, variantId, flashAdded]);
+  }, [productId, studioId, variantId, quantity, flashAdded]);
 
   const defaultButtonClass =
     "inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60";
@@ -138,17 +145,17 @@ export function WearAddToCartButton({
         className={className ?? defaultButtonClass}
         aria-busy={busy}
       >
-        {busy ? "Adding…" : justAdded ? "Added to cart ✓" : label}
+        {busy ? "Adding…" : justAdded && !silentSuccess ? "In the bag ✓" : label}
       </button>
-      {justAdded ? (
+      {justAdded && !silentSuccess ? (
         <p
-          className="text-center text-xs font-medium leading-snug text-emerald-800 sm:text-sm md:text-left"
+          className="text-center text-xs font-semibold uppercase tracking-[0.14em] leading-snug text-emerald-800 sm:text-sm md:text-left"
           role="status"
           aria-live="polite"
         >
-          Item in your bag —{" "}
+          In the bag —{" "}
           <Link href={viewCartHref} className="font-semibold text-amber-950 underline underline-offset-2 hover:text-amber-900">
-            View cart
+            View bag
           </Link>
         </p>
       ) : null}

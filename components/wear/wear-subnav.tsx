@@ -11,7 +11,7 @@ import {
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 const linkBase =
-  "!text-stone-800 text-xs font-medium uppercase tracking-[0.2em] transition hover:!text-stone-950";
+  "inline-flex min-h-11 items-center px-2 py-2 !text-stone-800 text-xs font-medium uppercase tracking-[0.2em] transition hover:!text-stone-950";
 const linkOn = "font-semibold !text-amber-900";
 
 function cartItemCount(): number {
@@ -40,8 +40,8 @@ export function WearSubnav({ initialCount = 0 }: { initialCount?: number }) {
 
   return (
     <div className="border-b border-stone-200/90 bg-white/95 !text-stone-900 shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 sm:justify-between sm:px-6">
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:gap-x-8" aria-label="Shop">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 py-2 sm:justify-between sm:px-6 sm:py-3">
+        <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:gap-x-6" aria-label="Shop">
           <Link
             href={apparelOnly ? "/" : "/wear"}
             className={(apparelOnly ? pathname === "/" : pathname === "/wear") ? `${linkBase} ${linkOn}` : linkBase}

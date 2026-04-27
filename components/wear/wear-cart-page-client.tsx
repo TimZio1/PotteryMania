@@ -69,6 +69,7 @@ export function WearCartPageClient() {
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
   const [serverPricing, setServerPricing] = useState<{ preCents: number; currency: string } | null>(null);
+  const [pricingState, setPricingState] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   const refreshFromStorage = useCallback(() => {
     setLines(parseWearCart(typeof window !== "undefined" ? localStorage.getItem(WEAR_CART_STORAGE_KEY) : null));
@@ -162,9 +163,11 @@ export function WearCartPageClient() {
   useEffect(() => {
     if (!catalogReady || lines.length === 0 || linesInvalid) {
       setServerPricing(null);
+      setPricingState("idle");
       return;
     }
     const ac = new AbortController();
+    setPricingState("loading");
     (async () => {
       const partnerStudioId = getWearPartnerReferralStudioId();
       try {
@@ -189,14 +192,19 @@ export function WearCartPageClient() {
         if (ac.signal.aborted) return;
         if (!res.ok) {
           setServerPricing(null);
+          setPricingState("error");
           return;
         }
         setServerPricing({
           preCents: data.preDiscountSubtotalCents ?? 0,
           currency: (data.currency ?? "EUR").toUpperCase(),
         });
+        setPricingState("ready");
       } catch {
-        if (!ac.signal.aborted) setServerPricing(null);
+        if (!ac.signal.aborted) {
+          setServerPricing(null);
+          setPricingState("error");
+        }
       }
     })();
     return () => ac.abort();
@@ -279,8 +287,8 @@ export function WearCartPageClient() {
   return (
     <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 !text-stone-900 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-lg">
-        <p className="text-center text-xs font-medium uppercase tracking-[0.28em] text-stone-700">Cart</p>
-        <h1 className="mt-4 text-center font-serif text-3xl text-amber-950">Your selection</h1>
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-stone-700">The bag</p>
+        <h1 className="mt-4 text-center font-serif text-3xl text-amber-950">Your pick.</h1>
 
         {cancelled ? (
           <div className="mt-6 rounded border border-amber-300/70 bg-amber-50 px-4 py-4 text-center text-sm text-amber-950">
@@ -298,12 +306,12 @@ export function WearCartPageClient() {
         ) : null}
 
         {loadError ? (
-          <div className="mt-6 space-y-3 text-center">
+          <div className="mt-6 flex flex-col items-center gap-3 text-center">
             <p className="text-sm text-amber-950">{loadError}</p>
             <button
               type="button"
               onClick={() => void loadCatalog()}
-              className="text-sm font-medium text-amber-900 underline underline-offset-4 hover:text-amber-800"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
             >
               Try loading again
             </button>
@@ -311,13 +319,34 @@ export function WearCartPageClient() {
         ) : null}
 
         {lines.length === 0 ? (
-          <p className="mt-12 text-center text-sm text-stone-600">
-            Your cart is empty.{" "}
-            <Link href="/wear/shop" className="text-amber-950 underline underline-offset-4 hover:text-amber-800">
-              Browse the shop
+          <div className="mt-14 flex flex-col items-center gap-5 text-center">
+            <p className="font-serif text-3xl text-amber-950 sm:text-4xl">Bag empty.</p>
+            <p className="text-sm text-stone-600">Work calls.</p>
+            <Link
+              href="/wear/shop"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-amber-950 px-7 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-amber-900"
+            >
+              Enter the drop →
             </Link>
-            .
-          </p>
+          </div>
+        ) : !catalogReady ? (
+          <ul className="mt-12 space-y-8 border-t border-stone-200/80 pt-10" aria-busy="true" aria-label="Loading cart">
+            {lines.map((l) => (
+              <li
+                key={cartLineKey(l)}
+                className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 gap-4">
+                  <div className="h-20 w-20 shrink-0 animate-pulse rounded-2xl bg-stone-200/80" />
+                  <div className="min-w-0 space-y-2 pt-1">
+                    <div className="h-3 w-40 animate-pulse rounded bg-stone-200/80" />
+                    <div className="h-3 w-24 animate-pulse rounded bg-stone-200/70" />
+                  </div>
+                </div>
+                <div className="h-11 w-32 animate-pulse rounded-full bg-stone-200/70" />
+              </li>
+            ))}
+          </ul>
         ) : (
           <ul className="mt-12 space-y-8 border-t border-stone-200/80 pt-10">
             {lines.map((l) => {
@@ -390,33 +419,53 @@ export function WearCartPageClient() {
           </ul>
         )}
 
-        {lines.length > 0 ? (
+        {lines.length > 0 && catalogReady ? (
           <>
             <dl className="mt-10 space-y-2 border-t border-stone-200/80 pt-8 text-sm">
               <div className="flex justify-between">
                 <dt className="font-medium text-stone-800">Merchandise</dt>
                 <dd className="text-amber-950">
-                  {formatWearMoney(merchandiseCents, displayCurrency)}
+                  {pricingState === "loading" ? (
+                    <span className="inline-block h-3 w-20 animate-pulse rounded bg-stone-200/80" aria-label="Calculating" />
+                  ) : (
+                    formatWearMoney(merchandiseCents, displayCurrency)
+                  )}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-stone-600">Shipping</dt>
                 <dd className={qualifiesForFreeShipping ? "font-semibold text-emerald-700" : "text-stone-600"}>
-                  {qualifiesForFreeShipping
-                    ? "Free"
-                    : `${formatWearMoney(freeShippingRemainingCents, displayCurrency)} away from free shipping`}
+                  {pricingState === "loading" ? (
+                    <span className="inline-block h-3 w-32 animate-pulse rounded bg-stone-200/80" aria-label="Calculating" />
+                  ) : qualifiesForFreeShipping ? (
+                    "Free"
+                  ) : (
+                    `${formatWearMoney(freeShippingRemainingCents, displayCurrency)} away from free shipping`
+                  )}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-stone-200/80 pt-3 text-base">
                 <dt className="font-semibold text-amber-950">Estimated total</dt>
                 <dd className="font-semibold text-amber-950">
-                  {formatWearMoney(merchandiseCents, displayCurrency)}
-                  <span className="ml-1 text-xs font-normal text-stone-500">
-                    {qualifiesForFreeShipping ? "shipping free" : "+ shipping"}
-                  </span>
+                  {pricingState === "loading" ? (
+                    <span className="inline-block h-4 w-24 animate-pulse rounded bg-stone-200/80" aria-label="Calculating" />
+                  ) : (
+                    <>
+                      {formatWearMoney(merchandiseCents, displayCurrency)}
+                      <span className="ml-1 text-xs font-normal text-stone-500">
+                        {qualifiesForFreeShipping ? "shipping free" : "+ shipping"}
+                      </span>
+                    </>
+                  )}
                 </dd>
               </div>
             </dl>
+
+            {pricingState === "error" ? (
+              <p className="mt-3 rounded-xl border border-amber-300/60 bg-amber-50/60 px-4 py-3 text-xs leading-relaxed text-amber-900">
+                We couldn’t reach the pricing service — totals shown are based on your local cart. You can still continue to checkout to confirm the final amount before paying.
+              </p>
+            ) : null}
 
             <p className="mt-3 text-xs leading-relaxed text-stone-600">{WEAR_SHIPPING_CART_NOTE}</p>
 
@@ -430,50 +479,47 @@ export function WearCartPageClient() {
               </p>
             ) : null}
 
-            <ul className="mt-8 grid grid-cols-3 gap-2 text-[11px] leading-tight text-stone-600">
-              <li className="flex flex-col items-center gap-1 rounded-xl border border-stone-200/80 bg-white px-2 py-3 text-center">
-                <span aria-hidden className="text-base">🔒</span>
-                <span>Secure Stripe</span>
-              </li>
-              <li className="flex flex-col items-center gap-1 rounded-xl border border-stone-200/80 bg-white px-2 py-3 text-center">
-                <span aria-hidden className="text-base">↩</span>
-                <span>30-day returns</span>
-              </li>
-              <li className="flex flex-col items-center gap-1 rounded-xl border border-stone-200/80 bg-white px-2 py-3 text-center">
-                <span aria-hidden className="text-base">🌍</span>
-                <span>Worldwide shipping</span>
-              </li>
-            </ul>
+            <p className="mt-6 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+              Secure Stripe · 30-day returns · Worldwide shipping
+            </p>
 
             <button
               type="button"
               disabled={
-                checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid || cartCurrencyIssue != null
+                checkoutBusy ||
+                !catalogReady ||
+                lines.length === 0 ||
+                linesInvalid ||
+                cartCurrencyIssue != null ||
+                pricingState === "loading"
               }
               onClick={onCheckout}
-              className="mt-6 w-full min-h-14 rounded-full border border-amber-800/50 bg-amber-950 px-6 text-base font-semibold tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-50"
+              className="mt-4 w-full min-h-14 rounded-full bg-amber-950 px-6 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-amber-900 disabled:opacity-50"
             >
               {checkoutBusy
-                ? "Redirecting to Stripe…"
-                : `Pay ${formatWearMoney(merchandiseCents, displayCurrency)} — secure checkout`}
+                ? "Redirecting…"
+                : pricingState === "loading"
+                  ? "Calculating…"
+                  : `Pay ${formatWearMoney(merchandiseCents, displayCurrency)} → checkout`}
             </button>
-            <p className="mt-3 flex items-center justify-center gap-2 text-xs text-stone-600">
-              <span aria-hidden>🔒</span>
+            <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
               Apple Pay · Google Pay · Card · Link
             </p>
             <p className="mt-2 text-center text-[11px] leading-relaxed text-stone-500">{WEAR_CURRENCY_POLICY_FULL}</p>
           </>
         ) : null}
 
-        <p className="mt-10 text-center">
-          <button
-            type="button"
-            onClick={() => router.push("/wear/shop")}
-            className="text-sm font-medium text-stone-700 underline underline-offset-4 hover:text-amber-800"
-          >
-            ← Continue shopping
-          </button>
-        </p>
+        {lines.length > 0 ? (
+          <p className="mt-10 flex justify-center">
+            <button
+              type="button"
+              onClick={() => router.push("/wear/shop")}
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 text-sm font-medium text-stone-800 transition hover:border-amber-400/80 hover:text-amber-950"
+            >
+              ← Continue shopping
+            </button>
+          </p>
+        ) : null}
       </div>
     </main>
   );

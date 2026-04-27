@@ -94,6 +94,113 @@ body {
   background: var(--background);
 }
 
+/*
+ * ── BRAND: MADE WITH HEAT ──────────────────────────────
+ * Apparel storefront (potterymania.com) tokens. Scoped to .pm-brand so we
+ * don't disturb /admin or studio routes that share the marketing shell.
+ *  - --ink   : warm near-black (text, hero, primary CTAs)
+ *  - --clay  : off-white with fired-clay tone (default surfaces)
+ *  - --heat  : kiln-fire orange — the ONLY accent. Capped at ≤ 5% of any screen.
+ *  - --shadow: warm grey for body / dividers (never gray-blue)
+ */
+.pm-brand {
+  --ink: #0B0B0B;
+  --clay: #F2EBE0;
+  --heat: #FF4A1C;
+  --shadow: #5A5350;
+  background: var(--clay);
+  color: var(--ink);
+  color-scheme: light;
+}
+
+.pm-brand ::selection {
+  background: var(--heat);
+  color: var(--clay);
+}
+
+/** Display face for hero / slab headlines. Heavy weight only, tight tracking. */
+.pm-brand .pm-display {
+  font-family: var(--font-anton), "Arial Narrow", "Impact", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+/** All-caps caption used for eyebrows, drop tags, and trust strips. */
+.pm-brand .pm-caption {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+}
+
+/** Solid primary button — black on clay (or heat for the single drop CTA). */
+.pm-brand .pm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.5rem;
+  padding: 0 1.75rem;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--clay);
+  border-radius: 9999px;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s ease;
+}
+
+.pm-brand .pm-btn:hover {
+  background: var(--heat);
+  color: var(--clay);
+}
+
+.pm-brand .pm-btn--heat {
+  background: var(--heat);
+}
+
+.pm-brand .pm-btn--heat:hover {
+  background: var(--ink);
+}
+
+.pm-brand .pm-btn--ghost {
+  background: transparent;
+  color: var(--clay);
+  border: 1px solid rgba(242, 235, 224, 0.4);
+}
+
+.pm-brand .pm-btn--ghost:hover {
+  background: var(--clay);
+  color: var(--ink);
+}
+
+/** Dark slab — ink background, clay text. Used for manifesto + final CTA. */
+.pm-brand .pm-slab-dark {
+  background: var(--ink);
+  color: var(--clay);
+}
+
+/** Light slab — clay background, ink text. Used for community + light campaigns. */
+.pm-brand .pm-slab-light {
+  background: var(--clay);
+  color: var(--ink);
+}
+
+/** Snap-scroll containers — one decision per viewport on mobile. */
+@media (max-width: 767px) {
+  .pm-brand .pm-snap {
+    scroll-snap-type: y proximity;
+  }
+
+  .pm-brand .pm-snap > section {
+    scroll-snap-align: start;
+  }
+}
+
 /* ── Platform chrome ─────────────────────────────────── */
 .pm-visual-platform {
   --pm-platform-canvas: var(--background);

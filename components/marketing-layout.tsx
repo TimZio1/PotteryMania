@@ -79,114 +79,120 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
               </div>
 
               <div className="grid gap-x-10 gap-y-8 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div className="space-y-2.5">
+                <div className="space-y-1">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--foreground)]">
                     Shop
                   </p>
-                  <Link href="/wear/shop" className="block text-[var(--muted)] transition hover:text-[var(--foreground)]">
+                  <Link href="/wear/shop" className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]">
                     All apparel
                   </Link>
                   <Link
                     href="/wear/shop?category=tops"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     T-shirts
                   </Link>
                   <Link
                     href="/wear/shop?category=hoodies"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Hoodies
                   </Link>
                   <Link
+                    href="/wear/shop?category=headwear"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                  >
+                    Headwear
+                  </Link>
+                  <Link
                     href="/wear/cart"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Cart
                   </Link>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-1">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--foreground)]">
                     Help
                   </p>
                   <Link
                     href="/#faq"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Shipping & delivery
                   </Link>
                   <Link
                     href="/refunds"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Returns & refunds
                   </Link>
                   <Link
                     href="/#faq"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     FAQ
                   </Link>
                   <Link
                     href="/my-orders"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Track an order
                   </Link>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-1">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--foreground)]">
                     Company
                   </p>
                   <Link
                     href="/about"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     About
                   </Link>
                   <Link
                     href="/wear/partner"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Affiliate program
                   </Link>
                   <a
                     href="mailto:support@potterymania.com"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Contact
                   </a>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-1">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--foreground)]">
                     Legal
                   </p>
                   <Link
                     href="/terms"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Terms of service
                   </Link>
                   <Link
                     href="/privacy"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Privacy policy
                   </Link>
                   <Link
                     href="/refunds"
-                    className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                    className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                   >
                     Refund policy
                   </Link>
-                  <CookieSettingsButton className="block text-left text-[var(--muted)] transition hover:text-[var(--foreground)]" />
+                  <CookieSettingsButton className="block min-h-11 py-2 text-left text-[var(--muted)] transition hover:text-[var(--foreground)]" />
                   {showSignIn ? (
                     <Link
                       href="/login"
-                      className="block text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                      className="block min-h-11 py-2 text-[var(--muted)] transition hover:text-[var(--foreground)]"
                     >
                       Sign in
                     </Link>

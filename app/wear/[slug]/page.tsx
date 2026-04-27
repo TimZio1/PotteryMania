@@ -22,7 +22,11 @@ import { wearDisplayName } from "@/lib/wear-display-name";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  /** Used to round-trip `?popular=…&new=…` filter flags back to the shop on "Back" / "Browse all". */
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -46,8 +50,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
 }
 
-export default async function WearProductPage({ params }: Props) {
+export default async function WearProductPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const sp = (await searchParams) ?? {};
+  const cameFromPopular = sp.popular === "1";
+  const cameFromNew = sp.new === "1";
   const pRaw = await prisma.wearProduct.findFirst({
     where: { ...wearPublicProductWhere(), slug },
     include: {
@@ -130,8 +137,25 @@ export default async function WearProductPage({ params }: Props) {
   });
   const related = (sameCategory.length >= 4 ? sameCategory : relatedNormalized).slice(0, 4);
 
+  /**
+   * Build a back link that matches what the shop page actually filters on (`fallbackCategory` +
+   * tops `topSub`) and preserves the original `?popular=1` / `?new=1` flags so the user lands on
+   * the same view they came from.
+   */
+  const backHref = (() => {
+    const params = new URLSearchParams();
+    if (category.fallbackCategory) params.set("category", category.fallbackCategory);
+    if (category.fallbackCategory === "tops" && category.topSub) params.set("sub", category.topSub);
+    if (cameFromPopular) params.set("popular", "1");
+    if (cameFromNew) params.set("new", "1");
+    const qs = params.toString();
+    return qs ? `/wear/shop?${qs}` : "/wear/shop";
+  })();
+  /** "Browse all →" inside the related products section — same axes as backHref so the user lands in the right aisle. */
+  const browseAllHref = backHref;
+
   return (
-    <main className="bg-[#f7f2ec] px-3 py-5 pb-14 text-stone-900 sm:px-6 sm:py-16 md:pb-16">
+    <main className="bg-[#f7f2ec] px-3 py-5 pb-32 text-stone-900 sm:px-6 sm:py-16 sm:pb-32 md:pb-16 lg:pb-16">
       <div className="mx-auto max-w-6xl rounded-2xl border border-stone-200/80 bg-white p-3 shadow-[0_22px_80px_-32px_rgba(120,77,42,0.18)] sm:rounded-3xl sm:p-7 lg:p-8">
         <WearProductGallery
           productId={p.id}
@@ -140,9 +164,7 @@ export default async function WearProductPage({ params }: Props) {
           variants={variantProps}
           basePriceCents={p.priceCents}
           currency={p.currency}
-          backHref={`/wear/shop${category.categorySlug ? `?category=${category.categorySlug}` : ""}${
-            category.topSub ? `&sub=${category.topSub}` : ""
-          }`}
+          backHref={backHref}
           categoryLabel={category.categoryLabel}
           topSubLabel={category.topSub ? wearTopSubcategoryLabel(category.topSub) : null}
           subtitle={p.subtitle}
@@ -160,8 +182,9 @@ export default async function WearProductPage({ params }: Props) {
               </h2>
             </div>
             <Link
-              href="/wear/shop"
-              className="text-sm font-semibold text-amber-900 underline-offset-4 hover:underline"
+              href={browseAllHref}
+              scroll={false}
+              className="inline-flex min-h-11 items-center rounded-full px-3 py-2 text-sm font-semibold text-amber-900 underline-offset-4 hover:bg-amber-50 hover:underline"
             >
               Browse all →
             </Link>

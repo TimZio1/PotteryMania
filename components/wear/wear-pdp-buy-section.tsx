@@ -45,6 +45,7 @@ export function WearPdpBuySection({
   const colors = useMemo(() => [...new Set(variantMeta.map((variant) => variant.color))], [variantMeta]);
   const [internalSelectedColor, setInternalSelectedColor] = useState<string>(colors[0] ?? "");
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
   const isColorControlled = controlledSelectedColor !== undefined;
   const selectedColor = isColorControlled ? controlledSelectedColor : internalSelectedColor;
 
@@ -174,17 +175,48 @@ export function WearPdpBuySection({
         </div>
       ) : null}
 
-      <p className="mt-5 text-2xl text-amber-950">
-        {needsVariant && !selected ? (
-          <>
-            <span className="text-stone-500">From </span>
-            {formatWearMoney(fromCents, currency)}
-          </>
-        ) : (
-          formatWearMoney(displayCents, currency)
-        )}
-      </p>
+      <div className="mt-5 flex items-end justify-between gap-4">
+        <p className="text-2xl text-amber-950">
+          {needsVariant && !selected ? (
+            <>
+              <span className="text-stone-500">From </span>
+              {formatWearMoney(fromCents, currency)}
+            </>
+          ) : (
+            formatWearMoney(displayCents, currency)
+          )}
+        </p>
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Qty</span>
+          <div className="flex items-center rounded-full border border-stone-200 bg-white" role="group" aria-label="Quantity">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity <= 1}
+              aria-label="Decrease quantity"
+              className="inline-flex h-11 w-11 items-center justify-center text-lg text-stone-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              −
+            </button>
+            <span className="min-w-8 text-center text-sm font-semibold text-stone-900" aria-live="polite">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.min(99, q + 1))}
+              disabled={quantity >= 99}
+              aria-label="Increase quantity"
+              className="inline-flex h-11 w-11 items-center justify-center text-lg text-stone-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
 
+      {/*
+        Inline ATC is the desktop primary. On mobile (<lg) the sticky bottom bar below is the
+        single primary CTA, so the inline button is hidden to avoid duplicating the same action.
+        The status copy (sold out / pick color / pick size) stays visible in the reading flow.
+      */}
       <div className="mt-5">
         {canAdd ? (
           <WearAddToCartButton
@@ -192,33 +224,78 @@ export function WearPdpBuySection({
             variantId={needsVariant ? selected?.id ?? null : null}
             studioId={studioId}
             viewCartHref={viewCartHref}
-            label={`Add to bag — ${formatWearMoney(displayCents, currency)}`}
-            className="inline-flex h-12 w-full min-h-12 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-semibold tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60"
+            quantity={quantity}
+            label={`Cop it — ${formatWearMoney(displayCents * quantity, currency)}`}
+            className="hidden h-12 w-full min-h-12 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-amber-900 disabled:opacity-60 lg:inline-flex"
           />
         ) : (
           <p className="rounded-xl bg-stone-50 px-4 py-3 text-center text-sm font-medium text-stone-600">
-            {soldOut ? "This option is sold out." : needsVariant && !selectedColor ? "Pick a color to continue." : "Pick a size to continue."}
+            {soldOut ? "This piece sold out." : needsVariant && !selectedColor ? "Pick a color." : "Pick a size."}
           </p>
         )}
       </div>
 
-      <div className="mt-4 grid gap-2 rounded-2xl border border-amber-950/10 bg-amber-50/70 p-4 text-xs leading-5 text-stone-700 sm:grid-cols-2">
-        <p>
-          <strong className="text-amber-950">Fit:</strong> regular everyday fit. Pick your usual size.
-        </p>
-        <p>
-          <strong className="text-amber-950">Fabric:</strong> soft cotton feel, printed on demand.
-        </p>
-        <p>
-          <strong className="text-amber-950">Delivery:</strong> prints in 2-5 business days, tracking by email.
-        </p>
-        <p>
-          <strong className="text-amber-950">Checkout:</strong> Stripe, cards, Apple Pay, Google Pay, Link.
-        </p>
-        <p className="sm:col-span-2">
-          <strong className="text-amber-950">Returns:</strong> 30 days for unworn apparel.
-        </p>
+      {/* Mobile sticky bottom CTA — keeps "Add to bag" reachable while user reads details. */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.08)] backdrop-blur lg:hidden"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+      >
+        <div className="mx-auto flex max-w-md items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-semibold text-amber-950">
+              {needsVariant && !selected
+                ? `From ${formatWearMoney(fromCents, currency)}`
+                : formatWearMoney(displayCents * quantity, currency)}
+            </p>
+            <p className="truncate text-[11px] uppercase tracking-[0.12em] text-stone-500">
+              {soldOut
+                ? "Sold out"
+                : needsVariant && !selectedColor
+                  ? "Pick a color"
+                  : needsVariant && !selectedSize
+                    ? "Pick a size"
+                    : `Qty ${quantity} · In stock`}
+            </p>
+          </div>
+          {canAdd ? (
+            <WearAddToCartButton
+              productId={productId}
+              variantId={needsVariant ? selected?.id ?? null : null}
+              studioId={studioId}
+              viewCartHref={viewCartHref}
+              quantity={quantity}
+              silentSuccess
+              label={`Cop · ${formatWearMoney(displayCents * quantity, currency)}`}
+              className="inline-flex h-12 min-h-12 shrink-0 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-5 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-amber-900 disabled:opacity-60"
+            />
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="inline-flex h-12 min-h-12 shrink-0 items-center justify-center rounded-full bg-stone-200 px-5 text-sm font-semibold text-stone-500"
+            >
+              {soldOut ? "Sold out" : selectedColor ? "Pick a size" : "Pick a color"}
+            </button>
+          )}
+        </div>
       </div>
+
+      <dl className="mt-5 divide-y divide-stone-200 border-y border-stone-200 text-sm leading-6 text-stone-700">
+        {[
+          { k: "Fit", v: "Regular. Pick your usual size." },
+          { k: "Fabric", v: "Soft cotton, heavy ink." },
+          { k: "Delivery", v: "Prints in 2–5 business days. Tracking by email." },
+          { k: "Returns", v: "30 days, unworn." },
+          { k: "Checkout", v: "Stripe · Apple Pay · Google Pay · Link." },
+        ].map((row) => (
+          <div key={row.k} className="flex items-baseline gap-4 py-3">
+            <dt className="w-24 shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+              {row.k}
+            </dt>
+            <dd>{row.v}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }

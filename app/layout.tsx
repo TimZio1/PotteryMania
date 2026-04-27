@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Anton, Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { GoogleAnalytics } from "@/components/google-analytics";
@@ -22,6 +22,14 @@ const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
   weight: "400",
+});
+
+/** Brutalist display face for headlines on the apparel storefront. */
+const anton = Anton({
+  variable: "--font-anton",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -73,7 +81,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://productionproductimage.spreadshirtmedia.net" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} font-sans text-[var(--foreground)] antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${anton.variable} font-sans text-[var(--foreground)] antialiased`}
       >
         <a
           href="#main-content"

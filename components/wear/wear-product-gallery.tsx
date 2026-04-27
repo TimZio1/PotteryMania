@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { WEAR_CURRENCY_PDP_LINE } from "@/lib/wear-currency-policy";
 import { WearPdpBuySection, type WearPdpVariant } from "@/components/wear/wear-pdp-buy-section";
@@ -137,6 +137,34 @@ export function WearProductGallery({
 
   const selectedImage = images.find((image) => image.id === selectedImageId) ?? imagesForColor[0] ?? null;
 
+  const heroIndex = selectedImage ? imagesForColor.findIndex((row) => row.id === selectedImage.id) : -1;
+  const navigateHero = useCallback(
+    (direction: 1 | -1) => {
+      if (imagesForColor.length < 2) return;
+      const currentIndex = Math.max(0, heroIndex);
+      const nextIndex = (currentIndex + direction + imagesForColor.length) % imagesForColor.length;
+      const next = imagesForColor[nextIndex];
+      if (next) setSelectedImageId(next.id);
+    },
+    [imagesForColor, heroIndex],
+  );
+  const touchStartXRef = useRef<number | null>(null);
+  const onHeroTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = event.touches[0]?.clientX ?? null;
+  }, []);
+  const onHeroTouchEnd = useCallback(
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      const startX = touchStartXRef.current;
+      touchStartXRef.current = null;
+      if (startX == null) return;
+      const endX = event.changedTouches[0]?.clientX ?? startX;
+      const dx = endX - startX;
+      if (Math.abs(dx) < 40) return;
+      navigateHero(dx < 0 ? 1 : -1);
+    },
+    [navigateHero],
+  );
+
   const resolvedViewCartHref = viewCartHref ?? (studioId ? "/cart" : "/wear/cart");
   const apparelLaunch = isApparelOnlyLaunch();
   const pdpHook = apparelLaunch ? PDP_HOOK_APPAREL : PDP_HOOK_CLASSIC;
@@ -145,7 +173,14 @@ export function WearProductGallery({
   return (
     <div className="grid gap-6 lg:grid-cols-2 lg:gap-16">
       <div>
-        <div className="relative aspect-square overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100 ring-1 ring-stone-200 sm:aspect-3/4 lg:aspect-auto lg:min-h-[min(80vh,640px)]">
+        <div
+          className="relative aspect-square touch-pan-y overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100 ring-1 ring-stone-200 sm:aspect-3/4 lg:aspect-auto lg:min-h-[min(80vh,640px)]"
+          onTouchStart={onHeroTouchStart}
+          onTouchEnd={onHeroTouchEnd}
+          role={imagesForColor.length > 1 ? "group" : undefined}
+          aria-roledescription={imagesForColor.length > 1 ? "carousel" : undefined}
+          aria-label={imagesForColor.length > 1 ? `${productName} images` : undefined}
+        >
           {selectedImage ? (
             <Image
               src={wearListingImageSrc(selectedImage.url, 960)}
@@ -156,15 +191,51 @@ export function WearProductGallery({
               quality={78}
               priority
               fetchPriority="high"
+              draggable={false}
             />
           ) : (
             <div className="flex h-full items-center justify-center px-6 text-center text-sm text-stone-500">
               Image coming soon
             </div>
           )}
+          {imagesForColor.length > 1 && heroIndex >= 0 ? (
+            <>
+              <div
+                className="absolute inset-x-0 bottom-2 flex justify-center gap-2"
+                role="tablist"
+                aria-label={`${productName} image picker`}
+              >
+                {imagesForColor.map((row, index) => {
+                  const active = index === heroIndex;
+                  return (
+                    <button
+                      key={row.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      aria-label={`Show image ${index + 1} of ${imagesForColor.length}`}
+                      onClick={() => setSelectedImageId(row.id)}
+                      className="inline-flex h-8 w-8 items-center justify-center"
+                    >
+                      <span
+                        aria-hidden
+                        className={`h-1.5 rounded-full transition ${active ? "w-4 bg-white" : "w-1.5 bg-white/60"}`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-black/45 px-2 py-0.5 text-[11px] font-medium text-white">
+                {heroIndex + 1} / {imagesForColor.length}
+              </span>
+              <span className="sr-only" aria-live="polite">
+                Image {heroIndex + 1} of {imagesForColor.length}
+              </span>
+            </>
+          ) : null}
         </div>
         {imagesForColor.length > 1 ? (
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-4 flex snap-x snap-proximity gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
             {imagesForColor.map((image) => {
               const isActive = image.id === selectedImage?.id;
               return (
@@ -177,7 +248,7 @@ export function WearProductGallery({
                   }}
                   aria-pressed={isActive}
                   aria-label={`Show ${wearPdpImageAlt(productName, image)}`}
-                  className={`relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border bg-stone-100 transition sm:h-24 sm:w-20 ${
+                  className={`relative h-20 w-16 shrink-0 snap-start overflow-hidden rounded-lg border bg-stone-100 transition sm:h-24 sm:w-20 ${
                     isActive
                       ? "border-amber-500 ring-2 ring-amber-500/40"
                       : "border-stone-200/80 hover:border-amber-300"
@@ -203,7 +274,7 @@ export function WearProductGallery({
       <div className="flex flex-col lg:justify-center lg:pr-2">
         <Link
           href={backHref}
-          className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500 transition hover:text-amber-950"
+          className="-mx-1 inline-flex min-h-11 w-fit items-center px-1 py-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-500 transition hover:text-amber-950"
         >
           ← Back to shop
         </Link>
@@ -232,24 +303,16 @@ export function WearProductGallery({
             </li>
           ))}
         </ul>
-        <div className="mt-6 grid gap-3 rounded-xl border border-stone-200/80 bg-stone-50/80 px-4 py-3 text-xs leading-relaxed text-stone-700 sm:grid-cols-2">
-          <p className="flex items-start gap-2">
-            <span aria-hidden className="mt-0.5">📦</span>
-            <span><span className="font-semibold text-amber-950">Estimated delivery:</span> {formatEtaRange()}</span>
-          </p>
-          <p className="flex items-start gap-2">
-            <span aria-hidden className="mt-0.5">↩</span>
-            <span><span className="font-semibold text-amber-950">30-day returns</span> on defective items</span>
-          </p>
-          <p className="flex items-start gap-2">
-            <span aria-hidden className="mt-0.5">🔒</span>
-            <span><span className="font-semibold text-amber-950">Secure checkout</span> · Apple Pay & Google Pay</span>
-          </p>
-          <p className="flex items-start gap-2">
-            <span aria-hidden className="mt-0.5">🌍</span>
-            <span><span className="font-semibold text-amber-950">Worldwide shipping</span> from the EU</span>
-          </p>
-        </div>
+        {/*
+          The Fit/Fabric/Delivery/Checkout/Returns block lives next to the buy CTA
+          (`<WearPdpBuySection>`) so all reassurance is in one place; an estimated-delivery
+          line is added there inline rather than duplicated here.
+        */}
+        <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+          Estimated delivery
+          <span aria-hidden className="mx-2 text-stone-300">·</span>
+          <span className="text-stone-800">{formatEtaRange()}</span>
+        </p>
         <p className="mt-3 text-[11px] leading-relaxed text-stone-500">
           {WEAR_CURRENCY_PDP_LINE} See{" "}
           <Link href="/refunds" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-900">
@@ -289,7 +352,7 @@ export function WearProductGallery({
           </div>
         </details>
         {colorPreviewImages.length > 1 ? (
-          <section className="mt-5 hidden rounded-xl border border-stone-200/80 bg-stone-50/70 px-4 py-4 md:block">
+          <section className="mt-5 hidden rounded-xl border border-stone-200/80 bg-stone-50/70 px-4 py-4 lg:block">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-stone-500">Color previews</p>

@@ -28,7 +28,9 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onWearStorefront = (pathname ?? "").startsWith("/wear");
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -67,8 +69,56 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
 
+    /**
+     * Mark every sibling of the drawer (header, main, footer, etc.) as `inert` while the drawer is open
+     * so AT/keyboard users cannot interact with content behind the modal sheet. The drawer is rendered
+     * as a sibling of the page shell, so we walk its parent's children rather than `document.body`.
+     */
+    const inertedNodes: HTMLElement[] = [];
+    const drawerEl = drawerRef.current?.parentElement?.parentElement; // <div role="dialog" id="mobile-nav">
+    const shellEl = drawerEl?.parentElement ?? null;
+    const inertTargets: Element[] = [];
+    if (shellEl) {
+      Array.from(shellEl.children).forEach((sibling) => {
+        if (sibling !== drawerEl) inertTargets.push(sibling);
+      });
+    }
+    Array.from(document.body.children).forEach((child) => {
+      if (child === shellEl) return;
+      if (child.id === "mobile-nav") return;
+      inertTargets.push(child);
+    });
+    inertTargets.forEach((target) => {
+      if (!(target instanceof HTMLElement)) return;
+      if (target.hasAttribute("inert")) return;
+      target.setAttribute("inert", "");
+      inertedNodes.push(target);
+    });
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") {
+        close();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const root = drawerRef.current;
+      if (!root) return;
+      const focusable = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+        ),
+      ).filter((el) => !el.hasAttribute("aria-hidden") && el.offsetParent !== null);
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !root.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
 
@@ -79,6 +129,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
       window.removeEventListener("keydown", onKey);
+      inertedNodes.forEach((node) => node.removeAttribute("inert"));
 
       const restoreTarget = previousFocusRef.current;
       if (restoreTarget && document.body.contains(restoreTarget)) {
@@ -202,9 +253,25 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                 )}
               </div>
               {apparelNav ? (
-                <Link href="/wear/shop" className={`${ui.buttonMarketing} md:hidden`}>
-                  Shop
-                </Link>
+                <div className="flex items-center gap-2 md:hidden">
+                  {!onWearStorefront ? (
+                    <Link href="/wear/shop" className={ui.buttonMarketing}>
+                      Shop
+                    </Link>
+                  ) : null}
+                  <Link
+                    href="/wear/cart"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-card)] border border-[var(--border)] text-[var(--foreground)]"
+                    aria-label="View cart"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M6 6h15l-1.5 9h-12z" />
+                      <circle cx="9" cy="20" r="1.5" />
+                      <circle cx="18" cy="20" r="1.5" />
+                      <path d="M6 6L4 2H1" />
+                    </svg>
+                  </Link>
+                </div>
               ) : (
                 <Link href="/#register-studio" className={`${ui.buttonMarketing} md:hidden`}>
                   Register for free
@@ -255,6 +322,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
           onClick={close}
         />
         <div
+          ref={drawerRef}
           className={cn(
             "absolute right-0 top-0 flex h-full w-[min(100%,20rem)] flex-col border-l border-[var(--border)] bg-[var(--surface)] shadow-xl transition-transform duration-200",
             open ? "translate-x-0" : "translate-x-full",
@@ -262,7 +330,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
         >
           <div className="flex h-14 items-center justify-between border-b border-[var(--border)] px-4">
             <span className="text-sm font-semibold text-[var(--foreground)]">Menu</span>
-            <button ref={closeButtonRef} type="button" className={cn(ui.buttonGhost, "min-h-10")} onClick={close}>
+            <button ref={closeButtonRef} type="button" className={cn(ui.buttonGhost, "min-h-11 px-4")} onClick={close}>
               Close
             </button>
           </div>
@@ -336,6 +404,13 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                       onClick={close}
                     >
                       Hoodies
+                    </Link>
+                    <Link
+                      href="/wear/shop?category=headwear"
+                      className={mobileLinkClass("/wear/shop?category=headwear")}
+                      onClick={close}
+                    >
+                      Headwear
                     </Link>
                     <Link href="/wear/cart" className={mobileLinkClass("/wear/cart")} onClick={close}>
                       Cart
