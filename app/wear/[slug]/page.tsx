@@ -30,53 +30,70 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const pRaw = await prisma.wearProduct.findFirst({
-    where: { ...wearPublicProductWhere(), slug },
-    select: {
-      name: true,
-      subtitle: true,
-      description: true,
-      images: true,
-      priceCents: true,
-      currency: true,
-      variants: { where: { isActive: true }, select: { stockQuantity: true, priceCents: true } },
-    },
-  });
-  if (!pRaw) {
+  /**
+   * Defensive: a thrown error in `generateMetadata` will render `app/wear/error.tsx`
+   * for the whole route ("We couldn't load this page"). PDPs must never go down because
+   * of OG/structured-data quirks — fall through to the minimal title-only metadata if
+   * anything misbehaves and let the page itself render normally.
+   */
+  try {
+    const pRaw = await prisma.wearProduct.findFirst({
+      where: { ...wearPublicProductWhere(), slug },
+      select: {
+        name: true,
+        subtitle: true,
+        description: true,
+        images: true,
+        priceCents: true,
+        currency: true,
+        variants: { where: { isActive: true }, select: { stockQuantity: true, priceCents: true } },
+      },
+    });
+    if (!pRaw) {
+      return buildMetadata({
+        title: "Wear",
+        description: "This piece isn’t available anymore.",
+        path: `/wear/${slug}`,
+      });
+    }
+    const displayName = wearDisplayName(pRaw);
+    const desc = pRaw.subtitle ?? pRaw.description ?? displayName;
+    const heroImage = wearImageUrlsFromJson(pRaw.images)[0];
+    const inStockVariant = pRaw.variants.find((v) => (v.stockQuantity ?? 0) > 0);
+    const resolvedCents = inStockVariant?.priceCents ?? pRaw.priceCents ?? 0;
+    const inStock = pRaw.variants.some((v) => (v.stockQuantity ?? 0) > 0);
+    const currencyCode = (pRaw.currency || "EUR").toUpperCase();
+    /**
+     * Only emit FB product / Pinterest Rich Pin meta tags when we have a real positive
+     * price. Surfacing `0.00` would tell crawlers the item is free.
+     */
+    const productMeta: Record<string, string> = resolvedCents > 0
+      ? {
+          "product:price:amount": (resolvedCents / 100).toFixed(2),
+          "product:price:currency": currencyCode,
+          "product:availability": inStock ? "instock" : "oos",
+          "product:condition": "new",
+          "product:brand": "PotteryMania",
+          "og:price:amount": (resolvedCents / 100).toFixed(2),
+          "og:price:currency": currencyCode,
+        }
+      : {};
+    return buildMetadata({
+      title: `${displayName} — Shop`,
+      description: desc.slice(0, 160),
+      path: `/wear/${slug}`,
+      image: heroImage,
+      imageAlt: `${displayName} — PotteryMania apparel`,
+      ogType: "product",
+      other: productMeta,
+    });
+  } catch {
     return buildMetadata({
       title: "Wear",
-      description: "This piece isn’t available anymore.",
+      description: "Apparel for makers — made with heat.",
       path: `/wear/${slug}`,
     });
   }
-  const displayName = wearDisplayName(pRaw);
-  const desc = pRaw.subtitle ?? pRaw.description ?? displayName;
-  const heroImage = wearImageUrlsFromJson(pRaw.images)[0];
-  const inStockVariant = pRaw.variants.find((v) => (v.stockQuantity ?? 0) > 0);
-  const priceCents = inStockVariant?.priceCents ?? pRaw.priceCents;
-  const inStock = pRaw.variants.some((v) => (v.stockQuantity ?? 0) > 0);
-  return buildMetadata({
-    title: `${displayName} — Shop`,
-    description: desc.slice(0, 160),
-    path: `/wear/${slug}`,
-    image: heroImage,
-    imageAlt: `${displayName} — PotteryMania apparel`,
-    ogType: "product",
-    /**
-     * Facebook product OG tags + Pinterest Rich Pin equivalents — keep an FB Catalog / Shop integration
-     * possible without code changes, and give AI search structured price/availability without
-     * needing JSON-LD parsing.
-     */
-    other: {
-      "product:price:amount": (priceCents / 100).toFixed(2),
-      "product:price:currency": pRaw.currency.toUpperCase(),
-      "product:availability": inStock ? "instock" : "oos",
-      "product:condition": "new",
-      "product:brand": "PotteryMania",
-      "og:price:amount": (priceCents / 100).toFixed(2),
-      "og:price:currency": pRaw.currency.toUpperCase(),
-    },
-  });
 }
 
 export default async function WearProductPage({ params, searchParams }: Props) {

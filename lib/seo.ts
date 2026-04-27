@@ -100,7 +100,12 @@ export function buildMetadata(input: {
   keywords?: string[];
   robots?: Metadata["robots"];
   alternates?: Metadata["alternates"];
-  /** Defaults to "website"; set to "article" / "product" on detail pages so FB/X classify correctly. */
+  /**
+   * Defaults to "website". Pass "article" / "profile" for the matching Next.js OG variants;
+   * use `"product"` on PDPs and we'll emit it as a raw `og:type` meta via `other` (Next's
+   * OpenGraph discriminated union doesn't include `product`, so setting it on `openGraph.type`
+   * can blow up the metadata resolver and 5xx the route).
+   */
   ogType?: "website" | "article" | "product" | "profile";
   /** Extra meta tags emitted via `<meta name|property=key content=value />` (e.g. product:price:amount). */
   other?: Record<string, string | number | string[]>;
@@ -112,6 +117,18 @@ export function buildMetadata(input: {
   const imageHeight = input.imageHeight ?? (isDefaultImage ? siteMetadata.ogImageHeight : undefined);
   const imageAlt = input.imageAlt ?? `${input.title} — ${siteMetadata.name}`;
   const twitterHandle = envTwitterHandle();
+  /**
+   * Only forward types Next.js's OpenGraph discriminated union actually understands.
+   * For "product" (or anything else) we pass through via `other.og:type` instead.
+   */
+  const safeOgType: "website" | "article" | "profile" =
+    input.ogType === "article" || input.ogType === "profile" || input.ogType === "website"
+      ? input.ogType
+      : "website";
+  const otherMerged: Record<string, string | number | string[]> = { ...(input.other ?? {}) };
+  if (input.ogType && input.ogType !== safeOgType && !("og:type" in otherMerged)) {
+    otherMerged["og:type"] = input.ogType;
+  }
   return {
     title: input.title,
     description: input.description,
@@ -140,7 +157,7 @@ export function buildMetadata(input: {
           ...(imageHeight ? { height: imageHeight } : {}),
         },
       ],
-      type: (input.ogType as "website" | "article" | "profile") ?? "website",
+      type: safeOgType,
     },
     twitter: {
       card: "summary_large_image",
@@ -149,6 +166,6 @@ export function buildMetadata(input: {
       images: [image],
       ...(twitterHandle ? { site: twitterHandle, creator: twitterHandle } : {}),
     },
-    other: input.other,
+    other: Object.keys(otherMerged).length > 0 ? otherMerged : undefined,
   };
 }
