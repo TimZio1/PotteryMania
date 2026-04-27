@@ -18,6 +18,7 @@ import {
 } from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { resolveWearCategory } from "@/lib/wear-categories";
+import { WearBuyXGetYLandingBanner } from "@/components/wear/wear-buy-x-get-y-landing-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -131,6 +132,7 @@ async function ApparelHome() {
     <MarketingLayout>
       <HomeScrollReset />
       <main className="pm-brand pm-snap relative overflow-hidden bg-[var(--clay)] text-[var(--ink)]">
+        <WearBuyXGetYLandingBanner className="relative z-10" />
         {/* ── 0. Trust strip — single line, no emoji, no clutter ─────────────── */}
         <div className="border-b border-[var(--ink)]/10 bg-[var(--ink)] text-[var(--clay)]">
           <p className="pm-caption mx-auto max-w-6xl px-4 py-2.5 text-center">

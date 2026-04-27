@@ -25,6 +25,7 @@ import {
 } from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { breadcrumbJsonLd, itemListJsonLd, toJsonLdScript } from "@/lib/structured-data";
+import { WearBuyXGetYLandingBanner } from "@/components/wear/wear-buy-x-get-y-landing-banner";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
@@ -395,8 +396,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         : blocks[0]!.products[0]?.id ?? null;
 
   return (
-    <main className="pm-brand min-h-[60vh] bg-[var(--clay)] px-4 py-10 text-[var(--ink)] sm:px-6 sm:py-14">
-      <div className="mx-auto max-w-6xl">
+    <main className="pm-brand min-h-[60vh] bg-[var(--clay)] text-[var(--ink)]">
+      <WearBuyXGetYLandingBanner linkToShop={false} className="relative z-10" />
+      <div className="px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto max-w-6xl">
         <p className="pm-caption text-center text-[var(--heat)]">Made with heat</p>
         <h1 className="pm-display mt-4 text-center text-[2.75rem] leading-[0.98] sm:text-[4rem] lg:text-[4.75rem]">
           The <span className="text-[var(--heat)]">drop.</span>
@@ -739,6 +742,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             )}
           </div>
         )}
+        </div>
       </div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: shopJsonLd }} />
     </main>

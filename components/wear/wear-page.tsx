@@ -11,6 +11,7 @@ import { wearActiveDropEyebrow } from "@/lib/wear-drop-config";
 import { WEAR_SHIPPING_DELIVERY_RANGES, WEAR_SHIPPING_LANDING_STRIP } from "@/lib/wear-shipping-copy";
 import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
+import { WearBuyXGetYLandingBanner } from "./wear-buy-x-get-y-landing-banner";
 
 const heroCtaClass =
   "pm-btn pm-btn--heat group";
@@ -29,6 +30,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
     <>
       <WearAnalytics />
       <main className="pm-brand bg-(--ink) text-(--clay)">
+        <WearBuyXGetYLandingBanner className="relative z-20" />
         <section className="relative isolate min-h-[calc(100svh-8rem)] overflow-hidden bg-(--ink)">
           <Image
             src={WEAR_VISUAL_IMAGES.primary}
