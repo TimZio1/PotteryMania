@@ -51,49 +51,30 @@ export function WearBuyXGetYHomePromo() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 py-14 sm:px-10 sm:py-20 lg:py-24">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center lg:gap-16">
-          <div>
-            <p className="pm-caption text-(--heat)">Drop perk</p>
-            <h2
-              id={`${PROMO_ANCHOR}-heading`}
-              className="pm-display mt-4 text-(--clay) text-[2.65rem] leading-[0.92] sm:text-[4rem] lg:text-[4.75rem]"
-            >
-              Buy {buyQuantity}
-              <span className="text-(--heat)"> · </span>
-              get {freeQuantity} free
-            </h2>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-(--clay)/78 sm:text-lg">
-              Every five units unlocks a free one — we always zero out the cheapest pieces first. Coupon discounts apply
-              after this bonus.
-            </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <Link href="/wear/shop" className="pm-btn pm-btn--heat group inline-flex justify-center">
-                Shop the drop
-                <span aria-hidden className="ml-3 transition group-hover:translate-x-0.5">
-                  →
-                </span>
-              </Link>
-              <Link href="/wear/cart" className="pm-btn pm-btn--ghost inline-flex justify-center text-center sm:min-w-40">
-                View cart
-              </Link>
-            </div>
+        <div className="max-w-3xl">
+          <p className="pm-caption text-(--heat)">Drop perk</p>
+          <h2
+            id={`${PROMO_ANCHOR}-heading`}
+            className="pm-display mt-4 text-(--clay) text-[2.65rem] leading-[0.92] sm:text-[4rem] lg:text-[4.75rem]"
+          >
+            Buy {buyQuantity}
+            <span className="text-(--heat)"> · </span>
+            get {freeQuantity} free
+          </h2>
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-(--clay)/78 sm:text-lg">
+            Applies automatically in your cart when you qualify.
+          </p>
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <Link href="/wear/shop" className="pm-btn pm-btn--heat group inline-flex justify-center">
+              Shop the drop
+              <span aria-hidden className="ml-3 transition group-hover:translate-x-0.5">
+                →
+              </span>
+            </Link>
+            <Link href="/wear/cart" className="pm-btn pm-btn--ghost inline-flex justify-center text-center sm:min-w-40">
+              View cart
+            </Link>
           </div>
-
-          <ul className="grid gap-4 text-sm">
-            {[
-              ["Cheapest first", "Within each set of five, the lowest-priced SKUs are credited free."],
-              ["Coupon order", "Codes reduce what you pay after the buy‑bonus math."],
-              ["Whole catalog", "Mix tees, hoodies, headwear — same cart, same rule."],
-            ].map(([title, body]) => (
-              <li
-                key={title}
-                className="rounded-2xl border border-(--clay)/12 bg-(--clay)/4 px-5 py-4 shadow-[0_12px_40px_-20px_rgba(0,0,0,0.55)] ring-1 ring-(--clay)/8 backdrop-blur-[2px]"
-              >
-                <p className="pm-caption text-(--heat)">{title}</p>
-                <p className="mt-2 leading-relaxed text-(--clay)/75">{body}</p>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </section>
