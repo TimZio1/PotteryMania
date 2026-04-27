@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   WEAR_CART_STORAGE_KEY,
   cartLineKey,
@@ -71,6 +71,22 @@ export function WearCartPageClient() {
   const [catalogReady, setCatalogReady] = useState(false);
   const [serverPricing, setServerPricing] = useState<{ preCents: number; currency: string } | null>(null);
   const [pricingState, setPricingState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+
+  // Coupon state — `couponInput` is the in-flight text, `appliedCoupon` is the server-validated
+  // preview that locks the discount applied to the Pay button + sent to /api/wear/checkout.
+  // The applied coupon must be auto-cleared when the cart changes (lines, qty, currency) to avoid
+  // staleness — server re-validates on checkout regardless, but the user shouldn't see a wrong total.
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    name: string | null;
+    discountCents: number;
+    preDiscountSubtotalCents: number;
+    subtotalAfterCents: number;
+    currency: string;
+  } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   const refreshFromStorage = useCallback(() => {
     setLines(parseWearCart(typeof window !== "undefined" ? localStorage.getItem(WEAR_CART_STORAGE_KEY) : null));
@@ -156,8 +172,19 @@ export function WearCartPageClient() {
   const currency = products[0]?.currency ?? "EUR";
   const displayCurrency = serverPricing?.currency ?? currency;
   const merchandiseCents = serverPricing?.preCents ?? subtotalCents;
-  const qualifiesForFreeShipping = merchandiseCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
-  const freeShippingRemainingCents = Math.max(0, WEAR_FREE_SHIPPING_THRESHOLD_CENTS - merchandiseCents);
+  // Clamp discountCents in case engine drift makes it briefly exceed the live merchandise total
+  // (e.g. server pricing arrived after coupon preview). The button + Stripe still revalidate.
+  const couponDiscountCents = appliedCoupon
+    ? Math.min(appliedCoupon.discountCents, merchandiseCents)
+    : 0;
+  const merchandiseAfterDiscountCents = Math.max(0, merchandiseCents - couponDiscountCents);
+  // Free-shipping threshold is checked against the post-discount merchandise total — matches the
+  // server side (`/api/wear/checkout` line 144) so the in-cart UX doesn't lie.
+  const qualifiesForFreeShipping = merchandiseAfterDiscountCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
+  const freeShippingRemainingCents = Math.max(
+    0,
+    WEAR_FREE_SHIPPING_THRESHOLD_CENTS - merchandiseAfterDiscountCents,
+  );
 
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
 
@@ -225,6 +252,92 @@ export function WearCartPageClient() {
     return null;
   }, [lines, byId]);
 
+  // Fingerprint of cart lines — when this changes, the previously-applied coupon may no longer
+  // refer to a valid cart (line removed, qty changed, currency switched), so we clear it.
+  const cartFingerprint = useMemo(
+    () =>
+      lines
+        .map((l) => `${l.productId}:${l.variantId ?? ""}:${l.quantity}`)
+        .sort()
+        .join("|"),
+    [lines],
+  );
+  const couponCartSig = useRef("");
+
+  useEffect(() => {
+    if (!appliedCoupon) {
+      couponCartSig.current = cartFingerprint;
+      return;
+    }
+    if (couponCartSig.current !== "" && couponCartSig.current !== cartFingerprint) {
+      setAppliedCoupon(null);
+      setCouponError("Cart changed — re-apply your code.");
+    }
+    couponCartSig.current = cartFingerprint;
+  }, [cartFingerprint, appliedCoupon]);
+
+  const applyCoupon = useCallback(async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    if (cartCurrencyIssue || lines.length === 0) {
+      setCouponError("Fix the cart issues above before applying a code.");
+      return;
+    }
+    setCouponBusy(true);
+    setCouponError(null);
+    try {
+      const partnerStudioId = getWearPartnerReferralStudioId();
+      const res = await fetch("/api/wear/coupon/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          couponCode: code,
+          items: lines.map((l) => ({
+            productId: l.productId,
+            quantity: l.quantity,
+            ...(l.variantId ? { variantId: l.variantId } : {}),
+          })),
+          ...(partnerStudioId ? { studioId: partnerStudioId } : {}),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        code?: string;
+        name?: string | null;
+        discountCents?: number;
+        preDiscountSubtotalCents?: number;
+        subtotalAfterCents?: number;
+        currency?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.ok || typeof data.discountCents !== "number") {
+        setAppliedCoupon(null);
+        setCouponError(data.error ?? "That code didn’t work. Check the spelling and try again.");
+        return;
+      }
+      setAppliedCoupon({
+        code: data.code ?? code,
+        name: data.name ?? null,
+        discountCents: data.discountCents,
+        preDiscountSubtotalCents: data.preDiscountSubtotalCents ?? 0,
+        subtotalAfterCents: data.subtotalAfterCents ?? 0,
+        currency: (data.currency ?? "EUR").toUpperCase(),
+      });
+      couponCartSig.current = cartFingerprint;
+    } catch {
+      setAppliedCoupon(null);
+      setCouponError("Couldn’t reach the discount service. Try again in a moment.");
+    } finally {
+      setCouponBusy(false);
+    }
+  }, [couponInput, cartCurrencyIssue, lines, cartFingerprint]);
+
+  const removeCoupon = useCallback(() => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }, []);
+
   const onCheckout = useCallback(async () => {
     setCheckoutError(null);
     if (lines.length === 0) {
@@ -247,6 +360,7 @@ export function WearCartPageClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...(partnerStudioId ? { studioId: partnerStudioId } : {}),
+          ...(appliedCoupon ? { couponCode: appliedCoupon.code } : {}),
           items: lines.map((l) => ({
             productId: l.productId,
             quantity: l.quantity,
@@ -260,11 +374,21 @@ export function WearCartPageClient() {
         orderId?: string;
       };
       if (!res.ok) {
+        // Server-side coupon revalidation is the single source of truth — if it rejects the code
+        // (expired between preview + checkout, usage cap hit, etc.), drop the applied state and
+        // surface the error so the user can try a fresh code or proceed without one.
+        if (appliedCoupon) {
+          setAppliedCoupon(null);
+        }
         setCheckoutError(data.error ?? "Something went wrong at checkout. Try again in a moment.");
         return;
       }
       if (data.url) {
-        const valueCents = serverPricing?.preCents ?? subtotalCents;
+        // Use the post-discount total for Pixel value — that's what the buyer actually pays.
+        const preDiscountCents = serverPricing?.preCents ?? subtotalCents;
+        const valueCents = appliedCoupon
+          ? Math.max(0, preDiscountCents - appliedCoupon.discountCents)
+          : preDiscountCents;
         const checkoutCurrency = (serverPricing?.currency ?? currency ?? "EUR").toUpperCase();
         const checkoutValue = Number((valueCents / 100).toFixed(2));
         const numItems = lines.reduce((s, l) => s + (l.quantity || 0), 0);
@@ -303,7 +427,7 @@ export function WearCartPageClient() {
     } finally {
       setCheckoutBusy(false);
     }
-  }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents]);
+  }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents, appliedCoupon]);
 
   return (
     <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 !text-stone-900 sm:px-6 sm:py-20">
@@ -453,6 +577,19 @@ export function WearCartPageClient() {
                   )}
                 </dd>
               </div>
+              {appliedCoupon && couponDiscountCents > 0 ? (
+                <div className="flex justify-between">
+                  <dt className="text-emerald-700">
+                    Discount{" "}
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                      ({appliedCoupon.code})
+                    </span>
+                  </dt>
+                  <dd className="font-semibold text-emerald-700">
+                    −{formatWearMoney(couponDiscountCents, displayCurrency)}
+                  </dd>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <dt className="text-stone-600">Shipping</dt>
                 <dd className={qualifiesForFreeShipping ? "font-semibold text-emerald-700" : "text-stone-600"}>
@@ -472,7 +609,7 @@ export function WearCartPageClient() {
                     <span className="inline-block h-4 w-24 animate-pulse rounded bg-stone-200/80" aria-label="Calculating" />
                   ) : (
                     <>
-                      {formatWearMoney(merchandiseCents, displayCurrency)}
+                      {formatWearMoney(merchandiseAfterDiscountCents, displayCurrency)}
                       <span className="ml-1 text-xs font-normal text-stone-500">
                         {qualifiesForFreeShipping ? "shipping free" : "+ shipping"}
                       </span>
@@ -481,6 +618,92 @@ export function WearCartPageClient() {
                 </dd>
               </div>
             </dl>
+
+            <div className="mt-6 rounded-2xl border border-stone-200/80 bg-white px-4 py-4">
+              {appliedCoupon ? (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                      Code applied
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-amber-950">
+                      {appliedCoupon.code}
+                      {appliedCoupon.name ? (
+                        <span className="font-normal text-stone-600"> — {appliedCoupon.name}</span>
+                      ) : null}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-500">
+                      Saves {formatWearMoney(couponDiscountCents, displayCurrency)}. Locked in before
+                      Stripe.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="inline-flex min-h-9 items-center justify-center rounded-full border border-stone-200 bg-white px-3 text-xs font-semibold uppercase tracking-[0.14em] text-stone-700 transition hover:border-amber-300/80 hover:text-amber-950"
+                    disabled={couponBusy || checkoutBusy}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <label
+                    htmlFor="wear-coupon-code"
+                    className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-700"
+                  >
+                    Have a code?
+                  </label>
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      id="wear-coupon-code"
+                      type="text"
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      inputMode="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !couponBusy && couponInput.trim()) {
+                          e.preventDefault();
+                          void applyCoupon();
+                        }
+                      }}
+                      placeholder="ENTER CODE"
+                      className="min-h-11 flex-1 rounded-full border border-stone-200 bg-stone-50 px-4 text-sm font-mono uppercase tracking-[0.12em] text-amber-950 placeholder:text-stone-400 focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700"
+                      disabled={couponBusy || lines.length === 0 || cartCurrencyIssue != null || checkoutBusy}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void applyCoupon()}
+                      disabled={
+                        couponBusy ||
+                        !couponInput.trim() ||
+                        lines.length === 0 ||
+                        cartCurrencyIssue != null ||
+                        checkoutBusy
+                      }
+                      className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-5 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-amber-900 disabled:opacity-50"
+                    >
+                      {couponBusy ? "Checking…" : "Apply"}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-stone-500">
+                    Discount locks in here — Stripe charges the discounted total.
+                  </p>
+                </>
+              )}
+              {couponError ? (
+                <p
+                  className="mt-3 text-xs font-medium text-red-700"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {couponError}
+                </p>
+              ) : null}
+            </div>
 
             {pricingState === "error" ? (
               <p className="mt-3 rounded-xl border border-amber-300/60 bg-amber-50/60 px-4 py-3 text-xs leading-relaxed text-amber-900">
@@ -508,6 +731,7 @@ export function WearCartPageClient() {
               type="button"
               disabled={
                 checkoutBusy ||
+                couponBusy ||
                 !catalogReady ||
                 lines.length === 0 ||
                 linesInvalid ||
@@ -521,7 +745,7 @@ export function WearCartPageClient() {
                 ? "Redirecting…"
                 : pricingState === "loading"
                   ? "Calculating…"
-                  : `Pay ${formatWearMoney(merchandiseCents, displayCurrency)} → checkout`}
+                  : `Pay ${formatWearMoney(merchandiseAfterDiscountCents, displayCurrency)} → checkout`}
             </button>
             <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
               Apple Pay · Google Pay · Card · Link
