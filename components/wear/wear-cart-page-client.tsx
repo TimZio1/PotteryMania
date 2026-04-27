@@ -69,7 +69,11 @@ export function WearCartPageClient() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
-  const [serverPricing, setServerPricing] = useState<{ preCents: number; currency: string } | null>(null);
+  const [serverPricing, setServerPricing] = useState<{
+    preCents: number;
+    currency: string;
+    campaign: { label: string; discountCents: number; freeItemCount: number } | null;
+  } | null>(null);
   const [pricingState, setPricingState] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   // Coupon state — `couponInput` is the in-flight text, `appliedCoupon` is the server-validated
@@ -177,7 +181,13 @@ export function WearCartPageClient() {
   const couponDiscountCents = appliedCoupon
     ? Math.min(appliedCoupon.discountCents, merchandiseCents)
     : 0;
-  const merchandiseAfterDiscountCents = Math.max(0, merchandiseCents - couponDiscountCents);
+  const campaignDiscountCents = Math.min(
+    serverPricing?.campaign?.discountCents ?? 0,
+    Math.max(0, merchandiseCents - couponDiscountCents),
+  );
+  const campaignFreeItemCount = serverPricing?.campaign?.freeItemCount ?? 0;
+  const campaignLabel = serverPricing?.campaign?.label ?? "Buy 4, get 1 free";
+  const merchandiseAfterDiscountCents = Math.max(0, merchandiseCents - couponDiscountCents - campaignDiscountCents);
   // Free-shipping threshold is checked against the post-discount merchandise total — matches the
   // server side (`/api/wear/checkout` line 144) so the in-cart UX doesn't lie.
   const qualifiesForFreeShipping = merchandiseAfterDiscountCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
@@ -187,6 +197,8 @@ export function WearCartPageClient() {
   );
 
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
+  const cartQuantity = lines.reduce((sum, line) => sum + (line.quantity || 0), 0);
+  const campaignRemainingItems = Math.max(0, 5 - (cartQuantity % 5 || 5));
 
   useEffect(() => {
     if (!catalogReady || lines.length === 0 || linesInvalid) {
@@ -214,6 +226,7 @@ export function WearCartPageClient() {
         });
         const data = (await res.json()) as {
           preDiscountSubtotalCents?: number;
+          campaign?: { label?: string; discountCents?: number; freeItemCount?: number };
           currency?: string;
           error?: string;
         };
@@ -226,6 +239,13 @@ export function WearCartPageClient() {
         setServerPricing({
           preCents: data.preDiscountSubtotalCents ?? 0,
           currency: (data.currency ?? "EUR").toUpperCase(),
+          campaign: data.campaign
+            ? {
+                label: data.campaign.label ?? "Buy 4, get 1 free",
+                discountCents: data.campaign.discountCents ?? 0,
+                freeItemCount: data.campaign.freeItemCount ?? 0,
+              }
+            : null,
         });
         setPricingState("ready");
       } catch {
@@ -386,9 +406,10 @@ export function WearCartPageClient() {
       if (data.url) {
         // Use the post-discount total for Pixel value — that's what the buyer actually pays.
         const preDiscountCents = serverPricing?.preCents ?? subtotalCents;
-        const valueCents = appliedCoupon
-          ? Math.max(0, preDiscountCents - appliedCoupon.discountCents)
-          : preDiscountCents;
+        const valueCents = Math.max(
+          0,
+          preDiscountCents - (appliedCoupon?.discountCents ?? 0) - campaignDiscountCents,
+        );
         const checkoutCurrency = (serverPricing?.currency ?? currency ?? "EUR").toUpperCase();
         const checkoutValue = Number((valueCents / 100).toFixed(2));
         const numItems = lines.reduce((s, l) => s + (l.quantity || 0), 0);
@@ -427,7 +448,7 @@ export function WearCartPageClient() {
     } finally {
       setCheckoutBusy(false);
     }
-  }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents, appliedCoupon]);
+  }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents, appliedCoupon, campaignDiscountCents]);
 
   return (
     <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 !text-stone-900 sm:px-6 sm:py-20">
@@ -587,6 +608,28 @@ export function WearCartPageClient() {
                   </dt>
                   <dd className="font-semibold text-emerald-700">
                     −{formatWearMoney(couponDiscountCents, displayCurrency)}
+                  </dd>
+                </div>
+              ) : null}
+              {campaignDiscountCents > 0 ? (
+                <div className="flex justify-between">
+                  <dt className="text-emerald-700">
+                    {campaignLabel}
+                    {campaignFreeItemCount > 0 ? (
+                      <span className="ml-1 font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                        ({campaignFreeItemCount} free)
+                      </span>
+                    ) : null}
+                  </dt>
+                  <dd className="font-semibold text-emerald-700">
+                    −{formatWearMoney(campaignDiscountCents, displayCurrency)}
+                  </dd>
+                </div>
+              ) : cartQuantity > 0 && campaignRemainingItems > 0 ? (
+                <div className="flex justify-between">
+                  <dt className="text-stone-500">Campaign</dt>
+                  <dd className="text-right text-stone-500">
+                    Add {campaignRemainingItems} item{campaignRemainingItems === 1 ? "" : "s"} for a free lowest-priced piece
                   </dd>
                 </div>
               ) : null}

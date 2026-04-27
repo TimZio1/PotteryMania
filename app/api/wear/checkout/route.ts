@@ -21,6 +21,7 @@ import {
   wearStudioMarginWithCommissionOverride,
 } from "@/lib/wear-checkout-lines";
 import { buildWearEngineLinesFromResolved, computeWearCouponDiscount } from "@/lib/wear-discount-engine";
+import { computeWearBuyXGetYDiscount, WEAR_BUY_X_GET_Y_CAMPAIGN } from "@/lib/wear-buy-x-get-y-campaign";
 import type { Coupon, Prisma } from "@prisma/client";
 
 function baseUrl() {
@@ -65,14 +66,32 @@ export async function POST(req: Request) {
   }
 
   let coupon: Coupon | null = null;
-  let discountCents = 0;
+  let couponDiscountCents = 0;
+  const preDiscountSubtotalCents = resolvedPack.preDiscountSubtotalCents;
+  const campaign = computeWearBuyXGetYDiscount(resolvedPack.resolved);
+  const campaignDiscountCents = campaign.discountCents;
+  const campaignAdjustedResolved = resolvedPack.resolved
+    .map((r) => ({
+      key: r.key,
+      productId: r.productId,
+      variantId: r.variantId,
+      quantity: Math.max(0, r.quantity - (campaign.freeUnitsByKey[r.key] ?? 0)),
+      unitCents: r.unitCents,
+      baseCents: r.baseCents,
+      supplyCostCents: r.supplyCostCents,
+      product: r.product,
+    }))
+    .filter((r) => r.quantity > 0);
   let lineTotalAfterByKey: Record<string, number> = {};
   for (const r of resolvedPack.resolved) {
-    lineTotalAfterByKey[r.key] = r.unitCents * r.quantity;
+    lineTotalAfterByKey[r.key] = campaign.lineTotalAfterByKey[r.key] ?? r.unitCents * r.quantity;
   }
 
   const rawCoupon = typeof body.couponCode === "string" ? body.couponCode.trim() : "";
   if (rawCoupon.length > 0) {
+    if (campaignAdjustedResolved.length === 0) {
+      return NextResponse.json({ error: "This code doesn’t reduce this order." }, { status: 400 });
+    }
     const code = normalizeCouponCode(rawCoupon);
     coupon = await prisma.coupon.findUnique({ where: { code } });
     if (!coupon) {
@@ -84,27 +103,19 @@ export async function POST(req: Request) {
     }
 
     const engineLines = buildWearEngineLinesFromResolved({
-      resolved: resolvedPack.resolved.map((r) => ({
-        key: r.key,
-        productId: r.productId,
-        variantId: r.variantId,
-        quantity: r.quantity,
-        unitCents: r.unitCents,
-        baseCents: r.baseCents,
-        supplyCostCents: r.supplyCostCents,
-        product: r.product,
-      })),
+      resolved: campaignAdjustedResolved,
     });
 
     const disc = computeWearCouponDiscount({ coupon, lines: engineLines });
     if (!disc.ok) {
       return NextResponse.json({ error: disc.error }, { status: 400 });
     }
-    discountCents = disc.discountCents;
-    lineTotalAfterByKey = disc.lineTotalAfterByKey;
+    couponDiscountCents = disc.discountCents;
+    for (const r of campaignAdjustedResolved) {
+      lineTotalAfterByKey[r.key] = disc.lineTotalAfterByKey[r.key] ?? lineTotalAfterByKey[r.key] ?? 0;
+    }
   }
-
-  const preDiscountSubtotalCents = resolvedPack.preDiscountSubtotalCents;
+  const discountCents = couponDiscountCents + campaignDiscountCents;
   const subtotalCents = preDiscountSubtotalCents - discountCents;
 
   if (subtotalCents < MIN_DISCOUNTED_SUBTOTAL_CENTS) {
@@ -142,13 +153,14 @@ export async function POST(req: Request) {
 
   const currency = resolvedPack.currency;
   const qualifiesForFreeShipping = subtotalCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
+  const stripeLineTotalAfterByKey = { ...lineTotalAfterByKey };
 
   const orderId = await prisma.$transaction(async (tx) => {
     const order = await tx.wearOrder.create({
       data: {
         studioId: resolvedPack.attributedStudioId,
         couponId: coupon?.id ?? null,
-        preDiscountSubtotalCents: coupon ? preDiscountSubtotalCents : null,
+        preDiscountSubtotalCents: discountCents > 0 ? preDiscountSubtotalCents : null,
         discountCents,
         customerEmail,
         customerName,
@@ -178,14 +190,17 @@ export async function POST(req: Request) {
   });
 
   const stripe = getStripe();
-  const line_items = resolvedPack.resolved.map((r) => {
+  const line_items = resolvedPack.resolved.flatMap((r) => {
+    const freeQty = campaign.freeUnitsByKey[r.key] ?? 0;
+    const paidQty = Math.max(0, r.quantity - freeQty);
+    if (paidQty <= 0) return [];
     const imgs = wearImageUrlsFromJson(r.product.images as Prisma.JsonValue);
     const primary = imgs[0];
     const desc = [r.product.subtitle, r.variant?.label].filter(Boolean).join(" · ") || undefined;
-    const after = lineTotalAfterByKey[r.key] ?? r.unitCents * r.quantity;
-    const unitAmount = Math.round(after / r.quantity);
-    return {
-      quantity: r.quantity,
+    const after = stripeLineTotalAfterByKey[r.key] ?? r.unitCents * paidQty;
+    const unitAmount = Math.round(after / paidQty);
+    return [{
+      quantity: paidQty,
       price_data: {
         currency,
         unit_amount: unitAmount,
@@ -195,15 +210,23 @@ export async function POST(req: Request) {
           ...(primary ? { images: [primary] } : {}),
         },
       },
-    };
+    }];
   });
 
   const metaCoupon: Record<string, string> =
-    coupon && discountCents > 0
+    coupon && couponDiscountCents > 0
       ? {
           couponId: coupon.id,
-          discountCents: String(discountCents),
+          couponDiscountCents: String(couponDiscountCents),
           preDiscountSubtotalCents: String(preDiscountSubtotalCents),
+        }
+      : {};
+  const metaCampaign: Record<string, string> =
+    campaignDiscountCents > 0
+      ? {
+          campaign: "buy_4_get_1_free",
+          campaignDiscountCents: String(campaignDiscountCents),
+          campaignFreeItemCount: String(campaign.freeItemCount),
         }
       : {};
 
@@ -238,6 +261,7 @@ export async function POST(req: Request) {
         wearOrderId: orderId,
         ...(resolvedPack.attributedStudioId ? { studioId: resolvedPack.attributedStudioId } : {}),
         ...metaCoupon,
+        ...metaCampaign,
       },
       payment_intent_data: {
         metadata: {
@@ -245,6 +269,7 @@ export async function POST(req: Request) {
           wearOrderId: orderId,
           ...(resolvedPack.attributedStudioId ? { studioId: resolvedPack.attributedStudioId } : {}),
           ...metaCoupon,
+          ...metaCampaign,
         },
       },
     });

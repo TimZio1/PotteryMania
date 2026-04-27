@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { mergeWearRequestLines, resolveWearCheckoutLines } from "@/lib/wear-checkout-lines";
+import { computeWearBuyXGetYDiscount, WEAR_BUY_X_GET_Y_CAMPAIGN } from "@/lib/wear-buy-x-get-y-campaign";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +29,15 @@ export async function POST(req: Request) {
   if (!pack.ok) {
     return NextResponse.json({ error: pack.error }, { status: pack.status });
   }
+  const campaign = computeWearBuyXGetYDiscount(pack.resolved);
 
   return NextResponse.json({
     preDiscountSubtotalCents: pack.preDiscountSubtotalCents,
+    campaign: {
+      label: WEAR_BUY_X_GET_Y_CAMPAIGN.label,
+      discountCents: campaign.discountCents,
+      freeItemCount: campaign.freeItemCount,
+    },
     currency: pack.currency.toUpperCase(),
   });
 }

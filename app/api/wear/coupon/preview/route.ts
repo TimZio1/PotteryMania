@@ -14,6 +14,7 @@ import {
   wearStudioMarginWithCommissionOverride,
 } from "@/lib/wear-checkout-lines";
 import { buildWearEngineLinesFromResolved, computeWearCouponDiscount } from "@/lib/wear-discount-engine";
+import { computeWearBuyXGetYDiscount } from "@/lib/wear-buy-x-get-y-campaign";
 
 export const dynamic = "force-dynamic";
 
@@ -63,25 +64,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: couponErr }, { status: 400 });
   }
 
-  const engineLines = buildWearEngineLinesFromResolved({
-    resolved: resolvedPack.resolved.map((r) => ({
+  const campaign = computeWearBuyXGetYDiscount(resolvedPack.resolved);
+  const campaignAdjustedResolved = resolvedPack.resolved
+    .map((r) => ({
       key: r.key,
       productId: r.productId,
       variantId: r.variantId,
-      quantity: r.quantity,
+      quantity: Math.max(0, r.quantity - (campaign.freeUnitsByKey[r.key] ?? 0)),
       unitCents: r.unitCents,
       baseCents: r.baseCents,
       supplyCostCents: r.supplyCostCents,
       product: r.product,
-    })),
-  });
+    }))
+    .filter((r) => r.quantity > 0);
+  const campaignSubtotalCents = resolvedPack.preDiscountSubtotalCents - campaign.discountCents;
+  if (campaignAdjustedResolved.length === 0) {
+    return NextResponse.json({ error: "This code doesn’t reduce this order." }, { status: 400 });
+  }
+
+  const engineLines = buildWearEngineLinesFromResolved({ resolved: campaignAdjustedResolved });
 
   const disc = computeWearCouponDiscount({ coupon, lines: engineLines });
   if (!disc.ok) {
     return NextResponse.json({ error: disc.error }, { status: 400 });
   }
 
-  const subtotalAfter = resolvedPack.preDiscountSubtotalCents - disc.discountCents;
+  const subtotalAfter = campaignSubtotalCents - disc.discountCents;
   if (subtotalAfter < MIN_DISCOUNTED_SUBTOTAL_CENTS) {
     return NextResponse.json(
       {
@@ -107,7 +115,10 @@ export async function POST(req: Request) {
         resolved: resolvedPack.resolved,
         attributedStudioId: resolvedPack.attributedStudioId,
         studioMarginBps: resolvedPack.studioMarginBps,
-        lineTotalAfterByKey: disc.lineTotalAfterByKey,
+        lineTotalAfterByKey: {
+          ...campaign.lineTotalAfterByKey,
+          ...disc.lineTotalAfterByKey,
+        },
       });
       totalStudioMarginCents = m.totalStudioMarginCents;
       platformRevenueCents = m.platformRevenueCents;
@@ -121,6 +132,8 @@ export async function POST(req: Request) {
     discountCents: disc.discountCents,
     preDiscountSubtotalCents: resolvedPack.preDiscountSubtotalCents,
     subtotalAfterCents: subtotalAfter,
+    campaignDiscountCents: campaign.discountCents,
+    campaignSubtotalCents,
     currency: resolvedPack.currency.toUpperCase(),
     eligibleSubtotalCents: disc.eligibleSubtotalCents,
     affiliateCommissionBpsOverride: override,
