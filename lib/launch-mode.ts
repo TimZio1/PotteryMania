@@ -85,6 +85,16 @@ export const APPAREL_ONLY_PUBLIC_PATHS = [
   "/w",
   "/cart",
   "/checkout",
+  /**
+   * Next.js metadata routes — must stay public in apparel-only mode so social-share
+   * crawlers (facebookexternalhit, Twitterbot, LinkedInBot, etc.) can fetch the OG
+   * image directly. The middleware matcher also excludes these as a primary defense;
+   * listing them here is a belt-and-suspenders safety net.
+   */
+  "/opengraph-image",
+  "/twitter-image",
+  "/icon",
+  "/apple-icon",
 ] as const;
 
 /** Legacy / discovery routes that redirect to home when apparel-only (admins may bypass in middleware). */

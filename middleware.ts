@@ -282,5 +282,18 @@ export default auth(async (req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api/ready|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\..*).*)"],
+  /**
+   * Exclude Next.js App Router metadata routes (`opengraph-image`, `twitter-image`,
+   * `icon`, `apple-icon`) from middleware. They're served from `app/*` without a
+   * file extension, so the existing `.*\\..*` dotted-asset exclusion misses them
+   * — and apparel-only launch mode was redirecting `/opengraph-image` to `/`,
+   * which broke FB / X / LinkedIn / WhatsApp / Slack share previews because the
+   * crawlers got HTML instead of a PNG.
+   *
+   * `sitemap.xml`, `robots.txt`, and `manifest.webmanifest` are already covered
+   * by the dotted exclusion.
+   */
+  matcher: [
+    "/((?!api/ready|_next/static|_next/image|favicon.ico|manifest.webmanifest|opengraph-image|twitter-image|icon|apple-icon|.*\\..*).*)",
+  ],
 };
