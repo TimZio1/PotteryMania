@@ -287,6 +287,7 @@ export function WearProductGallery({
         {subtitle ? <p className="mt-3 text-lg text-stone-600">{subtitle}</p> : null}
         <WearPdpBuySection
           productId={productId}
+          productName={productName}
           basePriceCents={basePriceCents}
           currency={currency}
           variants={variants}

@@ -14,6 +14,7 @@ export type WearPdpVariant = {
 
 export function WearPdpBuySection({
   productId,
+  productName,
   basePriceCents,
   currency,
   variants,
@@ -23,6 +24,8 @@ export function WearPdpBuySection({
   onSelectedColorChange,
 }: {
   productId: string;
+  /** Display name forwarded to Meta Pixel `ViewContent` / `AddToCart` events. */
+  productName?: string;
   basePriceCents: number;
   currency: string;
   variants: WearPdpVariant[];
@@ -50,8 +53,14 @@ export function WearPdpBuySection({
   const selectedColor = isColorControlled ? controlledSelectedColor : internalSelectedColor;
 
   useEffect(() => {
-    trackWearEvent(WEAR_EVENT_KINDS.productView, { productId });
-  }, [productId]);
+    trackWearEvent(WEAR_EVENT_KINDS.productView, {
+      productId,
+      contentIds: [productId],
+      contentName: productName,
+      value: Number((basePriceCents / 100).toFixed(2)),
+      currency,
+    });
+  }, [productId, productName, basePriceCents, currency]);
 
   useEffect(() => {
     const fallbackColor = colors[0] ?? "";
@@ -221,6 +230,9 @@ export function WearPdpBuySection({
         {canAdd ? (
           <WearAddToCartButton
             productId={productId}
+            productName={productName}
+            unitPriceCents={displayCents}
+            currency={currency}
             variantId={needsVariant ? selected?.id ?? null : null}
             studioId={studioId}
             viewCartHref={viewCartHref}
@@ -260,6 +272,9 @@ export function WearPdpBuySection({
           {canAdd ? (
             <WearAddToCartButton
               productId={productId}
+              productName={productName}
+              unitPriceCents={displayCents}
+              currency={currency}
               variantId={needsVariant ? selected?.id ?? null : null}
               studioId={studioId}
               viewCartHref={viewCartHref}

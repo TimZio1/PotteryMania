@@ -12,6 +12,7 @@ import {
   type WearCartLine,
 } from "@/lib/wear-cart";
 import { WEAR_EVENT_KINDS, trackWearEvent } from "@/lib/wear-analytics-client";
+import { setWearCheckoutSnapshot } from "@/lib/wear-checkout-snapshot";
 import { WEAR_LISTING_CURRENCY, WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-currency-policy";
 import { formatWearMoney } from "@/lib/wear-money";
 import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
@@ -263,10 +264,30 @@ export function WearCartPageClient() {
         return;
       }
       if (data.url) {
+        const valueCents = serverPricing?.preCents ?? subtotalCents;
+        const checkoutCurrency = (serverPricing?.currency ?? currency ?? "EUR").toUpperCase();
+        const checkoutValue = Number((valueCents / 100).toFixed(2));
+        const numItems = lines.reduce((s, l) => s + (l.quantity || 0), 0);
+        const contentIds = lines.map((l) => l.productId);
+
+        // Snapshot for the success page Pixel `Purchase` — the success page only knows the Stripe
+        // session_id, so without this it can't fire a Pixel event with value/currency/content_ids.
+        setWearCheckoutSnapshot({
+          contentIds,
+          value: checkoutValue,
+          currency: checkoutCurrency,
+          numItems,
+          ts: Date.now(),
+        });
+
         if (data.orderId) {
           const refId = getWearPartnerReferralStudioId();
           trackWearEvent(WEAR_EVENT_KINDS.checkoutStarted, {
             orderId: data.orderId,
+            contentIds,
+            value: checkoutValue,
+            currency: checkoutCurrency,
+            quantity: numItems,
             meta: {
               item_count: lines.length,
               ...(refId ? { referring_studio_id: refId } : {}),
@@ -282,7 +303,7 @@ export function WearCartPageClient() {
     } finally {
       setCheckoutBusy(false);
     }
-  }, [cartCurrencyIssue, lines]);
+  }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents]);
 
   return (
     <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 !text-stone-900 sm:px-6 sm:py-20">

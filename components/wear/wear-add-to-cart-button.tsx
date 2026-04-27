@@ -37,6 +37,12 @@ type Props = {
   quantity?: number;
   /** Suppress the "Item in your bag — View cart" status text after add (used for sticky mobile CTA bars). */
   silentSuccess?: boolean;
+  /** Unit price in cents — fed to Meta Pixel `AddToCart` event as `value` (× quantity). */
+  unitPriceCents?: number;
+  /** ISO-4217 currency code for Meta Pixel events (defaults to EUR). */
+  currency?: string;
+  /** Display name shown in Events Manager item rows. */
+  productName?: string;
 };
 
 export function WearAddToCartButton({
@@ -48,6 +54,9 @@ export function WearAddToCartButton({
   label = "Cop it",
   quantity = 1,
   silentSuccess = false,
+  unitPriceCents,
+  currency = "EUR",
+  productName,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -72,6 +81,8 @@ export function WearAddToCartButton({
   const onClick = useCallback(async () => {
     setBusy(true);
     const qty = Math.min(99, Math.max(1, Math.floor(quantity || 1)));
+    const lineValue =
+      unitPriceCents != null ? Number(((unitPriceCents * qty) / 100).toFixed(2)) : undefined;
     try {
       if (studioId) {
         const res = await fetch("/api/cart", {
@@ -92,6 +103,10 @@ export function WearAddToCartButton({
         trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
           productId,
           variantId: variantId ?? undefined,
+          contentIds: [productId],
+          contentName: productName,
+          ...(lineValue != null ? { value: lineValue, currency } : {}),
+          quantity: qty,
           meta: refId ? { referring_studio_id: refId } : undefined,
         });
         flashAdded();
@@ -125,13 +140,17 @@ export function WearAddToCartButton({
       trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
         productId,
         variantId: variantId ?? undefined,
+        contentIds: [productId],
+        contentName: productName,
+        ...(lineValue != null ? { value: lineValue, currency } : {}),
+        quantity: qty,
         meta: refId ? { referring_studio_id: refId } : undefined,
       });
       flashAdded();
     } finally {
       setBusy(false);
     }
-  }, [productId, studioId, variantId, quantity, flashAdded]);
+  }, [productId, studioId, variantId, quantity, flashAdded, unitPriceCents, currency, productName]);
 
   const defaultButtonClass =
     "inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60";

@@ -5,6 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { WEAR_CART_STORAGE_KEY, notifyWearCartChanged } from "@/lib/wear-cart";
 import { clearWearPartnerReferral } from "@/lib/wear-referral-storage";
+import { WEAR_EVENT_KINDS, trackWearEvent } from "@/lib/wear-analytics-client";
+import {
+  clearWearCheckoutSnapshot,
+  readWearCheckoutSnapshot,
+} from "@/lib/wear-checkout-snapshot";
 
 export function WearSuccessClient() {
   const searchParams = useSearchParams();
@@ -15,6 +20,21 @@ export function WearSuccessClient() {
     localStorage.removeItem(WEAR_CART_STORAGE_KEY);
     notifyWearCartChanged();
     clearWearPartnerReferral();
+
+    // Fire Pixel `Purchase` from the cart snapshot we wrote just before the Stripe redirect.
+    // Using sessionId as the eventID dedups against any future server-side CAPI Purchase call.
+    const snapshot = readWearCheckoutSnapshot();
+    if (snapshot) {
+      trackWearEvent(WEAR_EVENT_KINDS.purchaseSuccess, {
+        orderId: sessionId,
+        contentIds: snapshot.contentIds,
+        value: snapshot.value,
+        currency: snapshot.currency,
+        quantity: snapshot.numItems,
+        eventId: sessionId,
+      });
+      clearWearCheckoutSnapshot();
+    }
   }, [sessionId]);
 
   return (
