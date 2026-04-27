@@ -28,14 +28,17 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
         <p className={platformUi.overline}>Account</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Your account</h1>
-        <p className="mt-3 text-[var(--muted)]">Open a studio or see your class bookings.</p>
+        <p className="mt-3 text-[var(--muted)]">Track apparel orders or open your studio.</p>
         <div className={`${platformUi.card} mt-8`}>
           <div className="flex flex-col gap-3">
-            <Link href="/dashboard/studio/new?setup=both" className={platformUi.buttonPrimary}>
-              Create my studio
+            <Link href="/wear/shop" className={platformUi.buttonPrimary}>
+              Shop the drop
             </Link>
-            <Link href="/my-bookings" className={platformUi.buttonSecondary}>
-              My bookings
+            <Link href="/my-orders" className={platformUi.buttonSecondary}>
+              My orders
+            </Link>
+            <Link href="/dashboard/studio/new?setup=both" className={platformUi.buttonSecondary}>
+              Create my studio
             </Link>
             <Link href="/dashboard/billing" className={`${platformUi.buttonGhost} justify-center`}>
               Billing

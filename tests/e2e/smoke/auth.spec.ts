@@ -30,9 +30,9 @@ test.describe("Flow 2 — Login & session", () => {
     });
 
     await test.step("Protected route stays authenticated", async () => {
-      await page.goto("/my-bookings");
-      await expect(page).toHaveURL(/\/my-bookings/);
-      await expect(page.getByRole("heading", { name: /^My bookings$/i })).toBeVisible();
+      await page.goto("/my-orders");
+      await expect(page).toHaveURL(/\/my-orders/);
+      await expect(page.getByRole("heading", { name: /^My orders$/i })).toBeVisible();
     });
 
     await test.step("Logout", async () => {

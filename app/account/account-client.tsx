@@ -5,7 +5,6 @@ import { signOut } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import { SkeletonText } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 const LANG_OPTIONS = [
   { value: "", label: "Default" },
@@ -55,7 +54,6 @@ function HubCard({
 }
 
 export function AccountClient() {
-  const apparelOnly = isApparelOnlyLaunch();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -187,27 +185,11 @@ export function AccountClient() {
       <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-stone-700">Made with heat</p>
       <h1 className="mt-4 text-center font-serif text-3xl tracking-tight text-amber-950 sm:text-4xl">Your account</h1>
       <p className="mx-auto mt-4 max-w-lg text-center text-sm leading-relaxed text-stone-600 sm:text-base">
-        {apparelOnly ? (
-          <>
-            One place for your profile, your drops, and what happens after you pay. Tracking and receipts show up in{" "}
-            <Link href="/my-orders" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-900">
-              My orders
-            </Link>
-            .
-          </>
-        ) : (
-          <>
-            Your details power checkout and studio bookings. Orders (marketplace + wear) live in{" "}
-            <Link href="/my-orders" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-900">
-              My orders
-            </Link>
-            ; classes live in{" "}
-            <Link href="/my-bookings" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-900">
-              My bookings
-            </Link>
-            .
-          </>
-        )}
+        One place for your profile, your drops, and what happens after you pay. Receipts and shipment tracking live in{" "}
+        <Link href="/my-orders" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-900">
+          My orders
+        </Link>
+        .
       </p>
 
       <section className="mt-12" aria-labelledby="account-hub">
@@ -247,16 +229,6 @@ export function AccountClient() {
               cta="Partner up"
             />
           </li>
-          {!apparelOnly ? (
-            <li className="sm:col-span-2">
-              <HubCard
-                href="/my-bookings"
-                title="Class bookings"
-                description="Workshops and sessions you’ve booked through PotteryMania studios."
-                cta="View bookings"
-              />
-            </li>
-          ) : null}
         </ul>
       </section>
 
@@ -276,9 +248,7 @@ export function AccountClient() {
           Profile
         </h2>
         <p className="mt-2 max-w-xl text-sm text-stone-600">
-          {apparelOnly
-            ? "We use this to pre-fill checkout where Stripe allows. Sign-in email stays fixed for security."
-            : "We use this to pre-fill checkout and studio bookings. Sign-in email stays fixed for security."}
+          We use this to pre-fill checkout where Stripe allows. Sign-in email stays fixed for security.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-2xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-sm">

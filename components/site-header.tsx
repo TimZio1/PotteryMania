@@ -199,11 +199,6 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
               ) : null}
               {!isAdminRole(role) ? (
                 <>
-                  {!storeMode ? (
-                    <Link href="/my-bookings" className={linkClass("/my-bookings")}>
-                      My bookings
-                    </Link>
-                  ) : null}
                   <Link href="/my-orders" className={linkClass("/my-orders")}>
                     My orders
                   </Link>
@@ -354,11 +349,6 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                 ) : null}
                 {!isAdminRole(role) ? (
                   <>
-                    {!storeMode ? (
-                      <Link href="/my-bookings" className={mobileLinkClass("/my-bookings")} onClick={close}>
-                        My bookings
-                      </Link>
-                    ) : null}
                     <Link href="/my-orders" className={mobileLinkClass("/my-orders")} onClick={close}>
                       My orders
                     </Link>

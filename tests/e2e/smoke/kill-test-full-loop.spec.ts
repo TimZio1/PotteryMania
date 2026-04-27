@@ -253,12 +253,12 @@ test.describe("KILL TEST — Phase 3: Customer Booking Loop", () => {
     expect(body).not.toContain("Internal Server Error");
   });
 
-  test("3.3 — My bookings page loads", async ({ page }) => {
+  test("3.3 — My orders page loads", async ({ page }) => {
     const creds = getTestCredentials();
     test.skip(!creds, "No test credentials");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, "/my-bookings");
-    await expect(page.getByRole("heading", { name: /My bookings/i })).toBeVisible({ timeout: 15_000 });
+    await loginWithCredentials(page, creds!.email, creds!.password, "/my-orders");
+    await expect(page.getByRole("heading", { name: /My orders/i })).toBeVisible({ timeout: 15_000 });
   });
 });
 

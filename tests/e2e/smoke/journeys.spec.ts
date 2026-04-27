@@ -30,13 +30,13 @@ test.describe("UX journeys — customer top 10", () => {
   test("customer protected route journey", async ({ page }) => {
     const creds = getTestCredentials();
     if (!creds) {
-      await page.goto("/my-bookings");
+      await page.goto("/my-orders");
       await expect(page).toHaveURL(/\/login/);
       return;
     }
-    await loginWithCredentials(page, creds.email, creds.password, "/my-bookings");
-    await expect(page).toHaveURL(/\/my-bookings/);
-    await expect(page.getByRole("heading", { name: /^My bookings$/i })).toBeVisible({ timeout: 20_000 });
+    await loginWithCredentials(page, creds.email, creds.password, "/my-orders");
+    await expect(page).toHaveURL(/\/my-orders/);
+    await expect(page.getByRole("heading", { name: /^My orders$/i })).toBeVisible({ timeout: 20_000 });
   });
 });
 
