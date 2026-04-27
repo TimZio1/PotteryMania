@@ -18,7 +18,7 @@ import {
 } from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { resolveWearCategory } from "@/lib/wear-categories";
-import { WearBuyXGetYLandingBanner } from "@/components/wear/wear-buy-x-get-y-landing-banner";
+import { WearBuyXGetYHeroBadge, WearBuyXGetYHomePromo } from "@/components/wear/wear-buy-x-get-y-home-promo";
 
 export const dynamic = "force-dynamic";
 
@@ -132,7 +132,6 @@ async function ApparelHome() {
     <MarketingLayout>
       <HomeScrollReset />
       <main className="pm-brand pm-snap relative overflow-hidden bg-[var(--clay)] text-[var(--ink)]">
-        <WearBuyXGetYLandingBanner className="relative z-10" />
         {/* ── 0. Trust strip — single line, no emoji, no clutter ─────────────── */}
         <div className="border-b border-[var(--ink)]/10 bg-[var(--ink)] text-[var(--clay)]">
           <p className="pm-caption mx-auto max-w-6xl px-4 py-2.5 text-center">
@@ -190,6 +189,7 @@ async function ApparelHome() {
             <p className="mt-6 max-w-md text-base text-[var(--clay)]/85 sm:text-lg">
               T-shirts and hoodies for people who don&apos;t sit still.
             </p>
+            <WearBuyXGetYHeroBadge className="mt-8" />
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
               <Link href="/wear/shop" className="pm-btn pm-btn--heat group">
                 Shop the drop
@@ -202,7 +202,10 @@ async function ApparelHome() {
           </div>
         </section>
 
-        {/* ── 2. Slab A — TEES (clay slab, ink type) ─────────────────────────── */}
+        {/* ── 2. Buy 4 · Get 1 — campaign slab (heat-framed, full bleed) ─────── */}
+        <WearBuyXGetYHomePromo />
+
+        {/* ── 3. Slab A — TEES (clay slab, ink type) ─────────────────────────── */}
         {totalTees > 0 ? (
           <section className="pm-slab-light grid lg:min-h-[88svh] lg:grid-cols-2" aria-labelledby="slab-tees">
             <div className="relative aspect-[4/5] overflow-hidden lg:aspect-auto">
@@ -248,7 +251,7 @@ async function ApparelHome() {
           </section>
         ) : null}
 
-        {/* ── 3. Slab B — HOODIES / SECONDARY DROP (ink slab, clay type) ─────── */}
+        {/* ── 4. Slab B — HOODIES / SECONDARY DROP (ink slab, clay type) ─────── */}
         {secondaryDrop && secondaryDrop.rows.length > 0 ? (
           <section className="pm-slab-dark grid lg:min-h-[88svh] lg:grid-cols-2" aria-labelledby="slab-secondary">
             <div className="order-2 flex flex-col justify-center gap-8 px-6 py-16 sm:px-12 sm:py-20 lg:order-1 lg:px-20 lg:py-24">
@@ -295,7 +298,7 @@ async function ApparelHome() {
           </section>
         ) : null}
 
-        {/* ── 4. Manifesto — black slab, off-white type, no image ────────────── */}
+        {/* ── 5. Manifesto — black slab, off-white type, no image ────────────── */}
         <section className="pm-slab-dark relative overflow-hidden" aria-labelledby="manifesto">
           <div className="mx-auto max-w-5xl px-6 py-24 text-center sm:px-10 sm:py-32">
             <p className="pm-caption text-[var(--heat)]">Manifesto</p>
@@ -312,7 +315,7 @@ async function ApparelHome() {
           </div>
         </section>
 
-        {/* ── 5. Drop wall — real catalog photos, community grid ─────────────── */}
+        {/* ── 6. Drop wall — real catalog photos, community grid ─────────────── */}
         {dropWall.length >= 6 ? (
           <section className="pm-slab-light px-0 py-16 sm:py-24" aria-labelledby="drop-wall">
             <div className="mx-auto max-w-7xl px-6 sm:px-10">
@@ -361,7 +364,7 @@ async function ApparelHome() {
           </section>
         ) : null}
 
-        {/* ── 6. Affiliate slab — reskinned, ink ground, single CTA ──────────── */}
+        {/* ── 7. Affiliate slab — reskinned, ink ground, single CTA ──────────── */}
         <section className="pm-slab-dark relative overflow-hidden" aria-labelledby="affiliate">
           <div className="mx-auto max-w-7xl px-6 py-20 sm:px-10 sm:py-28">
             <div className="grid items-end gap-12 lg:grid-cols-2 lg:gap-20">
@@ -402,7 +405,7 @@ async function ApparelHome() {
           </div>
         </section>
 
-        {/* ── 7. FAQ — kept for SEO + trust, reskinned to brand ──────────────── */}
+        {/* ── 8. FAQ — kept for SEO + trust, reskinned to brand ──────────────── */}
         <section className="pm-slab-light py-20 sm:py-28" aria-labelledby="faq">
           <div className="mx-auto max-w-3xl px-6 sm:px-10">
             <p className="pm-caption text-center text-[var(--shadow)]">Before you tap buy</p>
@@ -452,7 +455,7 @@ async function ApparelHome() {
           </div>
         </section>
 
-        {/* ── 8. Final CTA — full-bleed black, single decision ───────────────── */}
+        {/* ── 9. Final CTA — full-bleed black, single decision ───────────────── */}
         <section className="pm-slab-dark relative overflow-hidden" aria-labelledby="final-cta">
           <div className="mx-auto flex min-h-[80svh] max-w-5xl flex-col items-center justify-center px-6 py-24 text-center sm:px-10 sm:py-32">
             <p className="pm-caption text-[var(--heat)]">Drop {dropNumber}</p>
