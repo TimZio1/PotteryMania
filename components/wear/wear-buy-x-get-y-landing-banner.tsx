@@ -32,7 +32,7 @@ export function WearBuyXGetYLandingBanner({
           )}
         </p>
         <p className="mx-auto mt-1 max-w-2xl text-[10px] font-medium leading-snug normal-case tracking-normal text-(--ink)/88 sm:text-[11px]">
-          Lowest-priced pieces go free in each set of five. Coupon discounts apply after this bonus.
+          Coupon discounts apply after this bonus.
         </p>
       </div>
     </aside>

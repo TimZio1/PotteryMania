@@ -11,7 +11,7 @@ export const metadata: Metadata = buildMetadata({
 
 export default function AffiliateApplyPage() {
   return (
-    <main className="pm-brand pm-slab-dark relative min-h-screen overflow-hidden">
+    <main className="pm-brand pm-slab-dark relative min-h-screen overflow-hidden !bg-[var(--ink)] !text-[var(--clay)]">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_100%_70%_at_30%_0%,rgba(255,74,28,0.1),transparent_45%)]"
         aria-hidden
