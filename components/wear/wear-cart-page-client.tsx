@@ -451,20 +451,20 @@ export function WearCartPageClient() {
   }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents, appliedCoupon, campaignDiscountCents]);
 
   return (
-    <main className="pm-brand min-h-[60vh] bg-[var(--clay)] px-4 py-16 text-[var(--ink)] sm:px-6 sm:py-20">
+    <main className="pm-brand pm-slab-dark relative min-h-[60vh] px-4 py-16 !bg-[var(--ink)] !text-[var(--clay)] sm:px-6 sm:py-20">
       <div className="mx-auto max-w-lg">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-stone-700">The bag</p>
-        <h1 className="mt-4 text-center font-serif text-3xl text-amber-950">Your pick.</h1>
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-(--clay)/65">The bag</p>
+        <h1 className="mt-4 text-center font-serif text-3xl text-[var(--clay)]">Your pick.</h1>
 
         {cancelled ? (
-          <div className="mt-6 rounded border border-amber-300/70 bg-amber-50 px-4 py-4 text-center text-sm text-amber-950">
+          <div className="mt-6 rounded border border-(--heat)/35 bg-(--heat)/12 px-4 py-4 text-center text-sm text-[var(--clay)]">
             <p>Checkout was cancelled — nothing was charged.</p>
-            <p className="mt-2 text-stone-600">Your cart is still here. Review it and try again whenever you’re ready.</p>
+            <p className="mt-2 text-(--clay)/72">Your cart is still here. Review it and try again whenever you’re ready.</p>
             <button
               type="button"
               onClick={onCheckout}
               disabled={checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid}
-              className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-900 disabled:opacity-50"
+              className="pm-btn pm-btn--heat mt-3 inline-flex min-h-11 items-center justify-center px-4 py-2 text-sm disabled:opacity-50"
             >
               Try checkout again
             </button>
@@ -473,11 +473,11 @@ export function WearCartPageClient() {
 
         {loadError ? (
           <div className="mt-6 flex flex-col items-center gap-3 text-center">
-            <p className="text-sm text-amber-950">{loadError}</p>
+            <p className="text-sm text-[var(--clay)]">{loadError}</p>
             <button
               type="button"
               onClick={() => void loadCatalog()}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
+              className="pm-btn pm-btn--ghost inline-flex min-h-11 items-center justify-center px-4 py-2 text-sm"
             >
               Try loading again
             </button>
@@ -486,35 +486,35 @@ export function WearCartPageClient() {
 
         {lines.length === 0 ? (
           <div className="mt-14 flex flex-col items-center gap-5 text-center">
-            <p className="font-serif text-3xl text-amber-950 sm:text-4xl">Bag empty.</p>
-            <p className="text-sm text-stone-600">Work calls.</p>
+            <p className="font-serif text-3xl text-[var(--clay)] sm:text-4xl">Bag empty.</p>
+            <p className="text-sm text-(--clay)/70">Work calls.</p>
             <Link
               href="/wear/shop"
-              className="inline-flex min-h-12 items-center justify-center rounded-full bg-amber-950 px-7 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-amber-900"
+              className="pm-btn pm-btn--heat inline-flex min-h-12 items-center justify-center px-7 text-sm font-semibold uppercase tracking-[0.14em]"
             >
               Enter the drop →
             </Link>
           </div>
         ) : !catalogReady ? (
-          <ul className="mt-12 space-y-8 border-t border-stone-200/80 pt-10" aria-busy="true" aria-label="Loading cart">
+          <ul className="mt-12 space-y-8 border-t border-(--clay)/18 pt-10" aria-busy="true" aria-label="Loading cart">
             {lines.map((l) => (
               <li
                 key={cartLineKey(l)}
                 className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 gap-4">
-                  <div className="h-20 w-20 shrink-0 animate-pulse rounded-2xl bg-stone-200/80" />
+                  <div className="h-20 w-20 shrink-0 animate-pulse rounded-2xl bg-(--clay)/12" />
                   <div className="min-w-0 space-y-2 pt-1">
-                    <div className="h-3 w-40 animate-pulse rounded bg-stone-200/80" />
-                    <div className="h-3 w-24 animate-pulse rounded bg-stone-200/70" />
+                    <div className="h-3 w-40 animate-pulse rounded bg-(--clay)/12" />
+                    <div className="h-3 w-24 animate-pulse rounded bg-(--clay)/10" />
                   </div>
                 </div>
-                <div className="h-11 w-32 animate-pulse rounded-full bg-stone-200/70" />
+                <div className="h-11 w-32 animate-pulse rounded-full bg-(--clay)/10" />
               </li>
             ))}
           </ul>
         ) : (
-          <ul className="mt-12 space-y-8 border-t border-stone-200/80 pt-10">
+          <ul className="mt-12 space-y-8 border-t border-(--clay)/18 pt-10">
             {lines.map((l) => {
               const key = cartLineKey(l);
               const r = resolveLine(l, byId);
@@ -523,7 +523,7 @@ export function WearCartPageClient() {
               return (
                 <li key={key} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 gap-4">
-                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100">
+                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-(--clay)/18 bg-(--clay)/6">
                       {thumbUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -532,40 +532,40 @@ export function WearCartPageClient() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center px-1 text-center text-[10px] text-stone-400">
+                        <div className="flex h-full items-center justify-center px-1 text-center text-[10px] text-(--clay)/45">
                           No image
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                    <p className="font-medium text-amber-950">{r.title}</p>
+                    <p className="font-medium text-[var(--clay)]">{r.title}</p>
                     {r.ok ? (
-                      <p className="mt-1 text-sm text-stone-600">
+                      <p className="mt-1 text-sm text-(--clay)/72">
                         {formatWearMoney(r.unitCents, r.currency)} each · {formatWearMoney(lineCents, r.currency)} line
                       </p>
                     ) : (
-                      <p className="mt-1 text-sm text-amber-800">This item isn’t available anymore — please remove it.</p>
+                      <p className="mt-1 text-sm text-(--heat)">This item isn’t available anymore — please remove it.</p>
                     )}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3 sm:justify-end">
-                    <div className="flex items-center rounded-full border border-stone-200 bg-white" role="group" aria-label={`Quantity for ${r.title}`}>
+                    <div className="flex items-center rounded-full border border-(--clay)/22 bg-(--clay)/8" role="group" aria-label={`Quantity for ${r.title}`}>
                       <button
                         type="button"
                         onClick={() => setQty(key, l.quantity - 1)}
                         disabled={l.quantity <= 1}
                         aria-label="Decrease quantity"
-                        className="inline-flex h-11 w-11 items-center justify-center text-lg text-stone-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex h-11 w-11 items-center justify-center text-lg text-(--clay)/85 transition hover:bg-(--clay)/12 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         −
                       </button>
-                      <span className="min-w-8 text-center text-sm font-semibold text-stone-900" aria-live="polite">{l.quantity}</span>
+                      <span className="min-w-8 text-center text-sm font-semibold text-[var(--clay)]" aria-live="polite">{l.quantity}</span>
                       <button
                         type="button"
                         onClick={() => setQty(key, l.quantity + 1)}
                         disabled={l.quantity >= 99}
                         aria-label="Increase quantity"
-                        className="inline-flex h-11 w-11 items-center justify-center text-lg text-stone-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex h-11 w-11 items-center justify-center text-lg text-(--clay)/85 transition hover:bg-(--clay)/12 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         +
                       </button>
@@ -574,7 +574,7 @@ export function WearCartPageClient() {
                       type="button"
                       onClick={() => removeLine(key)}
                       aria-label={`Remove ${r.title}`}
-                      className="min-h-11 px-2 text-xs font-medium uppercase tracking-wider text-stone-600 transition hover:text-red-700"
+                      className="min-h-11 px-2 text-xs font-medium uppercase tracking-wider text-(--clay)/65 transition hover:text-red-400"
                     >
                       Remove
                     </button>
@@ -587,12 +587,12 @@ export function WearCartPageClient() {
 
         {lines.length > 0 && catalogReady ? (
           <>
-            <dl className="mt-10 space-y-2 border-t border-stone-200/80 pt-8 text-sm">
+            <dl className="mt-10 space-y-2 border-t border-(--clay)/18 pt-8 text-sm">
               <div className="flex justify-between">
-                <dt className="font-medium text-stone-800">Merchandise</dt>
-                <dd className="text-amber-950">
+                <dt className="font-medium text-(--clay)/85">Merchandise</dt>
+                <dd className="text-[var(--clay)]">
                   {pricingState === "loading" ? (
-                    <span className="inline-block h-3 w-20 animate-pulse rounded bg-stone-200/80" aria-label="Calculating" />
+                    <span className="inline-block h-3 w-20 animate-pulse rounded bg-(--clay)/12" aria-label="Calculating" />
                   ) : (
                     formatWearMoney(merchandiseCents, displayCurrency)
                   )}
@@ -600,44 +600,44 @@ export function WearCartPageClient() {
               </div>
               {appliedCoupon && couponDiscountCents > 0 ? (
                 <div className="flex justify-between">
-                  <dt className="text-emerald-700">
+                  <dt className="text-emerald-400">
                     Discount{" "}
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-(--clay)/50">
                       ({appliedCoupon.code})
                     </span>
                   </dt>
-                  <dd className="font-semibold text-emerald-700">
+                  <dd className="font-semibold text-emerald-400">
                     −{formatWearMoney(couponDiscountCents, displayCurrency)}
                   </dd>
                 </div>
               ) : null}
               {campaignDiscountCents > 0 ? (
                 <div className="flex justify-between">
-                  <dt className="text-emerald-700">
+                  <dt className="text-emerald-400">
                     {campaignLabel}
                     {campaignFreeItemCount > 0 ? (
-                      <span className="ml-1 font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                      <span className="ml-1 font-mono text-[11px] uppercase tracking-wider text-(--clay)/50">
                         ({campaignFreeItemCount} free)
                       </span>
                     ) : null}
                   </dt>
-                  <dd className="font-semibold text-emerald-700">
+                  <dd className="font-semibold text-emerald-400">
                     −{formatWearMoney(campaignDiscountCents, displayCurrency)}
                   </dd>
                 </div>
               ) : cartQuantity > 0 && campaignRemainingItems > 0 ? (
                 <div className="flex justify-between">
-                  <dt className="text-stone-500">Campaign</dt>
-                  <dd className="text-right text-stone-500">
+                  <dt className="text-(--clay)/55">Campaign</dt>
+                  <dd className="text-right text-(--clay)/55">
                     Add {campaignRemainingItems} item{campaignRemainingItems === 1 ? "" : "s"} for a free lowest-priced piece
                   </dd>
                 </div>
               ) : null}
               <div className="flex justify-between">
-                <dt className="text-stone-600">Shipping</dt>
-                <dd className={qualifiesForFreeShipping ? "font-semibold text-emerald-700" : "text-stone-600"}>
+                <dt className="text-(--clay)/72">Shipping</dt>
+                <dd className={qualifiesForFreeShipping ? "font-semibold text-emerald-400" : "text-(--clay)/72"}>
                   {pricingState === "loading" ? (
-                    <span className="inline-block h-3 w-32 animate-pulse rounded bg-stone-200/80" aria-label="Calculating" />
+                    <span className="inline-block h-3 w-32 animate-pulse rounded bg-(--clay)/12" aria-label="Calculating" />
                   ) : qualifiesForFreeShipping ? (
                     "Free"
                   ) : (
@@ -645,15 +645,15 @@ export function WearCartPageClient() {
                   )}
                 </dd>
               </div>
-              <div className="flex justify-between border-t border-stone-200/80 pt-3 text-base">
-                <dt className="font-semibold text-amber-950">Estimated total</dt>
-                <dd className="font-semibold text-amber-950">
+              <div className="flex justify-between border-t border-(--clay)/18 pt-3 text-base">
+                <dt className="font-semibold text-[var(--clay)]">Estimated total</dt>
+                <dd className="font-semibold text-[var(--clay)]">
                   {pricingState === "loading" ? (
-                    <span className="inline-block h-4 w-24 animate-pulse rounded bg-stone-200/80" aria-label="Calculating" />
+                    <span className="inline-block h-4 w-24 animate-pulse rounded bg-(--clay)/12" aria-label="Calculating" />
                   ) : (
                     <>
                       {formatWearMoney(merchandiseAfterDiscountCents, displayCurrency)}
-                      <span className="ml-1 text-xs font-normal text-stone-500">
+                      <span className="ml-1 text-xs font-normal text-(--clay)/50">
                         {qualifiesForFreeShipping ? "shipping free" : "+ shipping"}
                       </span>
                     </>
@@ -662,20 +662,20 @@ export function WearCartPageClient() {
               </div>
             </dl>
 
-            <div className="mt-6 rounded-2xl border border-stone-200/80 bg-white px-4 py-4">
+            <div className="mt-6 rounded-2xl border border-(--clay)/18 bg-(--clay)/6 px-4 py-4">
               {appliedCoupon ? (
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400">
                       Code applied
                     </p>
-                    <p className="mt-1 truncate text-sm font-semibold text-amber-950">
+                    <p className="mt-1 truncate text-sm font-semibold text-[var(--clay)]">
                       {appliedCoupon.code}
                       {appliedCoupon.name ? (
-                        <span className="font-normal text-stone-600"> — {appliedCoupon.name}</span>
+                        <span className="font-normal text-(--clay)/65"> — {appliedCoupon.name}</span>
                       ) : null}
                     </p>
-                    <p className="mt-1 text-xs text-stone-500">
+                    <p className="mt-1 text-xs text-(--clay)/55">
                       Saves {formatWearMoney(couponDiscountCents, displayCurrency)}. Locked in before
                       Stripe.
                     </p>
@@ -683,7 +683,7 @@ export function WearCartPageClient() {
                   <button
                     type="button"
                     onClick={removeCoupon}
-                    className="inline-flex min-h-9 items-center justify-center rounded-full border border-stone-200 bg-white px-3 text-xs font-semibold uppercase tracking-[0.14em] text-stone-700 transition hover:border-amber-300/80 hover:text-amber-950"
+                    className="inline-flex min-h-9 items-center justify-center rounded-full border border-(--clay)/22 bg-(--clay)/8 px-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--clay)] transition hover:border-(--heat)/50 hover:text-(--heat)"
                     disabled={couponBusy || checkoutBusy}
                   >
                     Remove
@@ -693,7 +693,7 @@ export function WearCartPageClient() {
                 <>
                   <label
                     htmlFor="wear-coupon-code"
-                    className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-700"
+                    className="text-[11px] font-semibold uppercase tracking-[0.18em] text-(--clay)/72"
                   >
                     Have a code?
                   </label>
@@ -714,7 +714,7 @@ export function WearCartPageClient() {
                         }
                       }}
                       placeholder="ENTER CODE"
-                      className="min-h-11 flex-1 rounded-full border border-stone-200 bg-stone-50 px-4 text-sm font-mono uppercase tracking-[0.12em] text-amber-950 placeholder:text-stone-400 focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700"
+                      className="min-h-11 flex-1 rounded-full border border-(--clay)/22 bg-(--ink) px-4 text-sm font-mono uppercase tracking-[0.12em] text-[var(--clay)] placeholder:text-(--clay)/45 focus:border-(--heat) focus:outline-none focus:ring-1 focus:ring-(--heat)"
                       disabled={couponBusy || lines.length === 0 || cartCurrencyIssue != null || checkoutBusy}
                     />
                     <button
@@ -727,19 +727,19 @@ export function WearCartPageClient() {
                         cartCurrencyIssue != null ||
                         checkoutBusy
                       }
-                      className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-5 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-amber-900 disabled:opacity-50"
+                      className="pm-btn pm-btn--heat inline-flex min-h-11 shrink-0 items-center justify-center px-5 text-xs font-semibold uppercase tracking-[0.14em] disabled:opacity-50"
                     >
                       {couponBusy ? "Checking…" : "Apply"}
                     </button>
                   </div>
-                  <p className="mt-2 text-[11px] leading-relaxed text-stone-500">
+                  <p className="mt-2 text-[11px] leading-relaxed text-(--clay)/50">
                     Discount locks in here — Stripe charges the discounted total.
                   </p>
                 </>
               )}
               {couponError ? (
                 <p
-                  className="mt-3 text-xs font-medium text-red-700"
+                  className="mt-3 text-xs font-medium text-red-400"
                   role="alert"
                   aria-live="polite"
                 >
@@ -749,24 +749,24 @@ export function WearCartPageClient() {
             </div>
 
             {pricingState === "error" ? (
-              <p className="mt-3 rounded-xl border border-amber-300/60 bg-amber-50/60 px-4 py-3 text-xs leading-relaxed text-amber-900">
+              <p className="mt-3 rounded-xl border border-(--heat)/35 bg-(--heat)/10 px-4 py-3 text-xs leading-relaxed text-[var(--clay)]">
                 We couldn’t reach the pricing service — totals shown are based on your local cart. You can still continue to checkout to confirm the final amount before paying.
               </p>
             ) : null}
 
-            <p className="mt-3 text-xs leading-relaxed text-stone-600">{WEAR_SHIPPING_CART_NOTE}</p>
+            <p className="mt-3 text-xs leading-relaxed text-(--clay)/72">{WEAR_SHIPPING_CART_NOTE}</p>
 
-            {checkoutError ? <p className="mt-4 text-sm text-red-700">{checkoutError}</p> : null}
+            {checkoutError ? <p className="mt-4 text-sm text-red-400">{checkoutError}</p> : null}
 
             {cartCurrencyIssue ? (
-              <p className="mt-4 rounded-xl border border-amber-300/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+              <p className="mt-4 rounded-xl border border-(--heat)/35 bg-(--heat)/12 px-4 py-3 text-sm text-[var(--clay)]">
                 {cartCurrencyIssue === "mixed"
                   ? "This cart mixes currencies. Adjust quantities or remove lines so every item uses the same currency before checkout."
                   : `The public wear shop is priced in ${WEAR_LISTING_CURRENCY}. Remove non-${WEAR_LISTING_CURRENCY} items to continue.`}
               </p>
             ) : null}
 
-            <p className="mt-6 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+            <p className="mt-6 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-(--clay)/50">
               Secure Stripe · 30-day returns · Worldwide shipping · Free EU shipping on orders over €50
             </p>
 
@@ -782,7 +782,7 @@ export function WearCartPageClient() {
                 pricingState === "loading"
               }
               onClick={onCheckout}
-              className="mt-4 w-full min-h-14 rounded-full bg-amber-950 px-6 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-amber-900 disabled:opacity-50"
+              className="pm-btn pm-btn--heat mt-4 w-full min-h-14 px-6 text-sm font-semibold uppercase tracking-[0.14em] disabled:opacity-50"
             >
               {checkoutBusy
                 ? "Redirecting…"
@@ -790,10 +790,10 @@ export function WearCartPageClient() {
                   ? "Calculating…"
                   : `Pay ${formatWearMoney(merchandiseAfterDiscountCents, displayCurrency)} → checkout`}
             </button>
-            <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+            <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-(--clay)/50">
               Apple Pay · Google Pay · Card · Link
             </p>
-            <p className="mt-2 text-center text-[11px] leading-relaxed text-stone-500">{WEAR_CURRENCY_POLICY_FULL}</p>
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-(--clay)/50">{WEAR_CURRENCY_POLICY_FULL}</p>
           </>
         ) : null}
 
@@ -802,7 +802,7 @@ export function WearCartPageClient() {
             <button
               type="button"
               onClick={() => router.push("/wear/shop")}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 text-sm font-medium text-stone-800 transition hover:border-amber-400/80 hover:text-amber-950"
+              className="pm-btn pm-btn--ghost inline-flex min-h-11 items-center justify-center px-5 text-sm font-medium"
             >
               ← Continue shopping
             </button>
