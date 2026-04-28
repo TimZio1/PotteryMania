@@ -46,12 +46,10 @@ export const metadata: Metadata = {
     template: "%s | PotteryMania",
   },
   description: siteMetadata.description,
-  manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: BRAND_ICON_PUBLIC_PATH, type: "image/svg+xml" }],
     apple: [{ url: BRAND_ICON_PUBLIC_PATH }],
   },
-  appleWebApp: { capable: true, title: "PotteryMania" },
   openGraph: {
     title: defaultPublicTitle(),
     description: siteMetadata.description,

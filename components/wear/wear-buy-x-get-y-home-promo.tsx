@@ -55,7 +55,7 @@ export function WearBuyXGetYHomePromo() {
           <p className="pm-caption text-(--heat)">Drop perk</p>
           <h2
             id={`${PROMO_ANCHOR}-heading`}
-            className="pm-display mt-4 text-(--clay) text-[2.65rem] leading-[0.92] sm:text-[4rem] lg:text-[4.75rem]"
+            className="-rotate-[5deg] pm-display mt-4 text-(--clay) text-[2.65rem] leading-[0.92] sm:text-[4rem] lg:text-[4.75rem]"
           >
             Buy {buyQuantity}
             <span className="text-(--heat)"> · </span>

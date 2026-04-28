@@ -133,13 +133,11 @@ async function ApparelHome() {
         {/* ── 0. Trust strip — single line, no emoji, no clutter ─────────────── */}
         <div className="border-b border-[var(--ink)]/10 bg-[var(--ink)] text-[var(--clay)]">
           <p className="pm-caption mx-auto max-w-6xl px-4 py-2.5 text-center">
-            Made with heat
-            <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
-            Built different
-            <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
             30-day returns
             <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
             Worldwide shipping
+            <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
+            Free EU shipping on orders over €50
           </p>
         </div>
 
@@ -472,7 +470,7 @@ async function ApparelHome() {
               </Link>
             </div>
             <p className="pm-caption mt-10 text-[var(--clay)]/50">
-              Built different · 30-day returns · Worldwide shipping
+              30-day returns · Worldwide shipping · Free EU shipping on orders over €50
             </p>
           </div>
         </section>

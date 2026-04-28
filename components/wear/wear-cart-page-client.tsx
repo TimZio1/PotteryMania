@@ -767,7 +767,7 @@ export function WearCartPageClient() {
             ) : null}
 
             <p className="mt-6 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-              Secure Stripe · 30-day returns · Worldwide shipping
+              Secure Stripe · 30-day returns · Worldwide shipping · Free EU shipping on orders over €50
             </p>
 
             <button

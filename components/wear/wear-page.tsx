@@ -70,7 +70,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               ) : null}
             </div>
             <p className="pm-caption mt-10 text-(--clay)/45">
-              Built different · 30-day returns · Worldwide shipping
+              30-day returns · Worldwide shipping · Free EU shipping on orders over €50
             </p>
           </div>
         </section>
