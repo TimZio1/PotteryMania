@@ -10,8 +10,8 @@ export async function WearLayoutShell({ children }: { children: ReactNode }) {
 
   return (
     <MarketingLayout apparelStorefront>
-      {/* Isolate from marketing shell `text-[var(--foreground)]` — wear uses light cream/white surfaces */}
-      <div className="isolate !text-stone-900 antialiased [color-scheme:light]">
+      {/* Isolate from marketing shell `text-[var(--foreground)]`. Use plain `text-stone-900` (no !) so ink-slab pages can set `text-[var(--clay)]` / `.pm-slab-dark`. */}
+      <div className="isolate text-stone-900 antialiased [color-scheme:light]">
         <WearReferralCaptureBoundary />
         <WearSubnav initialCount={initialCount} />
         {children}

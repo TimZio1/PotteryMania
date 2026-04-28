@@ -15,13 +15,13 @@ const LAST_UPDATED = "2026-04-07";
 export default function VendorTermsPage() {
   return (
     <LegalPageShell title="Studio terms">
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-[var(--shadow)]">
         Last updated: <time dateTime={LAST_UPDATED}>{LAST_UPDATED}</time>
       </p>
       <p>
         These terms apply when you register as a <strong>studio owner</strong> on PotteryMania and use studio tools for
         products, classes, bookings, and payouts. They supplement our general{" "}
-        <Link href="/terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+        <Link href="/terms" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Terms of service
         </Link>
         .
@@ -102,14 +102,14 @@ export default function VendorTermsPage() {
         early access. Public contact details will be published on the website before the end of the early-access period.
       </p>
 
-      <p className="border-t border-stone-200 pt-6 text-stone-500">
-        <Link href="/terms" className="font-medium text-amber-900 hover:underline">
+      <p className="border-t border-[var(--ink)]/10 pt-6 text-[var(--shadow)]">
+        <Link href="/terms" className="font-medium text-[var(--heat)] hover:underline">
           Terms of service
         </Link>
-        <span className="mx-2 text-stone-300" aria-hidden>
+        <span className="mx-2 text-[var(--shadow)]/40" aria-hidden>
           ·
         </span>
-        <Link href="/privacy" className="font-medium text-amber-900 hover:underline">
+        <Link href="/privacy" className="font-medium text-[var(--heat)] hover:underline">
           Privacy policy
         </Link>
       </p>

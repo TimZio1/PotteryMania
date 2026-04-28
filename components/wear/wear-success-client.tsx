@@ -21,8 +21,6 @@ export function WearSuccessClient() {
     notifyWearCartChanged();
     clearWearPartnerReferral();
 
-    // Fire Pixel `Purchase` from the cart snapshot we wrote just before the Stripe redirect.
-    // Using sessionId as the eventID dedups against any future server-side CAPI Purchase call.
     const snapshot = readWearCheckoutSnapshot();
     if (snapshot) {
       trackWearEvent(WEAR_EVENT_KINDS.purchaseSuccess, {
@@ -38,33 +36,33 @@ export function WearSuccessClient() {
   }, [sessionId]);
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-20 text-stone-900 sm:px-6 sm:py-28">
+    <main className="pm-brand min-h-[60vh] bg-[var(--clay)] px-4 py-20 text-[var(--ink)] sm:px-6 sm:py-28">
       <div className="mx-auto max-w-md text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.28em] text-stone-500">Thank you</p>
-        <h1 className="mt-6 font-serif text-3xl text-amber-950 sm:text-4xl">Order confirmed</h1>
-        <p className="mt-6 text-sm leading-relaxed text-stone-600">
+        <p className="pm-caption text-[var(--heat)]">Thank you</p>
+        <h1 className="pm-display mt-8 text-[2.25rem] leading-[0.96] text-[var(--ink)] sm:text-[3rem]">Order confirmed</h1>
+        <p className="mt-6 text-sm leading-relaxed text-[var(--shadow)] sm:text-base">
           Payment received. Stripe will email your receipt, and we&apos;ll let you know as soon as your pieces ship.
         </p>
         {sessionId ? (
-          <p className="mt-4 font-mono text-[11px] text-stone-500 break-all">Ref: {sessionId}</p>
+          <p className="mt-4 break-all font-mono text-[11px] text-[var(--shadow)]">Ref: {sessionId}</p>
         ) : null}
-        <p className="mt-8 text-sm text-stone-600">
+        <p className="mt-8 text-sm text-[var(--shadow)]">
           Love the brand?{" "}
-          <Link href="/wear/partner" className="font-medium text-amber-950 underline underline-offset-2 hover:text-amber-800">
+          <Link
+            href="/wear/partner"
+            className="font-semibold text-[var(--heat)] underline decoration-[var(--heat)]/40 underline-offset-4 transition hover:text-[var(--ink)]"
+          >
             Partner program
           </Link>
         </p>
         <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link
-            href="/wear/shop"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium text-white hover:bg-amber-900"
-          >
+          <Link href="/wear/shop" className="pm-btn pm-btn--heat group inline-flex min-h-12 items-center justify-center px-8">
             Back to shop
+            <span aria-hidden className="ml-2 transition group-hover:translate-x-0.5">
+              →
+            </span>
           </Link>
-          <Link
-            href="/wear"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 bg-white px-6 text-sm font-medium text-stone-700 hover:border-amber-300/60 hover:bg-amber-50/60"
-          >
+          <Link href="/wear" className="pm-btn pm-btn--ghost inline-flex min-h-12 items-center justify-center px-8">
             Drop home
           </Link>
         </div>

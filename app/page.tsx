@@ -215,6 +215,9 @@ async function ApparelHome() {
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     quality={75}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                     unoptimized
                   />
                 );
@@ -286,6 +289,9 @@ async function ApparelHome() {
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     quality={75}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                     unoptimized
                   />
                 );
@@ -347,6 +353,9 @@ async function ApparelHome() {
                       className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
                       sizes="(max-width: 768px) 33vw, 25vw"
                       quality={68}
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
                       unoptimized
                     />
                     <span className="absolute inset-0 bg-[var(--ink)]/0 transition group-hover:bg-[var(--ink)]/40" />
@@ -523,7 +532,9 @@ function LegacyStudioHome() {
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 48rem"
-                priority
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
               />
             </div>
           </div>

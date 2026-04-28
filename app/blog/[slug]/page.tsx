@@ -62,25 +62,28 @@ export default async function BlogArticlePage({ params }: Props) {
 
   return (
     <MarketingLayout toolbar={toolbar}>
-      <main className={`${ui.pageContainer} py-10 sm:py-14`}>
+      <main className={`pm-brand bg-[var(--clay)] text-[var(--ink)] ${ui.pageContainer} py-10 sm:py-16`}>
         <article className="mx-auto max-w-3xl">
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
-              <span key={tag} className="rounded-full bg-stone-100 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-stone-600">
+              <span
+                key={tag}
+                className="rounded-full bg-[var(--ink)]/6 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--shadow)]"
+              >
                 {tag}
               </span>
             ))}
           </div>
-          <h1 className="mt-5 font-serif text-4xl tracking-tight text-amber-950 sm:text-5xl">{post.title}</h1>
-          <p className="mt-4 text-sm text-stone-500">
+          <h1 className="pm-display mt-8 text-[2.25rem] leading-[0.96] text-[var(--ink)] sm:text-[3rem] lg:text-[3.5rem]">{post.title}</h1>
+          <p className="mt-5 text-sm text-[var(--shadow)]">
             {post.author} · {post.publishedAt.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
           </p>
           {post.coverImage ? (
-            <div className="relative mt-8 aspect-video overflow-hidden rounded-3xl bg-stone-100">
+            <div className="relative mt-8 aspect-video overflow-hidden rounded-3xl bg-[var(--ink)]/5 ring-1 ring-[var(--ink)]/8">
               <Image src={post.coverImage} alt={post.title} fill sizes="100vw" className="object-cover" />
             </div>
           ) : null}
-          <div className="prose prose-stone mt-10 max-w-none">
+          <div className="prose prose-neutral prose-headings:font-serif prose-headings:text-[var(--ink)] prose-p:text-[var(--shadow)] prose-a:text-[var(--heat)] prose-strong:text-[var(--ink)] mt-10 max-w-none">
             {post.body.split("\n\n").map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
@@ -88,14 +91,18 @@ export default async function BlogArticlePage({ params }: Props) {
         </article>
 
         {related.length > 0 ? (
-          <section className="mx-auto mt-16 max-w-5xl">
-            <h2 className="text-2xl font-semibold text-amber-950">More to read</h2>
+          <section className="mx-auto mt-16 max-w-5xl border-t border-[var(--ink)]/10 pt-16">
+            <h2 className="font-serif text-2xl font-normal text-[var(--ink)]">More to read</h2>
             <div className="mt-6 grid gap-6 md:grid-cols-3">
               {related.map((item) => (
-                <Link key={item.slug} href={`/blog/${item.slug}`} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition hover:border-amber-200 hover:shadow-md">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">{item.tags[0] ?? "Guide"}</p>
-                  <h3 className="mt-3 text-lg font-semibold text-amber-950">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-stone-600">{item.excerpt}</p>
+                <Link
+                  key={item.slug}
+                  href={`/blog/${item.slug}`}
+                  className="rounded-2xl border border-[var(--ink)]/10 bg-white p-5 shadow-[0_14px_40px_-24px_rgba(11,11,11,0.12)] ring-1 ring-[var(--ink)]/5 transition hover:border-[var(--heat)]/35 hover:shadow-md"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--shadow)]">{item.tags[0] ?? "Guide"}</p>
+                  <h3 className="mt-3 text-lg font-semibold text-[var(--ink)]">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[var(--shadow)]">{item.excerpt}</p>
                 </Link>
               ))}
             </div>

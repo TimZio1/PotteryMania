@@ -8,27 +8,21 @@ export function GiftCardSuccessClient() {
   const sessionId = searchParams.get("session_id");
 
   return (
-    <main className="min-h-[60vh] bg-[var(--background)] px-4 py-20 text-[var(--foreground)] sm:px-6 sm:py-28">
+    <main className="pm-brand min-h-[60vh] bg-[var(--clay)] px-4 py-20 text-[var(--ink)] sm:px-6 sm:py-28">
       <div className="mx-auto max-w-md text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.28em] text-[var(--muted)]">Thank you</p>
-        <h1 className="mt-6 font-serif text-3xl text-[var(--foreground)] sm:text-4xl">Gift card purchased</h1>
-        <p className="mt-6 text-sm leading-relaxed text-[var(--muted)]">
+        <p className="pm-caption text-[var(--heat)]">Thank you</p>
+        <h1 className="pm-display mt-8 text-[2.25rem] leading-[0.96] text-[var(--ink)] sm:text-[3rem]">Gift card purchased</h1>
+        <p className="mt-6 text-sm leading-relaxed text-[var(--shadow)] sm:text-base">
           Payment confirmed. We&rsquo;re activating the gift card now and emailing the code to your recipient.
         </p>
         {sessionId ? (
-          <p className="mt-4 break-all font-mono text-[11px] text-[var(--muted)]">Ref: {sessionId}</p>
+          <p className="mt-4 break-all font-mono text-[11px] text-[var(--shadow)]">Ref: {sessionId}</p>
         ) : null}
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link
-            href="/gift-cards"
-            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-button)] border border-[var(--accent)]/50 bg-[var(--accent)] px-6 text-sm font-medium text-[var(--accent-contrast)] hover:bg-[var(--accent-hover)]"
-          >
+          <Link href="/gift-cards" className="pm-btn pm-btn--heat inline-flex min-h-12 items-center justify-center px-8">
             Buy another gift card
           </Link>
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-button)] border border-[var(--border)] bg-[var(--surface)] px-6 text-sm font-medium text-[var(--foreground)] hover:border-[var(--accent)] hover:bg-[var(--surface-elevated)]"
-          >
+          <Link href="/" className="pm-btn pm-btn--ghost inline-flex min-h-12 items-center justify-center px-8">
             Back to home
           </Link>
         </div>

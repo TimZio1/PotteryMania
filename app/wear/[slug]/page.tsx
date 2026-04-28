@@ -201,8 +201,8 @@ export default async function WearProductPage({ params, searchParams }: Props) {
   const browseAllHref = backHref;
 
   return (
-    <main className="bg-[#f7f2ec] px-3 py-5 pb-32 text-stone-900 sm:px-6 sm:py-16 sm:pb-32 md:pb-16 lg:pb-16">
-      <div className="mx-auto max-w-6xl rounded-2xl border border-stone-200/80 bg-white p-3 shadow-[0_22px_80px_-32px_rgba(120,77,42,0.18)] sm:rounded-3xl sm:p-7 lg:p-8">
+    <main className="pm-brand bg-[var(--clay)] px-3 py-5 pb-32 text-[var(--ink)] sm:px-6 sm:py-16 sm:pb-32 md:pb-16 lg:pb-16">
+      <div className="mx-auto max-w-6xl rounded-2xl border border-[var(--ink)]/10 bg-white p-3 shadow-[0_22px_80px_-32px_rgba(11,11,11,0.14)] sm:rounded-3xl sm:p-7 lg:p-8">
         <WearProductGallery
           productId={p.id}
           productName={displayName}

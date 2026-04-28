@@ -99,6 +99,9 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
                         fill
                         className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        loading="lazy"
+                        decoding="async"
+                        fetchPriority="low"
                       />
                       <span className="absolute inset-0 bg-(--ink)/0 transition group-hover:bg-(--ink)/20" />
                     </div>

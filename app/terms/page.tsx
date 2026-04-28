@@ -27,11 +27,11 @@ function ApparelTermsContent() {
       <p>
         These terms cover buying apparel from PotteryMania at potterymania.com. By placing an order
         you agree to these terms together with our{" "}
-        <Link href="/privacy" className="font-medium text-amber-900 hover:underline">
+        <Link href="/privacy" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Privacy policy
         </Link>{" "}
         and{" "}
-        <Link href="/refunds" className="font-medium text-amber-900 hover:underline">
+        <Link href="/refunds" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Returns &amp; refunds policy
         </Link>
         .
@@ -74,7 +74,7 @@ function ApparelTermsContent() {
       <h2>5. Returns &amp; refunds</h2>
       <p>
         Returns, exchanges, defects, and lost-package handling are described in our{" "}
-        <Link href="/refunds" className="font-medium text-amber-900 hover:underline">
+        <Link href="/refunds" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Returns &amp; refunds policy
         </Link>
         . Made-to-order garments are exempt from the EU 14-day cooling-off period (Directive
@@ -94,7 +94,7 @@ function ApparelTermsContent() {
       <p>
         Affiliates earn commission on the final paid amount of each referred order, after any
         discounts. The commission rate, payout schedule, and program rules are described on the{" "}
-        <Link href="/wear/partner" className="font-medium text-amber-900 hover:underline">
+        <Link href="/wear/partner" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           affiliate program page
         </Link>
         . We may suspend or terminate accounts that misuse the program (incentivised clicks,
@@ -143,13 +143,13 @@ function ApparelTermsContent() {
         <a href="mailto:legal@potterymania.com">legal@potterymania.com</a>
       </p>
 
-      <p className="border-t border-stone-200 pt-6 text-stone-500">
+      <p className="border-t border-[var(--ink)]/10 pt-6 text-[var(--shadow)]">
         See also{" "}
-        <Link href="/privacy" className="font-medium text-amber-900 hover:underline">
+        <Link href="/privacy" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Privacy policy
         </Link>
         {" · "}
-        <Link href="/refunds" className="font-medium text-amber-900 hover:underline">
+        <Link href="/refunds" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Returns &amp; refunds
         </Link>
         .
@@ -231,7 +231,7 @@ function StudioTermsContent() {
       <h2>10. Privacy and data protection</h2>
       <p>
         Our handling of personal data is described in the{" "}
-        <Link href="/privacy" className="font-medium text-amber-900 hover:underline">
+        <Link href="/privacy" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Privacy policy
         </Link>
         . Studios are responsible for handling customer data they collect through the platform in accordance with
@@ -250,13 +250,13 @@ function StudioTermsContent() {
         access. Public support contact details will be published on the website before the end of the early-access period.
       </p>
 
-      <p className="border-t border-stone-200 pt-6 text-stone-500">
+      <p className="border-t border-[var(--ink)]/10 pt-6 text-[var(--shadow)]">
         See also{" "}
-        <Link href="/privacy" className="font-medium text-amber-900 hover:underline">
+        <Link href="/privacy" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Privacy policy
         </Link>
         {" · "}
-        <Link href="/vendor-terms" className="font-medium text-amber-900 hover:underline">
+        <Link href="/vendor-terms" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Studio terms
         </Link>
         .

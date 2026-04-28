@@ -18,7 +18,7 @@ export default async function WearPartnerPage() {
   const applyHref = resolveWearResellerApplicationHref();
 
   return (
-    <main className="pm-brand relative min-h-screen overflow-hidden bg-(--ink) text-(--clay)">
+    <main className="pm-brand pm-slab-dark relative min-h-screen overflow-hidden">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-10%,rgba(255,74,28,0.12),transparent_50%)]"
         aria-hidden

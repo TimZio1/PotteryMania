@@ -14,7 +14,7 @@ export const metadata: Metadata = buildMetadata({
 function CartFallback() {
   return (
     <main
-      className="flex min-h-[40vh] flex-col items-center justify-center gap-4 bg-[#f7f2ec] px-4 py-16 text-stone-900"
+      className="pm-brand flex min-h-[40vh] flex-col items-center justify-center gap-4 bg-[var(--clay)] px-4 py-16 text-[var(--ink)]"
       role="status"
       aria-busy="true"
       aria-label="Loading cart"

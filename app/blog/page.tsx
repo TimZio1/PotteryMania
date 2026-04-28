@@ -26,20 +26,25 @@ export default async function BlogIndexPage() {
 
   return (
     <MarketingLayout>
-      <main className={`${ui.pageContainer} py-10 sm:py-14`}>
+      <main className={`pm-brand bg-[var(--clay)] text-[var(--ink)] ${ui.pageContainer} py-10 sm:py-16`}>
         <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Blog</p>
-          <h1 className="mt-3 font-serif text-4xl tracking-tight text-amber-950 sm:text-5xl">Guides for studios</h1>
-          <p className="mt-4 text-sm leading-7 text-stone-600 sm:text-base">
+          <p className="pm-caption text-[var(--heat)]">Blog</p>
+          <h1 className="pm-display mt-6 text-[2.25rem] leading-[0.96] text-[var(--ink)] sm:text-[3rem] lg:text-[3.5rem]">
+            Guides for studios
+          </h1>
+          <p className="mt-6 text-sm leading-relaxed text-[var(--shadow)] sm:text-base">
             Short, practical notes on classes, bookings, shop, and growing your studio online.
           </p>
         </div>
 
         <div className="mt-12 grid gap-8 lg:grid-cols-2">
           {posts.map((post) => (
-            <article key={post.slug} className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+            <article
+              key={post.slug}
+              className="overflow-hidden rounded-3xl border border-[var(--ink)]/10 bg-white shadow-[0_18px_50px_-24px_rgba(11,11,11,0.12)] ring-1 ring-[var(--ink)]/5"
+            >
               {post.coverImage ? (
-                <div className="relative aspect-video bg-stone-100">
+                <div className="relative aspect-video bg-[var(--ink)]/5">
                   <Image
                     src={post.coverImage}
                     alt={post.title}
@@ -52,21 +57,27 @@ export default async function BlogIndexPage() {
               <div className="p-6">
                 <div className="flex flex-wrap gap-2">
                   {post.tags.slice(0, 3).map((tag) => (
-                    <span key={tag} className="rounded-full bg-stone-100 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-stone-600">
+                    <span
+                      key={tag}
+                      className="rounded-full bg-[var(--ink)]/6 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--shadow)]"
+                    >
                       {tag}
                     </span>
                   ))}
                 </div>
-                <h2 className="mt-4 text-2xl font-semibold tracking-tight text-amber-950">
-                  <Link href={`/blog/${post.slug}`} className="hover:underline">
+                <h2 className="mt-4 font-serif text-2xl font-normal tracking-tight text-[var(--ink)]">
+                  <Link href={`/blog/${post.slug}`} className="transition hover:text-[var(--heat)] hover:underline">
                     {post.title}
                   </Link>
                 </h2>
-                <p className="mt-2 text-sm text-stone-500">
+                <p className="mt-2 text-sm text-[var(--shadow)]">
                   {post.author} · {post.publishedAt.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
                 </p>
-                <p className="mt-4 text-sm leading-7 text-stone-600">{post.excerpt}</p>
-                <Link href={`/blog/${post.slug}`} className="mt-5 inline-flex text-sm font-semibold text-amber-900 underline underline-offset-4">
+                <p className="mt-4 text-sm leading-7 text-[var(--shadow)]">{post.excerpt}</p>
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="mt-5 inline-flex text-sm font-semibold uppercase tracking-[0.12em] text-[var(--heat)] underline decoration-[var(--heat)]/40 underline-offset-4 transition hover:text-[var(--ink)]"
+                >
                   Read the guide
                 </Link>
               </div>

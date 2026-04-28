@@ -14,7 +14,7 @@ const LAST_UPDATED = "2026-04-07";
 export default function PrivacyPage() {
   return (
     <LegalPageShell title="Privacy policy">
-      <p className="text-sm text-stone-500">
+      <p className="text-sm text-[var(--shadow)]">
         Last updated: <time dateTime={LAST_UPDATED}>{LAST_UPDATED}</time>
       </p>
       <p>

@@ -97,17 +97,17 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
 
   return (
     <MarketingLayout>
-      <main className={`${ui.pageContainer} py-16 sm:py-24`}>
+      <main className={`pm-brand bg-[var(--clay)] text-[var(--ink)] ${ui.pageContainer} py-16 sm:py-24`}>
         <div className="mx-auto max-w-lg text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-400">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-600/25">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M20 6L9 17l-5-5" />
             </svg>
           </div>
-          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[var(--foreground)]">
+          <h1 className="pm-display mt-8 text-[2rem] leading-[0.96] text-[var(--ink)] sm:text-[2.5rem]">
             {paymentVerified ? "You’re all set!" : "Almost there"}
           </h1>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+          <p className="mt-4 text-sm leading-6 text-[var(--shadow)] sm:text-base">
             {paymentVerified
               ? "Payment received. A confirmation is on its way to your inbox — keep it handy for your records."
               : "Your bank is still confirming the payment. Refresh in a minute — no need to try again or pay twice."}

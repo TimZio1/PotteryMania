@@ -451,7 +451,7 @@ export function WearCartPageClient() {
   }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents, appliedCoupon, campaignDiscountCents]);
 
   return (
-    <main className="min-h-[60vh] bg-[#f7f2ec] px-4 py-16 !text-stone-900 sm:px-6 sm:py-20">
+    <main className="pm-brand min-h-[60vh] bg-[var(--clay)] px-4 py-16 text-[var(--ink)] sm:px-6 sm:py-20">
       <div className="mx-auto max-w-lg">
         <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-stone-700">The bag</p>
         <h1 className="mt-4 text-center font-serif text-3xl text-amber-950">Your pick.</h1>

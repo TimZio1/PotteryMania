@@ -73,16 +73,16 @@ export default async function PricingPage() {
 
   return (
     <MarketingLayout>
-      <main className={`${ui.pageContainer} py-10 sm:py-14`}>
+      <main className={`pm-brand bg-[var(--clay)] text-[var(--ink)] ${ui.pageContainer} py-12 sm:py-16`}>
         <div className="max-w-3xl">
-          <p className={ui.overline}>Pricing</p>
-          <h1 className="mt-3 font-serif text-4xl tracking-tight text-[var(--foreground)] sm:text-5xl">
+          <p className="pm-caption text-[var(--heat)]">Pricing</p>
+          <h1 className="pm-display mt-6 text-[2.25rem] leading-[0.96] text-[var(--ink)] sm:text-[3rem] lg:text-[3.75rem]">
             One place for your shop and your classes
           </h1>
-          <p className="mt-4 text-lg leading-relaxed text-[var(--muted)]">
+          <p className="mt-6 text-lg leading-relaxed text-[var(--shadow)]">
             Your public page, your bookings, and your product sales — all in one system.
           </p>
-          <p className="mt-3 text-sm text-[var(--muted)]">
+          <p className="mt-4 text-sm text-[var(--shadow)]">
             Pick the plan that fits how you work today. Switch whenever you like.
           </p>
         </div>
@@ -130,14 +130,14 @@ export default async function PricingPage() {
           ))}
         </div>
 
-        <p className="mt-6 text-sm text-[var(--muted)]">
-          <strong className="text-[var(--foreground)]">Bookings</strong> or <strong className="text-[var(--foreground)]">Shop</strong> on their own: from €19/month.
-          Both together: <strong className="text-[var(--foreground)]">Studio</strong> (€29/month).
+        <p className="mt-6 text-sm text-[var(--shadow)]">
+          <strong className="font-semibold text-[var(--ink)]">Bookings</strong> or <strong className="font-semibold text-[var(--ink)]">Shop</strong> on their own: from €19/month.
+          Both together: <strong className="font-semibold text-[var(--ink)]">Studio</strong> (€29/month).
         </p>
 
         <div className="mt-14">
-          <h2 className="font-serif text-2xl text-[var(--foreground)] sm:text-3xl">Compare plans</h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">See what’s in each one, side by side.</p>
+          <h2 className="font-serif text-2xl text-[var(--ink)] sm:text-3xl">Compare plans</h2>
+          <p className="mt-2 text-sm text-[var(--shadow)]">See what’s in each one, side by side.</p>
           <div className="mt-6 overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
             <table className="w-full min-w-[640px] border-collapse text-left text-sm">
               <thead>
@@ -170,42 +170,44 @@ export default async function PricingPage() {
         </div>
 
         <div id="faq" className="mt-12 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-8">
-          <h2 className="font-serif text-xl text-[var(--foreground)] sm:text-2xl">Common questions</h2>
-          <dl className="mt-4 space-y-4 text-sm text-[var(--muted)]">
+          <h2 className="font-serif text-xl text-[var(--ink)] sm:text-2xl" id="faq">
+            Common questions
+          </h2>
+          <dl className="mt-4 space-y-4 text-sm text-[var(--shadow)]">
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">Do I pay a fee on sales?</dt>
+              <dt className="font-semibold text-[var(--ink)]">Do I pay a fee on sales?</dt>
               <dd className="mt-1">
                 The fee depends on your plan (usually around {commissionLabel} — check the table). Stripe’s card fees apply on top.
               </dd>
             </div>
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">Can I start with just classes or just products?</dt>
+              <dt className="font-semibold text-[var(--ink)]">Can I start with just classes or just products?</dt>
               <dd className="mt-1">Yes. Pick Bookings or Shop at €19 each, and move to Studio whenever you want both.</dd>
             </div>
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">Can I cancel anytime?</dt>
+              <dt className="font-semibold text-[var(--ink)]">Can I cancel anytime?</dt>
               <dd className="mt-1">Yes. Change or cancel from your studio settings.</dd>
             </div>
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">What happens after the free period ends?</dt>
+              <dt className="font-semibold text-[var(--ink)]">What happens after the free period ends?</dt>
               <dd className="mt-1">Choose the plan that fits your studio. A few features only turn on once you subscribe.</dd>
             </div>
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">How is VAT handled?</dt>
+              <dt className="font-semibold text-[var(--ink)]">How is VAT handled?</dt>
               <dd className="mt-1">Taxes may apply. Each studio handles its own tax setup.</dd>
             </div>
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">Which countries are supported?</dt>
+              <dt className="font-semibold text-[var(--ink)]">Which countries are supported?</dt>
               <dd className="mt-1">
                 If Stripe supports your country, you can take payments from buyers worldwide. Shipping and local rules are up to you.
               </dd>
             </div>
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">Can I use my own domain?</dt>
+              <dt className="font-semibold text-[var(--ink)]">Can I use my own domain?</dt>
               <dd className="mt-1">Yes — point your own domain at your studio page whenever you’re ready.</dd>
             </div>
             <div>
-              <dt className="font-semibold text-[var(--foreground)]">What payment methods do my customers see?</dt>
+              <dt className="font-semibold text-[var(--ink)]">What payment methods do my customers see?</dt>
               <dd className="mt-1">Buyers see the payment methods your Stripe account offers in your region.</dd>
             </div>
           </dl>

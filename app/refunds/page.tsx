@@ -86,7 +86,7 @@ function ApparelRefundsContent() {
         Order issues: <a href="mailto:support@potterymania.com">support@potterymania.com</a> · We
         usually reply within one business day.
       </p>
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-[var(--shadow)]">
         Affiliate program: <a href="mailto:affiliates@potterymania.com">affiliates@potterymania.com</a>
         {" · "}
         Legal &amp; privacy: <a href="mailto:legal@potterymania.com">legal@potterymania.com</a>
@@ -94,15 +94,15 @@ function ApparelRefundsContent() {
 
       <p className="pt-4">
         Related:{" "}
-        <Link href="/terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+        <Link href="/terms" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Terms of service
         </Link>
         {" · "}
-        <Link href="/privacy" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+        <Link href="/privacy" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Privacy
         </Link>
         {" · "}
-        <Link href="/wear/shop" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+        <Link href="/wear/shop" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Back to shop
         </Link>
       </p>
@@ -150,15 +150,15 @@ function StudioRefundsContent() {
 
       <p className="pt-4">
         Related:{" "}
-        <Link href="/terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+        <Link href="/terms" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Terms of service
         </Link>
         {" · "}
-        <Link href="/privacy" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+        <Link href="/privacy" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Privacy
         </Link>
         {" · "}
-        <Link href="/vendor-terms" className="font-medium text-amber-900 underline-offset-2 hover:underline">
+        <Link href="/vendor-terms" className="font-medium text-[var(--heat)] underline-offset-4 hover:underline">
           Studio terms
         </Link>
       </p>
