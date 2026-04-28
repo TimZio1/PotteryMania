@@ -184,8 +184,24 @@ body {
   color: var(--clay);
 }
 
+/**
+ * When `pm-brand` and `pm-slab-dark` are on the **same** node (common for route `<main>`),
+ * the descendant rule above does not apply — `.pm-brand` alone would keep the clay field + ink text,
+ * while utilities such as `text-(--clay)` still force clay-colored copy → invisible clay-on-clay.
+ */
+.pm-brand.pm-slab-dark {
+  background: var(--ink);
+  color: var(--clay);
+}
+
 /** Light slab — clay background, ink text. Used for community + light campaigns. */
 .pm-brand .pm-slab-light {
+  background: var(--clay);
+  color: var(--ink);
+}
+
+/** Same single-element case as `.pm-brand.pm-slab-dark`. */
+.pm-brand.pm-slab-light {
   background: var(--clay);
   color: var(--ink);
 }
