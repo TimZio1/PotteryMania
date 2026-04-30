@@ -14,15 +14,13 @@ import {
 } from "@/lib/wear-categories";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
-import { findWearPublicProductsWithVariantsRetrying, type WearPublicListingRow } from "@/lib/wear-public-catalog-query";
+import { type WearPublicListingRow } from "@/lib/wear-public-catalog-query";
+import { getCachedWearInternalPricingConfig, getCachedWearPublicCatalogForShop } from "@/lib/wear-shop-server-cache";
 import { WEAR_CURRENCY_SHOP_LINE } from "@/lib/wear-currency-policy";
 import { WEAR_ACTIVE_DROP, wearActiveDropEyebrow, wearDropDefaultTitle } from "@/lib/wear-drop-config";
 import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
-import {
-  mapWearProductRowToInternalPricesWithConfig,
-  resolveWearInternalPricingConfig,
-} from "@/lib/wear-internal-pricing";
+import { mapWearProductRowToInternalPricesWithConfig } from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { breadcrumbJsonLd, itemListJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { WearBuyXGetYLandingBanner } from "@/components/wear/wear-buy-x-get-y-landing-banner";
@@ -216,10 +214,10 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const sortParam = firstSearchParam(sp.sort);
   const activeSort: WearSortMode = isWearSortMode(sortParam) ? sortParam : "featured";
 
-  const catalogResult = await findWearPublicProductsWithVariantsRetrying();
+  const catalogResult = await getCachedWearPublicCatalogForShop();
   const dbUnavailable = !catalogResult.ok;
   const products: WearPublicListingRow[] = catalogResult.ok ? catalogResult.rows : [];
-  const internalPricingConfig = await resolveWearInternalPricingConfig();
+  const internalPricingConfig = await getCachedWearInternalPricingConfig();
 
   const catInput = (p: (typeof products)[number]) => ({
     slug: p.slug,
