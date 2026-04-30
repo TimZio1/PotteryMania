@@ -3,6 +3,25 @@ export const WEAR_CART_STORAGE_KEY = "potterymania_wear_cart_v1";
 /** Same-tab updates (storage event only fires across tabs). */
 export const WEAR_CART_CHANGED_EVENT = "potterymania-wear-cart-changed";
 
+/** Fired only after a successful add from `WearAddToCartButton` (for toast / analytics UX). */
+export const WEAR_CART_ITEM_ADDED_EVENT = "potterymania-wear-cart-item-added";
+
+export type WearCartItemAddedDetail = {
+  productName?: string;
+  viewCartHref?: string;
+  /** Same optimised URL shown in the PDP hero (color / angle the shopper picked). */
+  lineImageSrc?: string;
+  /** Variant line as on the PDP, e.g. `M · Navy`. */
+  variantSummary?: string;
+  /** Units added in this action (toast shows when more than one). */
+  quantity?: number;
+};
+
+export function notifyWearItemAddedToCart(detail: WearCartItemAddedDetail = {}) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent<WearCartItemAddedDetail>(WEAR_CART_ITEM_ADDED_EVENT, { detail }));
+}
+
 export function notifyWearCartChanged() {
   if (typeof window === "undefined") return;
   const count = parseWearCart(localStorage.getItem(WEAR_CART_STORAGE_KEY)).reduce((sum, line) => sum + line.quantity, 0);

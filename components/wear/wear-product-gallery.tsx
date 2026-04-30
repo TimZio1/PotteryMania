@@ -295,6 +295,7 @@ export function WearProductGallery({
           viewCartHref={resolvedViewCartHref}
           selectedColor={selectedColor}
           onSelectedColorChange={setSelectedColor}
+          lineImageSrc={selectedImage ? wearListingImageSrc(selectedImage.url, 280) : undefined}
         />
         <ul className="mt-8 space-y-2 text-sm leading-relaxed text-stone-600">
           {pdpBenefits.map((line) => (

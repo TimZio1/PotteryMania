@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { MarketingLayout } from "@/components/marketing-layout";
+import { WearCartAddedToast } from "@/components/wear/wear-cart-added-toast";
 import { WearReferralCaptureBoundary } from "@/components/wear/wear-referral-capture-boundary";
 import { WearSubnav } from "@/components/wear/wear-subnav";
 export async function WearLayoutShell({ children }: { children: ReactNode }) {
@@ -13,6 +14,7 @@ export async function WearLayoutShell({ children }: { children: ReactNode }) {
       {/* Isolate from marketing shell `text-[var(--foreground)]`. Use plain `text-stone-900` (no !) so ink-slab pages can set `text-[var(--clay)]` / `.pm-slab-dark`. */}
       <div className="isolate text-stone-900 antialiased [color-scheme:light]">
         <WearReferralCaptureBoundary />
+        <WearCartAddedToast />
         <WearSubnav initialCount={initialCount} />
         {children}
       </div>

@@ -22,6 +22,7 @@ export function WearPdpBuySection({
   viewCartHref,
   selectedColor: controlledSelectedColor,
   onSelectedColorChange,
+  lineImageSrc,
 }: {
   productId: string;
   /** Display name forwarded to Meta Pixel `ViewContent` / `AddToCart` events. */
@@ -33,6 +34,8 @@ export function WearPdpBuySection({
   viewCartHref?: string;
   selectedColor?: string;
   onSelectedColorChange?: (color: string) => void;
+  /** PDP hero image the shopper sees (colour / angle) — passed through to the add-to-cart toast. */
+  lineImageSrc?: string;
 }) {
   const variantMeta = useMemo(() => {
     return variants.map((variant) => {
@@ -116,6 +119,8 @@ export function WearPdpBuySection({
 
   const canAdd =
     !soldOut && (!needsVariant || (selected && (selected.stockQuantity == null || selected.stockQuantity > 0)));
+
+  const variantSummaryForToast = needsVariant ? selected?.label : undefined;
 
   const swatchClass = (active: boolean) =>
     `inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-3 text-xs font-medium transition ${
@@ -237,6 +242,8 @@ export function WearPdpBuySection({
             studioId={studioId}
             viewCartHref={viewCartHref}
             quantity={quantity}
+            lineImageSrc={lineImageSrc}
+            variantSummary={variantSummaryForToast}
             label={`Cop it — ${formatWearMoney(displayCents * quantity, currency)}`}
             className="hidden h-12 w-full min-h-12 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-4 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-amber-900 disabled:opacity-60 lg:inline-flex"
           />
@@ -279,6 +286,8 @@ export function WearPdpBuySection({
               studioId={studioId}
               viewCartHref={viewCartHref}
               quantity={quantity}
+              lineImageSrc={lineImageSrc}
+              variantSummary={variantSummaryForToast}
               silentSuccess
               label={`Cop · ${formatWearMoney(displayCents * quantity, currency)}`}
               className="inline-flex h-12 min-h-12 shrink-0 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-5 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-amber-900 disabled:opacity-60"

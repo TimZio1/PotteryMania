@@ -6,6 +6,7 @@ import {
   WEAR_CART_STORAGE_KEY,
   cartLineKey,
   notifyWearCartChanged,
+  notifyWearItemAddedToCart,
   parseWearCart,
   serializeWearCart,
   type WearCartLine,
@@ -43,6 +44,10 @@ type Props = {
   currency?: string;
   /** Display name shown in Events Manager item rows. */
   productName?: string;
+  /** Hero thumbnail URL for post-add toast (same frame the shopper was viewing). */
+  lineImageSrc?: string;
+  /** e.g. variant label `M · Navy` for toast copy. */
+  variantSummary?: string;
 };
 
 export function WearAddToCartButton({
@@ -57,6 +62,8 @@ export function WearAddToCartButton({
   unitPriceCents,
   currency = "EUR",
   productName,
+  lineImageSrc,
+  variantSummary,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -99,6 +106,13 @@ export function WearAddToCartButton({
           throw new Error("Could not add wearable to cart");
         }
         notifyWearCartChanged();
+        notifyWearItemAddedToCart({
+          productName,
+          viewCartHref,
+          lineImageSrc,
+          variantSummary,
+          quantity: qty,
+        });
         const refId = getWearPartnerReferralStudioId();
         trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
           productId,
@@ -136,6 +150,13 @@ export function WearAddToCartButton({
       if (!merged) next.push(incoming);
       localStorage.setItem(WEAR_CART_STORAGE_KEY, serializeWearCart(next));
       notifyWearCartChanged();
+      notifyWearItemAddedToCart({
+        productName,
+        viewCartHref,
+        lineImageSrc,
+        variantSummary,
+        quantity: qty,
+      });
       const refId = getWearPartnerReferralStudioId();
       trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
         productId,
@@ -150,7 +171,19 @@ export function WearAddToCartButton({
     } finally {
       setBusy(false);
     }
-  }, [productId, studioId, variantId, quantity, flashAdded, unitPriceCents, currency, productName]);
+  }, [
+    productId,
+    studioId,
+    variantId,
+    quantity,
+    flashAdded,
+    unitPriceCents,
+    currency,
+    productName,
+    viewCartHref,
+    lineImageSrc,
+    variantSummary,
+  ]);
 
   const defaultButtonClass =
     "inline-flex min-h-11 items-center justify-center rounded-full border border-amber-800/50 bg-amber-950 px-6 text-sm font-medium tracking-wide text-white transition hover:bg-amber-900 disabled:opacity-60";
