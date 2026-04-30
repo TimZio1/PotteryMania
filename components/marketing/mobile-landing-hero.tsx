@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export type MobileLandingPanel = {
-  key: "shop" | "bookings" | "wearables" | "marketplace_free";
+  key: "shop" | "wearables";
   title: string;
   subtitle: string;
   points: readonly [string, string, string, string];
@@ -28,9 +28,7 @@ type Props = {
  */
 const MOBILE_EYEBROWS: Record<MobileLandingPanel["key"], string> = {
   shop: "Sell your work",
-  bookings: "Book your classes",
   wearables: "Expand your brand",
-  marketplace_free: "Public catalog",
 };
 
 export function MobileLandingHero({ panels }: Props) {
@@ -90,16 +88,7 @@ export function MobileLandingHero({ panels }: Props) {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-200">
                   {MOBILE_EYEBROWS[panel.key]}
                 </p>
-                <h2 className="mt-2 font-serif text-[1.65rem] leading-tight tracking-[-0.015em] text-white">
-                  {panel.key === "marketplace_free" ? (
-                    <>
-                      <span className="block text-white">Free</span>
-                      <span className="block text-[#f4d5af]">public catalog</span>
-                    </>
-                  ) : (
-                    panel.title
-                  )}
-                </h2>
+                <h2 className="mt-2 font-serif text-[1.65rem] leading-tight tracking-[-0.015em] text-white">{panel.title}</h2>
                 <p className="mt-2 text-[13px] leading-relaxed text-white/90">{panel.subtitle}</p>
                 {panel.psychologicalLine ? (
                   <p className="mt-2 text-xs font-medium text-[#f4d5af]">{panel.psychologicalLine}</p>

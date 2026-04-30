@@ -1,20 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { loginWithCredentials } from "../helpers/auth";
-import { getAdminCredentials, getProductId, getStudioId, getTestCredentials, getVendorCredentials } from "../helpers/env";
+import { getAdminCredentials, getStudioId, getTestCredentials, getVendorCredentials } from "../helpers/env";
 
 test.describe("UX journeys — customer top 10", () => {
   test("customer public routes are reachable", async ({ page }) => {
     test.setTimeout(240_000);
-    const productId = getProductId();
-
     const customerRoutes = [
       "/",
-      "/marketplace",
-      "/classes",
       "/wear/shop",
-      productId ? `/marketplace/products/${productId}` : "/marketplace",
-      "/studios",
-      "/early-access",
+      "/wear/partner",
       "/register",
       "/login",
     ];
@@ -52,15 +46,13 @@ test.describe("UX journeys — studio-admin top 10", () => {
 
     const routes = [
       "/dashboard",
-      `/dashboard/products/${studioId}`,
-      `/dashboard/experiences/${studioId}`,
-      `/dashboard/bookings/${studioId}`,
-      `/dashboard/orders/${studioId}`,
       `/dashboard/${studioId}`,
+      `/dashboard/${studioId}/commerce/wearables`,
+      `/dashboard/${studioId}/commerce/orders`,
+      `/dashboard/${studioId}/money/overview`,
       `/dashboard/${studioId}/settings`,
       `/dashboard/${studioId}/site/page`,
-      `/dashboard/${studioId}/schedule/calendar`,
-      `/dashboard/${studioId}/studio-tools/ai`,
+      `/dashboard/${studioId}/guided`,
     ];
 
     await loginWithCredentials(page, creds.email, creds.password, routes[0]);
@@ -90,7 +82,7 @@ test.describe("UX journeys — hyperadmin top 10", () => {
       "/admin/users",
       "/admin/studios",
       "/admin/orders",
-      "/admin/bookings",
+      "/admin/wear-products",
       "/admin/finance",
       "/admin/system",
       "/admin/operations",

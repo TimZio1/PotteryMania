@@ -38,12 +38,9 @@ function staticSitemapFallback(): MetadataRoute.Sitemap {
         "/demo",
         "/dashboard-demo",
         "/blog",
-        "/marketplace",
-        "/classes",
-        "/studios",
         "/wear",
         "/wear/shop",
-        "/gift-cards",
+        "/wear/partner",
         "/login",
         "/register",
         "/terms",
@@ -89,23 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ];
     }
 
-    const [products, experiences, studios, categories, wearProducts, blogPosts] = await Promise.all([
-      prisma.product.findMany({ where: { status: "active" }, select: { id: true, updatedAt: true }, take: SITEMAP_LIMIT }),
-      prisma.experience.findMany({
-        where: { status: "active", visibility: "public" },
-        select: { id: true, updatedAt: true },
-        take: SITEMAP_LIMIT,
-      }),
-      prisma.studio.findMany({
-        where: { status: "approved" },
-        select: { id: true, updatedAt: true },
-        take: SITEMAP_LIMIT,
-      }),
-      prisma.productCategory.findMany({
-        where: { isActive: true },
-        select: { slug: true, updatedAt: true },
-        take: SITEMAP_LIMIT,
-      }),
+    const [wearProducts, blogPosts] = await Promise.all([
       prisma.wearProduct.findMany({
         where: wearPublicProductWhere(),
         select: { slug: true, updatedAt: true },
@@ -120,25 +101,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       entry("/demo", now, 0.7, "weekly"),
       entry("/dashboard-demo", now, 0.6, "weekly"),
       entry("/blog", now, 0.8, "weekly"),
-      entry("/marketplace", now, 0.8, "daily"),
-      entry("/classes", now, 0.9, "daily"),
-      entry("/studios", now, 0.9, "daily"),
       entry("/wear", now, 0.7, "weekly"),
-      entry("/wear/shop", now, 0.8, "daily"),
-      entry("/gift-cards", now, 0.5, "weekly"),
+      entry("/wear/shop", now, 0.9, "daily"),
+      entry("/wear/partner", now, 0.75, "weekly"),
+      entry("/wear/partner/apply", now, 0.65, "monthly"),
       entry("/login", now, 0.3, "monthly"),
       entry("/register", now, 0.4, "monthly"),
       entry("/terms", now, 0.2, "monthly"),
       entry("/privacy", now, 0.2, "monthly"),
       entry("/vendor-terms", now, 0.2, "monthly"),
-      ...categories.map((category) => entry(`/category/${category.slug}`, category.updatedAt, 0.7, "weekly")),
-      ...products.map((product) => entry(`/marketplace/products/${product.id}`, product.updatedAt, 0.8, "weekly")),
-      ...experiences.map((experience) => entry(`/classes/${experience.id}`, experience.updatedAt, 0.8, "weekly")),
-      ...studios.flatMap((studio) => [
-        entry(`/studios/${studio.id}`, studio.updatedAt, 0.8, "weekly"),
-        entry(`/studios/${studio.id}/gallery`, studio.updatedAt, 0.6, "weekly"),
-        entry(`/studios/${studio.id}/news`, studio.updatedAt, 0.6, "weekly"),
-      ]),
       ...wearProducts.map((product) => entry(`/wear/${product.slug}`, product.updatedAt, 0.7, "weekly")),
       ...blogPosts.map((post) => entry(`/blog/${post.slug}`, post.updatedAt, 0.8, "weekly")),
     ];

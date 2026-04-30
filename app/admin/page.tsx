@@ -7,7 +7,7 @@ import { AdminOverview } from "./admin-overview";
 import { cn } from "@/lib/cn";
 import { loadWearCatalogValueSnapshot } from "@/lib/wear-spreadconnect-stats";
 import { formatWearMoney } from "@/lib/wear-money";
-import { isApparelAdminMode } from "@/lib/launch-mode";
+import { isApparelAdminMode, isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 import type { Metadata } from "next";
 import { metaAdminPage } from "@/lib/seo-routes";
@@ -32,7 +32,7 @@ export default async function AdminPage() {
   const last30Start = startOfDay(new Date(now.getTime() - 29 * DAY_MS));
   const last60Start = startOfDay(new Date(now.getTime() - 59 * DAY_MS));
   const staleOrderThreshold = new Date(now.getTime() - DAY_MS);
-  const apparelOnly = isApparelAdminMode();
+  const apparelOnly = isApparelOnlyLaunch() || isApparelAdminMode();
 
   if (apparelOnly) {
     return (

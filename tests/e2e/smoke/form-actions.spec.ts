@@ -2,7 +2,8 @@ import { test, expect } from "../helpers/fixtures";
 import type { Page } from "@playwright/test";
 
 function isPublicCatalogRedirect(url: string): boolean {
-  return /\/early-access|\/$/.test(new URL(url).pathname);
+  const p = new URL(url).pathname;
+  return p === "/" || /\/early-access/.test(p) || p.startsWith("/wear");
 }
 
 async function gotoCatalogPage(page: Page, path: "/marketplace" | "/classes" | "/studios") {
@@ -17,7 +18,7 @@ async function gotoCatalogPage(page: Page, path: "/marketplace" | "/classes" | "
 }
 
 test.describe("Flow 1 — Public form actions", () => {
-  test("legacy public catalog routes redirect to current studio-focused entry pages", async ({ page }) => {
+  test("legacy public catalog routes leave ceramics paths (redirect to home, wear, or early access)", async ({ page }) => {
     const onMarketplace = await gotoCatalogPage(page, "/marketplace");
     expect(onMarketplace).toBe(false);
 

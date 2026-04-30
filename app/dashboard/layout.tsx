@@ -1,16 +1,26 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { metaDashboardPage } from "@/lib/seo-routes";
 import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
 import { DashboardRouteBreadcrumbs } from "@/components/dashboard/dashboard-route-breadcrumbs";
 import { PlatformHeader } from "@/components/platform/platform-header";
 
-export const metadata: Metadata = metaDashboardPage(
-  "Studio control panel",
-  "/dashboard",
-  "Studio control panel for sessions, public pages, payments, and direct studio sales.",
-);
+export async function generateMetadata(): Promise<Metadata> {
+  if (isApparelOnlyLaunch()) {
+    return metaDashboardPage(
+      "Account & studio",
+      "/dashboard",
+      "Shop the apparel drop, track orders, billing, and your studio tools when you sell with PotteryMania.",
+    );
+  }
+  return metaDashboardPage(
+    "Studio control panel",
+    "/dashboard",
+    "Studio control panel for sessions, public pages, payments, and direct studio sales.",
+  );
+}
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await auth();

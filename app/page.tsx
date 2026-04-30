@@ -582,12 +582,12 @@ function LegacyStudioHome() {
           <div className={ui.pageContainer}>
             <div className="mx-auto max-w-3xl">
               <div className="rounded-[var(--radius-card)] border border-stone-700/40 bg-[#1a1816] p-[var(--pm-space-6)] text-white shadow-[var(--pm-shadow-lift)] sm:p-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">Studios & makers</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">Partners</p>
                 <h2 className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl">
-                  The studio platform is still here — now alongside the shop.
+                  Sell the drop with your link — commission on every tee and hoodie.
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-white/80">
-                  Register for early access if you run a studio or teach: profile, discovery, bookings, and commerce tools.
+                  Join the apparel affiliate program: share your landing page, track orders, and get paid through Stripe.
                   Buying merch doesn&apos;t require an account.
                 </p>
 

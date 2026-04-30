@@ -4,12 +4,12 @@
  * `adminLinks` is the full list (kept short on purpose; less-used screens are reachable
  * from their related hub pages — Settings, Content, etc).
  *
- * `apparelOnlyAdminLinks` is the operator surface for the apparel-only launch.
- * Studio/booking/marketplace infrastructure stays routable on disk, but it is not
- * advertised in the admin panel while PotteryMania is focused on apparel + affiliates.
+ * `apparelOnlyAdminLinks` is the operator surface for the apparel-focused storefront.
+ * Shown when `NEXT_PUBLIC_LAUNCH_MODE=apparel_only` **or** `NEXT_PUBLIC_ADMIN_MODE` is not
+ * `legacy` / `hyperadmin`. Studio/booking/marketplace routes stay on disk but are not linked here.
  */
 
-import { isApparelAdminMode } from "@/lib/launch-mode";
+import { isApparelAdminMode, isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 export type AdminLink = {
   href: string;
@@ -27,7 +27,6 @@ export const adminLinks: readonly AdminLink[] = [
 
   { href: "/admin/revenue", label: "Revenue" },
   { href: "/admin/orders", label: "Sales" },
-  { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/finance", label: "Finance" },
 
   { href: "/admin/wear-products", label: "Wear · products" },
@@ -70,12 +69,14 @@ export const apparelOnlyAdminLinks: readonly AdminLink[] = [
 
 /** Returns the appropriate nav for the current launch mode. */
 export function getActiveAdminLinks(): readonly AdminLink[] {
+  if (isApparelOnlyLaunch()) return apparelOnlyAdminLinks;
   return isApparelAdminMode() ? apparelOnlyAdminLinks : adminLinks;
 }
 
 /** Links that exist but are hidden right now — surfaced on the admin home for ops. */
 export function getHiddenAdminLinks(): readonly AdminLink[] {
-  if (!isApparelAdminMode()) return [];
-  const visible = new Set(apparelOnlyAdminLinks.map((l) => l.href));
+  const active = getActiveAdminLinks();
+  if (active === adminLinks) return [];
+  const visible = new Set(active.map((l) => l.href));
   return adminLinks.filter((l) => !visible.has(l.href));
 }

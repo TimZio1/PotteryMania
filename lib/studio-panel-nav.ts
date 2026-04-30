@@ -1,5 +1,7 @@
 /** Studio Owner Panel — canonical paths under `/dashboard/[studioId]`. */
 
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
+
 const b = (studioId: string, path: string) => `/dashboard/${studioId}${path}`;
 
 export type StudioNavGroup = {
@@ -8,10 +10,51 @@ export type StudioNavGroup = {
   items: { href: string; label: string }[];
 };
 
-/**
- * Primary navigation groups (sidebar). All hrefs are canonical; legacy URLs redirect here.
- */
-export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
+/** Apparel / affiliate partner surface — no class booking or marketplace ceramics in this app. */
+function apparelPartnerNavGroups(studioId: string): StudioNavGroup[] {
+  return [
+    {
+      id: "overview",
+      label: "Overview",
+      items: [{ href: b(studioId, ""), label: "Home" }],
+    },
+    {
+      id: "commerce",
+      label: "Apparel",
+      items: [
+        { href: b(studioId, "/commerce/wearables"), label: "Partner & wear" },
+        { href: b(studioId, "/commerce/orders"), label: "Orders" },
+      ],
+    },
+    {
+      id: "money",
+      label: "Money",
+      items: [
+        { href: b(studioId, "/money/overview"), label: "Overview" },
+        { href: b(studioId, "/money/payouts"), label: "Payouts & bank" },
+      ],
+    },
+    {
+      id: "site",
+      label: "Website",
+      items: [
+        { href: b(studioId, "/site/page"), label: "Studio page" },
+        { href: b(studioId, "/site/domains"), label: "Domain" },
+      ],
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      items: [
+        { href: b(studioId, "/settings"), label: "Settings" },
+        { href: b(studioId, "/guided"), label: "Simple setup" },
+      ],
+    },
+  ];
+}
+
+/** Legacy pottery SaaS nav — only when `NEXT_PUBLIC_LAUNCH_MODE=full`. */
+function legacyStudioNavGroups(studioId: string): StudioNavGroup[] {
   return [
     {
       id: "overview",
@@ -91,6 +134,14 @@ export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
       ],
     },
   ];
+}
+
+/**
+ * Primary navigation groups (sidebar). Defaults to the apparel partner surface;
+ * full legacy nav is available only when `NEXT_PUBLIC_LAUNCH_MODE=full`.
+ */
+export function getStudioPanelNavGroups(studioId: string): StudioNavGroup[] {
+  return isApparelOnlyLaunch() ? apparelPartnerNavGroups(studioId) : legacyStudioNavGroups(studioId);
 }
 
 /** Flat list for breadcrumb matching (longest href wins). */

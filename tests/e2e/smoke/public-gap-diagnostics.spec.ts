@@ -4,6 +4,7 @@ const OPTIONAL_PUBLIC_ROUTES = [
   "/studios",
   "/classes",
   "/marketplace",
+  "/wear/shop",
   "/pricing",
   "/privacy",
   "/terms",

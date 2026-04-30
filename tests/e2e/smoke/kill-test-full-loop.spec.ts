@@ -1,15 +1,15 @@
 import { test, expect } from "../helpers/fixtures";
 import { test as rawTest, expect as rawExpect } from "@playwright/test";
-import { getTestCredentials, getVendorCredentials, getStudioId, getExperienceId } from "../helpers/env";
+import { getTestCredentials, getVendorCredentials, getStudioId } from "../helpers/env";
 import { loginWithCredentials } from "../helpers/auth";
 
 /**
- * KILL TEST — Full business loop validation.
+ * KILL TEST — Full business loop validation (apparel-first).
  *
- * Phase 1: Studio owner side (auth, dashboard, class management, settings)
- * Phase 2: Public facing (studio page, class page, trust signals)
- * Phase 3: Customer side (booking, cart, checkout init)
- * Phase 4: Resilience (double actions, refresh mid-flow, edge cases)
+ * Phase 1: Studio owner (auth, partner dashboard, wear commerce, money, settings)
+ * Phase 2: Public (home, wear shop, partner page, legacy redirects)
+ * Phase 3: Customer (wear shop, wear cart, orders)
+ * Phase 4: Resilience (auth edges, invalid IDs, navigation)
  */
 
 const MOBILE = { width: 390, height: 844 };
@@ -61,14 +61,12 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
 
     const routes = [
       { path: `/dashboard/${studioId}`, label: "Home" },
-      { path: `/dashboard/${studioId}/schedule/sessions`, label: "Sessions" },
-      { path: `/dashboard/${studioId}/programs`, label: "Classes" },
-      { path: `/dashboard/${studioId}/schedule/calendar`, label: "Calendar" },
-      { path: `/dashboard/${studioId}/commerce/catalog`, label: "Products" },
+      { path: `/dashboard/${studioId}/commerce/wearables`, label: "Partner & wear" },
+      { path: `/dashboard/${studioId}/commerce/orders`, label: "Orders" },
+      { path: `/dashboard/${studioId}/money/overview`, label: "Money overview" },
+      { path: `/dashboard/${studioId}/money/payouts`, label: "Payouts" },
       { path: `/dashboard/${studioId}/settings`, label: "Settings" },
-      { path: `/dashboard/${studioId}/money/reports`, label: "Reports" },
-      { path: `/dashboard/${studioId}/features`, label: "Features" },
-      { path: `/dashboard/${studioId}/programs/planner`, label: "Class planner" },
+      { path: `/dashboard/${studioId}/guided`, label: "Simple setup" },
     ];
 
     for (const { path, label } of routes) {
@@ -83,50 +81,44 @@ test.describe("KILL TEST — Phase 1: Studio Owner", () => {
     }
   });
 
-  test("1.3 — Classes page has 'New class' CTA", async ({ page }) => {
+  test("1.3 — Wear / partner commerce page loads", async ({ page }) => {
     const creds = getVendorCredentials();
     test.skip(!creds, "No vendor credentials");
     const studioId = await discoverStudioId(page, creds!);
     test.skip(!studioId, "Could not discover studio ID");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/programs`);
-    await expect(page.getByRole("heading", { name: /All classes/i })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("link", { name: /New class/i })).toBeVisible();
+    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/commerce/wearables`);
+    await expect(page.getByRole("heading")).toBeVisible({ timeout: 15_000 });
   });
 
-  test("1.4 — Class planner page renders schedule panels", async ({ page }) => {
+  test("1.4 — Commerce orders page loads", async ({ page }) => {
     const creds = getVendorCredentials();
     test.skip(!creds, "No vendor credentials");
     const studioId = await discoverStudioId(page, creds!);
     test.skip(!studioId, "Could not discover studio ID");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/programs/planner`);
-    await expect(page.getByRole("heading", { name: /^Planner$/i })).toBeVisible({ timeout: 15_000 });
-
-    const body = await page.textContent("body");
-    expect(body).not.toContain("NEXT_REDIRECT");
+    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/commerce/orders`);
+    await expect(page.getByRole("heading")).toBeVisible({ timeout: 15_000 });
   });
 
-  test("1.5 — Waitlist page loads", async ({ page }) => {
+  test("1.5 — Money overview loads", async ({ page }) => {
     const creds = getVendorCredentials();
     test.skip(!creds, "No vendor credentials");
     const studioId = await discoverStudioId(page, creds!);
     test.skip(!studioId, "Could not discover studio ID");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/schedule/waitlist`);
-    await expect(page.getByRole("heading", { name: /waitlist/i })).toBeVisible({ timeout: 15_000 });
+    await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/money/overview`);
+    await expect(page.getByRole("heading")).toBeVisible({ timeout: 15_000 });
   });
 
-  test("1.6 — Settings page shows blocked dates link (not dead)", async ({ page }) => {
+  test("1.6 — Studio settings page loads", async ({ page }) => {
     const creds = getVendorCredentials();
     test.skip(!creds, "No vendor credentials");
     const studioId = await discoverStudioId(page, creds!);
     test.skip(!studioId, "Could not discover studio ID");
 
     await loginWithCredentials(page, creds!.email, creds!.password, `/dashboard/${studioId}/settings`);
-    await expect(page.getByRole("heading", { name: /Blocked dates/i })).toBeVisible({ timeout: 15_000 });
-    const plannerLink = page.getByRole("link", { name: /class planner/i });
-    await expect(plannerLink).toBeVisible();
+    await expect(page.getByRole("heading")).toBeVisible({ timeout: 15_000 });
   });
 });
 
@@ -157,8 +149,8 @@ test.describe("KILL TEST — Phase 2: Public Trust", () => {
     }
   });
 
-  test("2.3 — Shop/marketplace loads without 500", async ({ page }) => {
-    const res = await page.goto("/marketplace", { waitUntil: "domcontentloaded" });
+  test("2.3 — Wear shop loads without 500", async ({ page }) => {
+    const res = await page.goto("/wear/shop", { waitUntil: "domcontentloaded" });
     expect(res?.status()).toBeLessThan(500);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
   });
@@ -179,17 +171,15 @@ test.describe("KILL TEST — Phase 2: Public Trust", () => {
     expect(body).not.toContain("marketplace_checkout_enabled");
   });
 
-  test("2.5 — Classes listing page loads", async ({ page }) => {
+  test("2.5 — Legacy /classes redirects (apparel storefront)", async ({ page }) => {
     const res = await page.goto("/classes", { waitUntil: "domcontentloaded" });
     expect(res?.status()).toBeLessThan(500);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("html")).toBeVisible();
+    await expect(page).toHaveURL(/\/$|\/wear\/shop/);
   });
 
-  test("2.6 — Experience detail page loads (if ID set)", async ({ page }) => {
-    const expId = getExperienceId();
-    test.skip(!expId, "No experience ID");
-
-    const res = await page.goto(`/classes/${expId}`, { waitUntil: "domcontentloaded" });
+  test("2.6 — Wear partner page loads", async ({ page }) => {
+    const res = await page.goto("/wear/partner", { waitUntil: "domcontentloaded" });
     expect(res?.status()).toBeLessThan(500);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 20_000 });
   });
@@ -209,44 +199,26 @@ test.describe("KILL TEST — Phase 2: Public Trust (mobile)", () => {
     }
   });
 
-  test("2.8 — Studios page mobile: renders and scrolls", async ({ page }) => {
-    await page.goto("/studios");
+  test("2.8 — Wear shop mobile: renders and scrolls", async ({ page }) => {
+    await page.goto("/wear/shop");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
   });
 });
 
-test.describe("KILL TEST — Phase 3: Customer Booking Loop", () => {
-  test("3.1 — Login as customer, reach class, attempt booking", async ({ page }) => {
-    const creds = getTestCredentials();
-    const expId = getExperienceId();
-    test.skip(!creds || !expId, "No test credentials or experience ID");
-
-    await loginWithCredentials(page, creds!.email, creds!.password, `/classes/${expId}`);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 20_000 });
-
-    const noSlots = page.getByText(/No open sessions|no upcoming/i);
-    if (await noSlots.isVisible()) {
-      console.log("[INFO] No bookable slots available — cannot test booking flow");
-      return;
-    }
-
-    const bookBtn = page.getByRole("button", { name: /Add class to cart|Book now|Reserve/i });
-    if (await bookBtn.isVisible()) {
-      const [res] = await Promise.all([
-        page.waitForResponse((r) => r.url().includes("/api/cart") && r.request().method() === "POST", { timeout: 15_000 }).catch(() => null),
-        bookBtn.click(),
-      ]);
-      if (res) {
-        expect(res.status(), "Cart API responded").toBeLessThan(500);
-      }
-    }
-  });
-
-  test("3.2 — Cart page loads and shows content", async ({ page }) => {
+test.describe("KILL TEST — Phase 3: Customer wear flow", () => {
+  test("3.1 — Login as customer, open wear shop", async ({ page }) => {
     const creds = getTestCredentials();
     test.skip(!creds, "No test credentials");
 
-    await loginWithCredentials(page, creds!.email, creds!.password, "/cart");
+    await loginWithCredentials(page, creds!.email, creds!.password, "/wear/shop");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 20_000 });
+  });
+
+  test("3.2 — Wear cart page loads when signed in", async ({ page }) => {
+    const creds = getTestCredentials();
+    test.skip(!creds, "No test credentials");
+
+    await loginWithCredentials(page, creds!.email, creds!.password, "/wear/cart");
     await expect(page.getByRole("heading")).toBeVisible({ timeout: 15_000 });
 
     const body = await page.textContent("body");
@@ -268,9 +240,9 @@ test.describe("KILL TEST — Phase 4: Resilience", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("4.2 — Unauthenticated /cart redirects to login", async ({ page }) => {
+  test("4.2 — Unauthenticated legacy /cart resolves (wear shop or login)", async ({ page }) => {
     await page.goto("/cart");
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/login|\/wear\/shop/);
   });
 
   test("4.3 — Invalid studio ID returns 404 not 500", async ({ page }) => {
@@ -289,7 +261,7 @@ test.describe("KILL TEST — Phase 4: Resilience", () => {
 
   test("4.5 — Rapid navigation does not crash", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.goto("/studios", { waitUntil: "domcontentloaded" });
+    await page.goto("/wear/shop", { waitUntil: "domcontentloaded" });
     await page.goBack();
     await expect(page.locator("html")).toBeVisible();
   });

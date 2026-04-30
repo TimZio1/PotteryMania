@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { platformUi } from "@/lib/ui-styles";
 
 type Variant = "dashboard" | "account";
@@ -21,20 +22,33 @@ export function PlatformHeader({ variant = "dashboard" }: { variant?: Variant })
 
   const close = useCallback(() => setOpen(false), []);
 
-  const links = useMemo(
-    () =>
-      variant === "dashboard"
+  const links = useMemo(() => {
+    const apparel = isApparelOnlyLaunch();
+    if (variant === "dashboard") {
+      return apparel
         ? [
+            { href: "/wear/shop", label: "Shop" },
             { href: "/dashboard", label: "Studios" },
             { href: "/dashboard/billing", label: "Billing" },
             { href: "/account", label: "Account" },
           ]
         : [
-            { href: "/my-orders", label: "My orders" },
+            { href: "/dashboard", label: "Studios" },
+            { href: "/dashboard/billing", label: "Billing" },
             { href: "/account", label: "Account" },
-          ],
-    [variant],
-  );
+          ];
+    }
+    return apparel
+      ? [
+          { href: "/wear/shop", label: "Shop" },
+          { href: "/my-orders", label: "Orders" },
+          { href: "/account", label: "Account" },
+        ]
+      : [
+          { href: "/my-orders", label: "My orders" },
+          { href: "/account", label: "Account" },
+        ];
+  }, [variant]);
 
   useEffect(() => {
     close();

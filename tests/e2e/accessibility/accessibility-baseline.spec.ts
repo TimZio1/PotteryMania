@@ -17,10 +17,8 @@ async function expectNoSeriousOrCriticalViolations(page: Page, route: string) {
 test.describe("A11y baseline (Axe)", () => {
   const publicRoutes = [
     "/",
-    "/early-access",
-    "/classes",
-    "/studios",
-    "/marketplace",
+    "/wear/shop",
+    "/wear/partner",
     "/cart",
     "/login",
     "/register",

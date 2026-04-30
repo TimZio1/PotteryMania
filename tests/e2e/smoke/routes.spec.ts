@@ -33,19 +33,19 @@ test.describe("Route smoke", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("legacy global discovery routes redirect away", async ({ page }) => {
+  test("legacy global discovery routes redirect away from ceramics catalog", async ({ page }) => {
     await page.goto("/marketplace", { waitUntil: "domcontentloaded", timeout: 45_000 });
     await expect(page.locator("html")).toBeVisible();
-    await expect(page).toHaveURL(/\/$|\/early-access$/);
+    await expect(page).toHaveURL(/\/$|\/early-access$|\/wear\/shop/);
     await test.step("/classes", async () => {
       await page.goto("/classes", { waitUntil: "domcontentloaded", timeout: 45_000 });
       await expect(page.locator("html")).toBeVisible();
-      await expect(page).toHaveURL(/\/$|\/early-access$/);
+      await expect(page).toHaveURL(/\/$|\/early-access$|\/wear\/shop/);
     });
     await test.step("/studios", async () => {
       await page.goto("/studios", { waitUntil: "domcontentloaded", timeout: 45_000 });
       await expect(page.locator("html")).toBeVisible();
-      await expect(page).toHaveURL(/\/$|\/early-access$/);
+      await expect(page).toHaveURL(/\/$|\/early-access$|\/wear\/shop/);
     });
   });
 

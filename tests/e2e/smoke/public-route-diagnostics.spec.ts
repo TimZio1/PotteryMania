@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { getProductId } from "../helpers/env";
 
 const PUBLIC_ROUTES = [
   "/",
@@ -30,10 +29,7 @@ for (const route of PUBLIC_ROUTES) {
   });
 }
 
-test("diagnose public product detail route", async ({ page }) => {
-  const productId = getProductId();
-  test.skip(!productId, "TEST_PRODUCT_ID required for live public PDP diagnostics.");
-
+test("diagnose wear shop after legacy marketplace PDP URL", async ({ page }) => {
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   page.on("console", (msg) => {
@@ -41,10 +37,20 @@ test("diagnose public product detail route", async ({ page }) => {
   });
   page.on("pageerror", (err) => pageErrors.push(err.message));
 
-  const route = `/marketplace/products/${productId}`;
-  await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45_000 });
+  await page.goto("/marketplace/products/00000000-0000-0000-0000-000000000001", {
+    waitUntil: "domcontentloaded",
+    timeout: 45_000,
+  });
   await page.waitForTimeout(2000);
   await expect(page.locator("html")).toBeVisible();
+  await expect(page).toHaveURL(/\/wear\/shop/);
 
-  console.log(JSON.stringify({ route, consoleErrors, pageErrors, finalUrl: page.url() }));
+  console.log(
+    JSON.stringify({
+      route: "legacy marketplace PDP → wear shop",
+      consoleErrors,
+      pageErrors,
+      finalUrl: page.url(),
+    }),
+  );
 });

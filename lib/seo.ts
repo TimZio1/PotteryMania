@@ -13,7 +13,7 @@ const DEFAULT_OG_IMAGE_WIDTH = 1200;
 const DEFAULT_OG_IMAGE_HEIGHT = 630;
 
 const FULL_DESCRIPTION =
-  "Apparel for makers — made with heat. Plus tools for independent pottery studios to get discovered, take bookings, and sell work.";
+  "PotteryMania — maker apparel and the wear affiliate program. Stripe checkout, worldwide shipping, 30-day returns.";
 
 const APPAREL_DESCRIPTION =
   "PotteryMania: maker T-shirts, hoodies, and headwear for potters, ceramic artists, and creatives. Stripe checkout, worldwide shipping, 30-day returns. Shop the live drop or join the affiliate program at potterymania.com.";
@@ -21,15 +21,13 @@ const APPAREL_DESCRIPTION =
 const FULL_KEYWORDS = [
   "maker apparel",
   "pottery studio merch",
-  "independent pottery artists",
-  "pottery studios directory",
-  "pottery studio software",
-  "ceramic studio software",
-  "pottery class booking software",
-  "sell ceramics online",
-  "pottery website builder",
-  "pottery studio management",
-  "ceramic artist ecommerce",
+  "pottery t-shirt",
+  "ceramic artist clothing",
+  "maker hoodies",
+  "Stripe checkout apparel",
+  "affiliate apparel program",
+  "PotteryMania shop",
+  "made with heat",
 ] as const;
 
 const APPAREL_KEYWORDS = [

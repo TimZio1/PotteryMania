@@ -248,34 +248,22 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
                   ) : (
                     <>
                       <div className="space-y-2.5">
-                        <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Product</p>
+                        <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Shop</p>
+                        <Link href="/wear/shop" className="block transition hover:text-[var(--foreground)]">
+                          Apparel drop
+                        </Link>
+                        <Link href="/wear/partner" className="block transition hover:text-[var(--foreground)]">
+                          Partner program
+                        </Link>
                         <Link href="/pricing" className="block transition hover:text-[var(--foreground)]">
                           Pricing
                         </Link>
                         <Link href="/demo" className="block transition hover:text-[var(--foreground)]">
                           See a demo
                         </Link>
-                        <Link href="/dashboard/studio/new?setup=bookings" className="block transition hover:text-[var(--foreground)]">
-                          Start with bookings
-                        </Link>
-                        <Link href="/dashboard/studio/new?setup=shop" className="block transition hover:text-[var(--foreground)]">
-                          Start with shop
-                        </Link>
                       </div>
                       <div className="space-y-2.5">
                         <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">Explore</p>
-                        <Link href="/marketplace" className="block transition hover:text-[var(--foreground)]">
-                          Marketplace
-                        </Link>
-                        <Link href="/classes" className="block transition hover:text-[var(--foreground)]">
-                          Classes
-                        </Link>
-                        <Link href="/studios" className="block transition hover:text-[var(--foreground)]">
-                          Studios
-                        </Link>
-                        <Link href="/wear/shop" className="block transition hover:text-[var(--foreground)]">
-                          Wearables shop
-                        </Link>
                         <Link href="/blog" className="block transition hover:text-[var(--foreground)]">
                           Blog
                         </Link>

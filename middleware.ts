@@ -26,12 +26,7 @@ import {
 const LOGIN_REQUIRED = [
   "/dashboard",
   "/admin",
-  "/my-bookings",
   "/my-orders",
-  "/my-memberships",
-  "/my-loyalty",
-  "/my-packages",
-  "/my-waitlist",
   "/reviews/new",
   "/account",
 ];
@@ -71,6 +66,12 @@ function publicAllowlist(): string[] {
     "/gift-cards",
     "/category",
     "/marketplace",
+    /** Old account URLs → server `redirect("/wear/shop")` (no login wall). */
+    "/my-bookings",
+    "/my-packages",
+    "/my-waitlist",
+    "/my-memberships",
+    "/my-loyalty",
     /** Partner short links: `/w/{code}` → wear shop + ref */
     "/w",
     "/wear",

@@ -3,14 +3,29 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser, requireAdminUser } from "@/lib/auth-session";
+import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { platformUi } from "@/lib/ui-styles";
 import { metaDashboardPage } from "@/lib/seo-routes";
+import { getUserAffiliatePrograms } from "@/lib/wear-user-affiliate-dashboard";
+import {
+  DashboardUserAffiliateSection,
+  DashboardVendorStudioAffiliateHint,
+} from "@/components/dashboard/dashboard-user-affiliate-section";
 
-export const metadata: Metadata = metaDashboardPage(
-  "Your studios",
-  "/dashboard",
-  "Open a studio to run classes, your shop, and payouts.",
-);
+export async function generateMetadata(): Promise<Metadata> {
+  if (isApparelOnlyLaunch()) {
+    return metaDashboardPage(
+      "Your account",
+      "/dashboard",
+      "The apparel drop, your orders, and partner tools — tees and hoodies only.",
+    );
+  }
+  return metaDashboardPage(
+    "Your studios",
+    "/dashboard",
+    "Open a studio to run classes, your shop, and payouts.",
+  );
+}
 
 export const dynamic = "force-dynamic";
 
@@ -23,19 +38,30 @@ export default async function DashboardPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login?callbackUrl=/dashboard");
 
+  const apparelOnly = isApparelOnlyLaunch();
+  const affiliatePrograms = await getUserAffiliatePrograms(user.id);
+  const affiliateByStudioId = new Map(affiliatePrograms.map((r) => [r.studioId, r]));
+
   if (user.role === "customer") {
+    const maxW = affiliatePrograms.length > 0 ? "max-w-2xl" : "max-w-lg";
     return (
-      <div className="mx-auto max-w-lg px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)">
+      <div
+        className={`mx-auto ${maxW} px-(--pm-space-4) py-(--pm-space-8) sm:px-(--pm-space-6) sm:py-(--pm-space-10)`}
+      >
         <p className={platformUi.overline}>Account</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">Your account</h1>
-        <p className="mt-3 text-[var(--muted)]">Track apparel orders or open your studio.</p>
+        <p className="mt-3 text-[var(--muted)]">
+          {apparelOnly
+            ? "Shop the drop, track wear orders, or create a studio when you’re ready to sell with us."
+            : "Track apparel orders or open your studio."}
+        </p>
         <div className={`${platformUi.card} mt-8`}>
           <div className="flex flex-col gap-3">
             <Link href="/wear/shop" className={platformUi.buttonPrimary}>
               Shop the drop
             </Link>
             <Link href="/my-orders" className={platformUi.buttonSecondary}>
-              My orders
+              Orders
             </Link>
             <Link href="/dashboard/studio/new?setup=both" className={platformUi.buttonSecondary}>
               Create my studio
@@ -45,6 +71,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
         </div>
+        <DashboardUserAffiliateSection rows={affiliatePrograms} />
       </div>
     );
   }
@@ -73,13 +100,19 @@ export default async function DashboardPage() {
         <p className={platformUi.overline}>Studios</p>
       </div>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">Your studios</h1>
-      <p className="mt-2 max-w-xl text-[var(--muted)]">Pick a studio to manage classes, shop, and money.</p>
+      <p className="mt-2 max-w-xl text-[var(--muted)]">
+        {apparelOnly
+          ? "Pick a studio to manage partner links, payouts, and tools tied to your brand on the drop."
+          : "Pick a studio to manage classes, shop, and money."}
+      </p>
 
       {studios.length === 0 ? (
         <div className={`${platformUi.cardMuted} mt-10`}>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">Start your first studio</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Name it, add a class or product, share your page.
+            {apparelOnly
+              ? "Name it, connect payouts, and share your page — apparel storefront first."
+              : "Name it, add a class or product, share your page."}
           </p>
           <Link href="/dashboard/studio/new?setup=both" className={`${platformUi.buttonPrimary} mt-6 inline-flex`}>
             Create my studio
@@ -90,12 +123,14 @@ export default async function DashboardPage() {
           {studios.map((s) => {
             const stripeOk = s.stripeAccount?.chargesEnabled && s.stripeAccount?.payoutsEnabled;
             const activated = !!s.activationPaidAt;
+            const affiliateRow = affiliateByStudioId.get(s.id);
             return (
               <li key={s.id} className={platformUi.card}>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="text-lg font-semibold text-[var(--foreground)]">{s.displayName}</h2>
                     <p className="mt-1 text-sm text-[var(--muted)] capitalize">Status: {s.status.replace(/_/g, " ")}</p>
+                    {affiliateRow ? <DashboardVendorStudioAffiliateHint row={affiliateRow} /> : null}
 
                     <p className="mt-3 text-sm text-[var(--muted)]">
                       <span className="font-medium text-stone-900">Ready to get paid:</span>{" "}
