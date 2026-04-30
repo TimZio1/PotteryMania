@@ -62,25 +62,11 @@ const META_PIXEL_EVENT: Partial<Record<WearEventKind, string>> = {
   [WEAR_EVENT_KINDS.purchaseSuccess]: "Purchase",
 };
 
-function ensureMetaPixelQueue() {
-  if (typeof window === "undefined" || window.fbq || !META_PIXEL_ID) return;
-  const fbq = function (...args: unknown[]) {
-    if (fbq.callMethod) fbq.callMethod(...args);
-    else fbq.queue?.push(args);
-  } as MetaFbq;
-  fbq.queue = [];
-  fbq.loaded = true;
-  fbq.version = "2.0";
-  fbq.push = fbq;
-  window.fbq = fbq;
-  window._fbq = fbq;
-  const script = document.createElement("script");
-  script.async = true;
-  script.src = "https://connect.facebook.net/en_US/fbevents.js";
-  document.head.appendChild(script);
-  window.fbq("init", META_PIXEL_ID);
-}
-
+/**
+ * Fire `fbq` only when `<MetaPixel />` has loaded the real script after cookie consent.
+ * Never assign `window.fbq` here: a stub created before fbevents.js makes Meta's bootstrap
+ * (`if(f.fbq)return`) skip installation, so AddToCart never reaches Events Manager.
+ */
 export function trackWearEvent(kind: WearEventKind, opts: TrackOpts = {}) {
   if (typeof window !== "undefined" && window.gtag) {
     window.gtag("event", kind, {
@@ -93,9 +79,7 @@ export function trackWearEvent(kind: WearEventKind, opts: TrackOpts = {}) {
     });
   }
 
-  ensureMetaPixelQueue();
-
-  if (typeof window !== "undefined" && window.fbq) {
+  if (typeof window !== "undefined" && window.fbq && META_PIXEL_ID) {
     const pixelEvent = META_PIXEL_EVENT[kind];
     if (pixelEvent) {
       const contentIds =
@@ -112,11 +96,23 @@ export function trackWearEvent(kind: WearEventKind, opts: TrackOpts = {}) {
         ...(opts.quantity != null
           ? pixelEvent === "Purchase"
             ? { num_items: opts.quantity }
-            : { contents: contentIds?.map((id) => ({ id, quantity: opts.quantity })) }
+            : {
+                contents: contentIds?.map((id) => ({
+                  id,
+                  quantity: opts.quantity,
+                  ...(opts.value != null && opts.quantity > 0
+                    ? { item_price: Number((opts.value / opts.quantity).toFixed(2)) }
+                    : {}),
+                })),
+              }
           : {}),
       };
       try {
-        window.fbq("track", pixelEvent, params, opts.eventId ? { eventID: opts.eventId } : undefined);
+        if (opts.eventId) {
+          window.fbq("track", pixelEvent, params, { eventID: opts.eventId });
+        } else {
+          window.fbq("track", pixelEvent, params);
+        }
       } catch {
         /* non-blocking */
       }

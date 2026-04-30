@@ -56,13 +56,17 @@ export function WearPdpBuySection({
   const selectedColor = isColorControlled ? controlledSelectedColor : internalSelectedColor;
 
   useEffect(() => {
-    trackWearEvent(WEAR_EVENT_KINDS.productView, {
-      productId,
-      contentIds: [productId],
-      contentName: productName,
-      value: Number((basePriceCents / 100).toFixed(2)),
-      currency,
-    });
+    /** Defer one tick so `<MetaPixel />` afterInteractive can define `fbq` before ViewContent. */
+    const t = window.setTimeout(() => {
+      trackWearEvent(WEAR_EVENT_KINDS.productView, {
+        productId,
+        contentIds: [productId],
+        contentName: productName,
+        value: Number((basePriceCents / 100).toFixed(2)),
+        currency,
+      });
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [productId, productName, basePriceCents, currency]);
 
   useEffect(() => {
