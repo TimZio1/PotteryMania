@@ -12,7 +12,7 @@ export function WearBuyXGetYHeroBadge({ className = "" }: { className?: string }
         scroll={true}
         className="group inline-flex max-w-full flex-wrap items-center gap-3 rounded-full border border-(--heat)/50 bg-(--ink)/55 px-4 py-2.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)] backdrop-blur-sm transition hover:border-(--heat)/80 hover:bg-(--heat)/10 sm:gap-4 sm:px-5 sm:py-3"
       >
-        <span className="pm-caption shrink-0 text-(--heat)">Running now</span>
+        <span className="pm-caption pm-blink-soft shrink-0 text-(--heat)">Running now</span>
         <span className="min-h-px w-px shrink-0 bg-(--clay)/25 sm:hidden" aria-hidden />
         <span className="text-left text-[13px] font-semibold uppercase tracking-[0.12em] text-(--clay) sm:text-sm">
           {WEAR_BUY_X_GET_Y_CAMPAIGN.label}
@@ -52,10 +52,10 @@ export function WearBuyXGetYHomePromo() {
 
       <div className="relative mx-auto max-w-7xl px-6 py-14 sm:px-10 sm:py-20 lg:py-24">
         <div className="max-w-3xl">
-          <p className="pm-caption text-(--heat)">Drop perk</p>
+          <p className="pm-caption pm-blink-soft text-(--heat)">Drop perk</p>
           <h2
             id={`${PROMO_ANCHOR}-heading`}
-            className="rotate-[5deg] pm-display mt-4 text-(--clay) text-[2.65rem] leading-[0.92] sm:text-[4rem] lg:text-[4.75rem]"
+            className="pm-display mt-4 text-(--clay) text-[2.65rem] leading-[0.92] sm:text-[4rem] lg:text-[4.75rem]"
           >
             Buy {buyQuantity}
             <span className="text-(--heat)"> · </span>

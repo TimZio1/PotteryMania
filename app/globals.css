@@ -558,6 +558,21 @@ body {
   animation: pm-pulse-dot 1.6s ease-in-out infinite;
 }
 
+/* Soft opacity blink — promo accents; slow enough to stay below flash thresholds */
+@keyframes pm-blink-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.pm-blink-soft {
+  animation: pm-blink-soft 1.75s ease-in-out infinite;
+}
+
 @keyframes pm-fade-up {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
