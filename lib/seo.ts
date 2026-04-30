@@ -16,7 +16,7 @@ const FULL_DESCRIPTION =
   "Apparel for makers — made with heat. Plus tools for independent pottery studios to get discovered, take bookings, and sell work.";
 
 const APPAREL_DESCRIPTION =
-  "Shop T-shirts, hoodies, and apparel for potters, artists, makers, and creative people. Join our affiliate program and share the culture.";
+  "PotteryMania: maker T-shirts, hoodies, and headwear for potters, ceramic artists, and creatives. Stripe checkout, worldwide shipping, 30-day returns. Shop the live drop or join the affiliate program at potterymania.com.";
 
 const FULL_KEYWORDS = [
   "maker apparel",
@@ -35,11 +35,19 @@ const FULL_KEYWORDS = [
 const APPAREL_KEYWORDS = [
   "maker t-shirts",
   "potter apparel",
+  "pottery t-shirt",
+  "ceramic artist clothing",
   "artist hoodies",
   "ceramic artist apparel",
   "creative apparel",
+  "studio merch",
+  "pottery hoodie",
+  "maker hoodies",
+  "Stripe checkout apparel",
+  "EU shipping t-shirts",
   "affiliate apparel program",
   "PotteryMania shop",
+  "made with heat",
 ] as const;
 
 export const siteMetadata = {
@@ -75,6 +83,11 @@ export function buildAbsoluteUrl(path = "/") {
 
 export function defaultPublicTitle(): string {
   return isApparelOnlyLaunch() ? "PotteryMania — T-Shirts & Apparel for Makers" : "PotteryMania";
+}
+
+/** Public marketing description for the apparel storefront (home, OG fallbacks). */
+export function apparelMarketingDescription(): string {
+  return APPAREL_DESCRIPTION;
 }
 
 function envVerification() {

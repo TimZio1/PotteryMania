@@ -5,8 +5,16 @@ import { MarketingLayout } from "@/components/marketing-layout";
 import { PrivateGuideForm } from "@/app/early-access/private-guide-form";
 import { HomeLaunchStats } from "@/app/home-launch-stats";
 import { HomeScrollReset } from "@/app/home-scroll-reset";
-import { buildMetadata } from "@/lib/seo";
-import { organizationJsonLd, toJsonLdScript, websiteJsonLd } from "@/lib/structured-data";
+import { apparelMarketingDescription, buildAbsoluteUrl, buildMetadata } from "@/lib/seo";
+import {
+  faqPageJsonLd,
+  itemListJsonLd,
+  organizationJsonLd,
+  toJsonLdScript,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/structured-data";
+import { WEAR_HOME_APPAREL_FAQ } from "@/lib/wear-home-faq";
 import { WEAR_VISUAL_IMAGES } from "@/lib/wear-config";
 import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
@@ -27,12 +35,28 @@ const IMPACT_SITE_VERIFICATION = "886dc8c3-9975-4330-92e4-e34425f85624";
 export async function generateMetadata(): Promise<Metadata> {
   const base = buildMetadata({
     title: "PotteryMania — T-Shirts & Apparel for Makers",
-    description:
-      "Shop T-shirts, hoodies, and apparel for potters, artists, makers, and creative people. Made with heat — enter the drop.",
+    description: apparelMarketingDescription(),
     path: "/",
+    keywords: [
+      "pottery gifts",
+      "artist merch Europe",
+      "independent apparel brand",
+      "potter Christmas gifts",
+    ],
   });
   return {
     ...base,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
     other: {
       "impact-site-verification": IMPACT_SITE_VERIFICATION,
     },
@@ -124,7 +148,39 @@ async function ApparelHome() {
     return String(Math.max(1, week % 99)).padStart(3, "0");
   })();
 
-  const jsonLd = toJsonLdScript([websiteJsonLd(), organizationJsonLd()]);
+  const heroSrcForSchema = heroAnchor
+    ? wearImageUrlsFromJson(heroAnchor.images)[0] ?? WEAR_VISUAL_IMAGES.primary
+    : WEAR_VISUAL_IMAGES.primary;
+  const heroImageForSchema = wearListingImageSrc(heroSrcForSchema, 1600);
+  const heroImageAbsolute = /^https?:\/\//i.test(heroImageForSchema)
+    ? heroImageForSchema
+    : buildAbsoluteUrl(heroImageForSchema.startsWith("/") ? heroImageForSchema : `/${heroImageForSchema}`);
+
+  const jsonLd = toJsonLdScript([
+    websiteJsonLd(),
+    organizationJsonLd(),
+    webPageJsonLd({
+      name: "PotteryMania — T-Shirts & Apparel for Makers",
+      description: apparelMarketingDescription(),
+      path: "/",
+      fragmentId: "webpage",
+      primaryImageUrl: heroImageAbsolute,
+      speakableCssSelectors: ["#hero-headline", "#hero-summary"],
+    }),
+    faqPageJsonLd(WEAR_HOME_APPAREL_FAQ),
+    ...(showcase.length > 0
+      ? [
+          itemListJsonLd({
+            name: "Featured pieces in the live apparel drop",
+            path: "/",
+            items: showcase.slice(0, 12).map((p) => ({
+              name: wearDisplayName(p),
+              path: `/wear/${p.slug}`,
+            })),
+          }),
+        ]
+      : []),
+  ]);
 
   return (
     <MarketingLayout>
@@ -182,7 +238,10 @@ async function ApparelHome() {
               <br />
               <span className="text-[var(--heat)]">heat.</span>
             </h1>
-            <p className="mt-6 max-w-md text-base text-[var(--clay)]/85 sm:text-lg">
+            <p
+              id="hero-summary"
+              className="mt-6 max-w-md text-base text-[var(--clay)]/85 sm:text-lg"
+            >
               T-shirts and hoodies for people who don&apos;t sit still.
             </p>
             <WearBuyXGetYHeroBadge className="mt-8" />
@@ -421,31 +480,10 @@ async function ApparelHome() {
               Cold facts.
             </h2>
             <div className="mt-12 divide-y divide-[var(--ink)]/15 border-y border-[var(--ink)]/15">
-              {[
-                {
-                  q: "When does my order ship?",
-                  a: "Fast turnaround — most orders ship within a few business days. Tracking hits your inbox as soon as your package is on the move.",
-                },
-                {
-                  q: "Do you ship internationally?",
-                  a: "Yes. We ship across the EU, UK, US and most of the world. Final shipping cost and ETA are calculated at checkout based on your address.",
-                },
-                {
-                  q: "How does the return policy work?",
-                  a: "You have 30 days to request a return for unworn pieces. We guide you through the return label and refund within 5 business days of receiving the item.",
-                },
-                {
-                  q: "How does the affiliate program pay out?",
-                  a: "10% commission on the final paid amount of every qualifying sale, calculated after any active discount. Cookies last 30 days. Payouts transfer through Stripe once unpaid commission reaches €50.",
-                },
-                {
-                  q: "Is checkout secure?",
-                  a: "Yes. Payments are processed by Stripe — we never see your card details. Apple Pay, Google Pay, and Link are supported on the checkout page.",
-                },
-              ].map((item) => (
-                <details key={item.q} className="group py-5">
+              {WEAR_HOME_APPAREL_FAQ.map((item) => (
+                <details key={item.question} className="group py-5">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold uppercase tracking-[0.06em] text-[var(--ink)]">
-                    <span>{item.q}</span>
+                    <span>{item.question}</span>
                     <span
                       aria-hidden
                       className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--ink)]/20 text-lg leading-none text-[var(--ink)] transition group-open:rotate-45 group-open:bg-[var(--ink)] group-open:text-[var(--clay)]"
@@ -453,7 +491,7 @@ async function ApparelHome() {
                       +
                     </span>
                   </summary>
-                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--shadow)]">{item.a}</p>
+                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--shadow)]">{item.answer}</p>
                 </details>
               ))}
             </div>

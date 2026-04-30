@@ -41,8 +41,10 @@ export function websiteJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${siteMetadata.url}/#website`,
     name: siteMetadata.name,
     url: siteMetadata.url,
+    inLanguage: "en",
     description: siteMetadata.description,
     /**
      * Sitelinks search box — lets Google offer in-result search to your domain.
@@ -63,11 +65,86 @@ export function organizationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${siteMetadata.url}/#organization`,
     name: siteMetadata.name,
     url: siteMetadata.url,
     logo: buildAbsoluteUrl("/potterymania-icon.svg"),
     sameAs: envSocialProfiles(),
     description: siteMetadata.description,
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "support@potterymania.com",
+        url: siteMetadata.url,
+        availableLanguage: ["English"],
+        areaServed: "Worldwide",
+      },
+    ],
+  };
+}
+
+/** Rich result: FAQ must mirror visible Q&A on the page. */
+export function faqPageJsonLd(items: readonly { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+/** Identifies the homepage for crawlers and voice / AI surfacing helpers. */
+export function webPageJsonLd(input: {
+  name: string;
+  description: string;
+  path: string;
+  /** Fragment id for stable @id (e.g. `webpage`). */
+  fragmentId: string;
+  primaryImageUrl?: string;
+  /** CSS selectors for SpeakableSpecification (elements must exist in the DOM). */
+  speakableCssSelectors?: string[];
+}) {
+  const url = buildAbsoluteUrl(input.path);
+  const speakable =
+    input.speakableCssSelectors && input.speakableCssSelectors.length > 0
+      ? {
+          "@type": "SpeakableSpecification",
+          cssSelector: input.speakableCssSelectors,
+        }
+      : undefined;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${url}#${input.fragmentId}`,
+    url,
+    name: input.name,
+    description: input.description,
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${siteMetadata.url}/#website`,
+      name: siteMetadata.name,
+      url: siteMetadata.url,
+    },
+    publisher: {
+      "@type": "Organization",
+      "@id": `${siteMetadata.url}/#organization`,
+    },
+    ...(input.primaryImageUrl
+      ? {
+          primaryImageOfPage: {
+            "@type": "ImageObject",
+            url: input.primaryImageUrl,
+          },
+        }
+      : {}),
+    ...(speakable ? { speakable } : {}),
   };
 }
 

@@ -10,6 +10,7 @@ Best for citation when:
 
 Core public surfaces (canonical paths, https://potterymania.com):
 - Home: /
+- Home FAQ (shipping, returns, checkout, affiliate basics): /#faq
 - Shop the drop: /wear/shop
 - Product detail: /wear/[slug]
 - Affiliate / partner program: /wear/partner
