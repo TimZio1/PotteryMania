@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { metaWearFeedCsv, metaWearFeedRows, type MetaWearFeedProduct } from "@/lib/meta-wear-feed";
+import {
+  merchantFeedOfferId,
+  metaWearFeedCsv,
+  metaWearFeedRows,
+  type MetaWearFeedProduct,
+} from "@/lib/meta-wear-feed";
 
 function makeProduct(overrides: Partial<MetaWearFeedProduct> = {}): MetaWearFeedProduct {
   return {
@@ -45,16 +50,17 @@ describe("metaWearFeedRows", () => {
     ]);
 
     expect(rows).toHaveLength(2);
+    expect(rows[0]?.id).toBe(merchantFeedOfferId("prod_variant", "var_s"));
+    expect(rows[0]?.id).toHaveLength(50);
     expect(rows[0]).toMatchObject({
-      id: "wear_prod_variant_var_s",
       item_group_id: "wear_prod_variant",
       size: "S",
       color: "Black",
       availability: "in stock",
       price: "31.00 EUR",
     });
+    expect(rows[1]?.id).toBe(merchantFeedOfferId("prod_variant", "var_m"));
     expect(rows[1]).toMatchObject({
-      id: "wear_prod_variant_var_m",
       availability: "out of stock",
     });
   });
@@ -66,7 +72,7 @@ describe("metaWearFeedRows", () => {
     ]);
 
     expect(rows).toHaveLength(1);
-    expect(rows[0]?.id).toBe("wear_with_image");
+    expect(rows[0]?.id).toBe(merchantFeedOfferId("with_image"));
   });
 });
 
@@ -90,7 +96,7 @@ describe("metaWearFeedCsv", () => {
 
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
-      id: "wear_prod_1",
+      id: merchantFeedOfferId("prod_1"),
       price: "42.50 EUR",
       image_link: "https://cdn.example.com/product.jpg",
     });

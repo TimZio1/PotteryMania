@@ -16,6 +16,7 @@ vi.mock("@/lib/wear-internal-pricing", () => ({
 }));
 
 import { GET } from "@/app/api/meta/wear-catalog.csv/route";
+import { merchantFeedOfferId } from "@/lib/meta-wear-feed";
 
 describe("API contract: GET /api/meta/wear-catalog.csv", () => {
   beforeEach(() => {
@@ -52,7 +53,7 @@ describe("API contract: GET /api/meta/wear-catalog.csv", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toContain("text/csv");
     expect(text).toContain('"id","title","description"');
-    expect(text).toContain('"wear_prod_1"');
+    expect(text).toContain(`"${merchantFeedOfferId("prod_1")}"`);
     expect(metaWearFeedRouteMocks.mapWearProductRowToInternalPricesWithConfig).toHaveBeenCalledTimes(1);
   });
 

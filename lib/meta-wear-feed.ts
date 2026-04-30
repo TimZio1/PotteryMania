@@ -1,7 +1,21 @@
+import { createHash } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { buildAbsoluteUrl } from "@/lib/seo";
 import { resolveWearCatalogCategory } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+
+/** Google Merchant Center (and Meta catalog) cap — see https://support.google.com/merchants/answer/6324405 */
+const MERCHANT_OFFER_ID_MAX_LEN = 50;
+
+/**
+ * Stable offer `id` for CSV feeds (Google Shopping, Meta catalog). Must stay ≤50 characters and
+ * identical across re-uploads for the same product / variant.
+ */
+export function merchantFeedOfferId(productId: string, variantId?: string | null): string {
+  const basis = variantId ? `wear:v:${variantId}` : `wear:p:${productId}`;
+  const hex = createHash("sha256").update(basis).digest("hex");
+  return `w${hex.slice(0, MERCHANT_OFFER_ID_MAX_LEN - 1)}`;
+}
 
 export const META_WEAR_FEED_HEADERS = [
   "id",
@@ -104,8 +118,9 @@ function productTypeForProduct(product: MetaWearFeedProduct): string {
   return category.providerCategory?.path.join(" > ") || category.categoryLabel;
 }
 
-function rowId(productId: string, variantId?: string): string {
-  return variantId ? `wear_${productId}_${variantId}` : `wear_${productId}`;
+/** Groups variant rows in Google / Meta — keep under 50 chars (UUID + prefix is 41). */
+function itemGroupIdForProduct(productId: string): string {
+  return `wear_${productId}`;
 }
 
 function titleForRow(product: MetaWearFeedProduct, variant?: MetaWearFeedVariant): string {
@@ -121,11 +136,11 @@ function descriptionForProduct(product: MetaWearFeedProduct): string {
 }
 
 function buildFeedRow(product: MetaWearFeedProduct, imageUrl: string, variant?: MetaWearFeedVariant): MetaWearFeedRow {
-  const itemGroupId = rowId(product.id);
+  const itemGroupId = itemGroupIdForProduct(product.id);
   const variantPrice = variant?.priceCents ?? product.priceCents;
 
   return {
-    id: rowId(product.id, variant?.id),
+    id: merchantFeedOfferId(product.id, variant?.id),
     title: titleForRow(product, variant),
     description: descriptionForProduct(product),
     availability: availabilityForStock(variant?.stockQuantity ?? null),

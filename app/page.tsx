@@ -27,6 +27,7 @@ import {
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { resolveWearCategory } from "@/lib/wear-categories";
 import { WearBuyXGetYHeroBadge, WearBuyXGetYHomePromo } from "@/components/wear/wear-buy-x-get-y-home-promo";
+import { WearHomeSocialProof } from "@/components/wear/wear-home-social-proof";
 
 export const dynamic = "force-dynamic";
 
@@ -256,6 +257,13 @@ async function ApparelHome() {
             </div>
           </div>
         </section>
+
+        <WearHomeSocialProof
+          totalPieces={totalActive}
+          teeCount={totalTees}
+          hoodieCount={hoodies.length}
+          catalogOk={catalog.ok}
+        />
 
         {/* ── 2. Buy 4 · Get 1 — campaign slab (heat-framed, full bleed) ─────── */}
         <WearBuyXGetYHomePromo />
