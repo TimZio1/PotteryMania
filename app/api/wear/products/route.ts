@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { sortWearCatalogImagesForDisplay, wearImageUrlsFromJson, wearImagesFromJson } from "@/lib/wear-product-json";
 import {
   resolveWearCatalogCategory,
   isWearTopSubcategory,
@@ -39,6 +39,7 @@ export async function GET(req: Request) {
           spreadconnectCategoryData: r.spreadconnectCategoryData,
         });
         const topSub = category.topSub;
+        const catalogImages = sortWearCatalogImagesForDisplay(wearImagesFromJson(r.images));
         return {
           id: r.id,
           slug: r.slug,
@@ -54,6 +55,11 @@ export async function GET(req: Request) {
           priceCents: r.priceCents,
           currency: r.currency,
           images: wearImageUrlsFromJson(r.images),
+          catalogImages: catalogImages.map((img) => ({
+            url: img.url,
+            appearanceName: img.appearanceName,
+            perspective: img.perspective,
+          })),
           sortOrder: r.sortOrder,
           isFeatured: r.isFeatured,
           variants: r.variants.map((v) => ({

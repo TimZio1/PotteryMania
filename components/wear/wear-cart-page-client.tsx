@@ -19,10 +19,15 @@ import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
 import { WEAR_SHIPPING_CART_NOTE } from "@/lib/wear-shipping-copy";
 import { WEAR_FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/wear-shipping";
 import { wearDisplayName } from "@/lib/wear-display-name";
+import { wearListingImageSrc } from "@/lib/wear-listing-image";
+import type { WearCatalogImage } from "@/lib/wear-product-json";
+import { pickWearLineCatalogImage } from "@/lib/wear-line-image";
 
 type VariantRow = {
   id: string;
   label: string;
+  optionSize?: string | null;
+  optionColor?: string | null;
   priceCents: number | null;
   stockQuantity: number | null;
 };
@@ -34,6 +39,8 @@ type ProductRow = {
   currency: string;
   /** Public catalog image URLs (same as shop). */
   images?: string[];
+  /** Sorted hero-first images with appearance metadata — used for variant-accurate cart thumbs. */
+  catalogImages?: Array<Pick<WearCatalogImage, "url" | "appearanceName" | "perspective">>;
   variants: VariantRow[];
 };
 
@@ -136,8 +143,27 @@ export function WearCartPageClient() {
 
   function lineImageUrl(line: WearCartLine): string | null {
     const p = byId.get(line.productId);
-    const urls = p?.images;
-    return urls && urls.length > 0 ? urls[0]! : null;
+    if (!p) return null;
+
+    const vid = line.variantId?.trim() || "";
+    const variant = vid ? p.variants.find((x) => x.id === vid) : undefined;
+
+    const catalog: WearCatalogImage[] = (p.catalogImages?.length ? p.catalogImages : []).map((row) => ({
+      url: row.url,
+      appearanceName: row.appearanceName ?? null,
+      appearanceId: null,
+      perspective: row.perspective ?? null,
+      imageId: null,
+    }));
+
+    if (catalog.length > 0) {
+      const picked = pickWearLineCatalogImage(catalog, variant);
+      const raw = picked?.url;
+      if (raw) return wearListingImageSrc(raw, 320);
+    }
+
+    const urls = p.images;
+    return urls && urls.length > 0 ? wearListingImageSrc(urls[0]!, 320) : null;
   }
 
   const persist = useCallback((next: WearCartLine[]) => {
