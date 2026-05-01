@@ -8,7 +8,7 @@ import {
 } from "./wear-commission";
 
 const GLOBAL: WearGlobalPricingConfig = {
-  defaultMarginBps: 2000,
+  defaultMarginBps: 1500,
   minMarginBps: 1000,
   maxMarginBps: 5000,
   marginLocked: false,
@@ -29,7 +29,7 @@ describe("resolveStudioMarginBps", () => {
 
   it("returns default when locked", () => {
     const locked = { ...GLOBAL, marginLocked: true };
-    expect(resolveStudioMarginBps(4000, locked)).toBe(2000);
+    expect(resolveStudioMarginBps(4000, locked)).toBe(1500);
   });
 
   it("returns exact min boundary", () => {
@@ -43,6 +43,7 @@ describe("resolveStudioMarginBps", () => {
 
 describe("formatWearMarginPercentFromBps", () => {
   it("formats basis points as a percent label", () => {
+    expect(formatWearMarginPercentFromBps(1500)).toBe("15.0%");
     expect(formatWearMarginPercentFromBps(2000)).toBe("20.0%");
     expect(formatWearMarginPercentFromBps(1750)).toBe("17.5%");
   });

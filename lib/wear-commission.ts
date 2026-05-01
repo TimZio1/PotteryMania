@@ -5,7 +5,7 @@ const ADMIN_KEY_WEAR_MIN_MARGIN_BPS = "wear_min_margin_bps";
 const ADMIN_KEY_WEAR_MAX_MARGIN_BPS = "wear_max_margin_bps";
 const ADMIN_KEY_WEAR_MARGIN_LOCKED = "wear_margin_locked";
 
-const FALLBACK_DEFAULT_MARGIN_BPS = 2000;
+const FALLBACK_DEFAULT_MARGIN_BPS = 1500;
 const FALLBACK_MIN_MARGIN_BPS = 1000;
 const FALLBACK_MAX_MARGIN_BPS = 5000;
 
@@ -94,7 +94,7 @@ export function resolveStudioMarginBps(
   return Math.max(global.minMarginBps, Math.min(global.maxMarginBps, studioMarginBps));
 }
 
-/** Marketing / UI label: basis points → percent (e.g. 2000 → "20.0%"). */
+/** Marketing / UI label: basis points → percent (e.g. 1500 → "15.0%"). */
 export function formatWearMarginPercentFromBps(bps: number): string {
   if (!Number.isFinite(bps)) return "0.0%";
   return `${(bps / 100).toFixed(1)}%`;

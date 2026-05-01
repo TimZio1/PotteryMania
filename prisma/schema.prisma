@@ -771,8 +771,8 @@ model StudioWearConfig {
   enabled          Boolean  @default(false)
   /// Optional public short code for `/w/{code}` → wear shop with attribution (lowercase slug).
   wearAffiliateCode String? @unique @map("wear_affiliate_code")
-  /// Studio margin in basis points (e.g. 2000 = 20%). Applied on top of base price.
-  marginBps        Int      @default(2000) @map("margin_bps")
+  /// Studio margin in basis points (e.g. 1500 = 15%). Applied on top of base price.
+  marginBps        Int      @default(1500) @map("margin_bps")
   /// Whether hyperadmin has locked margin editing for this studio.
   marginLocked     Boolean  @default(false) @map("margin_locked")
   createdAt        DateTime @default(now()) @map("created_at")

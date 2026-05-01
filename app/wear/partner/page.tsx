@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
   title: "Affiliate program — PotteryMania",
   description:
-    "Promote PotteryMania apparel and earn 10% commission on qualifying sales. No inventory or shipping to manage.",
+    "Promote PotteryMania apparel and earn 15% commission on qualifying sales. No inventory or shipping to manage.",
   path: "/wear/partner",
 });
 
@@ -28,7 +28,7 @@ export default async function WearPartnerPage() {
           <div>
             <p className="pm-caption text-(--heat)">Affiliate program</p>
             <h1 className="pm-display mt-5 text-[2.4rem] text-(--clay) sm:text-[3.2rem] lg:text-[3.6rem]">
-              Promote the drop. Earn 10%.
+              Promote the drop. Earn 15%.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-(--clay)/78 sm:text-lg">
               Share tees and hoodies with your audience. You get a tracked link or code — we run the shop, fulfillment,
@@ -56,7 +56,7 @@ export default async function WearPartnerPage() {
           <dl className="grid gap-3 rounded-2xl border border-(--clay)/12 bg-(--clay)/4 p-5 ring-1 ring-(--clay)/8 backdrop-blur-sm">
             <div className="rounded-xl border-l-2 border-(--heat) pl-4">
               <dt className="pm-caption text-(--clay)/70">Commission</dt>
-              <dd className="pm-display mt-1 text-(--clay) text-[2.5rem] sm:text-[3rem]">10%</dd>
+              <dd className="pm-display mt-1 text-(--clay) text-[2.5rem] sm:text-[3rem]">15%</dd>
               <p className="mt-1 text-xs leading-relaxed text-(--clay)/65">After discounts, before shipping and tax.</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">

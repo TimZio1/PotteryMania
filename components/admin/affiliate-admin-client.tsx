@@ -43,7 +43,7 @@ export function AffiliateAdminClient({ affiliates, siteUrl }: Props) {
     name: "",
     email: "",
     code: "",
-    marginPercent: "10",
+    marginPercent: "15",
     enabled: true,
   });
 
@@ -143,7 +143,7 @@ export function AffiliateAdminClient({ affiliates, siteUrl }: Props) {
             <h2 className="mt-2 text-xl font-semibold tracking-tight text-stone-950">Issue a tracked link</h2>
           </div>
           <p className="max-w-md text-sm leading-6 text-stone-600">
-            Default: 10% commission on final paid merchandise after discounts. Payouts transfer to the affiliate Stripe
+            Default: 15% commission on final paid merchandise after discounts. Payouts transfer to the affiliate Stripe
             account once unpaid commission reaches €50.
           </p>
         </div>

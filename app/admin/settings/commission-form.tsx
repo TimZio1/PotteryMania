@@ -43,7 +43,7 @@ export function CommissionForm() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  const [wearDefault, setWearDefault] = useState(2000);
+  const [wearDefault, setWearDefault] = useState(1500);
   const [wearMin, setWearMin] = useState(1000);
   const [wearMax, setWearMax] = useState(5000);
   const [wearLocked, setWearLocked] = useState(false);

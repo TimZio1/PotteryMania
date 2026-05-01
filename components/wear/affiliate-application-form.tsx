@@ -45,7 +45,7 @@ export function AffiliateApplicationForm() {
         <p className="pm-caption text-(--heat)">Apply</p>
         <h2 className="pm-display mt-3 text-[1.75rem] text-(--ink) sm:text-[2.125rem]">Become an affiliate</h2>
         <p className="mt-3 text-sm leading-7 text-(--shadow) sm:text-base">
-          Tell us who you are and where you will share. Approved partners get a tracked link and 10% commission.
+          Tell us who you are and where you will share. Approved partners get a tracked link and 15% commission.
         </p>
       </div>
       {message ? (

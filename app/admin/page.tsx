@@ -668,7 +668,7 @@ async function AdminApparelOnlyDashboard({
         <TrendPanel title="Orders" subtitle="Paid apparel orders per day" data={orderTrend} />
         <ActionPanel
           title="Affiliate program"
-          detail={`${enabledAffiliateCount} active of ${affiliateCount} total affiliates. Default public promise is 10% commission, 30-day cookie, automatic Stripe payout above €50.`}
+          detail={`${enabledAffiliateCount} active of ${affiliateCount} total affiliates. Default public promise is 15% commission, 30-day cookie, automatic Stripe payout above €50.`}
           href="/admin/affiliates"
           cta="Manage affiliates"
         />

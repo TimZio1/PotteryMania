@@ -176,7 +176,7 @@ export default async function AdminAffiliatesPage() {
       <section className="mt-8 rounded-3xl border border-amber-200 bg-amber-50/80 p-6 text-sm leading-7 text-amber-950">
         <p className="font-semibold">Program rules</p>
         <p className="mt-2">
-          Public promise: 10% commission, 30-day cookie, automatic Stripe payout when unpaid commission reaches €50.
+          Public promise: 15% commission, 30-day cookie, automatic Stripe payout when unpaid commission reaches €50.
           Commission is calculated after coupons/discounts and before tax/shipping, then transferred to the affiliate Stripe account. Short links redirect from
           <code className="mx-1 rounded bg-white px-1.5 py-0.5">/w/code</code> to the shop with attribution.
         </p>

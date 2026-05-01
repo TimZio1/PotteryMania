@@ -21,7 +21,7 @@ export const WEAR_HOME_APPAREL_FAQ = [
   {
     question: "How does the affiliate program pay out?",
     answer:
-      "10% commission on the final paid amount of every qualifying sale, calculated after any active discount. Cookies last 30 days. Payouts transfer through Stripe once unpaid commission reaches €50.",
+      "15% commission on the final paid amount of every qualifying sale, calculated after any active discount. Cookies last 30 days. Payouts transfer through Stripe once unpaid commission reaches €50.",
   },
   {
     question: "Is checkout secure?",

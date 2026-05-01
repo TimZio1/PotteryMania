@@ -43,7 +43,7 @@ export default function StudioWearablesPage() {
   const [activeCreators, setActiveCreators] = useState<number | null>(null);
 
   const [enabled, setEnabled] = useState(false);
-  const [marginBps, setMarginBps] = useState(2000);
+  const [marginBps, setMarginBps] = useState(1500);
   const [affiliateCodeDraft, setAffiliateCodeDraft] = useState("");
   const [publicOrigin, setPublicOrigin] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());

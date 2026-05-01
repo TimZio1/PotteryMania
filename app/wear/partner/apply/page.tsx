@@ -5,7 +5,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Apply for the affiliate program — PotteryMania",
-  description: "Apply to promote PotteryMania apparel and earn 10% commission on qualifying sales.",
+  description: "Apply to promote PotteryMania apparel and earn 15% commission on qualifying sales.",
   path: "/wear/partner/apply",
 });
 
@@ -19,7 +19,7 @@ export default function AffiliateApplyPage() {
       <div className="relative mx-auto grid max-w-5xl gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:gap-10">
         <section className="lg:sticky lg:top-24">
           <p className="pm-caption text-(--heat)">Affiliate program</p>
-          <h1 className="pm-display mt-4 text-[2.1rem] text-(--clay) sm:text-[2.75rem]">Earn 10% sharing the drop.</h1>
+          <h1 className="pm-display mt-4 text-[2.1rem] text-(--clay) sm:text-[2.75rem]">Earn 15% sharing the drop.</h1>
           <p className="mt-5 text-sm leading-7 text-(--clay)/75 sm:text-base">
             Approved affiliates get a tracked link. We handle orders, delivery, and support — you pick the pieces that fit
             your audience.
@@ -27,7 +27,7 @@ export default function AffiliateApplyPage() {
           <dl className="mt-8 grid gap-3 text-sm">
             <div className="rounded-xl border border-(--clay)/10 border-l-2 border-l-(--heat) bg-(--clay)/4 px-4 py-3">
               <dt className="pm-caption text-(--clay)/70">Commission</dt>
-              <dd className="mt-1 text-(--clay)">10% after discounts, before tax and shipping.</dd>
+              <dd className="mt-1 text-(--clay)">15% after discounts, before tax and shipping.</dd>
             </div>
             <div className="rounded-xl border border-(--clay)/10 bg-(--clay)/4 px-4 py-3">
               <dt className="pm-caption text-(--clay)/70">Tracking</dt>

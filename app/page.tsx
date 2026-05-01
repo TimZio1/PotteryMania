@@ -454,7 +454,7 @@ async function ApparelHome() {
               </div>
               <dl className="grid grid-cols-2 gap-x-8 gap-y-10 lg:gap-x-12">
                 {[
-                  { k: "10%", v: "Commission on every sale" },
+                  { k: "15%", v: "Commission on every sale" },
                   { k: "30d", v: "Cookie window" },
                   { k: "€50", v: "Auto Stripe payouts" },
                   { k: "€0", v: "To start" },
