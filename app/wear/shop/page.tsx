@@ -29,6 +29,7 @@ import { wearPublicRetailUnitCents } from "@/lib/wear-commission";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { breadcrumbJsonLd, itemListJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { WearBuyXGetYLandingBanner } from "@/components/wear/wear-buy-x-get-y-landing-banner";
+import { WearShopQueryLink } from "@/components/wear/wear-shop-query-link";
 import { WEAR_LISTING_COLOR_BADGE_SURFACE, wearListingExtraColorsLabel } from "@/lib/wear-listing-color-badge";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
@@ -457,7 +458,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         </p>
         {apparelOnly ? (
           <div className="mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2">
-            <Link
+            <WearShopQueryLink
               scroll={false}
               href={wearShopHref({
                 category: activeCategory ?? undefined,
@@ -470,8 +471,8 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               aria-pressed={popularOnly}
             >
               Hot picks
-            </Link>
-            <Link
+            </WearShopQueryLink>
+            <WearShopQueryLink
               scroll={false}
               href={wearShopHref({
                 category: activeCategory ?? undefined,
@@ -484,14 +485,14 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
               aria-pressed={newOnly}
             >
               New
-            </Link>
+            </WearShopQueryLink>
           </div>
         ) : null}
         {hasTopsInCatalog ? (
           <div className="mx-auto mt-5 max-w-4xl">
             <div className={filterRowClass}>
               <div className={filterChipWrapRowClass}>
-                <Link
+                <WearShopQueryLink
                   scroll={false}
                   href={wearShopHref({
                     category: "tops",
@@ -507,9 +508,9 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                     minPrice={topsAllMinPrice}
                     active={activeCategory === "tops" && activeTopSub == null}
                   />
-                </Link>
+                </WearShopQueryLink>
                 {topSubNavItems.map((sub) => (
-                  <Link
+                  <WearShopQueryLink
                     key={sub}
                     scroll={false}
                     href={wearShopHref({
@@ -527,7 +528,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                       minPrice={topsSubMinPrices[sub] ?? null}
                       active={activeCategory === "tops" && activeTopSub === sub}
                     />
-                  </Link>
+                  </WearShopQueryLink>
                 ))}
               </div>
             </div>
@@ -536,7 +537,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
         <div className="mx-auto mt-3 max-w-4xl">
           <div className={filterRowClass}>
             <div className={filterChipWrapRowClass}>
-              <Link
+              <WearShopQueryLink
                 scroll={false}
                 href={wearShopHref({
                   category: "all",
@@ -552,11 +553,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   minPrice={allCatalogMinPrice}
                   active={activeCategory == null && !popularOnly && !newOnly}
                 />
-              </Link>
+              </WearShopQueryLink>
               {secondaryCategoryNavItems.map((category) => {
                 const catActive = activeCategory === category.slug;
                 return (
-                  <Link
+                  <WearShopQueryLink
                     key={category.slug}
                     scroll={false}
                     href={wearShopHref({
@@ -570,7 +571,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   >
                     <span className="whitespace-nowrap">{category.label}</span>
                     <CategoryChipFromLine minPrice={minPriceByCategorySlug[category.slug] ?? null} active={catActive} />
-                  </Link>
+                  </WearShopQueryLink>
                 );
               })}
             </div>
@@ -583,7 +584,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             {WEAR_SORT_OPTIONS.map((opt) => {
               const sortActive = activeSort === opt.value;
               return (
-                <Link
+                <WearShopQueryLink
                   key={opt.value}
                   scroll={false}
                   href={wearShopHref({
@@ -597,7 +598,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                   aria-pressed={sortActive}
                 >
                   {opt.label}
-                </Link>
+                </WearShopQueryLink>
               );
             })}
           </div>
@@ -621,13 +622,13 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
             </p>
             {!dbUnavailable ? (
               <div className="mt-7 flex justify-center">
-                <Link
+                <WearShopQueryLink
                   scroll={false}
                   href="/wear/shop?category=all"
                   className="pm-btn pm-btn--heat inline-flex min-h-12 items-center justify-center px-7 text-sm font-semibold uppercase tracking-[0.14em]"
                 >
                   {hasActiveFilter ? "See the full drop →" : "See the full drop →"}
-                </Link>
+                </WearShopQueryLink>
               </div>
             ) : null}
             <p className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-stone-500">
