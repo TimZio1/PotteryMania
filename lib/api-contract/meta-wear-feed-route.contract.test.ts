@@ -48,6 +48,7 @@ describe("API contract: GET /api/meta/wear-catalog.csv", () => {
         accessories: { type: "fixed", valueEur: 10 },
         other: { type: "fixed", valueEur: 10 },
       },
+      rulesByProductType: {},
     });
     metaWearFeedRouteMocks.mapWearProductRowToInternalPricesWithConfig.mockImplementation((row) => row);
   });

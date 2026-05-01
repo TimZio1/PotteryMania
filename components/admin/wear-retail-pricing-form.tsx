@@ -6,29 +6,19 @@ import { ui } from "@/lib/ui-styles";
 import { calculateWearPrice, formatWearMarginPercentFromBps, type WearGlobalPricingConfig } from "@/lib/wear-commission";
 import { WEAR_CATEGORIES, WEAR_CATEGORY_LABELS, type WearCategory } from "@/lib/wear-categories";
 import type { WearInternalPricingConfig, WearInternalPricingRule } from "@/lib/wear-internal-pricing";
+import type { WearSpreadconnectTypeStat } from "@/lib/wear-spreadconnect-type-stats";
 
 type Props = {
   initial: WearInternalPricingConfig;
+  spreadconnectTypeStats: WearSpreadconnectTypeStat[];
   globalPricing: WearGlobalPricingConfig;
-  /** When false, calculator still shows internal list but skips platform margin row. */
   internalPricingOn: boolean;
 };
 
-type RuleDraft = Record<WearCategory, { type: "fixed" | "percent"; value: string }>;
+type RuleDraft = { type: "fixed" | "percent"; value: string };
 
 function ruleValue(rule: WearInternalPricingRule) {
   return rule.type === "fixed" ? String(rule.valueEur) : String(rule.value);
-}
-
-function previewListEur(costStr: string, rule: WearInternalPricingRule): string {
-  const c = Number(costStr.replace(",", "."));
-  if (!Number.isFinite(c) || c < 0) return "€0.00";
-  const costCents = Math.round(c * 100);
-  const listCents =
-    rule.type === "fixed"
-      ? costCents + Math.round(rule.valueEur * 100)
-      : costCents + Math.round((costCents * rule.value) / 100);
-  return `€${(Math.max(0, listCents) / 100).toFixed(2)}`;
 }
 
 function internalListCentsFromSample(costEur: number, rule: WearInternalPricingRule): number {
@@ -37,61 +27,92 @@ function internalListCentsFromSample(costEur: number, rule: WearInternalPricingR
   return costCents + Math.round((costCents * rule.value) / 100);
 }
 
-function emptyFormState(initial: WearInternalPricingConfig): {
-  fallbacks: Record<WearCategory, string>;
-  rules: RuleDraft;
-} {
-  const fallbacks = {} as Record<WearCategory, string>;
-  const rules = {} as RuleDraft;
+function emptyCategoryRulesState(initial: WearInternalPricingConfig): Record<WearCategory, RuleDraft> {
+  const rules = {} as Record<WearCategory, RuleDraft>;
   for (const key of WEAR_CATEGORIES) {
-    fallbacks[key] = String(initial.fallbackCostsEur[key]);
     rules[key] = { type: initial.rules[key].type, value: ruleValue(initial.rules[key]) };
   }
-  return { fallbacks, rules };
+  return rules;
 }
 
-export function WearRetailPricingForm({ initial, globalPricing, internalPricingOn }: Props) {
+function emptyTypeRulesState(
+  stats: WearSpreadconnectTypeStat[],
+  saved: Record<string, WearInternalPricingRule> | undefined,
+): Record<string, RuleDraft> {
+  const out: Record<string, RuleDraft> = {};
+  const def: WearInternalPricingRule = { type: "fixed", valueEur: 10 };
+  for (const row of stats) {
+    const r = saved?.[row.key];
+    out[row.key] = r ? { type: r.type, value: ruleValue(r) } : { type: def.type, value: ruleValue(def) };
+  }
+  return out;
+}
+
+function formatStatEur(cents: number | null) {
+  if (cents == null) return "—";
+  return `€${(cents / 100).toFixed(2)}`;
+}
+
+export function WearRetailPricingForm({
+  initial,
+  spreadconnectTypeStats,
+  globalPricing,
+  internalPricingOn,
+}: Props) {
   const router = useRouter();
-  const [form, setForm] = useState(() => emptyFormState(initial));
-  const { fallbacks: fallbackCosts, rules } = form;
+  const [categoryRules, setCategoryRules] = useState(() => emptyCategoryRulesState(initial));
+  const [typeRules, setTypeRules] = useState(() => emptyTypeRulesState(spreadconnectTypeStats, initial.rulesByProductType));
 
   const [wearDefault, setWearDefault] = useState(globalPricing.defaultMarginBps);
   const [wearMin, setWearMin] = useState(globalPricing.minMarginBps);
   const [wearMax, setWearMax] = useState(globalPricing.maxMarginBps);
   const [wearLocked, setWearLocked] = useState(globalPricing.marginLocked);
-  const [sampleCostEur, setSampleCostEur] = useState("10");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
-  function buildRule(key: WearCategory): WearInternalPricingRule {
-    const value = Math.max(0, Number(rules[key].value.replace(",", ".")) || 0);
-    return rules[key].type === "percent" ? { type: "percent", value } : { type: "fixed", valueEur: value };
+  function buildRuleFromDraft(draft: RuleDraft): WearInternalPricingRule {
+    const value = Math.max(0, Number(draft.value.replace(",", ".")) || 0);
+    return draft.type === "percent" ? { type: "percent", value } : { type: "fixed", valueEur: value };
   }
 
-  const sampleCostNum = Number(sampleCostEur.replace(",", "."));
-  const sampleCostOk = Number.isFinite(sampleCostNum) && sampleCostNum >= 0;
+  function buildCategoryRule(key: WearCategory): WearInternalPricingRule {
+    return buildRuleFromDraft(categoryRules[key]);
+  }
 
-  const calculatorRows = useMemo(() => {
-    return WEAR_CATEGORIES.map((key) => {
-      const rule = buildRule(key);
-      const listCents = sampleCostOk ? internalListCentsFromSample(sampleCostNum, rule) : 0;
-      const shelfCents = internalPricingOn ? calculateWearPrice(listCents, wearDefault) : listCents;
-      return { key, label: WEAR_CATEGORY_LABELS[key], listCents, shelfCents };
+  function buildTypeRule(key: string): WearInternalPricingRule {
+    const draft = typeRules[key];
+    if (!draft) return { type: "fixed", valueEur: 10 };
+    return buildRuleFromDraft(draft);
+  }
+
+  const typePreviewRows = useMemo(() => {
+    return spreadconnectTypeStats.map((row) => {
+      const rule = buildTypeRule(row.key);
+      const base = row.avgSupplyCents != null && row.avgSupplyCents > 0 ? row.avgSupplyCents / 100 : null;
+      const listCents = base != null ? internalListCentsFromSample(base, rule) : null;
+      const shelfCents =
+        listCents != null && internalPricingOn ? calculateWearPrice(listCents, wearDefault) : listCents;
+      return { ...row, listCents, shelfCents };
     });
-  }, [rules, sampleCostNum, sampleCostOk, wearDefault, internalPricingOn]);
+  }, [spreadconnectTypeStats, typeRules, wearDefault, internalPricingOn]);
 
   async function save() {
     setBusy(true);
     setMsg("");
     try {
-      const retail: WearInternalPricingConfig = {
-        fallbackCostsEur: {} as WearInternalPricingConfig["fallbackCostsEur"],
-        rules: {} as WearInternalPricingConfig["rules"],
-      };
-      for (const key of WEAR_CATEGORIES) {
-        retail.fallbackCostsEur[key] = Math.max(0, Number(fallbackCosts[key].replace(",", ".")) || 0);
-        retail.rules[key] = buildRule(key);
+      const rulesByProductType: Record<string, WearInternalPricingRule> = {};
+      for (const row of spreadconnectTypeStats) {
+        rulesByProductType[row.key] = buildTypeRule(row.key);
       }
+      const rules = {} as WearInternalPricingConfig["rules"];
+      for (const key of WEAR_CATEGORIES) {
+        rules[key] = buildCategoryRule(key);
+      }
+      const retail: WearInternalPricingConfig = {
+        fallbackCostsEur: initial.fallbackCostsEur,
+        rules,
+        rulesByProductType,
+      };
       const res = await fetch("/api/admin/wear-pricing", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -105,7 +126,7 @@ export function WearRetailPricingForm({ initial, globalPricing, internalPricingO
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(json.error ?? "Could not save pricing");
-      setMsg("Pricing saved. Storefront and checkout use these rules.");
+      setMsg("Pricing saved. Storefront uses Spreadconnect wholesale + these markups.");
       router.refresh();
     } catch (error) {
       setMsg(error instanceof Error ? error.message : "Could not save pricing");
@@ -190,131 +211,139 @@ export function WearRetailPricingForm({ initial, globalPricing, internalPricingO
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-stone-950">Category markup (COGS → internal list)</p>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-              Categories match the shop (tops, hoodies, headwear, accessories, other) using the same text signals as the
-              storefront. Fallback cost is only for manual or non-linked SKUs without production cost; linked products
-              without b2b cost keep their saved Spreadconnect retail until cost sync.
+            <p className="text-sm font-semibold text-stone-950">Spreadconnect product type → markup</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
+              Wholesale (min / avg / max) comes from your catalog sync — blank garment plus print as one unit cost from
+              Spreadconnect. Markup is your platform add-on to that real COGS. Preview uses <strong>average</strong>{" "}
+              wholesale per type when available.
             </p>
           </div>
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
-            Per category
+            By SPOD type
           </span>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          {WEAR_CATEGORIES.map((key) => {
-            const label = WEAR_CATEGORY_LABELS[key];
-            const rule = buildRule(key);
-            const fc = Number(fallbackCosts[key].replace(",", ".")) || 0;
-            const listPreviewCents = internalListCentsFromSample(fc, rule);
-            const shelfPreviewCents = internalPricingOn ? calculateWearPrice(listPreviewCents, wearDefault) : listPreviewCents;
-            return (
-              <div key={key} className="rounded-xl border border-stone-200 bg-stone-50/70 p-4">
-                <h3 className="font-semibold text-stone-950">{label}</h3>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <label className="block text-sm text-stone-700">
-                    Fallback cost (€)
-                    <input
-                      className={`${ui.input} mt-1 bg-white text-stone-950`}
-                      inputMode="decimal"
-                      value={fallbackCosts[key]}
-                      onChange={(e) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          fallbacks: { ...prev.fallbacks, [key]: e.target.value },
-                        }))
-                      }
-                    />
-                  </label>
-                  <label className="block text-sm text-stone-700">
-                    Markup type
+        {spreadconnectTypeStats.length === 0 ? (
+          <p className="mt-4 text-sm text-stone-600">No products in catalog — sync wear products first.</p>
+        ) : (
+          <div className="mt-5 overflow-x-auto rounded-xl border border-stone-200">
+            <table className="min-w-[880px] w-full text-left text-sm">
+              <thead className="border-b border-stone-200 bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-600">
+                <tr>
+                  <th className="px-3 py-2">Spreadconnect type</th>
+                  <th className="px-3 py-2">#</th>
+                  <th className="px-3 py-2">Wholesale min</th>
+                  <th className="px-3 py-2">Avg</th>
+                  <th className="px-3 py-2">Max</th>
+                  <th className="px-3 py-2">Markup</th>
+                  <th className="px-3 py-2">Value</th>
+                  <th className="px-3 py-2">Internal list</th>
+                  {internalPricingOn ? <th className="px-3 py-2">Shelf</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {typePreviewRows.map((row) => (
+                  <tr key={row.key} className="border-b border-stone-100 last:border-0">
+                    <td className="px-3 py-2 font-medium text-stone-900">{row.displayLabel}</td>
+                    <td className="px-3 py-2 tabular-nums text-stone-600">{row.productCount}</td>
+                    <td className="px-3 py-2 tabular-nums text-stone-700">{formatStatEur(row.minSupplyCents)}</td>
+                    <td className="px-3 py-2 tabular-nums text-stone-700">{formatStatEur(row.avgSupplyCents)}</td>
+                    <td className="px-3 py-2 tabular-nums text-stone-700">{formatStatEur(row.maxSupplyCents)}</td>
+                    <td className="px-3 py-2">
+                      <select
+                        className={`${ui.select} bg-white text-stone-950`}
+                        value={typeRules[row.key]?.type ?? "fixed"}
+                        onChange={(e) =>
+                          setTypeRules((prev) => ({
+                            ...prev,
+                            [row.key]: { ...prev[row.key]!, type: e.target.value as "fixed" | "percent" },
+                          }))
+                        }
+                      >
+                        <option value="fixed">Fixed €</option>
+                        <option value="percent">Percent %</option>
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        className={`${ui.input} w-24 bg-white text-stone-950 tabular-nums`}
+                        inputMode="decimal"
+                        value={typeRules[row.key]?.value ?? ""}
+                        onChange={(e) =>
+                          setTypeRules((prev) => ({
+                            ...prev,
+                            [row.key]: { ...prev[row.key]!, value: e.target.value },
+                          }))
+                        }
+                      />
+                    </td>
+                    <td className="px-3 py-2 tabular-nums text-stone-700">
+                      {row.listCents != null ? `€${(row.listCents / 100).toFixed(2)}` : "—"}
+                    </td>
+                    {internalPricingOn ? (
+                      <td className="px-3 py-2 tabular-nums text-stone-900">
+                        {row.shelfCents != null ? `€${(row.shelfCents / 100).toFixed(2)}` : "—"}
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-stone-950">Shop category defaults (markup only)</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
+              Used when a product has <strong>no</strong> Spreadconnect type rule above, or no `spreadconnectProductTypeName`.
+              COGS is still always the synced wholesale when present — these rows only choose the add-on rule.
+            </p>
+          </div>
+        </div>
+        <div className="mt-5 overflow-x-auto rounded-xl border border-stone-200">
+          <table className="min-w-[520px] w-full text-left text-sm">
+            <thead className="border-b border-stone-200 bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-600">
+              <tr>
+                <th className="px-3 py-2">Category</th>
+                <th className="px-3 py-2">Markup</th>
+                <th className="px-3 py-2">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {WEAR_CATEGORIES.map((key) => (
+                <tr key={key} className="border-b border-stone-100 last:border-0">
+                  <td className="px-3 py-2 font-medium text-stone-900">{WEAR_CATEGORY_LABELS[key]}</td>
+                  <td className="px-3 py-2">
                     <select
-                      className={`${ui.select} mt-1 bg-white text-stone-950`}
-                      value={rules[key].type}
+                      className={`${ui.select} bg-white text-stone-950`}
+                      value={categoryRules[key].type}
                       onChange={(e) =>
-                        setForm((prev) => ({
+                        setCategoryRules((prev) => ({
                           ...prev,
-                          rules: {
-                            ...prev.rules,
-                            [key]: { ...prev.rules[key], type: e.target.value as "fixed" | "percent" },
-                          },
+                          [key]: { ...prev[key], type: e.target.value as "fixed" | "percent" },
                         }))
                       }
                     >
                       <option value="fixed">Fixed €</option>
                       <option value="percent">Percent %</option>
                     </select>
-                  </label>
-                  <label className="block text-sm text-stone-700">
-                    Markup
+                  </td>
+                  <td className="px-3 py-2">
                     <input
-                      className={`${ui.input} mt-1 bg-white text-stone-950`}
+                      className={`${ui.input} w-28 bg-white text-stone-950 tabular-nums`}
                       inputMode="decimal"
-                      value={rules[key].value}
+                      value={categoryRules[key].value}
                       onChange={(e) =>
-                        setForm((prev) => ({
+                        setCategoryRules((prev) => ({
                           ...prev,
-                          rules: { ...prev.rules, [key]: { ...prev.rules[key], value: e.target.value } },
+                          [key]: { ...prev[key], value: e.target.value },
                         }))
                       }
                     />
-                  </label>
-                </div>
-                <p className="mt-4 rounded-lg bg-white px-3 py-2 text-sm text-stone-700">
-                  If fallback cost is <strong>€{fallbackCosts[key] || "0"}</strong>, internal list becomes{" "}
-                  <strong>{previewListEur(fallbackCosts[key], rule)}</strong>
-                  {internalPricingOn ? (
-                    <>
-                      {" "}
-                      → shelf <strong>€{(shelfPreviewCents / 100).toFixed(2)}</strong> after default margin.
-                    </>
-                  ) : null}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-semibold text-stone-950">Calculator</p>
-        <p className="mt-2 max-w-2xl text-sm text-stone-600">
-          Enter a sample production cost (€). The table shows internal list price from your rules, then the customer shelf
-          price after the default platform margin{internalPricingOn ? "" : " (internal pricing off — list only)"}.
-        </p>
-        <label className="mt-4 block max-w-xs text-sm text-stone-700">
-          Sample COGS (€)
-          <input
-            className={`${ui.input} mt-1 bg-white text-stone-950`}
-            inputMode="decimal"
-            value={sampleCostEur}
-            onChange={(e) => setSampleCostEur(e.target.value)}
-          />
-        </label>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200">
-          <table className="min-w-[520px] w-full text-left text-sm">
-            <thead className="border-b border-stone-200 bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-600">
-              <tr>
-                <th className="px-3 py-2">Category</th>
-                <th className="px-3 py-2">Internal list</th>
-                {internalPricingOn ? (
-                  <th className="px-3 py-2">Shelf (after {formatWearMarginPercentFromBps(wearDefault)})</th>
-                ) : null}
-              </tr>
-            </thead>
-            <tbody>
-              {calculatorRows.map((row) => (
-                <tr key={row.key} className="border-b border-stone-100 last:border-0">
-                  <td className="px-3 py-2 font-medium text-stone-900">{row.label}</td>
-                  <td className="px-3 py-2 tabular-nums text-stone-700">
-                    {sampleCostOk ? `€${(row.listCents / 100).toFixed(2)}` : "—"}
                   </td>
-                  {internalPricingOn ? (
-                    <td className="px-3 py-2 tabular-nums text-stone-900">
-                      {sampleCostOk ? `€${(row.shelfCents / 100).toFixed(2)}` : "—"}
-                    </td>
-                  ) : null}
                 </tr>
               ))}
             </tbody>

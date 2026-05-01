@@ -145,7 +145,7 @@ async function AdminApparelOnlyDashboard({
     { href: "/admin/users", title: "Customers", desc: "Customer records, profile edits, account status." },
     { href: "/admin/wear-analytics", title: "Analytics", desc: "AOV, SKU mix, apparel performance." },
     { href: "/admin/revenue", title: "Revenue", desc: "Sales, refunds, and payout visibility." },
-    { href: "/admin/wear-pricing", title: "Pricing & markup", desc: "Category COGS rules, platform margin, calculator." },
+    { href: "/admin/wear-pricing", title: "Pricing & markup", desc: "Spreadconnect type markups, platform margin, overrides." },
     { href: "/admin/settings", title: "Settings", desc: "System rules and operator preferences." },
   ] as const;
 

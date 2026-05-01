@@ -36,7 +36,7 @@ export default async function AdminSettingsPage() {
         <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <p className="text-sm font-semibold text-[var(--foreground)]">Wear pricing &amp; markup</p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Edit fallback COGS, per-category markup, default checkout margin, and affiliate min/max — with a live
+            Edit Spreadconnect-type markups, per-product overrides, default checkout margin, and affiliate min/max — with a live
             calculator.
           </p>
           <Link

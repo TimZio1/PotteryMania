@@ -1,12 +1,11 @@
 /**
  * Platform-controlled apparel pricing. Spreadconnect list prices are not used when internal pricing is on.
  *
- * retail = baseCost + ruleMargin (fixed EUR add-on per category)
- * baseCost = product.supplyCostCents (Spreadconnect b2bPrice)
+ * Internal list = real wholesale (`supplyCostCents` from Spreadconnect sync = blank + print) + markup rule.
+ * Rules are keyed by **Spreadconnect product type** when configured; otherwise shop category rules apply.
  *
- * Important: linked Spreadconnect products must not be repriced from the manual fallback cost
- * when b2bPrice is missing. In that case we keep the saved Spreadconnect retail/list price
- * instead of accidentally selling below production cost.
+ * We do **not** substitute invented EUR “fallback COGS” when wholesale is missing — linked products without
+ * b2b keep saved Spreadconnect retail; others keep DB list until sync supplies cost.
  */
 
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
@@ -18,7 +17,10 @@ const ADMIN_KEY_WEAR_INTERNAL_PRICING = "wear_internal_pricing_v1";
 /** Shop-aligned buckets — rules apply per inferred category (slug, name, Spreadconnect hints). */
 export type WearInternalPricingCategory = WearCategory;
 
-/** Fallback COGS in EUR when `supplyCostCents` is unset. */
+/**
+ * Legacy config only — **not** used in list-price math anymore (COGS always from `supplyCostCents` or safe retail paths).
+ * @deprecated Kept so old `adminConfig` JSON still parses; new saves preserve server values.
+ */
 export const WEAR_INTERNAL_FALLBACK_COSTS_EUR: Record<WearCategory, number> = {
   tops: 10,
   hoodies: 18,
@@ -40,14 +42,29 @@ export const WEAR_INTERNAL_PRICING_RULES: Record<WearCategory, WearInternalPrici
 };
 
 export type WearInternalPricingConfig = {
+  /** @deprecated Ignored for pricing; preserved when saving legacy configs. */
   fallbackCostsEur: Record<WearCategory, number>;
+  /** Markup when no Spreadconnect type rule matches (or product has no `spreadconnectProductTypeName`). */
   rules: Record<WearCategory, WearInternalPricingRule>;
+  /**
+   * Markup on top of real Spreadconnect wholesale, keyed by `normalizeWearSpreadconnectProductTypeKey(name)`.
+   * Use `"__none__"` for products with no Spreadconnect type in the admin table.
+   */
+  rulesByProductType?: Record<string, WearInternalPricingRule>;
 };
 
 export const DEFAULT_WEAR_INTERNAL_PRICING_CONFIG: WearInternalPricingConfig = {
   fallbackCostsEur: { ...WEAR_INTERNAL_FALLBACK_COSTS_EUR },
   rules: { ...WEAR_INTERNAL_PRICING_RULES },
+  rulesByProductType: {},
 };
+
+/** Stable map key for Spreadconnect `productTypeName` (case/spacing insensitive). */
+export function normalizeWearSpreadconnectProductTypeKey(name: string | null | undefined): string | null {
+  if (name == null) return null;
+  const t = name.trim().replace(/\s+/g, " ").toLowerCase();
+  return t.length ? t : null;
+}
 
 function eurToCents(eur: number): number {
   return Math.max(0, Math.round(eur * 100));
@@ -106,7 +123,17 @@ function parseConfig(raw: unknown): WearInternalPricingConfig {
     }
   }
 
-  return { fallbackCostsEur: outFallbacks, rules: outRules };
+  const rulesByProductType: Record<string, WearInternalPricingRule> = {};
+  const rpt = (obj as Record<string, unknown>).rulesByProductType;
+  if (rpt && typeof rpt === "object") {
+    for (const [rawKey, rawRule] of Object.entries(rpt as Record<string, unknown>)) {
+      const nk = rawKey.trim() === "__none__" ? "__none__" : normalizeWearSpreadconnectProductTypeKey(rawKey);
+      if (!nk) continue;
+      rulesByProductType[nk] = parseRule(rawRule, { type: "fixed", valueEur: 10 });
+    }
+  }
+
+  return { fallbackCostsEur: outFallbacks, rules: outRules, rulesByProductType };
 }
 
 export async function resolveWearInternalPricingConfig(): Promise<WearInternalPricingConfig> {
@@ -144,6 +171,18 @@ export function wearInternalCategoryFromProduct(fields: WearInternalCategoryInpu
   return resolveWearCategory(fields);
 }
 
+function resolveWearInternalMarkupRule(
+  args: WearInternalCategoryInput,
+  category: WearCategory,
+  config: WearInternalPricingConfig,
+): WearInternalPricingRule {
+  const nk = normalizeWearSpreadconnectProductTypeKey(args.spreadconnectProductTypeName);
+  const typeKey = nk ?? "__none__";
+  const byType = config.rulesByProductType?.[typeKey];
+  if (byType) return byType;
+  return config.rules[category];
+}
+
 export function shouldUseInternalWearPricing(): boolean {
   if (isApparelOnlyLaunch()) return true;
   const raw = process.env.NEXT_PUBLIC_INTERNAL_WEAR_PRICING?.trim().toLowerCase();
@@ -167,7 +206,8 @@ export function calculateWearInternalListCents(
   config: WearInternalPricingConfig = DEFAULT_WEAR_INTERNAL_PRICING_CONFIG,
 ): number {
   const linkedToSpreadconnect = Boolean(args.externalFulfillmentId || args.spreadconnectArticleId);
-  if (args.supplyCostCents == null && linkedToSpreadconnect && typeof args.priceCents === "number" && args.priceCents > 0) {
+  const hasSupply = typeof args.supplyCostCents === "number" && args.supplyCostCents > 0;
+  if (!hasSupply && linkedToSpreadconnect && typeof args.priceCents === "number" && args.priceCents > 0) {
     return args.priceCents;
   }
   const markup = args.internalMarkupPercent;
@@ -180,21 +220,25 @@ export function calculateWearInternalListCents(
     return Math.max(0, Math.round(args.supplyCostCents * (1 + markup / 100)));
   }
   const category = wearInternalCategoryFromProduct(args);
-  const costCents = args.supplyCostCents ?? eurToCents(config.fallbackCostsEur[category]);
-  const rule = config.rules[category];
+  if (!hasSupply) {
+    return typeof args.priceCents === "number" && args.priceCents > 0 ? args.priceCents : 0;
+  }
+  const costCents = args.supplyCostCents!;
+  const rule = resolveWearInternalMarkupRule(args, category, config);
   if (rule.type === "fixed") {
     return costCents + eurToCents(rule.valueEur);
   }
   return costCents + Math.round((costCents * rule.value) / 100);
 }
 
-/** Enforce paid unit ≥ COGS (supply or fallback cost for category). */
+/** Enforce paid unit ≥ real COGS (`supplyCostCents`) or safe retail when wholesale is missing. */
 export function wearEffectiveCostCents(
   args: WearInternalListArgs,
-  config: WearInternalPricingConfig = DEFAULT_WEAR_INTERNAL_PRICING_CONFIG,
+  _config: WearInternalPricingConfig = DEFAULT_WEAR_INTERNAL_PRICING_CONFIG,
 ): number {
   const linkedToSpreadconnect = Boolean(args.externalFulfillmentId || args.spreadconnectArticleId);
-  if (args.supplyCostCents == null && linkedToSpreadconnect && typeof args.priceCents === "number" && args.priceCents > 0) {
+  const hasSupply = typeof args.supplyCostCents === "number" && args.supplyCostCents > 0;
+  if (!hasSupply && linkedToSpreadconnect && typeof args.priceCents === "number" && args.priceCents > 0) {
     return args.priceCents;
   }
   const markup = args.internalMarkupPercent;
@@ -206,8 +250,12 @@ export function wearEffectiveCostCents(
   ) {
     return args.supplyCostCents;
   }
-  const category = wearInternalCategoryFromProduct(args);
-  return args.supplyCostCents ?? eurToCents(config.fallbackCostsEur[category]);
+  const supply = args.supplyCostCents;
+  if (typeof supply === "number" && supply > 0) return supply;
+  if (linkedToSpreadconnect && typeof args.priceCents === "number" && args.priceCents > 0) {
+    return args.priceCents;
+  }
+  return typeof args.priceCents === "number" && args.priceCents > 0 ? args.priceCents : 0;
 }
 
 export function assertWearUnitNotBelowCost(

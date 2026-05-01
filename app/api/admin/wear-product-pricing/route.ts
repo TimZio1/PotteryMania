@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 type PricingRow = {
   productId: string;
-  supplyCostCents: number | null;
+  /** Omitted for Spreadconnect-linked products — wholesale stays from sync. */
+  supplyCostCents?: number | null;
   internalMarkupPercent: number | null;
 };
 
@@ -75,9 +76,10 @@ export async function PATCH(req: Request) {
     const o = item as Record<string, unknown>;
     const productId = typeof o.productId === "string" ? o.productId.trim() : "";
     if (!productId) continue;
+    const hasSupplyKey = Object.prototype.hasOwnProperty.call(o, "supplyCostCents");
     updates.push({
       productId,
-      supplyCostCents: parseSupplyCents(o.supplyCostCents),
+      ...(hasSupplyKey ? { supplyCostCents: parseSupplyCents(o.supplyCostCents) } : {}),
       internalMarkupPercent: parseMarkup(o.internalMarkupPercent),
     });
   }
@@ -88,25 +90,27 @@ export async function PATCH(req: Request) {
 
   const existing = await prisma.wearProduct.findMany({
     where: { id: { in: updates.map((u) => u.productId) } },
-    select: { id: true },
+    select: { id: true, spreadconnectArticleId: true, externalFulfillmentId: true },
   });
-  const allowed = new Set(existing.map((e) => e.id));
-  const filtered = updates.filter((u) => allowed.has(u.productId));
+  const byId = new Map(existing.map((e) => [e.id, e]));
+  const filtered = updates.filter((u) => byId.has(u.productId));
   if (filtered.length === 0) {
     return NextResponse.json({ error: "No matching products" }, { status: 400 });
   }
 
   try {
     await prisma.$transaction(
-      filtered.map((u) =>
-        prisma.wearProduct.update({
+      filtered.map((u) => {
+        const row = byId.get(u.productId)!;
+        const scLinked = Boolean(row.spreadconnectArticleId || row.externalFulfillmentId);
+        return prisma.wearProduct.update({
           where: { id: u.productId },
           data: {
-            supplyCostCents: u.supplyCostCents,
+            ...(scLinked ? {} : { supplyCostCents: u.supplyCostCents ?? null }),
             internalMarkupPercent: u.internalMarkupPercent,
           },
-        }),
-      ),
+        });
+      }),
     );
 
     await logAdminAction({
