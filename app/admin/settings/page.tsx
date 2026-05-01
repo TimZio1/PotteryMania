@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireAdminUser } from "@/lib/auth-session";
-import { WearRetailPricingForm } from "@/components/admin/wear-retail-pricing-form";
-import { resolveWearInternalPricingConfig } from "@/lib/wear-internal-pricing";
 import { isApparelAdminMode } from "@/lib/launch-mode";
 
 import type { Metadata } from "next";
@@ -21,23 +19,34 @@ export default async function AdminSettingsPage() {
   if (!user) redirect("/unauthorized-admin");
 
   const apparelAdmin = isApparelAdminMode();
-  const retailPricing = await resolveWearInternalPricingConfig();
 
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
         {apparelAdmin ? "Apparel settings" : "Settings"}
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-        Apparel pricing control
-      </h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Settings</h1>
       <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-        Set the markup PotteryMania applies on top of the Spreadconnect base cost for T-shirts and hoodies.
+        {apparelAdmin
+          ? "Wear-specific controls moved to a dedicated hub so category rules, margins, and the shelf calculator stay in one place."
+          : "Operator preferences and platform rules."}
       </p>
 
-      <div className="mt-8">
-        <WearRetailPricingForm initial={retailPricing} />
-      </div>
+      {apparelAdmin ? (
+        <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <p className="text-sm font-semibold text-[var(--foreground)]">Wear pricing &amp; markup</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Edit fallback COGS, per-category markup, default checkout margin, and affiliate min/max — with a live
+            calculator.
+          </p>
+          <Link
+            href="/admin/wear-pricing"
+            className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--heat)] px-5 text-sm font-semibold text-[var(--ink)] transition hover:opacity-95"
+          >
+            Open pricing hub
+          </Link>
+        </div>
+      ) : null}
 
       <p className="mt-8 text-sm text-[var(--muted)]">
         Need affiliate commission rules?{" "}

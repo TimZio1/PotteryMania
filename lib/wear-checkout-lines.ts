@@ -121,6 +121,8 @@ export async function resolveWearCheckoutLines(args: {
     }
   }
 
+  const globalPricing = await resolveWearGlobalPricing();
+
   let attributedStudioId: string | null = null;
   let studioMarginBps = 0;
   if (requestingStudioId) {
@@ -130,8 +132,7 @@ export async function resolveWearCheckoutLines(args: {
     });
     if (wearConfig?.enabled) {
       attributedStudioId = requestingStudioId;
-      const global = await resolveWearGlobalPricing();
-      studioMarginBps = resolveStudioMarginBps(wearConfig.marginBps, global);
+      studioMarginBps = resolveStudioMarginBps(wearConfig.marginBps, globalPricing);
     }
   }
 
@@ -164,8 +165,13 @@ export async function resolveWearCheckoutLines(args: {
       : mapWearProductRowToInternalPrices(p);
     const baseCents = internalPricing
       ? calculateWearInternalListCents({
+          slug: p.slug,
+          name: p.name,
+          subtitle: p.subtitle,
+          description: p.description,
           priceCents: priced.priceCents,
           supplyCostCents: priced.supplyCostCents,
+          internalMarkupPercent: p.internalMarkupPercent ?? null,
           externalFulfillmentId: priced.externalFulfillmentId,
           spreadconnectArticleId: priced.spreadconnectArticleId,
           spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
@@ -175,10 +181,17 @@ export async function resolveWearCheckoutLines(args: {
     let unitCents = baseCents;
     if (attributedStudioId && studioMarginBps > 0) {
       unitCents = calculateWearPrice(baseCents, studioMarginBps);
+    } else if (internalPricing) {
+      unitCents = calculateWearPrice(baseCents, globalPricing.defaultMarginBps);
     }
     if (internalPricing) {
       try {
         assertWearUnitNotBelowCost({
+          slug: p.slug,
+          name: p.name,
+          subtitle: p.subtitle,
+          description: p.description,
+          internalMarkupPercent: p.internalMarkupPercent ?? null,
           unitPriceCents: unitCents,
           priceCents: priced.priceCents,
           supplyCostCents: priced.supplyCostCents,
@@ -193,6 +206,11 @@ export async function resolveWearCheckoutLines(args: {
     }
     const supplyFloor = internalPricing
       ? wearEffectiveCostCents({
+          slug: p.slug,
+          name: p.name,
+          subtitle: p.subtitle,
+          description: p.description,
+          internalMarkupPercent: p.internalMarkupPercent ?? null,
           priceCents: priced.priceCents,
           supplyCostCents: priced.supplyCostCents,
           externalFulfillmentId: priced.externalFulfillmentId,

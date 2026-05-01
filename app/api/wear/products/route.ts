@@ -6,9 +6,11 @@ import {
   wearTopSubcategoryLabel,
 } from "@/lib/wear-categories";
 import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
+import { resolveWearGlobalPricing, wearPublicRetailUnitCents } from "@/lib/wear-commission";
 import {
   mapWearProductRowToInternalPricesWithConfig,
   resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
 } from "@/lib/wear-internal-pricing";
 
 export const dynamic = "force-dynamic";
@@ -26,10 +28,17 @@ export async function GET(req: Request) {
     }
     const rows = result.rows;
     const internalPricingConfig = await resolveWearInternalPricingConfig();
+    const globalPricing = await resolveWearGlobalPricing();
+    const useInternal = shouldUseInternalWearPricing();
 
     const products = rows
       .map((raw) => mapWearProductRowToInternalPricesWithConfig(raw, internalPricingConfig))
       .map((r) => {
+        const unitRetail = wearPublicRetailUnitCents(
+          r.priceCents,
+          globalPricing.defaultMarginBps,
+          useInternal,
+        );
         const category = resolveWearCatalogCategory({
           slug: r.slug,
           name: r.name,
@@ -52,7 +61,7 @@ export async function GET(req: Request) {
           categorySource: category.source,
           topSub,
           topSubLabel: topSub ? wearTopSubcategoryLabel(topSub) : null,
-          priceCents: r.priceCents,
+          priceCents: unitRetail,
           currency: r.currency,
           images: wearImageUrlsFromJson(r.images),
           catalogImages: catalogImages.map((img) => ({
@@ -68,7 +77,7 @@ export async function GET(req: Request) {
             optionSize: v.optionSize,
             optionColor: v.optionColor,
             sku: v.sku,
-            priceCents: v.priceCents,
+            priceCents: unitRetail,
             stockQuantity: v.stockQuantity,
           })),
         };

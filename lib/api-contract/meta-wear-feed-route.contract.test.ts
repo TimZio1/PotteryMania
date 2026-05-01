@@ -40,8 +40,14 @@ describe("API contract: GET /api/meta/wear-catalog.csv", () => {
       ],
     });
     metaWearFeedRouteMocks.resolveWearInternalPricingConfig.mockResolvedValue({
-      fallbackCostsEur: { tshirt: 10, hoodie: 18 },
-      rules: { tshirt: { type: "fixed", valueEur: 10 }, hoodie: { type: "fixed", valueEur: 15 } },
+      fallbackCostsEur: { tops: 10, hoodies: 18, headwear: 6, accessories: 8, other: 12 },
+      rules: {
+        tops: { type: "fixed", valueEur: 10 },
+        hoodies: { type: "fixed", valueEur: 15 },
+        headwear: { type: "fixed", valueEur: 8 },
+        accessories: { type: "fixed", valueEur: 10 },
+        other: { type: "fixed", valueEur: 10 },
+      },
     });
     metaWearFeedRouteMocks.mapWearProductRowToInternalPricesWithConfig.mockImplementation((row) => row);
   });

@@ -27,11 +27,16 @@ export type WearCatalogValueSnapshot = {
 };
 
 type ProductRow = {
+  slug: string;
+  name: string;
+  subtitle: string | null;
+  description: string | null;
   priceCents: number;
   currency: string;
   isActive: boolean;
   archivedAt: Date | null;
   supplyCostCents: number | null;
+  internalMarkupPercent: number | null;
   spreadconnectProductTypeName: string | null;
   spreadconnectCategoryData: unknown;
   externalFulfillmentId: string | null;
@@ -46,8 +51,13 @@ function unitPriceCents(
 ): number {
   if (internalPricing) {
     return calculateWearInternalListCents({
+      slug: p.slug,
+      name: p.name,
+      subtitle: p.subtitle,
+      description: p.description,
       priceCents: p.priceCents,
       supplyCostCents: p.supplyCostCents,
+      internalMarkupPercent: p.internalMarkupPercent,
       externalFulfillmentId: p.externalFulfillmentId,
       spreadconnectArticleId: p.spreadconnectArticleId,
       spreadconnectProductTypeName: p.spreadconnectProductTypeName,
@@ -64,6 +74,11 @@ function unitCostCents(
 ): number {
   if (internalPricing) {
     return wearEffectiveCostCents({
+      slug: p.slug,
+      name: p.name,
+      subtitle: p.subtitle,
+      description: p.description,
+      internalMarkupPercent: p.internalMarkupPercent,
       priceCents: p.priceCents,
       supplyCostCents: p.supplyCostCents,
       externalFulfillmentId: p.externalFulfillmentId,
@@ -89,11 +104,16 @@ function isLinked(p: ProductRow): boolean {
 export async function loadWearCatalogValueSnapshot(): Promise<WearCatalogValueSnapshot> {
   const products = await prisma.wearProduct.findMany({
     select: {
+      slug: true,
+      name: true,
+      subtitle: true,
+      description: true,
       priceCents: true,
       currency: true,
       isActive: true,
       archivedAt: true,
       supplyCostCents: true,
+      internalMarkupPercent: true,
       spreadconnectProductTypeName: true,
       spreadconnectCategoryData: true,
       externalFulfillmentId: true,

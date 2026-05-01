@@ -18,13 +18,16 @@ import { WEAR_VISUAL_IMAGES } from "@/lib/wear-config";
 import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
+import { resolveWearGlobalPricing, wearPublicRetailUnitCents } from "@/lib/wear-commission";
 import {
   mapWearProductRowToInternalPricesWithConfig,
   resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
 } from "@/lib/wear-internal-pricing";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { resolveWearCategory } from "@/lib/wear-categories";
 import { WearBuyXGetYHeroBadge, WearBuyXGetYHomePromo } from "@/components/wear/wear-buy-x-get-y-home-promo";
+import { WEAR_LISTING_COLOR_BADGE_SURFACE, wearListingExtraColorsLabel } from "@/lib/wear-listing-color-badge";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +66,24 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function ApparelHome() {
   const catalog = await findWearPublicProductsWithVariantsRetrying();
-  const internalPricingConfig = await resolveWearInternalPricingConfig();
+  const [internalPricingConfig, globalPricing] = await Promise.all([
+    resolveWearInternalPricingConfig(),
+    resolveWearGlobalPricing(),
+  ]);
+  const internalOn = shouldUseInternalWearPricing();
   const rows = catalog.ok
-    ? catalog.rows.map((row) => mapWearProductRowToInternalPricesWithConfig(row, internalPricingConfig))
+    ? catalog.rows.map((row) => {
+        const mapped = mapWearProductRowToInternalPricesWithConfig(row, internalPricingConfig);
+        const shelf = wearPublicRetailUnitCents(mapped.priceCents, globalPricing.defaultMarginBps, internalOn);
+        return {
+          ...mapped,
+          priceCents: shelf,
+          variants: mapped.variants.map((v) => ({
+            ...v,
+            priceCents: wearPublicRetailUnitCents(v.priceCents ?? mapped.priceCents, globalPricing.defaultMarginBps, internalOn),
+          })),
+        };
+      })
     : [];
   const featured = rows.filter((p) => p.isFeatured).slice(0, 8);
   const showcase = featured.length >= 4 ? featured : rows.slice(0, 8);
@@ -216,6 +234,16 @@ async function ApparelHome() {
             aria-hidden
             className="absolute inset-0 bg-gradient-to-t from-[var(--ink)] via-[var(--ink)]/60 to-transparent"
           />
+          {heroAnchor ? (() => {
+            const heroColors = wearListingExtraColorsLabel(heroAnchor.variants);
+            return heroColors ? (
+              <span
+                className={`${WEAR_LISTING_COLOR_BADGE_SURFACE} absolute right-4 top-24 z-20 sm:right-8 sm:top-28`}
+              >
+                {heroColors}
+              </span>
+            ) : null;
+          })() : null}
           <div className="relative mx-auto w-full max-w-7xl px-6 pb-16 pt-32 sm:px-10 sm:pb-24 sm:pt-40 lg:pb-28">
             <p className="pm-caption text-[var(--heat)]">
               Drop {dropNumber}
@@ -272,6 +300,12 @@ async function ApparelHome() {
                     unoptimized
                   />
                 );
+              })()}
+              {(() => {
+                const lab = wearListingExtraColorsLabel(tees[0].variants);
+                return lab ? (
+                  <span className={`${WEAR_LISTING_COLOR_BADGE_SURFACE} absolute right-2 top-2`}>{lab}</span>
+                ) : null;
               })()}
             </div>
             <div className="flex flex-col justify-center gap-8 px-6 py-16 sm:px-12 sm:py-20 lg:px-20 lg:py-24">
@@ -346,6 +380,12 @@ async function ApparelHome() {
                     unoptimized
                   />
                 );
+              })()}
+              {(() => {
+                const lab = wearListingExtraColorsLabel(secondaryDrop.rows[0].variants);
+                return lab ? (
+                  <span className={`${WEAR_LISTING_COLOR_BADGE_SURFACE} absolute right-2 top-2`}>{lab}</span>
+                ) : null;
               })()}
             </div>
           </section>

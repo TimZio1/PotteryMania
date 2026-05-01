@@ -28,6 +28,7 @@ export const adminLinks: readonly AdminLink[] = [
   { href: "/admin/finance", label: "Finance" },
 
   { href: "/admin/wear-products", label: "Wear · products" },
+  { href: "/admin/wear-pricing", label: "Wear · pricing" },
   { href: "/admin/wear-orders", label: "Wear · sales" },
   { href: "/admin/wear-analytics", label: "Wear · analytics" },
 
@@ -53,6 +54,7 @@ export const adminLinks: readonly AdminLink[] = [
 export const apparelOnlyAdminLinks: readonly AdminLink[] = [
   { href: "/admin", label: "Home" },
   { href: "/admin/wear-products", label: "Products" },
+  { href: "/admin/wear-pricing", label: "Pricing" },
   { href: "/admin/wear-orders", label: "Orders" },
   { href: "/admin/affiliates", label: "Affiliates" },
   { href: "/admin/wear-analytics", label: "Analytics" },

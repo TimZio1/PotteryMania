@@ -559,6 +559,8 @@ model WearProduct {
   spreadconnectCatalogFingerprint   String? @map("spreadconnect_catalog_fingerprint") @db.VarChar(64)
   /// Optional COGS floor (cents). Discounts cannot reduce unit price below this when set.
   supplyCostCents       Int?     @map("supply_cost_cents")
+  /// When internal apparel pricing is on and this is set with `supplyCostCents`, list price = COGS × (1 + percent/100) instead of category rules.
+  internalMarkupPercent Float?   @map("internal_markup_percent")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 

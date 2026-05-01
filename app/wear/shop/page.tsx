@@ -15,15 +15,21 @@ import {
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { type WearPublicListingRow } from "@/lib/wear-public-catalog-query";
-import { getCachedWearInternalPricingConfig, getCachedWearPublicCatalogForShop } from "@/lib/wear-shop-server-cache";
+import {
+  getCachedWearGlobalPricing,
+  getCachedWearInternalPricingConfig,
+  getCachedWearPublicCatalogForShop,
+} from "@/lib/wear-shop-server-cache";
 import { WEAR_CURRENCY_SHOP_LINE } from "@/lib/wear-currency-policy";
 import { WEAR_ACTIVE_DROP, wearActiveDropEyebrow, wearDropDefaultTitle } from "@/lib/wear-drop-config";
 import { resolveWearResellerApplicationHref } from "@/lib/wear-reseller-application";
 import { isApparelOnlyLaunch } from "@/lib/launch-mode";
-import { mapWearProductRowToInternalPricesWithConfig } from "@/lib/wear-internal-pricing";
+import { mapWearProductRowToInternalPricesWithConfig, shouldUseInternalWearPricing } from "@/lib/wear-internal-pricing";
+import { wearPublicRetailUnitCents } from "@/lib/wear-commission";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { breadcrumbJsonLd, itemListJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { WearBuyXGetYLandingBanner } from "@/components/wear/wear-buy-x-get-y-landing-banner";
+import { WEAR_LISTING_COLOR_BADGE_SURFACE, wearListingExtraColorsLabel } from "@/lib/wear-listing-color-badge";
 
 /** DB (Prisma) is not available during static export / build-time prerender. */
 export const dynamic = "force-dynamic";
@@ -217,7 +223,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   const catalogResult = await getCachedWearPublicCatalogForShop();
   const dbUnavailable = !catalogResult.ok;
   const products: WearPublicListingRow[] = catalogResult.ok ? catalogResult.rows : [];
-  const internalPricingConfig = await getCachedWearInternalPricingConfig();
+  const [internalPricingConfig, globalPricing] = await Promise.all([
+    getCachedWearInternalPricingConfig(),
+    getCachedWearGlobalPricing(),
+  ]);
+  const internalOn = shouldUseInternalWearPricing();
 
   const catInput = (p: (typeof products)[number]) => ({
     slug: p.slug,
@@ -229,7 +239,16 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
   });
 
   const normalized: WearShopProduct[] = products.map((raw) => {
-    const p = mapWearProductRowToInternalPricesWithConfig(raw, internalPricingConfig);
+    const mapped = mapWearProductRowToInternalPricesWithConfig(raw, internalPricingConfig);
+    const shelfCents = wearPublicRetailUnitCents(mapped.priceCents, globalPricing.defaultMarginBps, internalOn);
+    const p = {
+      ...mapped,
+      priceCents: shelfCents,
+      variants: mapped.variants.map((v) => ({
+        ...v,
+        priceCents: wearPublicRetailUnitCents(v.priceCents ?? mapped.priceCents, globalPricing.defaultMarginBps, internalOn),
+      })),
+    };
     const category = resolveWearCatalogCategory(catInput(p));
     return {
       ...p,
@@ -677,6 +696,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                             const src = imgs[0];
                             const displayName = wearDisplayName(p);
                             const isLcp = p.id === lcpProductId;
+                            const colorsLabel = wearListingExtraColorsLabel(p.variants);
                             return (
                               <li key={p.id}>
                                 <Link href={`/wear/${p.slug}${pdpQuerySuffix}`} className="group block">
@@ -701,6 +721,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                         <span className="mt-2 text-xs text-[var(--shadow)]">Photo unavailable</span>
                                       </div>
                                     )}
+                                    {colorsLabel ? (
+                                      <span className={`${WEAR_LISTING_COLOR_BADGE_SURFACE} absolute right-2 top-2`}>
+                                        {colorsLabel}
+                                      </span>
+                                    ) : null}
                                   </div>
                                   <div className="mt-4 flex items-baseline justify-between gap-3">
                                     <h4 className="min-w-0 line-clamp-2 text-sm font-semibold text-[var(--ink)] group-hover:text-[var(--heat)]">
@@ -736,6 +761,7 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                       const src = imgs[0];
                       const displayName = wearDisplayName(p);
                       const isLcp = p.id === lcpProductId;
+                      const colorsLabel = wearListingExtraColorsLabel(p.variants);
                       return (
                         <li key={p.id}>
                           <Link href={`/wear/${p.slug}${pdpQuerySuffix}`} className="group block">
@@ -760,6 +786,11 @@ export default async function WearShopPage({ searchParams }: WearShopProps) {
                                   <span className="mt-2 text-xs text-[var(--shadow)]">Photo unavailable</span>
                                 </div>
                               )}
+                              {colorsLabel ? (
+                                <span className={`${WEAR_LISTING_COLOR_BADGE_SURFACE} absolute right-2 top-2`}>
+                                  {colorsLabel}
+                                </span>
+                              ) : null}
                             </div>
                             <div className="mt-4 flex items-baseline justify-between gap-3">
                               <h3 className="min-w-0 line-clamp-2 text-sm font-semibold text-[var(--ink)] group-hover:text-[var(--heat)]">

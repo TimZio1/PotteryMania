@@ -12,13 +12,16 @@ import { sortWearCatalogImagesForDisplay, wearImagesFromJson, wearImageUrlsFromJ
 import { WearProductGallery } from "@/components/wear/wear-product-gallery";
 import { breadcrumbJsonLd, productJsonLd, toJsonLdScript } from "@/lib/structured-data";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+import { resolveWearGlobalPricing, wearPublicRetailUnitCents } from "@/lib/wear-commission";
 import {
   mapWearProductRowToInternalPricesWithConfig,
   resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
 } from "@/lib/wear-internal-pricing";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { formatWearMoney } from "@/lib/wear-money";
 import { wearDisplayName } from "@/lib/wear-display-name";
+import { WEAR_LISTING_COLOR_BADGE_SURFACE, wearListingExtraColorsLabel } from "@/lib/wear-listing-color-badge";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +49,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: true,
         priceCents: true,
         currency: true,
+        supplyCostCents: true,
+        externalFulfillmentId: true,
+        spreadconnectArticleId: true,
+        spreadconnectProductTypeName: true,
+        spreadconnectCategoryData: true,
+        slug: true,
         variants: { where: { isActive: true }, select: { stockQuantity: true, priceCents: true } },
       },
     });
@@ -56,11 +65,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         path: `/wear/${slug}`,
       });
     }
-    const displayName = wearDisplayName(pRaw);
-    const desc = pRaw.subtitle ?? pRaw.description ?? displayName;
-    const heroImage = wearImageUrlsFromJson(pRaw.images)[0];
-    const inStockVariant = pRaw.variants.find((v) => (v.stockQuantity ?? 0) > 0);
-    const resolvedCents = inStockVariant?.priceCents ?? pRaw.priceCents ?? 0;
+    const internalPricingConfig = await resolveWearInternalPricingConfig();
+    const globalPricing = await resolveWearGlobalPricing();
+    const useInternal = shouldUseInternalWearPricing();
+    const pMeta = mapWearProductRowToInternalPricesWithConfig(pRaw, internalPricingConfig);
+    const retailUnit = (c: number) => wearPublicRetailUnitCents(c, globalPricing.defaultMarginBps, useInternal);
+    const displayName = wearDisplayName(pMeta);
+    const desc = pMeta.subtitle ?? pMeta.description ?? displayName;
+    const heroImage = wearImageUrlsFromJson(pMeta.images)[0];
+    const inStockVariant = pMeta.variants.find((v) => (v.stockQuantity ?? 0) > 0);
+    const resolvedCents = retailUnit(inStockVariant?.priceCents ?? pMeta.priceCents ?? 0);
     const inStock = pRaw.variants.some((v) => (v.stockQuantity ?? 0) > 0);
     const currencyCode = (pRaw.currency || "EUR").toUpperCase();
     /**
@@ -112,7 +126,18 @@ export default async function WearProductPage({ params, searchParams }: Props) {
   });
   if (!pRaw) notFound();
   const internalPricingConfig = await resolveWearInternalPricingConfig();
-  const p = mapWearProductRowToInternalPricesWithConfig(pRaw, internalPricingConfig);
+  const globalPricing = await resolveWearGlobalPricing();
+  const useInternal = shouldUseInternalWearPricing();
+  const retailUnit = (c: number) => wearPublicRetailUnitCents(c, globalPricing.defaultMarginBps, useInternal);
+  const pInternal = mapWearProductRowToInternalPricesWithConfig(pRaw, internalPricingConfig);
+  const p = {
+    ...pInternal,
+    priceCents: retailUnit(pInternal.priceCents),
+    variants: pInternal.variants.map((v) => ({
+      ...v,
+      priceCents: retailUnit(v.priceCents ?? pInternal.priceCents),
+    })),
+  };
   const displayName = wearDisplayName(p);
   const category = resolveWearCatalogCategory({
     slug: p.slug,
@@ -169,7 +194,15 @@ export default async function WearProductPage({ params, searchParams }: Props) {
       },
     },
   });
-  const relatedNormalized = relatedRaw.map((row) => mapWearProductRowToInternalPricesWithConfig(row, internalPricingConfig));
+  const relatedNormalized = relatedRaw.map((row) => {
+    const m = mapWearProductRowToInternalPricesWithConfig(row, internalPricingConfig);
+    const u = retailUnit(m.priceCents);
+    return {
+      ...m,
+      priceCents: u,
+      variants: m.variants.map((v) => ({ ...v, priceCents: u })),
+    };
+  });
   const sameCategory = relatedNormalized.filter((row) => {
     const c = resolveWearCatalogCategory({
       slug: row.slug,
@@ -240,6 +273,7 @@ export default async function WearProductPage({ params, searchParams }: Props) {
               const imgs = wearImageUrlsFromJson(rp.images);
               const src = imgs[0];
               const relatedName = wearDisplayName(rp);
+              const relatedColors = wearListingExtraColorsLabel(rp.variants);
               return (
                 <li key={rp.id}>
                   <Link href={`/wear/${rp.slug}`} className="group block">
@@ -256,6 +290,11 @@ export default async function WearProductPage({ params, searchParams }: Props) {
                           decoding="async"
                           unoptimized
                         />
+                      ) : null}
+                      {relatedColors ? (
+                        <span className={`${WEAR_LISTING_COLOR_BADGE_SURFACE} absolute right-2 top-2`}>
+                          {relatedColors}
+                        </span>
                       ) : null}
                     </div>
                     <div className="mt-3 flex items-baseline justify-between gap-3">
