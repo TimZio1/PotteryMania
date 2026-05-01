@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 /** Spreadconnect full catalog can take several minutes — allow long serverless runs where supported. */
 export const maxDuration = 300;
 
-type Body = { fullDiscovery?: boolean };
+type Body = { fullDiscovery?: boolean; stream?: boolean };
 
 export async function POST(req: Request) {
   const user = await requireHyperAdminUser();
@@ -27,14 +27,59 @@ export async function POST(req: Request) {
   }
 
   let fullDiscovery = true;
+  let wantStream = false;
   try {
     const raw = await req.text();
     if (raw.trim()) {
       const j = JSON.parse(raw) as Body;
       if (typeof j.fullDiscovery === "boolean") fullDiscovery = j.fullDiscovery;
+      if (typeof j.stream === "boolean") wantStream = j.stream;
     }
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  if (wantStream) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const push = (obj: unknown) => {
+          controller.enqueue(encoder.encode(`${JSON.stringify(obj)}\n`));
+        };
+        try {
+          const result = await syncSpreadconnectCatalogToWearProducts({
+            fullDiscovery,
+            onProgress: (event) => {
+              push({ type: "progress", ...event });
+            },
+          });
+          await recordWearCatalogSyncSuccess(result);
+          try {
+            await prisma.wearAnalyticsEvent.create({
+              data: {
+                kind: "wear_catalog_sync_completed",
+                payload: { ...result, source: "admin_manual" } as object,
+              },
+            });
+          } catch (e) {
+            console.error("[sync-spreadconnect] wear_analytics_events insert failed (sync already completed)", e);
+          }
+          push({ type: "result", ok: true as const, ...result });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "sync failed";
+          await recordWearCatalogSyncFailure(msg);
+          push({ type: "error", ok: false as const, error: msg });
+        } finally {
+          controller.close();
+        }
+      },
+    });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
+    });
   }
 
   let result: Awaited<ReturnType<typeof syncSpreadconnectCatalogToWearProducts>>;

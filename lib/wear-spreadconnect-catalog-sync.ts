@@ -63,12 +63,22 @@ type PreparedArticle = {
   variants: SyncedVariant[];
 };
 
+/** Emitted during sync for streaming / UI progress (safe to throttle on the consumer). */
+export type SpreadconnectCatalogSyncProgress = {
+  stage: "known_articles" | "catalog_pages" | "products" | "placeholders" | "orphan_links" | "image_hosts";
+  label: string;
+  done?: number;
+  total?: number;
+};
+
 export type SpreadconnectCatalogSyncOptions = {
   /**
    * List every page of GET /articles until the catalog ends. Heavy — use only when onboarding or reconciling.
    * Default sync refreshes known articles by id and scans only the first discovery page(s).
    */
   fullDiscovery?: boolean;
+  /** Optional progress hook (e.g. NDJSON stream). May be invoked often; keep work light. */
+  onProgress?: (event: SpreadconnectCatalogSyncProgress) => void | Promise<void>;
 };
 
 export type SpreadconnectCatalogSyncResult = {
@@ -179,6 +189,14 @@ function preferredCurrency() {
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+async function emitProgress(
+  onProgress: SpreadconnectCatalogSyncOptions["onProgress"],
+  event: SpreadconnectCatalogSyncProgress,
+) {
+  if (!onProgress) return;
+  await onProgress(event);
 }
 
 function clamp(n: number, min: number, max: number) {
@@ -685,6 +703,8 @@ export async function syncSpreadconnectCatalogToWearProducts(
   const cfg = getSpreadconnectConfig();
   if (!cfg) throw new Error("Spreadconnect not configured");
 
+  const onProgress = options?.onProgress;
+
   const fullDiscovery =
     options?.fullDiscovery === true || process.env.SPREADCONNECT_SYNC_FULL_DISCOVERY === "1";
 
@@ -711,20 +731,50 @@ export async function syncSpreadconnectCatalogToWearProducts(
   let fullCatalogScanCompleted = false;
   let archivedDeletedSpreadconnectArticles = 0;
 
-  for (const articleId of knownIds) {
+  const knownTotal = knownIds.length;
+  await emitProgress(onProgress, {
+    stage: "known_articles",
+    label: knownTotal
+      ? `Refreshing ${knownTotal} linked Spreadconnect article(s)…`
+      : "No linked articles in database — fetching catalog pages…",
+    done: 0,
+    total: knownTotal || undefined,
+  });
+
+  for (let ki = 0; ki < knownIds.length; ki++) {
+    const articleId = knownIds[ki]!;
     if (gapArticleMs > 0) await sleep(gapArticleMs);
     const article = await fetchSpreadconnectArticleById(cfg, articleId);
     if (!article) {
       archivedDeletedSpreadconnectArticles += await archiveWearProductsBySpreadconnectArticleIds([articleId]);
+      await emitProgress(onProgress, {
+        stage: "known_articles",
+        label: `Refreshing linked articles (${ki + 1}/${knownTotal})…`,
+        done: ki + 1,
+        total: knownTotal,
+      });
       continue;
     }
     articlesToProcess.push(article);
     if (typeof article.id === "number") seenArticleIds.add(article.id);
     refreshedByArticleId += 1;
+    await emitProgress(onProgress, {
+      stage: "known_articles",
+      label: `Refreshing linked articles (${ki + 1}/${knownTotal})…`,
+      done: ki + 1,
+      total: knownTotal,
+    });
   }
 
   let discoveryOffset = 0;
   let pagesDone = 0;
+
+  await emitProgress(onProgress, {
+    stage: "catalog_pages",
+    label: fullDiscovery
+      ? "Listing full Spreadconnect catalog (paginated)…"
+      : "Fetching discovery page(s) from Spreadconnect…",
+  });
 
   for (;;) {
     if (!fullDiscovery && pagesDone >= maxDiscoveryPages) break;
@@ -737,6 +787,11 @@ export async function syncSpreadconnectCatalogToWearProducts(
 
     if (page.length === 0) {
       fullCatalogScanCompleted = true;
+      await emitProgress(onProgress, {
+        stage: "catalog_pages",
+        label: `Catalog listing finished after ${discoveryListPages} page(s) (${articlesToProcess.length} article(s) to sync).`,
+        done: discoveryListPages,
+      });
       break;
     }
 
@@ -748,10 +803,21 @@ export async function syncSpreadconnectCatalogToWearProducts(
       articlesToProcess.push(a);
     }
 
+    await emitProgress(onProgress, {
+      stage: "catalog_pages",
+      label: `Catalog page ${discoveryListPages}: +${page.length} row(s) on page · ${articlesToProcess.length} article(s) queued`,
+      done: discoveryListPages,
+    });
+
     discoveryOffset += pageLimit;
 
     if (page.length < pageLimit) {
       fullCatalogScanCompleted = true;
+      await emitProgress(onProgress, {
+        stage: "catalog_pages",
+        label: `Catalog listing finished (${discoveryListPages} page(s), ${articlesToProcess.length} article(s) to sync).`,
+        done: discoveryListPages,
+      });
       break;
     }
 
@@ -765,10 +831,29 @@ export async function syncSpreadconnectCatalogToWearProducts(
   let syncedVariants = 0;
   const syncedIds: string[] = [];
 
-  for (const article of articlesToProcess) {
+  const upsertTotal = articlesToProcess.length;
+  const upsertEmitEvery = upsertTotal > 400 ? 25 : upsertTotal > 80 ? 10 : 1;
+
+  await emitProgress(onProgress, {
+    stage: "products",
+    label: upsertTotal ? `Writing ${upsertTotal} product(s) to the database…` : "No articles to write.",
+    done: 0,
+    total: upsertTotal || undefined,
+  });
+
+  for (let ui = 0; ui < articlesToProcess.length; ui++) {
+    const article = articlesToProcess[ui]!;
     const prepared = await prepareArticle(article, cfg, categoryCache);
     if (!prepared) {
       skippedArticles += 1;
+      if (onProgress && (ui === 0 || ui === articlesToProcess.length - 1 || (ui + 1) % upsertEmitEvery === 0)) {
+        await emitProgress(onProgress, {
+          stage: "products",
+          label: `Syncing products (${ui + 1}/${upsertTotal})…`,
+          done: ui + 1,
+          total: upsertTotal,
+        });
+      }
       continue;
     }
 
@@ -778,21 +863,46 @@ export async function syncSpreadconnectCatalogToWearProducts(
 
     if (synced.unchanged) {
       skippedUnchangedProducts += 1;
-      continue;
+    } else if (synced.created) {
+      createdProducts += 1;
+    } else {
+      updatedProducts += 1;
     }
 
-    if (synced.created) createdProducts += 1;
-    else updatedProducts += 1;
+    if (onProgress && (ui === 0 || ui === articlesToProcess.length - 1 || (ui + 1) % upsertEmitEvery === 0)) {
+      const shortName =
+        prepared.name.length > 48 ? `${prepared.name.slice(0, 45)}…` : prepared.name;
+      await emitProgress(onProgress, {
+        stage: "products",
+        label: `Syncing products (${ui + 1}/${upsertTotal}): ${shortName}`,
+        done: ui + 1,
+        total: upsertTotal,
+      });
+    }
   }
 
+  if (fullDiscovery && fullCatalogScanCompleted) {
+    await emitProgress(onProgress, {
+      stage: "placeholders",
+      label: "Archiving unsynced placeholder products…",
+    });
+  }
   const archivedProducts =
     fullDiscovery && fullCatalogScanCompleted ? await archiveUnsyncedPlaceholderProducts(syncedIds) : 0;
 
   let archivedNotInRemoteCatalogSnapshot = 0;
   if (fullDiscovery && fullCatalogScanCompleted && seenArticleIds.size > 0) {
+    await emitProgress(onProgress, {
+      stage: "orphan_links",
+      label: "Archiving products not present in the remote catalog snapshot…",
+    });
     archivedNotInRemoteCatalogSnapshot = await archiveWearProductsNotInRemoteArticleSet(seenArticleIds);
   }
 
+  await emitProgress(onProgress, {
+    stage: "image_hosts",
+    label: "Scanning image hosts for remotePatterns coverage…",
+  });
   const unknownImageHosts = await listUnknownWearImageHostsForActiveCatalog();
 
   const syncedProducts = createdProducts + updatedProducts + skippedUnchangedProducts;

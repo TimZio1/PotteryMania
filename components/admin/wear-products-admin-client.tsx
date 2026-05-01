@@ -34,6 +34,12 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   const [busy, setBusy] = useState(false);
   const [promoting, setPromoting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<{
+    stage: string;
+    label: string;
+    done?: number;
+    total?: number;
+  } | null>(null);
 
   const refresh = useCallback(async () => {
     const q = includeArchived ? "?includeArchived=1" : "";
@@ -92,15 +98,105 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     }
     setBusy(true);
     setSyncing(true);
+    setSyncProgress(null);
     setErr("");
     setMsg("");
     try {
       const r = await fetch("/api/admin/wear-products/sync-spreadconnect", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullDiscovery: true }),
+        headers: { "Content-Type": "application/json", Accept: "application/x-ndjson" },
+        body: JSON.stringify({ fullDiscovery: true, stream: true }),
         signal: AbortSignal.timeout(600_000),
       });
+
+      const ct = r.headers.get("content-type") ?? "";
+      const isNdjson = ct.includes("x-ndjson") || ct.includes("ndjson");
+
+      if (isNdjson && r.body) {
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let resultPayload: Record<string, unknown> | null = null;
+        let streamError: string | null = null;
+
+        const reader = r.body.getReader();
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed) continue;
+              let row: Record<string, unknown>;
+              try {
+                row = JSON.parse(trimmed) as Record<string, unknown>;
+              } catch {
+                continue;
+              }
+              const t = row.type;
+              if (t === "progress") {
+                const label = typeof row.label === "string" ? row.label : "Working…";
+                const stage = typeof row.stage === "string" ? row.stage : "products";
+                const done = typeof row.done === "number" ? row.done : undefined;
+                const total = typeof row.total === "number" ? row.total : undefined;
+                setSyncProgress({ stage, label, done, total });
+              } else if (t === "error") {
+                streamError = typeof row.error === "string" ? row.error : "Spreadconnect sync failed";
+              } else if (t === "result") {
+                resultPayload = row;
+              }
+            }
+          }
+          buffer += decoder.decode();
+          const tail = buffer.trim();
+          if (tail) {
+            try {
+              const row = JSON.parse(tail) as Record<string, unknown>;
+              const t = row.type;
+              if (t === "error") {
+                streamError = typeof row.error === "string" ? row.error : streamError ?? "Spreadconnect sync failed";
+              } else if (t === "result") {
+                resultPayload = row;
+              }
+            } catch {
+              /* ignore */
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        if (!r.ok && !streamError && !resultPayload) {
+          setErr(`Spreadconnect sync failed (HTTP ${r.status}).`);
+          return;
+        }
+        if (streamError) {
+          setErr(streamError);
+          return;
+        }
+        if (!resultPayload) {
+          setErr("Spreadconnect sync ended without a result — try again.");
+          return;
+        }
+        const j = resultPayload;
+        const created = typeof j.createdProducts === "number" ? j.createdProducts : 0;
+        const updated = typeof j.updatedProducts === "number" ? j.updatedProducts : 0;
+        const unchanged = typeof j.skippedUnchangedProducts === "number" ? j.skippedUnchangedProducts : 0;
+        const archDel =
+          typeof j.archivedDeletedSpreadconnectArticles === "number" ? j.archivedDeletedSpreadconnectArticles : 0;
+        const archSnap =
+          typeof j.archivedNotInRemoteCatalogSnapshot === "number" ? j.archivedNotInRemoteCatalogSnapshot : 0;
+        const archPh = typeof j.archivedProducts === "number" ? j.archivedProducts : 0;
+        setMsg(
+          `Spreadconnect full sync: +${created} created · ${updated} updated · ${unchanged} unchanged · archived (deleted article 404): ${archDel} · archived (not in remote catalog snapshot): ${archSnap} · placeholder cleanup: ${archPh}`,
+        );
+        await refresh();
+        router.refresh();
+        return;
+      }
+
       const raw = await r.text();
       let j: Record<string, unknown> & { error?: string } = {};
       if (raw.trim()) {
@@ -137,6 +233,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     } finally {
       setBusy(false);
       setSyncing(false);
+      setSyncProgress(null);
     }
   }
 
@@ -172,6 +269,40 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     <div className="mt-8 space-y-6">
       {err ? <p className={ui.errorText}>{err}</p> : null}
       {msg ? <p className={ui.successText}>{msg}</p> : null}
+
+      {syncing && syncProgress ? (
+        <div
+          className="rounded-2xl border border-stone-200/90 bg-stone-50/90 px-4 py-3 text-sm text-stone-700 shadow-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="font-medium text-stone-800">{syncProgress.label}</p>
+          {typeof syncProgress.done === "number" &&
+          typeof syncProgress.total === "number" &&
+          syncProgress.total > 0 ? (
+            <div className="mt-2">
+              <div className="mb-1 flex justify-between text-xs text-stone-500">
+                <span className="capitalize">{syncProgress.stage.replace(/_/g, " ")}</span>
+                <span>
+                  {syncProgress.done} / {syncProgress.total}
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+                <div
+                  className="h-full rounded-full bg-emerald-600 transition-[width] duration-300 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.round((syncProgress.done / syncProgress.total) * 100))}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-stone-200">
+              <div className="h-full w-full animate-pulse rounded-full bg-stone-400/70" />
+            </div>
+          )}
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-3">
