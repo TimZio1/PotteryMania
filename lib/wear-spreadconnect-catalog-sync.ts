@@ -625,25 +625,21 @@ async function archiveWearProductsBySpreadconnectArticleIds(articleIds: number[]
 
 async function archiveWearProductsNotInRemoteArticleSet(seenArticleIds: Set<number>) {
   if (seenArticleIds.size === 0) return 0;
-  const result = await prisma.wearProduct.updateMany({
-    where: {
-      spreadconnectArticleId: { not: null, notIn: Array.from(seenArticleIds) },
-      archivedAt: null,
-    },
-    data: {
-      archivedAt: new Date(),
-      isActive: false,
-    },
+  const linked = await prisma.wearProduct.findMany({
+    where: { spreadconnectArticleId: { not: null }, archivedAt: null },
+    select: { id: true, spreadconnectArticleId: true },
   });
-  return result.count;
+  const ids = linked
+    .filter((row) => row.spreadconnectArticleId != null && !seenArticleIds.has(row.spreadconnectArticleId))
+    .map((row) => row.id);
+  return await archiveWearProductIdsInChunks(ids, { alsoDeactivate: true });
 }
 
 async function archiveUnsyncedPlaceholderProducts(syncedIds: string[]) {
   if (syncedIds.length === 0) return 0;
-
-  const result = await prisma.wearProduct.updateMany({
+  const synced = new Set(syncedIds);
+  const placeholders = await prisma.wearProduct.findMany({
     where: {
-      id: { notIn: syncedIds },
       archivedAt: null,
       isActive: true,
       externalFulfillmentId: null,
@@ -654,12 +650,33 @@ async function archiveUnsyncedPlaceholderProducts(syncedIds: string[]) {
         },
       },
     },
-    data: {
-      archivedAt: new Date(),
-    },
+    select: { id: true },
   });
+  const ids = placeholders.filter((row) => !synced.has(row.id)).map((row) => row.id);
+  return await archiveWearProductIdsInChunks(ids, { alsoDeactivate: false });
+}
 
-  return result.count;
+const ARCHIVE_CHUNK = 250;
+
+async function archiveWearProductIdsInChunks(
+  ids: string[],
+  opts: { alsoDeactivate: boolean },
+): Promise<number> {
+  if (ids.length === 0) return 0;
+  let total = 0;
+  const now = new Date();
+  for (let i = 0; i < ids.length; i += ARCHIVE_CHUNK) {
+    const slice = ids.slice(i, i + ARCHIVE_CHUNK);
+    const r = await prisma.wearProduct.updateMany({
+      where: { id: { in: slice } },
+      data: {
+        archivedAt: now,
+        ...(opts.alsoDeactivate ? { isActive: false } : {}),
+      },
+    });
+    total += r.count;
+  }
+  return total;
 }
 
 export async function syncSpreadconnectCatalogToWearProducts(

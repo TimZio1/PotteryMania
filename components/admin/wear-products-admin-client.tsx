@@ -101,9 +101,22 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
         body: JSON.stringify({ fullDiscovery: true }),
         signal: AbortSignal.timeout(600_000),
       });
-      const j = (await r.json().catch(() => ({}))) as Record<string, unknown> & { error?: string };
+      const raw = await r.text();
+      let j: Record<string, unknown> & { error?: string } = {};
+      if (raw.trim()) {
+        try {
+          j = JSON.parse(raw) as typeof j;
+        } catch {
+          j = {};
+        }
+      }
       if (!r.ok) {
-        setErr(typeof j.error === "string" ? j.error : "Spreadconnect sync failed");
+        const fromJson = typeof j.error === "string" ? j.error : "";
+        const snippet = raw.trim().slice(0, 800);
+        setErr(
+          fromJson ||
+            (snippet ? `HTTP ${r.status}: ${snippet}` : `Spreadconnect sync failed (HTTP ${r.status}).`),
+        );
         return;
       }
       const created = typeof j.createdProducts === "number" ? j.createdProducts : 0;
