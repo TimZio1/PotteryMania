@@ -17,7 +17,13 @@ import { WEAR_LISTING_CURRENCY, WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-cur
 import { formatWearMoney } from "@/lib/wear-money";
 import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
 import { WEAR_SHIPPING_CART_NOTE, WEAR_SHIPPING_TRUST_STRIP } from "@/lib/wear-shipping-copy";
-import { WEAR_FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/wear-shipping";
+import {
+  WEAR_CHECKOUT_SHIPPING_COUNTRIES,
+  WEAR_FREE_SHIPPING_THRESHOLD_CENTS,
+  resolveWearShippingAmountMinorUnits,
+} from "@/lib/wear-shipping";
+
+const WEAR_SHIP_COUNTRY_STORAGE_KEY = "wear_ship_to_iso2";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import type { WearCatalogImage } from "@/lib/wear-product-json";
@@ -98,6 +104,39 @@ export function WearCartPageClient() {
   } | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const [shipToCountry, setShipToCountry] = useState("");
+
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem(WEAR_SHIP_COUNTRY_STORAGE_KEY)?.trim().toUpperCase();
+      if (s && /^[A-Z]{2}$/.test(s) && (WEAR_CHECKOUT_SHIPPING_COUNTRIES as readonly string[]).includes(s)) {
+        setShipToCountry(s);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const shipCountryOptions = useMemo(() => {
+    const dn = typeof Intl !== "undefined" ? new Intl.DisplayNames(["en"], { type: "region" }) : null;
+    return [...WEAR_CHECKOUT_SHIPPING_COUNTRIES]
+      .map((code) => ({ code, label: dn?.of(code) ?? code }))
+      .sort((a, b) => a.label.localeCompare(b.label, "en"));
+  }, []);
+
+  const onShipCountryChange = useCallback((value: string) => {
+    const v = value.trim().toUpperCase();
+    setShipToCountry(v);
+    try {
+      if (v && (WEAR_CHECKOUT_SHIPPING_COUNTRIES as readonly string[]).includes(v)) {
+        localStorage.setItem(WEAR_SHIP_COUNTRY_STORAGE_KEY, v);
+      } else {
+        localStorage.removeItem(WEAR_SHIP_COUNTRY_STORAGE_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const refreshFromStorage = useCallback(() => {
     setLines(parseWearCart(typeof window !== "undefined" ? localStorage.getItem(WEAR_CART_STORAGE_KEY) : null));
@@ -214,13 +253,21 @@ export function WearCartPageClient() {
   const campaignFreeItemCount = serverPricing?.campaign?.freeItemCount ?? 0;
   const campaignLabel = serverPricing?.campaign?.label ?? "Buy 4, get 1 free";
   const merchandiseAfterDiscountCents = Math.max(0, merchandiseCents - couponDiscountCents - campaignDiscountCents);
-  // Free-shipping threshold is checked against the post-discount merchandise total — matches the
-  // server side (`/api/wear/checkout` line 144) so the in-cart UX doesn't lie.
+  // Free-shipping threshold is checked against the post-discount merchandise total — matches
+  // `/api/wear/checkout` (same rules as `resolveWearShippingAmountMinorUnits`).
   const qualifiesForFreeShipping = merchandiseAfterDiscountCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
   const freeShippingRemainingCents = Math.max(
     0,
     WEAR_FREE_SHIPPING_THRESHOLD_CENTS - merchandiseAfterDiscountCents,
   );
+  const estimatedShippingMinor = useMemo(() => {
+    if (!shipToCountry || !/^[A-Z]{2}$/.test(shipToCountry)) return null;
+    return resolveWearShippingAmountMinorUnits(
+      merchandiseAfterDiscountCents,
+      displayCurrency,
+      shipToCountry,
+    );
+  }, [merchandiseAfterDiscountCents, displayCurrency, shipToCountry]);
 
   const linesInvalid = lines.some((l) => !resolveLine(l, byId).ok);
   const cartQuantity = lines.reduce((sum, line) => sum + (line.quantity || 0), 0);
@@ -398,6 +445,14 @@ export function WearCartPageClient() {
       );
       return;
     }
+    if (
+      !shipToCountry ||
+      !/^[A-Z]{2}$/.test(shipToCountry) ||
+      !(WEAR_CHECKOUT_SHIPPING_COUNTRIES as readonly string[]).includes(shipToCountry)
+    ) {
+      setCheckoutError("Choose your delivery country before paying.");
+      return;
+    }
     setCheckoutBusy(true);
     try {
       const partnerStudioId = getWearPartnerReferralStudioId();
@@ -405,6 +460,7 @@ export function WearCartPageClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          shippingCountry: shipToCountry,
           ...(partnerStudioId ? { studioId: partnerStudioId } : {}),
           ...(appliedCoupon ? { couponCode: appliedCoupon.code } : {}),
           items: lines.map((l) => ({
@@ -474,7 +530,16 @@ export function WearCartPageClient() {
     } finally {
       setCheckoutBusy(false);
     }
-  }, [cartCurrencyIssue, lines, currency, serverPricing, subtotalCents, appliedCoupon, campaignDiscountCents]);
+  }, [
+    cartCurrencyIssue,
+    lines,
+    currency,
+    serverPricing,
+    subtotalCents,
+    appliedCoupon,
+    campaignDiscountCents,
+    shipToCountry,
+  ]);
 
   return (
     <main className="pm-brand pm-slab-dark relative min-h-[60vh] px-4 py-16 !bg-[var(--ink)] !text-[var(--clay)] sm:px-6 sm:py-20">
@@ -489,7 +554,9 @@ export function WearCartPageClient() {
             <button
               type="button"
               onClick={onCheckout}
-              disabled={checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid}
+              disabled={
+                checkoutBusy || !catalogReady || lines.length === 0 || linesInvalid || !shipToCountry
+              }
               className="pm-btn pm-btn--heat mt-3 inline-flex min-h-11 items-center justify-center px-4 py-2 text-sm disabled:opacity-50"
             >
               Try checkout again
@@ -613,7 +680,30 @@ export function WearCartPageClient() {
 
         {lines.length > 0 && catalogReady ? (
           <>
-            <dl className="mt-10 space-y-2 border-t border-(--clay)/18 pt-8 text-sm">
+            <div className="mt-10 border-t border-(--clay)/18 pt-8">
+              <label htmlFor="wear-ship-country" className="text-[11px] font-semibold uppercase tracking-[0.18em] text-(--clay)/72">
+                Deliver to
+              </label>
+              <select
+                id="wear-ship-country"
+                value={shipToCountry}
+                onChange={(e) => onShipCountryChange(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-(--clay)/22 bg-(--clay)/8 px-3 py-2.5 text-sm text-[var(--clay)] outline-none transition focus:border-(--heat)/40"
+              >
+                <option value="">Select country…</option>
+                {shipCountryOptions.map(({ code, label }) => (
+                  <option key={code} value={code}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-[10px] leading-relaxed text-(--clay)/50">
+                Shipping is priced for this country. Stripe checkout will only allow this address — change here if
+                needed.
+              </p>
+            </div>
+
+            <dl className="mt-8 space-y-2 border-t border-(--clay)/18 pt-8 text-sm">
               <div className="flex justify-between">
                 <dt className="font-medium text-(--clay)/85">Merchandise</dt>
                 <dd className="text-[var(--clay)]">
@@ -661,13 +751,25 @@ export function WearCartPageClient() {
               ) : null}
               <div className="flex justify-between">
                 <dt className="text-(--clay)/72">Shipping</dt>
-                <dd className={qualifiesForFreeShipping ? "font-semibold text-emerald-400" : "text-(--clay)/72"}>
+                <dd
+                  className={
+                    qualifiesForFreeShipping ? "text-right font-semibold text-emerald-400" : "text-right text-(--clay)/72"
+                  }
+                >
                   {pricingState === "loading" ? (
                     <span className="inline-block h-3 w-32 animate-pulse rounded bg-(--clay)/12" aria-label="Calculating" />
                   ) : qualifiesForFreeShipping ? (
                     "Free"
+                  ) : estimatedShippingMinor == null ? (
+                    <span className="text-(--clay)/55">Select country</span>
                   ) : (
-                    `${formatWearMoney(freeShippingRemainingCents, displayCurrency)} away from free shipping`
+                    <span className="block">
+                      <span className="font-medium">{formatWearMoney(estimatedShippingMinor, displayCurrency)}</span>
+                      <span className="mt-0.5 block text-[10px] leading-snug text-(--clay)/50">
+                        {formatWearMoney(freeShippingRemainingCents, displayCurrency)} to free shipping (over{" "}
+                        {formatWearMoney(WEAR_FREE_SHIPPING_THRESHOLD_CENTS, displayCurrency)} basket)
+                      </span>
+                    </span>
                   )}
                 </dd>
               </div>
@@ -678,9 +780,16 @@ export function WearCartPageClient() {
                     <span className="inline-block h-4 w-24 animate-pulse rounded bg-(--clay)/12" aria-label="Calculating" />
                   ) : (
                     <>
-                      {formatWearMoney(merchandiseAfterDiscountCents, displayCurrency)}
+                      {formatWearMoney(
+                        merchandiseAfterDiscountCents + (estimatedShippingMinor ?? 0),
+                        displayCurrency,
+                      )}
                       <span className="ml-1 text-xs font-normal text-(--clay)/50">
-                        {qualifiesForFreeShipping ? "shipping free" : "+ shipping"}
+                        {qualifiesForFreeShipping
+                          ? "incl. shipping"
+                          : estimatedShippingMinor == null
+                            ? "merchandise only — pick country for shipping"
+                            : "incl. estimated shipping"}
                       </span>
                     </>
                   )}
@@ -805,7 +914,8 @@ export function WearCartPageClient() {
                 lines.length === 0 ||
                 linesInvalid ||
                 cartCurrencyIssue != null ||
-                pricingState === "loading"
+                pricingState === "loading" ||
+                !shipToCountry
               }
               onClick={onCheckout}
               className="pm-btn pm-btn--heat mt-4 w-full min-h-14 px-6 text-sm font-semibold uppercase tracking-[0.14em] disabled:opacity-50"
@@ -814,7 +924,12 @@ export function WearCartPageClient() {
                 ? "Redirecting…"
                 : pricingState === "loading"
                   ? "Calculating…"
-                  : `Pay ${formatWearMoney(merchandiseAfterDiscountCents, displayCurrency)} → checkout`}
+                  : !shipToCountry
+                    ? "Choose delivery country"
+                    : `Pay ${formatWearMoney(
+                        merchandiseAfterDiscountCents + (estimatedShippingMinor ?? 0),
+                        displayCurrency,
+                      )} → checkout`}
             </button>
             <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-(--clay)/50">
               Apple Pay · Google Pay · Card · Link

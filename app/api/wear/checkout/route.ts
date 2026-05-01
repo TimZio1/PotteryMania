@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
 import { assertRateLimit } from "@/lib/rate-limit";
-import {
-  WEAR_CHECKOUT_SHIPPING_COUNTRIES,
-  WEAR_FREE_SHIPPING_THRESHOLD_CENTS,
-  WEAR_STANDARD_SHIPPING_CENTS,
-} from "@/lib/wear-shipping";
+import { WEAR_CHECKOUT_SHIPPING_COUNTRIES, resolveWearShippingAmountMinorUnits } from "@/lib/wear-shipping";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { logApiError } from "@/lib/monitoring";
 import {
@@ -23,6 +19,7 @@ import {
 import { buildWearEngineLinesFromResolved, computeWearCouponDiscount } from "@/lib/wear-discount-engine";
 import { computeWearBuyXGetYDiscount } from "@/lib/wear-buy-x-get-y-campaign";
 import type { Coupon, Prisma } from "@prisma/client";
+import type Stripe from "stripe";
 
 function baseUrl() {
   return process.env.AUTH_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -40,11 +37,21 @@ export async function POST(req: Request) {
     customerName?: string;
     studioId?: string;
     couponCode?: string;
+    shippingCountry?: string;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const shippingCountryRaw =
+    typeof body.shippingCountry === "string" ? body.shippingCountry.trim().toUpperCase() : "";
+  if (!/^[A-Z]{2}$/.test(shippingCountryRaw)) {
+    return NextResponse.json({ error: "Choose a delivery country before checkout." }, { status: 400 });
+  }
+  if (!(WEAR_CHECKOUT_SHIPPING_COUNTRIES as readonly string[]).includes(shippingCountryRaw)) {
+    return NextResponse.json({ error: "That delivery country is not available for wear orders." }, { status: 400 });
   }
 
   // Identity is now collected by Stripe Checkout (email + shipping name) and
@@ -152,7 +159,8 @@ export async function POST(req: Request) {
   }
 
   const currency = resolvedPack.currency;
-  const qualifiesForFreeShipping = subtotalCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
+  const shippingAmountMinor = resolveWearShippingAmountMinorUnits(subtotalCents, currency, shippingCountryRaw);
+  const qualifiesForFreeShipping = shippingAmountMinor === 0;
   const stripeLineTotalAfterByKey = { ...lineTotalAfterByKey };
 
   const orderId = await prisma.$transaction(async (tx) => {
@@ -245,13 +253,16 @@ export async function POST(req: Request) {
       success_url: `${baseUrl()}/wear/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl()}/wear/cart?cancelled=1`,
       shipping_address_collection: {
-        allowed_countries: [...WEAR_CHECKOUT_SHIPPING_COUNTRIES],
+        /** Single country so the fixed shipping rate matches the tier set at session creation. */
+        allowed_countries: [
+          shippingCountryRaw as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry,
+        ],
       },
       shipping_options: [
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: qualifiesForFreeShipping ? 0 : WEAR_STANDARD_SHIPPING_CENTS, currency },
+            fixed_amount: { amount: shippingAmountMinor, currency },
             display_name: qualifiesForFreeShipping ? "Free shipping" : "Standard shipping",
           },
         },
@@ -259,6 +270,7 @@ export async function POST(req: Request) {
       metadata: {
         type: "wear_order",
         wearOrderId: orderId,
+        shipToCountry: shippingCountryRaw,
         ...(resolvedPack.attributedStudioId ? { studioId: resolvedPack.attributedStudioId } : {}),
         ...metaCoupon,
         ...metaCampaign,
@@ -267,6 +279,7 @@ export async function POST(req: Request) {
         metadata: {
           type: "wear_order",
           wearOrderId: orderId,
+          shipToCountry: shippingCountryRaw,
           ...(resolvedPack.attributedStudioId ? { studioId: resolvedPack.attributedStudioId } : {}),
           ...metaCoupon,
           ...metaCampaign,

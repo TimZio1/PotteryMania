@@ -10,6 +10,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 import { getSpreadconnectConfig } from "@/lib/spreadconnect-config";
+import { resolveWearShippingAmountMinorUnits } from "@/lib/wear-shipping";
 import { isRuntimeFlagEnabled, RUNTIME_FLAG_KEYS } from "@/lib/runtime-feature-flags";
 import { ensureSpreadconnectSubmitDeferred } from "@/lib/wear-fulfillment-defer";
 import { escalateWearOrderSpreadconnectFailure } from "@/lib/wear-order-escalate";
@@ -166,7 +167,8 @@ function toSpreadconnectAddress(
 /** Shipping paid in checkout (minor units), for Spreadconnect `shipping.customerPrice`. */
 function resolveShippingAmountCents(
   session: Stripe.Checkout.Session,
-  orderRow: { subtotalCents: number; amountTotalCents: number | null },
+  orderRow: { subtotalCents: number; amountTotalCents: number | null; currency: string },
+  shipToCountryIso2: string,
 ): number {
   const sc = session.shipping_cost?.amount_total;
   if (typeof sc === "number" && sc >= 0) return sc;
@@ -176,7 +178,7 @@ function resolveShippingAmountCents(
   if (total != null && total >= orderRow.subtotalCents) {
     return Math.max(0, total - orderRow.subtotalCents);
   }
-  return 900;
+  return resolveWearShippingAmountMinorUnits(orderRow.subtotalCents, orderRow.currency, shipToCountryIso2);
 }
 
 export function resolveSpreadconnectSku(item: {
@@ -372,7 +374,7 @@ export async function submitPaidWearOrderToSpreadconnect(opts: {
   );
 
   const currency = (session.currency || orderRow.currency || "eur").toUpperCase();
-  const shippingCents = resolveShippingAmountCents(session, orderRow);
+  const shippingCents = resolveShippingAmountCents(session, orderRow, country);
   const shippingAmount = shippingCents / 100;
 
   const phone =
