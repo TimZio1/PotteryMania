@@ -4,12 +4,10 @@
  * `adminLinks` is the full list (kept short on purpose; less-used screens are reachable
  * from their related hub pages — Settings, Content, etc).
  *
- * `apparelOnlyAdminLinks` is the operator surface for the apparel-focused storefront.
- * Shown when `NEXT_PUBLIC_LAUNCH_MODE=apparel_only` **or** `NEXT_PUBLIC_ADMIN_MODE` is not
- * `legacy` / `hyperadmin`. Studio/booking/marketplace routes stay on disk but are not linked here.
+ * `apparelOnlyAdminLinks` is the only operator surface linked from the admin shell.
+ * `adminLinks` remains for `getHiddenAdminLinks()` (deep links / bookmarks); studio SaaS is discontinued.
  */
 
-import { isApparelAdminMode, isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 export type AdminLink = {
   href: string;
@@ -67,10 +65,9 @@ export const apparelOnlyAdminLinks: readonly AdminLink[] = [
   { href: "/admin/settings", label: "Settings" },
 ] as const;
 
-/** Returns the appropriate nav for the current launch mode. */
+/** Operator nav — apparel storefront only (studio SaaS discontinued). */
 export function getActiveAdminLinks(): readonly AdminLink[] {
-  if (isApparelOnlyLaunch()) return apparelOnlyAdminLinks;
-  return isApparelAdminMode() ? apparelOnlyAdminLinks : adminLinks;
+  return apparelOnlyAdminLinks;
 }
 
 /** Links that exist but are hidden right now — surfaced on the admin home for ops. */

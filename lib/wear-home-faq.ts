@@ -11,7 +11,7 @@ export const WEAR_HOME_APPAREL_FAQ = [
   {
     question: "Do you ship internationally?",
     answer:
-      "Yes. We ship across the EU, UK, US and most of the world. Final shipping cost and ETA are calculated at checkout based on your address.",
+      "We ship to EU countries, Iceland, the United Kingdom, Canada, and Australia. We do not ship to the United States, Norway, Switzerland, or New Zealand. Shipping cost and ETA are calculated at checkout from your address.",
   },
   {
     question: "How does the return policy work?",

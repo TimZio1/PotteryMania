@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { MarketingLayout } from "@/components/marketing-layout";
-import { PrivateGuideForm } from "@/app/early-access/private-guide-form";
-import { HomeLaunchStats } from "@/app/home-launch-stats";
 import { HomeScrollReset } from "@/app/home-scroll-reset";
 import { apparelMarketingDescription, buildAbsoluteUrl, buildMetadata } from "@/lib/seo";
 import {
@@ -15,11 +13,11 @@ import {
   websiteJsonLd,
 } from "@/lib/structured-data";
 import { WEAR_HOME_APPAREL_FAQ } from "@/lib/wear-home-faq";
+import { WEAR_SHIPPING_TRUST_STRIP } from "@/lib/wear-shipping-copy";
 import { WEAR_VISUAL_IMAGES } from "@/lib/wear-config";
 import { findWearPublicProductsWithVariantsRetrying } from "@/lib/wear-public-catalog-query";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
-import { ui } from "@/lib/ui-styles";
 import {
   mapWearProductRowToInternalPricesWithConfig,
   resolveWearInternalPricingConfig,
@@ -188,13 +186,7 @@ async function ApparelHome() {
       <main className="pm-brand pm-snap relative overflow-hidden bg-[var(--clay)] text-[var(--ink)]">
         {/* ── 0. Trust strip — single line, no emoji, no clutter ─────────────── */}
         <div className="border-b border-[var(--ink)]/10 bg-[var(--ink)] text-[var(--clay)]">
-          <p className="pm-caption mx-auto max-w-6xl px-4 py-2.5 text-center">
-            30-day returns
-            <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
-            Worldwide shipping
-            <span aria-hidden className="mx-3 text-[var(--clay)]/40">·</span>
-            Free EU shipping on orders over €50
-          </p>
+          <p className="pm-caption mx-auto max-w-6xl px-4 py-2.5 text-center">{WEAR_SHIPPING_TRUST_STRIP}</p>
         </div>
 
         {/* ── 1. Hero — one image, one headline, one CTA ─────────────────────── */}
@@ -516,9 +508,7 @@ async function ApparelHome() {
                 <span aria-hidden className="ml-3 transition group-hover:translate-x-0.5">→</span>
               </Link>
             </div>
-            <p className="pm-caption mt-10 text-[var(--clay)]/50">
-              30-day returns · Worldwide shipping · Free EU shipping on orders over €50
-            </p>
+            <p className="pm-caption mt-10 text-[var(--clay)]/50">{WEAR_SHIPPING_TRUST_STRIP}</p>
           </div>
         </section>
       </main>
@@ -527,108 +517,7 @@ async function ApparelHome() {
     </MarketingLayout>
   );
 }
-
-function LegacyStudioHome() {
-  const jsonLd = toJsonLdScript([websiteJsonLd(), organizationJsonLd()]);
-  return (
-    <MarketingLayout>
-      <HomeScrollReset />
-      <main className="bg-[#f7f2ec] text-stone-900">
-        <section className={`${ui.pageContainer} py-12 sm:py-20`}>
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">PotteryMania</p>
-            <h1 className="mt-4 font-serif text-3xl leading-snug tracking-tight text-amber-950 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
-              Clothes for people who build things with their hands.
-            </h1>
-            <p className="mt-6 text-base leading-relaxed text-stone-600 sm:text-lg">
-              Small runs. No filler. Each piece is for you — not for a shelf.
-            </p>
-            <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
-              <Link
-                href="/wear/shop"
-                className="inline-flex min-h-12 items-center justify-center border border-amber-300/60 bg-white px-8 text-sm font-medium tracking-wide text-stone-900 shadow-[var(--pm-shadow-rest)] transition hover:bg-amber-50/90"
-              >
-                Shop the drop
-              </Link>
-              <Link
-                href="/wear"
-                className="inline-flex min-h-11 items-center justify-center border border-stone-300/80 bg-transparent px-6 text-sm font-medium tracking-wide text-stone-800 transition hover:border-amber-400/80 hover:bg-white/60"
-              >
-                Explore the drop
-              </Link>
-              <Link
-                href="/wear/partner"
-                className="text-sm font-medium text-stone-600 underline decoration-stone-400/60 underline-offset-4 transition hover:text-amber-950 hover:decoration-amber-700/60 sm:ml-1"
-              >
-                Partner program
-              </Link>
-            </div>
-            <div className="relative mx-auto mt-14 aspect-[21/9] max-w-3xl overflow-hidden rounded-2xl border border-stone-200/80 bg-stone-100 sm:aspect-[2/1]">
-              <Image
-                src={WEAR_VISUAL_IMAGES.primary}
-                alt={WEAR_VISUAL_IMAGES.primaryAlt}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 48rem"
-                loading="lazy"
-                decoding="async"
-                fetchPriority="low"
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-stone-200/80 bg-[#ede8df] py-10 sm:py-14">
-          <div className={ui.pageContainer}>
-            <div className="mx-auto max-w-3xl">
-              <div className="rounded-[var(--radius-card)] border border-stone-700/40 bg-[#1a1816] p-[var(--pm-space-6)] text-white shadow-[var(--pm-shadow-lift)] sm:p-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/70">Partners</p>
-                <h2 className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl">
-                  Sell the drop with your link — commission on every tee and hoodie.
-                </h2>
-                <p className="mt-3 text-sm leading-7 text-white/80">
-                  Join the apparel affiliate program: share your landing page, track orders, and get paid through Stripe.
-                  Buying merch doesn&apos;t require an account.
-                </p>
-
-                <div className="mt-6">
-                  <HomeLaunchStats />
-                </div>
-
-                <div id="register-studio" className="mt-6 border-t border-white/15 pt-6">
-                  <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
-                    Early access registration
-                  </div>
-                  <PrivateGuideForm />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-    </MarketingLayout>
-  );
-}
-
-/**
- * Homepage — always apparel.
- *
- * The legacy SaaS / early-access landing (`LegacyStudioHome`) is preserved in
- * this file as dead-but-intact infrastructure for a future re-launch, but is
- * intentionally NOT reachable from `/`. We learned the hard way that
- * `NEXT_PUBLIC_*` env-flag gating is fragile across Railway builds — flags can
- * silently flip back to legacy on a stale build. The only way the storefront
- * can never accidentally show "Studios & Makers / Early access" again is to
- * remove the env-gated branch from the route entrypoint. To re-enable, wire
- * `LegacyStudioHome` to a fresh route or flip this back deliberately.
- */
-// `LegacyStudioHome` reference kept so the symbol is not tree-shaken into a
-// "declared but unused" error. Do not delete without also removing the
-// component above.
-const _legacyStudioHomeReserved = LegacyStudioHome;
 
 export default function Home() {
-  void _legacyStudioHomeReserved;
   return <ApparelHome />;
 }

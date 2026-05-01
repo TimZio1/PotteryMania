@@ -233,8 +233,9 @@ export default async function AdminWearProductsPage({
         </div>
         <p className="mt-1 text-emerald-900/95">
           The catalog cron pulls every linked article&apos;s <strong>d2cPrice</strong> (list) and{" "}
-          <strong>b2bPrice</strong> (supply / COGS) and writes them to the wear catalog. The admin page uses the
-          saved database catalog only; real-time manual catalog sync is disabled because Spreadconnect can fail.
+          <strong>b2bPrice</strong> (supply / COGS) and writes them to the wear catalog. For a full reconcile (new
+          articles, price/images, and <strong>removals</strong> when something was deleted in Spreadconnect), use{" "}
+          <strong>Full sync from Spreadconnect</strong> below — it can take several minutes.
         </p>
         <p className="mt-2 text-[11px] text-emerald-900/80">
           Cron path: <span className="font-mono">GET /api/cron/wear-catalog-sync</span> · auth:{" "}
@@ -362,7 +363,8 @@ export default async function AdminWearProductsPage({
           <p className="mt-2 text-xs font-medium text-red-900">Sync error flag: {health.lastSyncError}</p>
         ) : null}
         <p className="mt-3 text-xs text-[var(--muted)]">
-          Schedule: keep the catalog cron running daily. Manual real-time catalog sync is disabled in admin.
+          Schedule: keep the catalog cron running daily, and use <strong>Full sync from Spreadconnect</strong> on the
+          product list when you need an immediate full reconcile (including removals).
           Trust requires a fresh <strong>full</strong> sync within ~36h, no duplicate SKUs, and skip ratio under 85%.
         </p>
       </div>

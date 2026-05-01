@@ -117,10 +117,10 @@ export async function getWearCatalogHealthSnapshot() {
   if (shopVisibleCount > 0 && syncedShopVisibleCount === 0) {
     if (!spreadconnectConfigured) {
       catalogImportHint =
-        "The public shop is showing the saved database catalog. Set a real SPREADCONNECT_API_KEY on the host for the scheduled catalog cron; admin pages do not run real-time Spreadconnect catalog sync.";
+        "The public shop is showing the saved database catalog. Set a real SPREADCONNECT_API_KEY on the host for the scheduled catalog cron, or use “Full sync from Spreadconnect” on /admin/wear-products (hyper-admin).";
     } else {
       catalogImportHint =
-        "Spreadconnect is configured, but the live shop has no imported catalog rows yet (no products with variant SKUs or an external fulfillment id). Let the scheduled catalog cron refresh saved DB data; admin pages intentionally do not run real-time Spreadconnect catalog fetches.";
+        "Spreadconnect is configured, but the live shop has no imported catalog rows yet (no products with variant SKUs or an external fulfillment id). Use “Full sync from Spreadconnect” on /admin/wear-products or wait for the scheduled catalog cron.";
     }
   }
 

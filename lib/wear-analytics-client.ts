@@ -96,15 +96,16 @@ export function trackWearEvent(kind: WearEventKind, opts: TrackOpts = {}) {
         ...(opts.quantity != null
           ? pixelEvent === "Purchase"
             ? { num_items: opts.quantity }
-            : {
-                contents: contentIds?.map((id) => ({
-                  id,
-                  quantity: opts.quantity,
-                  ...(opts.value != null && opts.quantity > 0
-                    ? { item_price: Number((opts.value / opts.quantity).toFixed(2)) }
-                    : {}),
-                })),
-              }
+            : (() => {
+                const q = opts.quantity!;
+                return {
+                  contents: contentIds?.map((id) => ({
+                    id,
+                    quantity: q,
+                    ...(opts.value != null && q > 0 ? { item_price: Number((opts.value / q).toFixed(2)) } : {}),
+                  })),
+                };
+              })()
           : {}),
       };
       try {

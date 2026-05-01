@@ -13,10 +13,10 @@ const DEFAULT_OG_IMAGE_WIDTH = 1200;
 const DEFAULT_OG_IMAGE_HEIGHT = 630;
 
 const FULL_DESCRIPTION =
-  "PotteryMania — maker apparel and the wear affiliate program. Stripe checkout, worldwide shipping, 30-day returns.";
+  "PotteryMania — maker apparel and the wear affiliate program. Stripe checkout, shipping to the EU, UK, and select countries, 30-day returns.";
 
 const APPAREL_DESCRIPTION =
-  "PotteryMania: maker T-shirts, hoodies, and headwear for potters, ceramic artists, and creatives. Stripe checkout, worldwide shipping, 30-day returns. Shop the live drop or join the affiliate program at potterymania.com.";
+  "PotteryMania: maker T-shirts, hoodies, and headwear for potters, ceramic artists, and creatives. Stripe checkout, shipping to the EU, UK, and select countries, 30-day returns. Shop the live drop or join the affiliate program at potterymania.com.";
 
 const FULL_KEYWORDS = [
   "maker apparel",

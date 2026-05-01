@@ -33,6 +33,7 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [promoting, setPromoting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const refresh = useCallback(async () => {
     const q = includeArchived ? "?includeArchived=1" : "";
@@ -81,6 +82,51 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
     await refresh();
   }
 
+  async function fullSyncSpreadconnect() {
+    if (
+      !window.confirm(
+        "Run a FULL Spreadconnect catalog sync? This lists the entire remote catalog, updates products and variants, and archives wear rows whose Spreadconnect article no longer exists (404) or is not in the remote snapshot. It can take several minutes — keep this tab open.",
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setSyncing(true);
+    setErr("");
+    setMsg("");
+    try {
+      const r = await fetch("/api/admin/wear-products/sync-spreadconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullDiscovery: true }),
+        signal: AbortSignal.timeout(600_000),
+      });
+      const j = (await r.json().catch(() => ({}))) as Record<string, unknown> & { error?: string };
+      if (!r.ok) {
+        setErr(typeof j.error === "string" ? j.error : "Spreadconnect sync failed");
+        return;
+      }
+      const created = typeof j.createdProducts === "number" ? j.createdProducts : 0;
+      const updated = typeof j.updatedProducts === "number" ? j.updatedProducts : 0;
+      const unchanged = typeof j.skippedUnchangedProducts === "number" ? j.skippedUnchangedProducts : 0;
+      const archDel =
+        typeof j.archivedDeletedSpreadconnectArticles === "number" ? j.archivedDeletedSpreadconnectArticles : 0;
+      const archSnap =
+        typeof j.archivedNotInRemoteCatalogSnapshot === "number" ? j.archivedNotInRemoteCatalogSnapshot : 0;
+      const archPh = typeof j.archivedProducts === "number" ? j.archivedProducts : 0;
+      setMsg(
+        `Spreadconnect full sync: +${created} created · ${updated} updated · ${unchanged} unchanged · archived (deleted article 404): ${archDel} · archived (not in remote catalog snapshot): ${archSnap} · placeholder cleanup: ${archPh}`,
+      );
+      await refresh();
+      router.refresh();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Spreadconnect sync failed");
+    } finally {
+      setBusy(false);
+      setSyncing(false);
+    }
+  }
+
   async function backfillAssetHealth() {
     setBusy(true);
     setPromoting(true);
@@ -119,6 +165,16 @@ export default function WearProductsAdminClient({ initial }: { initial: WearProd
         <Link href="/admin/wear-products/new" className={ui.buttonPrimary}>
           New wear product
         </Link>
+        <button type="button" disabled={busy} onClick={fullSyncSpreadconnect} className={ui.buttonGhost}>
+          {syncing ? (
+            <span className="inline-flex items-center gap-2">
+              <Spinner size="sm" className="text-stone-600" />
+              Syncing Spreadconnect…
+            </span>
+          ) : (
+            "Full sync from Spreadconnect"
+          )}
+        </button>
         <button type="button" disabled={busy} onClick={backfillAssetHealth} className={ui.buttonGhost}>
           {promoting ? (
             <span className="inline-flex items-center gap-2">

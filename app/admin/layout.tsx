@@ -5,7 +5,6 @@ import { metaAdminPage } from "@/lib/seo-routes";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { platformUi } from "@/lib/ui-styles";
-import { isApparelAdminMode, isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { AdminSignOut } from "./admin-sign-out";
 import { AdminMobileNav } from "./admin-mobile-nav";
 import { adminLinks, getActiveAdminLinks } from "./admin-links";
@@ -13,23 +12,15 @@ import { adminLinks, getActiveAdminLinks } from "./admin-links";
 export { adminLinks };
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (isApparelOnlyLaunch()) {
-    return metaAdminPage(
-      "Admin",
-      "/admin",
-      "Wear catalog, orders, affiliates, and platform controls for the apparel storefront.",
-    );
-  }
   return metaAdminPage(
-    "Hyperadmin",
+    "Admin",
     "/admin",
-    "Platform control center: studios, money, system, and operations.",
+    "Wear catalog, orders, affiliates, and platform controls for the apparel storefront.",
   );
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const links = getActiveAdminLinks();
-  const apparelOnlySurface = isApparelOnlyLaunch() || isApparelAdminMode();
 
   return (
     <div className="pm-visual-platform admin-light-tokens min-h-screen" data-pm-visual="platform">
@@ -42,23 +33,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <span
                   className={cn(
                     "rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide",
-                    apparelOnlySurface
-                      ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                      : "border-stone-200 bg-white text-stone-700",
+                    "border-emerald-300 bg-emerald-50 text-emerald-900",
                   )}
-                  title={apparelOnlySurface ? "Apparel-focused operator mode" : undefined}
+                  title="Apparel-focused operator mode"
                 >
-                  {apparelOnlySurface ? "Apparel admin" : "Hyperadmin"}
+                  Apparel admin
                 </span>
-                {apparelOnlySurface ? (
-                  <Link href="/wear/shop" className="text-xs font-medium text-stone-700 hover:text-amber-950">
-                    View shop
-                  </Link>
-                ) : (
-                  <Link href="/dashboard" className="text-xs font-medium text-stone-700 hover:text-amber-950">
-                    Studio view
-                  </Link>
-                )}
+                <Link href="/wear/shop" className="text-xs font-medium text-stone-700 hover:text-amber-950">
+                  View shop
+                </Link>
               </div>
             </div>
 
@@ -77,11 +60,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
 
-            {apparelOnlySurface ? (
-              <div className="border-t border-stone-200/80 px-4 py-3 text-[11px] text-stone-500">
-                <p>This admin is scoped to apparel: products, orders, affiliates, and coupons. Legacy studio routes are not linked here.</p>
-              </div>
-            ) : null}
+            <div className="border-t border-stone-200/80 px-4 py-3 text-[11px] text-stone-500">
+              <p>This admin is scoped to apparel: products, orders, affiliates, and coupons.</p>
+            </div>
 
             <div className="border-t border-stone-200/80 px-3 py-4">
               <AdminSignOut />
@@ -97,14 +78,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <span
                   className={cn(
                     "rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide",
-                    apparelOnlySurface
-                      ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                      : "border-stone-200 bg-white text-stone-700",
+                    "border-emerald-300 bg-emerald-50 text-emerald-900",
                   )}
                 >
-                  {apparelOnlySurface ? "Apparel admin" : "Hyperadmin"}
+                  Apparel admin
                 </span>
-                <AdminMobileNav links={links} apparelOnly={apparelOnlySurface} />
+                <AdminMobileNav links={links} apparelOnly />
               </div>
             </div>
           </div>

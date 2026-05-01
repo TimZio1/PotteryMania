@@ -1,39 +1,35 @@
 /**
- * Launch mode: this deployment defaults to **apparel only** (tees/hoodies + affiliate program).
- * Set `NEXT_PUBLIC_LAUNCH_MODE=full` only to surface legacy studio/booking/marketplace routes in dev.
+ * Product surface: **apparel + affiliate program** only.
+ * The former studio SaaS (bookings, marketplace, studio dashboard) is discontinued — legacy routes
+ * remain in the repo for reference but are not exposed as a launch mode.
  */
-export type LaunchMode = "full" | "apparel_only";
+export type LaunchMode = "apparel_only";
 
 export function getLaunchMode(): LaunchMode {
-  const raw = process.env.NEXT_PUBLIC_LAUNCH_MODE?.trim().toLowerCase();
-  /** This codebase ships as apparel-first; set `NEXT_PUBLIC_LAUNCH_MODE=full` only for legacy pottery SaaS dev. */
-  if (raw === "full") return "full";
   return "apparel_only";
 }
 
 export function isApparelOnlyLaunch(): boolean {
-  return getLaunchMode() === "apparel_only";
+  return true;
 }
 
 /**
- * The operator admin defaults to the apparel control surface during the current launch.
- * Set NEXT_PUBLIC_ADMIN_MODE=legacy only when the old studio/booking hyperadmin is needed.
+ * Operator admin defaults to the apparel control surface.
+ * Set `NEXT_PUBLIC_ADMIN_MODE=legacy` only if you still need old hyperadmin plumbing during migration.
  */
 export function isApparelAdminMode(): boolean {
   const raw = process.env.NEXT_PUBLIC_ADMIN_MODE?.trim().toLowerCase();
   return raw !== "legacy" && raw !== "hyperadmin";
 }
 
-/** Feature visibility: this app sells apparel only; booking/marketplace/class flags stay off. */
+/** Feature visibility — studio/booking/marketplace flags stay off. */
 export const featureFlags = {
-  /** Alias: apparel-only launch mode (see `apparelOnlyLaunch`). */
   get apparelOnly() {
-    return isApparelOnlyLaunch();
+    return true;
   },
   get apparelOnlyLaunch() {
-    return isApparelOnlyLaunch();
+    return true;
   },
-  /** Class bookings and marketplace ceramics are not part of this product surface. */
   get bookings() {
     return false;
   },

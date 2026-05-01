@@ -78,7 +78,7 @@ export function organizationJsonLd() {
         email: "support@potterymania.com",
         url: siteMetadata.url,
         availableLanguage: ["English"],
-        areaServed: "Worldwide",
+        areaServed: "European Union, Iceland, United Kingdom, Canada, Australia",
       },
     ],
   };

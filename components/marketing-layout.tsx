@@ -6,9 +6,9 @@ import { MarketingPageTransition } from "@/components/marketing/marketing-page-t
 import { SiteHeader } from "@/components/site-header";
 import { CookieSettingsButton } from "@/components/cookie-settings-button";
 import { isPreregistrationOnly } from "@/lib/preregistration";
-import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 import { ui } from "@/lib/ui-styles";
 import { normalizeDomainName, stripPortFromHost } from "@/lib/vendor-domain-core";
+import { WEAR_SHIPPING_REGION_BADGE } from "@/lib/wear-shipping-copy";
 
 type Props = {
   children: ReactNode;
@@ -24,25 +24,12 @@ function isPotterymaniaMarketingHost(host: string | null): boolean {
   return host === "potterymania.com" || host.endsWith(".potterymania.com");
 }
 
-/**
- * Apparel is the unconditional default. The legacy SaaS shell only renders if an
- * operator explicitly opts in with `NEXT_PUBLIC_HOMEPAGE_MODE=studio_legacy` AND
- * apparel-only launch mode is off. This protects against silent regressions when
- * `NEXT_PUBLIC_LAUNCH_MODE` is missing from the build env.
- */
-function shouldRenderLegacyShell(apparelStorefront: boolean): boolean {
-  if (apparelStorefront) return false;
-  if (isApparelOnlyLaunch()) return false;
-  return process.env.NEXT_PUBLIC_HOMEPAGE_MODE === "studio_legacy";
-}
-
-export async function MarketingLayout({ children, toolbar, apparelStorefront = false }: Props) {
+export async function MarketingLayout({ children, toolbar, apparelStorefront: _apparelShell = false }: Props) {
   const requestHeaders = await headers();
   const hostHeader = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
   const normalizedHost = normalizeDomainName(stripPortFromHost(hostHeader) || "");
   const onPotterymania = isPotterymaniaMarketingHost(normalizedHost || null);
-  const renderLegacy = shouldRenderLegacyShell(apparelStorefront);
-  const apparelShell = !renderLegacy;
+  const apparelShell = true;
   const showSignIn = apparelShell || !isPreregistrationOnly();
 
   return (
@@ -69,7 +56,7 @@ export async function MarketingLayout({ children, toolbar, apparelStorefront = f
                     Secure checkout · Stripe
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-1">
-                    Worldwide shipping
+                    {WEAR_SHIPPING_REGION_BADGE}
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-1">
                     Free EU shipping over €50

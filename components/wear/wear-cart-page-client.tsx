@@ -16,7 +16,7 @@ import { setWearCheckoutSnapshot } from "@/lib/wear-checkout-snapshot";
 import { WEAR_LISTING_CURRENCY, WEAR_CURRENCY_POLICY_FULL } from "@/lib/wear-currency-policy";
 import { formatWearMoney } from "@/lib/wear-money";
 import { getWearPartnerReferralStudioId } from "@/lib/wear-referral-storage";
-import { WEAR_SHIPPING_CART_NOTE } from "@/lib/wear-shipping-copy";
+import { WEAR_SHIPPING_CART_NOTE, WEAR_SHIPPING_TRUST_STRIP } from "@/lib/wear-shipping-copy";
 import { WEAR_FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/wear-shipping";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
@@ -793,7 +793,7 @@ export function WearCartPageClient() {
             ) : null}
 
             <p className="mt-6 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-(--clay)/50">
-              Secure Stripe · 30-day returns · Worldwide shipping · Free EU shipping on orders over €50
+              Secure Stripe · {WEAR_SHIPPING_TRUST_STRIP}
             </p>
 
             <button

@@ -7,7 +7,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui-styles";
-import { isApparelOnlyLaunch } from "@/lib/launch-mode";
 
 function isAdminRole(role: string | undefined) {
   return role === "admin" || role === "hyper_admin";
@@ -19,11 +18,11 @@ function isVendorRole(role: string | undefined) {
 
 type SiteHeaderProps = {
   showPublicSignIn?: boolean;
-  /** Wear shop shell: trim studio/booking CTAs; point cart at `/wear/cart`. */
+  /** Wear shop shell: point cart at `/wear/cart` (minimal header chrome). */
   apparelStorefront?: boolean;
 };
 
-export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false }: SiteHeaderProps) {
+export function SiteHeader({ showPublicSignIn = true, apparelStorefront: _apparelShell = false }: SiteHeaderProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -39,24 +38,7 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
 
   const authed = status === "authenticated" && session?.user;
   const role = session?.user?.role;
-  const createStudioHref = authed ? "/dashboard/studio/new?setup=both" : "/demo";
-  const createStudioActiveHref = authed ? "/dashboard/studio/new" : "/demo";
-  const shopCartHref = "/wear/cart";
-  const apparelOnly = isApparelOnlyLaunch();
-  /**
-   * Apparel nav is the unconditional default — it renders unless an operator explicitly
-   * opts back into the legacy SaaS nav with `NEXT_PUBLIC_HOMEPAGE_MODE=studio_legacy`
-   * AND apparel-only launch mode is off. This protects against silent regressions when
-   * `NEXT_PUBLIC_LAUNCH_MODE` is missing from the build env.
-   */
-  const legacyOptIn =
-    !apparelOnly &&
-    !apparelStorefront &&
-    process.env.NEXT_PUBLIC_HOMEPAGE_MODE === "studio_legacy";
-  const apparelNav = !legacyOptIn;
-  const storeMode = apparelNav;
-  const buyerFirstMarketing = apparelNav || pathname === "/";
-  const cartHref = buyerFirstMarketing ? shopCartHref : "/cart";
+  const cartHref = "/wear/cart";
 
   useEffect(() => {
     if (!open) return;
@@ -191,11 +173,6 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                   Dashboard
                 </Link>
               ) : null}
-              {!storeMode && !isVendorRole(role) && !isAdminRole(role) ? (
-                <Link href={createStudioHref} className={linkClass(createStudioActiveHref)}>
-                  Create your studio
-                </Link>
-              ) : null}
               {!isAdminRole(role) ? (
                 <>
                   <Link href="/my-orders" className={linkClass("/my-orders")}>
@@ -220,52 +197,35 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
           ) : (
             <>
               <div className="hidden items-center gap-1 md:flex">
-                {apparelNav ? (
-                  <>
-                    <Link href="/" className={linkClass("/")}>
-                      Home
-                    </Link>
-                    <Link href="/wear/shop" className={cn(ui.buttonMarketing, "min-h-10 px-5")}>
-                      Shop
-                    </Link>
-                    <Link href="/wear/partner" className={linkClass("/wear/partner")}>
-                      Affiliate
-                    </Link>
-                    <Link href="/about" className={linkClass("/about")}>
-                      About
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/vision" className={linkClass("/vision")}>
-                      Our vision
-                    </Link>
-                    <Link href="/#register-studio" className={linkClass("/")}>
-                      Register for free
-                    </Link>
-                  </>
-                )}
-              </div>
-              {apparelNav ? (
-                <div className="flex shrink-0 items-center gap-2 md:hidden">
-                  <Link
-                    href="/wear/cart"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-card)] border border-[var(--border)] text-[var(--foreground)]"
-                    aria-label="View cart"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                      <path d="M6 6h15l-1.5 9h-12z" />
-                      <circle cx="9" cy="20" r="1.5" />
-                      <circle cx="18" cy="20" r="1.5" />
-                      <path d="M6 6L4 2H1" />
-                    </svg>
+                <>
+                  <Link href="/" className={linkClass("/")}>
+                    Home
                   </Link>
-                </div>
-              ) : (
-                <Link href="/#register-studio" className={`${ui.buttonMarketing} md:hidden`}>
-                  Register for free
+                  <Link href="/wear/shop" className={cn(ui.buttonMarketing, "min-h-10 px-5")}>
+                    Shop
+                  </Link>
+                  <Link href="/wear/partner" className={linkClass("/wear/partner")}>
+                    Affiliate
+                  </Link>
+                  <Link href="/about" className={linkClass("/about")}>
+                    About
+                  </Link>
+                </>
+              </div>
+              <div className="flex shrink-0 items-center gap-2 md:hidden">
+                <Link
+                  href="/wear/cart"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-[var(--radius-card)] border border-[var(--border)] text-[var(--foreground)]"
+                  aria-label="View cart"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path d="M6 6h15l-1.5 9h-12z" />
+                    <circle cx="9" cy="20" r="1.5" />
+                    <circle cx="18" cy="20" r="1.5" />
+                    <path d="M6 6L4 2H1" />
+                  </svg>
                 </Link>
-              )}
+              </div>
               {showPublicSignIn ? (
                 <Link
                   href="/login"
@@ -336,11 +296,6 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
                     Dashboard
                   </Link>
                 ) : null}
-                {!storeMode && !isVendorRole(role) && !isAdminRole(role) ? (
-                  <Link href="/dashboard/studio/new?setup=both" className={mobileLinkClass("/dashboard/studio/new")} onClick={close}>
-                    Create your studio
-                  </Link>
-                ) : null}
                 {!isAdminRole(role) ? (
                   <>
                     <Link href="/my-orders" className={mobileLinkClass("/my-orders")} onClick={close}>
@@ -367,59 +322,47 @@ export function SiteHeader({ showPublicSignIn = true, apparelStorefront = false 
               </>
             ) : (
               <>
-                {apparelNav ? (
-                  <>
-                    <Link href="/" className={mobileLinkClass("/")} onClick={close}>
-                      Home
-                    </Link>
-                    <Link href="/wear/shop" className={mobileLinkClass("/wear/shop")} onClick={close}>
-                      Shop
-                    </Link>
-                    <Link
-                      href="/wear/shop?category=tops"
-                      className={mobileLinkClass("/wear/shop?category=tops")}
-                      onClick={close}
-                    >
-                      T-shirts
-                    </Link>
-                    <Link
-                      href="/wear/shop?category=hoodies"
-                      className={mobileLinkClass("/wear/shop?category=hoodies")}
-                      onClick={close}
-                    >
-                      Hoodies
-                    </Link>
-                    <Link
-                      href="/wear/shop?category=headwear"
-                      className={mobileLinkClass("/wear/shop?category=headwear")}
-                      onClick={close}
-                    >
-                      Headwear
-                    </Link>
-                    <Link href="/wear/cart" className={mobileLinkClass("/wear/cart")} onClick={close}>
-                      Cart
-                    </Link>
-                    <Link href="/wear/partner" className={mobileLinkClass("/wear/partner")} onClick={close}>
-                      Affiliate program
-                    </Link>
-                    <Link href="/about" className={mobileLinkClass("/about")} onClick={close}>
-                      About
-                    </Link>
-                    <Link href="/refunds" className={mobileLinkClass("/refunds")} onClick={close}>
-                      Returns & refunds
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/vision" className={mobileLinkClass("/vision")} onClick={close}>
-                      Our vision
-                    </Link>
-                    <hr className="my-2 border-[var(--border)]" />
-                    <Link href="/#register-studio" className={mobileLinkClass("/")} onClick={close}>
-                      Register for free
-                    </Link>
-                  </>
-                )}
+                <>
+                  <Link href="/" className={mobileLinkClass("/")} onClick={close}>
+                    Home
+                  </Link>
+                  <Link href="/wear/shop" className={mobileLinkClass("/wear/shop")} onClick={close}>
+                    Shop
+                  </Link>
+                  <Link
+                    href="/wear/shop?category=tops"
+                    className={mobileLinkClass("/wear/shop?category=tops")}
+                    onClick={close}
+                  >
+                    T-shirts
+                  </Link>
+                  <Link
+                    href="/wear/shop?category=hoodies"
+                    className={mobileLinkClass("/wear/shop?category=hoodies")}
+                    onClick={close}
+                  >
+                    Hoodies
+                  </Link>
+                  <Link
+                    href="/wear/shop?category=headwear"
+                    className={mobileLinkClass("/wear/shop?category=headwear")}
+                    onClick={close}
+                  >
+                    Headwear
+                  </Link>
+                  <Link href="/wear/cart" className={mobileLinkClass("/wear/cart")} onClick={close}>
+                    Cart
+                  </Link>
+                  <Link href="/wear/partner" className={mobileLinkClass("/wear/partner")} onClick={close}>
+                    Affiliate program
+                  </Link>
+                  <Link href="/about" className={mobileLinkClass("/about")} onClick={close}>
+                    About
+                  </Link>
+                  <Link href="/refunds" className={mobileLinkClass("/refunds")} onClick={close}>
+                    Returns & refunds
+                  </Link>
+                </>
                 <hr className="my-2 border-[var(--border)]" />
                 {showPublicSignIn ? (
                   <Link

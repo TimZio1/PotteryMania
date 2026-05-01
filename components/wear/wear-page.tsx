@@ -8,7 +8,11 @@ import {
 } from "@/lib/wear-config";
 import { WEAR_CURRENCY_LANDING_LINE } from "@/lib/wear-currency-policy";
 import { wearActiveDropEyebrow } from "@/lib/wear-drop-config";
-import { WEAR_SHIPPING_DELIVERY_RANGES, WEAR_SHIPPING_LANDING_STRIP } from "@/lib/wear-shipping-copy";
+import {
+  WEAR_SHIPPING_DELIVERY_RANGES,
+  WEAR_SHIPPING_LANDING_STRIP,
+  WEAR_SHIPPING_TRUST_STRIP,
+} from "@/lib/wear-shipping-copy";
 import { WearAnalytics } from "./wear-analytics";
 import { WearOutboundLink } from "./wear-outbound-link";
 import { WearBuyXGetYLandingBanner } from "./wear-buy-x-get-y-landing-banner";
@@ -70,7 +74,7 @@ export function WearPage({ previewItems }: { previewItems?: WearPreviewItem[] })
               ) : null}
             </div>
             <p className="pm-caption mt-10 text-(--clay)/45">
-              30-day returns · Worldwide shipping · Free EU shipping on orders over €50
+              {WEAR_SHIPPING_TRUST_STRIP}
             </p>
           </div>
         </section>

@@ -31,6 +31,9 @@ export async function recordWearCatalogSyncSuccess(result: SpreadconnectCatalogS
     createdProducts: result.createdProducts,
     updatedProducts: result.updatedProducts,
     syncedProducts: result.syncedProducts,
+    archivedProducts: result.archivedProducts,
+    archivedDeletedSpreadconnectArticles: result.archivedDeletedSpreadconnectArticles,
+    archivedNotInRemoteCatalogSnapshot: result.archivedNotInRemoteCatalogSnapshot,
   };
 
   await prisma.$transaction([

@@ -78,6 +78,13 @@ export type SpreadconnectCatalogSyncResult = {
   updatedProducts: number;
   skippedUnchangedProducts: number;
   archivedProducts: number;
+  /** Archived because GET /articles/{id} returned 404 (deleted upstream). */
+  archivedDeletedSpreadconnectArticles: number;
+  /**
+   * Full discovery only: wear rows whose `spreadconnectArticleId` never appeared in the remote catalog
+   * snapshot (same pass as 404 handling; rows already archived are skipped).
+   */
+  archivedNotInRemoteCatalogSnapshot: number;
   skippedArticles: number;
   syncedVariants: number;
   /** GET /articles/{id} refreshes (excludes discovery-only rows). */
@@ -601,6 +608,36 @@ async function syncPreparedArticle(prepared: PreparedArticle) {
   };
 }
 
+async function archiveWearProductsBySpreadconnectArticleIds(articleIds: number[]) {
+  if (articleIds.length === 0) return 0;
+  const result = await prisma.wearProduct.updateMany({
+    where: {
+      spreadconnectArticleId: { in: articleIds },
+      archivedAt: null,
+    },
+    data: {
+      archivedAt: new Date(),
+      isActive: false,
+    },
+  });
+  return result.count;
+}
+
+async function archiveWearProductsNotInRemoteArticleSet(seenArticleIds: Set<number>) {
+  if (seenArticleIds.size === 0) return 0;
+  const result = await prisma.wearProduct.updateMany({
+    where: {
+      spreadconnectArticleId: { not: null, notIn: Array.from(seenArticleIds) },
+      archivedAt: null,
+    },
+    data: {
+      archivedAt: new Date(),
+      isActive: false,
+    },
+  });
+  return result.count;
+}
+
 async function archiveUnsyncedPlaceholderProducts(syncedIds: string[]) {
   if (syncedIds.length === 0) return 0;
 
@@ -655,15 +692,18 @@ export async function syncSpreadconnectCatalogToWearProducts(
   let refreshedByArticleId = 0;
   let discoveryListPages = 0;
   let fullCatalogScanCompleted = false;
+  let archivedDeletedSpreadconnectArticles = 0;
 
   for (const articleId of knownIds) {
     if (gapArticleMs > 0) await sleep(gapArticleMs);
     const article = await fetchSpreadconnectArticleById(cfg, articleId);
-    if (article) {
-      articlesToProcess.push(article);
-      if (typeof article.id === "number") seenArticleIds.add(article.id);
-      refreshedByArticleId += 1;
+    if (!article) {
+      archivedDeletedSpreadconnectArticles += await archiveWearProductsBySpreadconnectArticleIds([articleId]);
+      continue;
     }
+    articlesToProcess.push(article);
+    if (typeof article.id === "number") seenArticleIds.add(article.id);
+    refreshedByArticleId += 1;
   }
 
   let discoveryOffset = 0;
@@ -717,19 +757,24 @@ export async function syncSpreadconnectCatalogToWearProducts(
 
     const synced = await syncPreparedArticle(prepared);
     syncedVariants += synced.variantCount;
+    syncedIds.push(synced.id);
 
     if (synced.unchanged) {
       skippedUnchangedProducts += 1;
       continue;
     }
 
-    syncedIds.push(synced.id);
     if (synced.created) createdProducts += 1;
     else updatedProducts += 1;
   }
 
   const archivedProducts =
     fullDiscovery && fullCatalogScanCompleted ? await archiveUnsyncedPlaceholderProducts(syncedIds) : 0;
+
+  let archivedNotInRemoteCatalogSnapshot = 0;
+  if (fullDiscovery && fullCatalogScanCompleted && seenArticleIds.size > 0) {
+    archivedNotInRemoteCatalogSnapshot = await archiveWearProductsNotInRemoteArticleSet(seenArticleIds);
+  }
 
   const unknownImageHosts = await listUnknownWearImageHostsForActiveCatalog();
 
@@ -746,6 +791,8 @@ export async function syncSpreadconnectCatalogToWearProducts(
     updatedProducts,
     skippedUnchangedProducts,
     archivedProducts,
+    archivedDeletedSpreadconnectArticles,
+    archivedNotInRemoteCatalogSnapshot,
     skippedArticles,
     syncedVariants,
     refreshedByArticleId,

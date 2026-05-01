@@ -2,6 +2,9 @@
 export const WEAR_FREE_SHIPPING_THRESHOLD_CENTS = 5000;
 export const WEAR_STANDARD_SHIPPING_CENTS = 900;
 
+/** Countries we do not ship wear to (must stay out of `WEAR_CHECKOUT_SHIPPING_COUNTRIES`). */
+export const WEAR_SHIPPING_EXCLUDED_COUNTRIES = ["US", "NO", "CH", "NZ"] as const;
+
 export const WEAR_CHECKOUT_SHIPPING_COUNTRIES = [
   "AT",
   "BE",
@@ -30,12 +33,8 @@ export const WEAR_CHECKOUT_SHIPPING_COUNTRIES = [
   "SI",
   "ES",
   "SE",
-  "CH",
-  "NO",
   "IS",
   "GB",
-  "US",
   "CA",
   "AU",
-  "NZ",
 ] as const;
