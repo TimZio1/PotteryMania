@@ -4,6 +4,7 @@ import {
   calculateWearMarginCents,
   formatWearMarginPercentFromBps,
   resolveStudioMarginBps,
+  wearPublicRetailUnitCents,
   type WearGlobalPricingConfig,
 } from "./wear-commission";
 
@@ -50,6 +51,20 @@ describe("formatWearMarginPercentFromBps", () => {
 
   it("handles invalid input", () => {
     expect(formatWearMarginPercentFromBps(Number.NaN)).toBe("0.0%");
+  });
+});
+
+describe("wearPublicRetailUnitCents", () => {
+  it("returns internal list unchanged when internal pricing is on (no extra platform margin)", () => {
+    expect(wearPublicRetailUnitCents(2669, 1500, true)).toBe(2669);
+  });
+
+  it("ignores default margin bps when internal pricing is on", () => {
+    expect(wearPublicRetailUnitCents(2000, 5000, true)).toBe(2000);
+  });
+
+  it("passes through when internal pricing is off", () => {
+    expect(wearPublicRetailUnitCents(4500, 1500, false)).toBe(4500);
   });
 });
 

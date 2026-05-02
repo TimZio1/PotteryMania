@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Fragment, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { calculateWearPrice, formatWearMarginPercentFromBps } from "@/lib/wear-commission";
+import { formatWearMarginPercentFromBps } from "@/lib/wear-commission";
 import { formatWearMoney } from "@/lib/wear-money";
 import { normalizeWearSpreadconnectProductTypeKey } from "@/lib/wear-internal-pricing";
 import { ui } from "@/lib/ui-styles";
@@ -55,7 +55,7 @@ function sortKeyForRow(r: WearProductPricingRow): string {
   return normalizeWearSpreadconnectProductTypeKey(r.spreadconnectProductTypeName) ?? "\u007f__none";
 }
 
-export function WearProductCostMarkupTable({ initial, defaultMarginBps, internalPricingOn }: Props) {
+export function WearProductCostMarkupTable({ initial, defaultMarginBps, internalPricingOn: _internalPricingOn }: Props) {
   const router = useRouter();
   const sortedInitial = useMemo(() => {
     return [...initial].sort((a, b) => {
@@ -95,13 +95,12 @@ export function WearProductCostMarkupTable({ initial, defaultMarginBps, internal
       const costCents = parseEurToCents(r.costEur);
       const pct = parsePct(r.markupPct);
       if (costCents == null || costCents <= 0 || pct == null) {
-        return { listCents: null as number | null, shelfCents: null as number | null };
+        return { listCents: null as number | null };
       }
       const listCents = Math.max(0, Math.round(costCents * (1 + pct / 100)));
-      const shelfCents = internalPricingOn ? calculateWearPrice(listCents, defaultMarginBps) : listCents;
-      return { listCents, shelfCents };
+      return { listCents };
     });
-  }, [rows, defaultMarginBps, internalPricingOn]);
+  }, [rows]);
 
   const previewById = useMemo(() => {
     const m = new Map<string, (typeof previews)[number]>();
@@ -145,9 +144,9 @@ export function WearProductCostMarkupTable({ initial, defaultMarginBps, internal
           <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
             <strong>Your cost (€)</strong> is the synced Spreadconnect wholesale for linked SKUs — edit it only for manual
             products. When cost and markup are both set, internal list is <strong>COGS × (1 + markup ÷ 100)</strong>, which{" "}
-            <strong>overrides</strong> type rules above. Leave markup empty to use Spreadconnect type / category rules.
-            Customer shelf also adds the default platform margin (
-            {formatWearMarginPercentFromBps(defaultMarginBps)}) when internal pricing is on.
+            <strong>overrides</strong> type rules above. Leave markup empty to use Spreadconnect type / category rules. Shop
+            price matches internal list; affiliate checkout adds the partner margin (
+            {formatWearMarginPercentFromBps(defaultMarginBps)} default cap) on top when a referral link applies.
           </p>
         </div>
       </div>
@@ -159,18 +158,14 @@ export function WearProductCostMarkupTable({ initial, defaultMarginBps, internal
               <th className="px-3 py-2">Product</th>
               <th className="px-3 py-2">Your cost (€)</th>
               <th className="px-3 py-2">Markup %</th>
-              <th className="px-3 py-2">Internal list</th>
-              {internalPricingOn ? <th className="px-3 py-2">Customer shelf</th> : null}
+              <th className="px-3 py-2">Shop price</th>
             </tr>
           </thead>
           <tbody>
             {grouped.map(([typeLabel, groupRows]) => (
               <Fragment key={typeLabel}>
                 <tr className="bg-stone-100/90">
-                  <td
-                    colSpan={internalPricingOn ? 5 : 4}
-                    className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-stone-700"
-                  >
+                  <td colSpan={4} className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-stone-700">
                     {typeLabel}
                   </td>
                 </tr>
@@ -213,14 +208,9 @@ export function WearProductCostMarkupTable({ initial, defaultMarginBps, internal
                           }}
                         />
                       </td>
-                      <td className="px-3 py-2 align-top tabular-nums text-stone-700">
+                      <td className="px-3 py-2 align-top tabular-nums text-stone-900">
                         {pv.listCents != null ? formatWearMoney(pv.listCents, "EUR") : "—"}
                       </td>
-                      {internalPricingOn ? (
-                        <td className="px-3 py-2 align-top tabular-nums text-stone-900">
-                          {pv.shelfCents != null ? formatWearMoney(pv.shelfCents, "EUR") : "—"}
-                        </td>
-                      ) : null}
                     </tr>
                   );
                 })}

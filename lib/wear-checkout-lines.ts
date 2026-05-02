@@ -181,8 +181,6 @@ export async function resolveWearCheckoutLines(args: {
     let unitCents = baseCents;
     if (attributedStudioId && studioMarginBps > 0) {
       unitCents = calculateWearPrice(baseCents, studioMarginBps);
-    } else if (internalPricing) {
-      unitCents = calculateWearPrice(baseCents, globalPricing.defaultMarginBps);
     }
     if (internalPricing) {
       try {

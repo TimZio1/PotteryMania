@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ui } from "@/lib/ui-styles";
-import { calculateWearPrice, formatWearMarginPercentFromBps, type WearGlobalPricingConfig } from "@/lib/wear-commission";
+import { formatWearMarginPercentFromBps, type WearGlobalPricingConfig } from "@/lib/wear-commission";
 import { WEAR_CATEGORIES, WEAR_CATEGORY_LABELS, type WearCategory } from "@/lib/wear-categories";
 import type { WearInternalPricingConfig, WearInternalPricingRule } from "@/lib/wear-internal-pricing";
 import type { WearSpreadconnectTypeStat } from "@/lib/wear-spreadconnect-type-stats";
@@ -90,11 +90,9 @@ export function WearRetailPricingForm({
       const rule = buildTypeRule(row.key);
       const base = row.avgSupplyCents != null && row.avgSupplyCents > 0 ? row.avgSupplyCents / 100 : null;
       const listCents = base != null ? internalListCentsFromSample(base, rule) : null;
-      const shelfCents =
-        listCents != null && internalPricingOn ? calculateWearPrice(listCents, wearDefault) : listCents;
-      return { ...row, listCents, shelfCents };
+      return { ...row, listCents };
     });
-  }, [spreadconnectTypeStats, typeRules, wearDefault, internalPricingOn]);
+  }, [spreadconnectTypeStats, typeRules]);
 
   async function save() {
     setBusy(true);
@@ -140,10 +138,11 @@ export function WearRetailPricingForm({
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-stone-950">Direct checkout margin</p>
+            <p className="text-sm font-semibold text-stone-950">Affiliate margin (default / bounds)</p>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-              Applied on top of the internal list price for shoppers who are not on an affiliate link. Affiliate orders use
-              each partner&apos;s configured margin within min/max unless locked.
+              Direct shoppers pay the <strong>internal list</strong> price from your COGS rules. When a purchase runs on an
+              affiliate link, the partner&apos;s margin (basis points) is applied on top of that list — these fields set
+              the default and min/max unless margin is locked.
             </p>
           </div>
           <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-950">
@@ -215,7 +214,8 @@ export function WearRetailPricingForm({
             <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
               Wholesale (min / avg / max) comes from your catalog sync — blank garment plus print as one unit cost from
               Spreadconnect. Markup is your platform add-on to that real COGS. Preview uses <strong>average</strong>{" "}
-              wholesale per type when available.
+              wholesale per type when available — same amount shoppers see on the shop (internal list only; affiliate
+              links add partner margin separately).
             </p>
           </div>
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
@@ -237,8 +237,7 @@ export function WearRetailPricingForm({
                   <th className="px-3 py-2">Max</th>
                   <th className="px-3 py-2">Markup</th>
                   <th className="px-3 py-2">Value</th>
-                  <th className="px-3 py-2">Internal list</th>
-                  {internalPricingOn ? <th className="px-3 py-2">Shelf</th> : null}
+                  <th className="px-3 py-2">Shop price</th>
                 </tr>
               </thead>
               <tbody>
@@ -277,14 +276,9 @@ export function WearRetailPricingForm({
                         }
                       />
                     </td>
-                    <td className="px-3 py-2 tabular-nums text-stone-700">
+                    <td className="px-3 py-2 tabular-nums text-stone-900">
                       {row.listCents != null ? `€${(row.listCents / 100).toFixed(2)}` : "—"}
                     </td>
-                    {internalPricingOn ? (
-                      <td className="px-3 py-2 tabular-nums text-stone-900">
-                        {row.shelfCents != null ? `€${(row.shelfCents / 100).toFixed(2)}` : "—"}
-                      </td>
-                    ) : null}
                   </tr>
                 ))}
               </tbody>

@@ -106,17 +106,17 @@ export function calculateWearPrice(basePriceCents: number, marginBps: number): n
 }
 
 /**
- * When apparel internal pricing is on, rows carry an internal *list* unit (COGS + rule) in `priceCents`.
- * Direct customers pay that list plus the platform default margin (`wear_default_margin_bps`) — same
- * basis as checkout with no affiliate. Callers pass `applyInternalPricingMarkup = shouldUseInternalWearPricing()`.
+ * When apparel internal pricing is on, `priceCents` on rows is already the **internal list** (COGS + admin rules).
+ * That value is what we show shoppers and charge on direct checkout — we do **not** stack `wear_default_margin_bps`
+ * on top (affiliate flows add studio margin separately in checkout/cart).
  */
 export function wearPublicRetailUnitCents(
   internalListUnitCents: number,
-  defaultMarginBps: number,
+  _defaultMarginBps: number,
   applyInternalPricingMarkup: boolean,
 ): number {
   if (!applyInternalPricingMarkup || internalListUnitCents <= 0) return internalListUnitCents;
-  return calculateWearPrice(internalListUnitCents, defaultMarginBps);
+  return internalListUnitCents;
 }
 
 export function calculateWearMarginCents(basePriceCents: number, finalPriceCents: number): number {
