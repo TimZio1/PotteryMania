@@ -20,6 +20,7 @@ import { WEAR_SHIPPING_CART_NOTE, WEAR_SHIPPING_TRUST_STRIP } from "@/lib/wear-s
 import {
   WEAR_CHECKOUT_SHIPPING_COUNTRIES,
   WEAR_FREE_SHIPPING_THRESHOLD_CENTS,
+  isWearDomesticShippingTierCountry,
   resolveWearShippingAmountMinorUnits,
 } from "@/lib/wear-shipping";
 
@@ -253,9 +254,12 @@ export function WearCartPageClient() {
   const campaignFreeItemCount = serverPricing?.campaign?.freeItemCount ?? 0;
   const campaignLabel = serverPricing?.campaign?.label ?? "Buy 4, get 1 free";
   const merchandiseAfterDiscountCents = Math.max(0, merchandiseCents - couponDiscountCents - campaignDiscountCents);
-  // Free-shipping threshold is checked against the post-discount merchandise total — matches
-  // `/api/wear/checkout` (same rules as `resolveWearShippingAmountMinorUnits`).
-  const qualifiesForFreeShipping = merchandiseAfterDiscountCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
+  const shipToDomesticFreeTier =
+    Boolean(shipToCountry && /^[A-Z]{2}$/.test(shipToCountry)) && isWearDomesticShippingTierCountry(shipToCountry);
+  // Free-shipping threshold: post-discount merchandise + EU/IS/GB only — matches
+  // `/api/wear/checkout` (`resolveWearShippingAmountMinorUnits`).
+  const qualifiesForFreeShipping =
+    shipToDomesticFreeTier && merchandiseAfterDiscountCents >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS;
   const freeShippingRemainingCents = Math.max(
     0,
     WEAR_FREE_SHIPPING_THRESHOLD_CENTS - merchandiseAfterDiscountCents,
@@ -765,10 +769,12 @@ export function WearCartPageClient() {
                   ) : (
                     <span className="block">
                       <span className="font-medium">{formatWearMoney(estimatedShippingMinor, displayCurrency)}</span>
-                      <span className="mt-0.5 block text-[10px] leading-snug text-(--clay)/50">
-                        {formatWearMoney(freeShippingRemainingCents, displayCurrency)} to free shipping (over{" "}
-                        {formatWearMoney(WEAR_FREE_SHIPPING_THRESHOLD_CENTS, displayCurrency)} basket)
-                      </span>
+                      {shipToDomesticFreeTier ? (
+                        <span className="mt-0.5 block text-[10px] leading-snug text-(--clay)/50">
+                          {formatWearMoney(freeShippingRemainingCents, displayCurrency)} to free shipping (over{" "}
+                          {formatWearMoney(WEAR_FREE_SHIPPING_THRESHOLD_CENTS, displayCurrency)} basket — EU, UK and Iceland)
+                        </span>
+                      ) : null}
                     </span>
                   )}
                 </dd>

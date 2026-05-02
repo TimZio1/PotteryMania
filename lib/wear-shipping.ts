@@ -1,4 +1,10 @@
 /** ISO 3166-1 alpha-2 — Stripe Checkout `shipping_address_collection.allowed_countries`. */
+
+/**
+ * Free standard shipping when merchandise (after discounts) meets this threshold (minor units).
+ * **Only** for {@link isWearDomesticShippingTierCountry} — EU member states, Iceland, and the UK.
+ * Canada, Australia, and any future “overseas” allowed countries never get this waiver.
+ */
 export const WEAR_FREE_SHIPPING_THRESHOLD_CENTS = 5000;
 
 /**
@@ -128,14 +134,20 @@ function tieredShippingMinor(
 /**
  * Standard shipping in minor units for wear checkout, after discounts.
  * `shippingCountry` must be an ISO2 code from {@link WEAR_CHECKOUT_SHIPPING_COUNTRIES}.
- * Returns 0 when merchandise is at or above the free-shipping threshold.
+ * Returns 0 when merchandise is at or above the free-shipping threshold **and** the destination
+ * is on the domestic tier (EU + IS + GB); overseas destinations use tiered rates only.
  */
 export function resolveWearShippingAmountMinorUnits(
   merchandiseSubtotalAfterDiscountMinor: number,
   currency: string,
   shippingCountry: string,
 ): number {
-  if (merchandiseSubtotalAfterDiscountMinor >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS) return 0;
+  if (
+    isWearDomesticShippingTierCountry(shippingCountry) &&
+    merchandiseSubtotalAfterDiscountMinor >= WEAR_FREE_SHIPPING_THRESHOLD_CENTS
+  ) {
+    return 0;
+  }
 
   const c = currency.trim().toLowerCase();
   const useTierTables = c === "eur" || c === "gbp";

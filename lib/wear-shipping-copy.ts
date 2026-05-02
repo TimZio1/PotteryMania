@@ -27,7 +27,7 @@ export const WEAR_SHIPPING_CART_NOTE =
 
 /** Trust strip / footers — keep aligned with `WEAR_CHECKOUT_SHIPPING_COUNTRIES` in `wear-shipping.ts`. */
 export const WEAR_SHIPPING_TRUST_STRIP =
-  "30-day returns · EU, UK, CA, AU — no US shipping · EU & UK from €2.99 (tiered) · overseas same as AU from €9.99 (tiered) · Free over €50 basket";
+  "30-day returns · EU, UK, CA, AU — no US shipping · EU & UK from €2.99 (tiered) · overseas same as AU from €9.99 (tiered) · Free over €50 basket (EU, UK & Iceland only)";
 
 /** Short label for compact UI (footer pills, etc.). */
 export const WEAR_SHIPPING_REGION_BADGE = "EU, UK, CA, AU & more";
