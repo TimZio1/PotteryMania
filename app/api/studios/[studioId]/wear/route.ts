@@ -12,6 +12,7 @@ import { normalizeWearAffiliateCode } from "@/lib/wear-affiliate-code";
 import {
   mapWearProductRowToInternalPricesWithConfig,
   resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
 } from "@/lib/wear-internal-pricing";
 
 type Ctx = { params: Promise<{ studioId: string }> };
@@ -66,7 +67,9 @@ export async function GET(_req: Request, ctx: Ctx) {
         id: p.id,
         name: p.name,
         basePriceCents: p.priceCents,
-        finalPriceCents: calculateWearPrice(p.priceCents, effectiveMarginBps),
+        finalPriceCents: shouldUseInternalWearPricing()
+          ? p.priceCents
+          : calculateWearPrice(p.priceCents, effectiveMarginBps),
         image: wearImageUrlsFromJson(p.images)[0] ?? null,
       };
     }),

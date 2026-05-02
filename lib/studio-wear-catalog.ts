@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/db";
 import { calculateWearPrice, resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
+import {
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
+} from "@/lib/wear-internal-pricing";
 import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
 import { wearImageUrlsFromJson } from "@/lib/wear-product-json";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
@@ -31,6 +36,7 @@ export async function getStudioWearProducts(studioId: string): Promise<StudioWea
 
   const global = await resolveWearGlobalPricing();
   const effectiveMarginBps = resolveStudioMarginBps(config.marginBps, global);
+  const internalCfg = shouldUseInternalWearPricing() ? await resolveWearInternalPricingConfig() : null;
 
   const products = await prisma.wearProduct.findMany({
     where: {
@@ -38,20 +44,16 @@ export async function getStudioWearProducts(studioId: string): Promise<StudioWea
       ...wearPublicProductWhere(),
     },
     orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      subtitle: true,
-      priceCents: true,
-      images: true,
-      description: true,
-      spreadconnectProductTypeName: true,
-      spreadconnectCategoryData: true,
+    include: {
+      variants: {
+        where: { isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+      },
     },
   });
 
   return products.map((p) => {
+    const row = internalCfg ? mapWearProductRowToInternalPricesWithConfig(p, internalCfg) : p;
     const category = resolveWearCatalogCategory({
       slug: p.slug,
       name: p.name,
@@ -65,7 +67,7 @@ export async function getStudioWearProducts(studioId: string): Promise<StudioWea
       name: p.name,
       slug: p.slug,
       subtitle: p.subtitle,
-      priceCents: calculateWearPrice(p.priceCents, effectiveMarginBps),
+      priceCents: internalCfg ? row.priceCents : calculateWearPrice(p.priceCents, effectiveMarginBps),
       image: wearImageUrlsFromJson(p.images)[0] ?? null,
       categoryLabel: category.categoryLabel,
       topSubLabel: category.topSub ? wearTopSubcategoryLabel(category.topSub) : null,

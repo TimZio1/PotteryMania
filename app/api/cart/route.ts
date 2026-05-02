@@ -10,6 +10,12 @@ import { getEligiblePackagePurchase } from "@/lib/packages/credits";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logApiError } from "@/lib/monitoring";
 import { calculateWearPrice, resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
+import {
+  calculateWearInternalListCents,
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
+} from "@/lib/wear-internal-pricing";
 
 async function loadCart(cartId: string) {
   return prisma.cart.findUnique({
@@ -128,7 +134,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "studioId is required for studio wearables" }, { status: 400 });
     }
 
-    const [studio, wearConfig, wearProduct, globalPricing] = await Promise.all([
+    const internalPricingOn = shouldUseInternalWearPricing();
+    const [studio, wearConfig, wearProduct, globalPricing, wearInternalPricingConfig] = await Promise.all([
       prisma.studio.findFirst({
         where: { id: studioId, status: "approved" },
         select: { id: true },
@@ -152,6 +159,7 @@ export async function POST(req: Request) {
         },
       }),
       resolveWearGlobalPricing(),
+      internalPricingOn ? resolveWearInternalPricingConfig() : Promise.resolve(null),
     ]);
 
     if (!studio || !wearConfig?.enabled) {
@@ -177,7 +185,28 @@ export async function POST(req: Request) {
 
     const effectiveMarginBps = resolveStudioMarginBps(wearConfig.marginBps, globalPricing);
     const baseUnit = selectedVariant?.priceCents ?? wearProduct.priceCents;
-    const unit = calculateWearPrice(baseUnit, effectiveMarginBps);
+    let unit: number;
+    if (wearInternalPricingConfig) {
+      const priced = mapWearProductRowToInternalPricesWithConfig(wearProduct, wearInternalPricingConfig);
+      unit = calculateWearInternalListCents(
+        {
+          slug: wearProduct.slug,
+          name: wearProduct.name,
+          subtitle: wearProduct.subtitle,
+          description: wearProduct.description,
+          priceCents: priced.priceCents,
+          supplyCostCents: priced.supplyCostCents,
+          internalMarkupPercent: wearProduct.internalMarkupPercent ?? null,
+          externalFulfillmentId: priced.externalFulfillmentId,
+          spreadconnectArticleId: priced.spreadconnectArticleId,
+          spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
+          spreadconnectCategoryData: priced.spreadconnectCategoryData,
+        },
+        wearInternalPricingConfig,
+      );
+    } else {
+      unit = calculateWearPrice(baseUnit, effectiveMarginBps);
+    }
     const same = existingItems.find(
       (i) =>
         i.itemType === "wear" &&

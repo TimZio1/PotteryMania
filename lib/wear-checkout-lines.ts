@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/db";
-import {
-  calculateWearPrice,
-  resolveStudioMarginBps,
-  resolveWearGlobalPricing,
-} from "@/lib/wear-commission";
+import { resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
 import {
   assertWearUnitNotBelowCost,
@@ -178,10 +174,7 @@ export async function resolveWearCheckoutLines(args: {
           spreadconnectCategoryData: priced.spreadconnectCategoryData,
         }, internalPricingConfig)
       : (variant?.priceCents ?? priced.priceCents);
-    let unitCents = baseCents;
-    if (attributedStudioId && studioMarginBps > 0) {
-      unitCents = calculateWearPrice(baseCents, studioMarginBps);
-    }
+    const unitCents = baseCents;
     if (internalPricing) {
       try {
         assertWearUnitNotBelowCost({

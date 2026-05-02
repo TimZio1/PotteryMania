@@ -8,6 +8,11 @@ import { StudioThemeRoot } from "@/components/studio-public/studio-theme-root";
 import { resolveStudioPublicTheme } from "@/lib/studio-theme/resolve";
 import { buildMetadata } from "@/lib/seo";
 import { resolveWearGlobalPricing, resolveStudioMarginBps, calculateWearPrice } from "@/lib/wear-commission";
+import {
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
+} from "@/lib/wear-internal-pricing";
 import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
 import { sortWearCatalogImagesForDisplay, wearImagesFromJson } from "@/lib/wear-product-json";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
@@ -62,7 +67,9 @@ export default async function StudioWearPdpPage({ params }: Props) {
 
   const global = await resolveWearGlobalPricing();
   const marginBps = resolveStudioMarginBps(config.marginBps, global);
-  const priceCents = calculateWearPrice(product.priceCents, marginBps);
+  const internalCfg = shouldUseInternalWearPricing() ? await resolveWearInternalPricingConfig() : null;
+  const pricedProduct = internalCfg ? mapWearProductRowToInternalPricesWithConfig(product, internalCfg) : product;
+  const priceCents = internalCfg ? pricedProduct.priceCents : calculateWearPrice(product.priceCents, marginBps);
   const images = sortWearCatalogImagesForDisplay(wearImagesFromJson(product.images)).map((image, index) => ({
     id: String(image.imageId ?? `${index}-${image.url}`),
     url: image.url,
@@ -96,12 +103,19 @@ export default async function StudioWearPdpPage({ params }: Props) {
               productId={product.id}
               productName={product.name}
               images={images}
-              variants={product.variants.map((v) => ({
-                id: v.id,
-                label: v.label,
-                priceCents: v.priceCents ? calculateWearPrice(v.priceCents, marginBps) : null,
-                stockQuantity: v.stockQuantity,
-              }))}
+              variants={product.variants.map((v) => {
+                const mapped = internalCfg ? pricedProduct.variants.find((x) => x.id === v.id) : null;
+                return {
+                  id: v.id,
+                  label: v.label,
+                  priceCents: internalCfg
+                    ? (mapped?.priceCents ?? pricedProduct.priceCents)
+                    : v.priceCents
+                      ? calculateWearPrice(v.priceCents, marginBps)
+                      : null,
+                  stockQuantity: v.stockQuantity,
+                };
+              })}
               basePriceCents={priceCents}
               currency={product.currency}
               studioId={studioId}

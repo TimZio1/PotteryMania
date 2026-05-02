@@ -67,7 +67,6 @@ function firstSearchParam(value: string | string[] | undefined): string | undefi
 type WearSortMode = "featured" | "price-asc" | "price-desc";
 
 const WEAR_SORT_OPTIONS: { value: WearSortMode; label: string }[] = [
-  { value: "featured", label: "Featured" },
   { value: "price-asc", label: "Price \u2191" },
   { value: "price-desc", label: "Price \u2193" },
 ];

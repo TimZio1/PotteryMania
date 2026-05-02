@@ -8,6 +8,12 @@ import { validateIntakeResponses, type IntakeResponseSnapshot } from "@/lib/inta
 import { cartItemInclude } from "@/lib/cart-server";
 import { getEligiblePackagePurchase } from "@/lib/packages/credits";
 import { calculateWearMarginCents, calculateWearPrice, resolveStudioMarginBps, resolveWearGlobalPricing } from "@/lib/wear-commission";
+import {
+  calculateWearInternalListCents,
+  mapWearProductRowToInternalPricesWithConfig,
+  resolveWearInternalPricingConfig,
+  shouldUseInternalWearPricing,
+} from "@/lib/wear-internal-pricing";
 
 export type CartWithCheckoutItems = Prisma.CartGetPayload<{
   include: { items: { include: typeof cartItemInclude } };
@@ -111,6 +117,13 @@ export async function buildCheckoutLineRowsFromCart(
 
   const productBps = await resolveCommissionBps(studioId, "product");
   const bookingBps = await resolveCommissionBps(studioId, "booking");
+  const needsWearPricing = items.some((i) => i.itemType === "wear");
+  const [wearGlobalPricing, wearInternalPricingConfig] = needsWearPricing
+    ? await Promise.all([
+        resolveWearGlobalPricing(),
+        shouldUseInternalWearPricing() ? resolveWearInternalPricingConfig() : Promise.resolve(null),
+      ])
+    : [null, null];
 
   let subtotal = 0;
   let commissionTotal = 0;
@@ -215,10 +228,33 @@ export async function buildCheckoutLineRowsFromCart(
       if (!wearConfig?.enabled) {
         return { ok: false, error: `Wearables are no longer active for this studio`, status: 409 };
       }
-      const globalPricing = await resolveWearGlobalPricing();
-      const effectiveMarginBps = resolveStudioMarginBps(wearConfig.marginBps, globalPricing);
-      const baseUnit = variant?.priceCents ?? p.priceCents;
-      const currentUnit = calculateWearPrice(baseUnit, effectiveMarginBps);
+      if (!wearGlobalPricing) {
+        return { ok: false, error: "Wear pricing unavailable", status: 500 };
+      }
+      const effectiveMarginBps = resolveStudioMarginBps(wearConfig.marginBps, wearGlobalPricing);
+      const baseUnitRaw = variant?.priceCents ?? p.priceCents;
+      let currentUnit: number;
+      if (wearInternalPricingConfig) {
+        const priced = mapWearProductRowToInternalPricesWithConfig(p, wearInternalPricingConfig);
+        currentUnit = calculateWearInternalListCents(
+          {
+            slug: p.slug,
+            name: p.name,
+            subtitle: p.subtitle,
+            description: p.description,
+            priceCents: priced.priceCents,
+            supplyCostCents: priced.supplyCostCents,
+            internalMarkupPercent: p.internalMarkupPercent ?? null,
+            externalFulfillmentId: priced.externalFulfillmentId,
+            spreadconnectArticleId: priced.spreadconnectArticleId,
+            spreadconnectProductTypeName: priced.spreadconnectProductTypeName,
+            spreadconnectCategoryData: priced.spreadconnectCategoryData,
+          },
+          wearInternalPricingConfig,
+        );
+      } else {
+        currentUnit = calculateWearPrice(baseUnitRaw, effectiveMarginBps);
+      }
       if (currentUnit !== item.priceSnapshotCents) {
         return {
           ok: false,
@@ -228,9 +264,17 @@ export async function buildCheckoutLineRowsFromCart(
         };
       }
       const lineCents = currentUnit * item.quantity;
-      const unitMarginCents = calculateWearMarginCents(baseUnit, currentUnit);
-      const studioMarginCents = unitMarginCents * item.quantity;
-      const platformRevenueCents = Math.max(0, lineCents - studioMarginCents);
+      let studioMarginCents: number;
+      let platformRevenueCents: number;
+      if (wearInternalPricingConfig) {
+        const bps = Math.max(0, Math.min(10000, Math.floor(effectiveMarginBps)));
+        studioMarginCents = Math.round((lineCents * bps) / 10000);
+        platformRevenueCents = Math.max(0, lineCents - studioMarginCents);
+      } else {
+        const unitMarginCents = calculateWearMarginCents(baseUnitRaw, currentUnit);
+        studioMarginCents = unitMarginCents * item.quantity;
+        platformRevenueCents = Math.max(0, lineCents - studioMarginCents);
+      }
       subtotal += lineCents;
       commissionTotal += platformRevenueCents;
       lineRows.push({

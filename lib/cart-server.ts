@@ -74,16 +74,11 @@ export const cartItemInclude = {
     },
   },
   wearProduct: {
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      subtitle: true,
-      priceCents: true,
-      currency: true,
-      images: true,
-      isActive: true,
-      archivedAt: true,
+    include: {
+      variants: {
+        where: { isActive: true },
+        orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }],
+      },
     },
   },
   wearProductVariant: {
