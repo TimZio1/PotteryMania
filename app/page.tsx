@@ -27,6 +27,7 @@ import {
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { resolveWearCategory } from "@/lib/wear-categories";
 import { WearBuyXGetYHeroBadge, WearBuyXGetYHomePromo } from "@/components/wear/wear-buy-x-get-y-home-promo";
+import { WearSocialProofToast } from "@/components/wear/wear-social-proof-toast";
 import { WEAR_LISTING_COLOR_BADGE_SURFACE, wearListingExtraColorsLabel } from "@/lib/wear-listing-color-badge";
 
 export const dynamic = "force-dynamic";
@@ -200,6 +201,7 @@ async function ApparelHome() {
 
   return (
     <MarketingLayout>
+      <WearSocialProofToast />
       <HomeScrollReset />
       <main className="pm-brand pm-snap relative overflow-hidden bg-[var(--clay)] text-[var(--ink)]">
         {/* ── 0. Trust strip — single line, no emoji, no clutter ─────────────── */}
