@@ -62,6 +62,97 @@ const META_PIXEL_EVENT: Partial<Record<WearEventKind, string>> = {
   [WEAR_EVENT_KINDS.purchaseSuccess]: "Purchase",
 };
 
+type MetaQueuedJob = {
+  pixelEvent: string;
+  params: Record<string, unknown>;
+  eventId?: string;
+};
+
+const metaPending: MetaQueuedJob[] = [];
+let metaPollTimer: ReturnType<typeof setInterval> | null = null;
+let metaPollDeadline = 0;
+
+function isFbqCallable(): boolean {
+  return typeof window !== "undefined" && typeof window.fbq === "function" && Boolean(META_PIXEL_ID);
+}
+
+function stopMetaPoll() {
+  if (metaPollTimer != null) {
+    clearInterval(metaPollTimer);
+    metaPollTimer = null;
+  }
+}
+
+function flushMetaPending() {
+  if (!isFbqCallable()) return;
+  while (metaPending.length > 0) {
+    const job = metaPending.shift()!;
+    try {
+      if (job.eventId) {
+        window.fbq!("track", job.pixelEvent, job.params, { eventID: job.eventId });
+      } else {
+        window.fbq!("track", job.pixelEvent, job.params);
+      }
+    } catch {
+      /* non-blocking */
+    }
+  }
+  stopMetaPoll();
+}
+
+/**
+ * `fbq` is injected asynchronously after cookie consent. AddToCart often fired on the first
+ * click before `fbevents.js` finishes — those events were dropped. Queue and flush when ready.
+ */
+function enqueueMetaPixelJob(pixelEvent: string, params: Record<string, unknown>, eventId?: string) {
+  if (typeof window === "undefined" || !META_PIXEL_ID) return;
+  metaPending.push({ pixelEvent, params, ...(eventId ? { eventId } : {}) });
+  flushMetaPending();
+  if (metaPending.length === 0) return;
+  if (metaPollTimer != null) return;
+  metaPollDeadline = Date.now() + 12_000;
+  metaPollTimer = setInterval(() => {
+    flushMetaPending();
+    if (metaPending.length === 0) {
+      stopMetaPoll();
+      return;
+    }
+    if (Date.now() >= metaPollDeadline) {
+      metaPending.length = 0;
+      stopMetaPoll();
+    }
+  }, 50);
+}
+
+function buildMetaParams(pixelEvent: string, opts: TrackOpts): Record<string, unknown> {
+  const contentIds =
+    opts.contentIds && opts.contentIds.length > 0
+      ? opts.contentIds
+      : opts.productId
+        ? [opts.productId]
+        : undefined;
+  return {
+    ...(contentIds ? { content_ids: contentIds, content_type: "product" } : {}),
+    ...(opts.contentName ? { content_name: opts.contentName } : {}),
+    ...(opts.currency ? { currency: opts.currency } : {}),
+    ...(opts.value != null ? { value: opts.value } : {}),
+    ...(opts.quantity != null
+      ? pixelEvent === "Purchase"
+        ? { num_items: opts.quantity }
+        : (() => {
+            const q = opts.quantity!;
+            return {
+              contents: contentIds?.map((id) => ({
+                id,
+                quantity: q,
+                ...(opts.value != null && q > 0 ? { item_price: Number((opts.value / q).toFixed(2)) } : {}),
+              })),
+            };
+          })()
+      : {}),
+  };
+}
+
 /**
  * Fire `fbq` only when `<MetaPixel />` has loaded the real script after cookie consent.
  * Never assign `window.fbq` here: a stub created before fbevents.js makes Meta's bootstrap
@@ -79,44 +170,11 @@ export function trackWearEvent(kind: WearEventKind, opts: TrackOpts = {}) {
     });
   }
 
-  if (typeof window !== "undefined" && window.fbq && META_PIXEL_ID) {
+  if (typeof window !== "undefined" && META_PIXEL_ID) {
     const pixelEvent = META_PIXEL_EVENT[kind];
     if (pixelEvent) {
-      const contentIds =
-        opts.contentIds && opts.contentIds.length > 0
-          ? opts.contentIds
-          : opts.productId
-            ? [opts.productId]
-            : undefined;
-      const params: Record<string, unknown> = {
-        ...(contentIds ? { content_ids: contentIds, content_type: "product" } : {}),
-        ...(opts.contentName ? { content_name: opts.contentName } : {}),
-        ...(opts.currency ? { currency: opts.currency } : {}),
-        ...(opts.value != null ? { value: opts.value } : {}),
-        ...(opts.quantity != null
-          ? pixelEvent === "Purchase"
-            ? { num_items: opts.quantity }
-            : (() => {
-                const q = opts.quantity!;
-                return {
-                  contents: contentIds?.map((id) => ({
-                    id,
-                    quantity: q,
-                    ...(opts.value != null && q > 0 ? { item_price: Number((opts.value / q).toFixed(2)) } : {}),
-                  })),
-                };
-              })()
-          : {}),
-      };
-      try {
-        if (opts.eventId) {
-          window.fbq("track", pixelEvent, params, { eventID: opts.eventId });
-        } else {
-          window.fbq("track", pixelEvent, params);
-        }
-      } catch {
-        /* non-blocking */
-      }
+      const params = buildMetaParams(pixelEvent, opts);
+      enqueueMetaPixelJob(pixelEvent, params, opts.eventId);
     }
   }
 

@@ -1,7 +1,30 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  WEAR_CART_ITEM_ADDED_EVENT,
+  parseWearCart,
+  WEAR_CART_STORAGE_KEY,
+} from "@/lib/wear-cart";
+
+/** Once the shopper adds a wear line (this tab), stop fake social proof for the session. */
+const SESSION_DISMISS_KEY = "pm_wear_home_social_proof_dismissed";
+
+function wearLocalCartUnits(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    return parseWearCart(localStorage.getItem(WEAR_CART_STORAGE_KEY)).reduce((s, l) => s + l.quantity, 0);
+  } catch {
+    return 0;
+  }
+}
+
+function shouldDismissSocialProof(): boolean {
+  if (typeof window === "undefined") return false;
+  if (sessionStorage.getItem(SESSION_DISMISS_KEY) === "1") return true;
+  return wearLocalCartUnits() > 0;
+}
 
 const FIRST_NAMES = [
   "Maya",
@@ -208,10 +231,12 @@ const BETWEEN_MS_MAX = 68000;
 /**
  * Fake “recent purchase” nudges (no backend). Homepage (`/`) only.
  * Random corner placement, city + country, catalog-style product names.
+ * Stops for this browser tab after the shopper adds a wear item to the bag (or if the bag already has lines).
  * Hidden when `prefers-reduced-motion: reduce`.
  */
 export function WearSocialProofToast() {
   const [mounted, setMounted] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
   const [toast, setToast] = useState<ToastPayload | null>(null);
   const timersRef = useRef<{ ids: ReturnType<typeof setTimeout>[] }>({ ids: [] });
@@ -225,14 +250,42 @@ export function WearSocialProofToast() {
     setMounted(true);
   }, []);
 
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    if (shouldDismissSocialProof()) {
+      setDismissed(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (!mounted || typeof window === "undefined") return;
+    const onAdded = () => {
+      try {
+        sessionStorage.setItem(SESSION_DISMISS_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      clearTimers();
+      setDismissed(true);
+      setVisible(false);
+      setToast(null);
+    };
+    window.addEventListener(WEAR_CART_ITEM_ADDED_EVENT, onAdded);
+    return () => window.removeEventListener(WEAR_CART_ITEM_ADDED_EVENT, onAdded);
+  }, [mounted, clearTimers]);
+
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined" || dismissed) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) return;
 
     const scheduleNext = (delayMs: number) => {
       const id = setTimeout(() => {
+        if (shouldDismissSocialProof()) {
+          setDismissed(true);
+          return;
+        }
         if (document.visibilityState === "hidden") {
           scheduleNext(15_000);
           return;
@@ -252,7 +305,7 @@ export function WearSocialProofToast() {
     scheduleNext(first);
 
     return () => clearTimers();
-  }, [mounted, clearTimers]);
+  }, [mounted, dismissed, clearTimers]);
 
   if (!mounted || !toast) return null;
 
