@@ -5,15 +5,12 @@
  * Set SKIP_CALENDAR_SCHEMA_GUARD=1 to bypass completely (e.g. CI image build without DB).
  */
 
+import { isDatabaseConnectivityFailure } from "@/lib/db-connectivity";
+
 function isNextBuildPhase(): boolean {
   if (process.env.npm_lifecycle_event === "build") return true;
   const phase = process.env.NEXT_PHASE;
   return phase === "phase-production-build" || phase === "phase-export";
-}
-
-function isDatabaseConnectivityFailure(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return /can't reach database server|too many clients|econnrefused|econnreset|etimedout|p1001|connection terminated/i.test(message);
 }
 
 export async function register() {
