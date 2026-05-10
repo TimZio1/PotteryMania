@@ -295,9 +295,11 @@ export default async function ClassDetailPage({ params, searchParams }: PageProp
               <ClassBookingForm
                 studioId={experience.studio.id}
                 experienceId={experience.id}
+                experienceTitle={experience.title}
                 minP={experience.minimumParticipants}
                 maxP={experience.maximumParticipants}
                 priceCents={experience.priceCents}
+                currency={experience.currency}
                 bookingDepositBps={experience.bookingDepositBps}
                 allowPayAtStudio={experience.allowPayAtStudio}
                 allowFullPaymentOption={experience.allowFullPaymentOption}

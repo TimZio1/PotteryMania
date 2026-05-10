@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ui } from "@/lib/ui-styles";
+import { trackCartAddToCart } from "@/lib/cart-analytics-client";
 import { Spinner } from "@/components/ui/spinner";
 import {
   bookingAllowsFullPaymentOption,
@@ -76,9 +77,11 @@ export type WaitlistSlotOption = SlotOption;
 export function ClassBookingForm(props: {
   studioId: string;
   experienceId: string;
+  experienceTitle?: string;
   minP: number;
   maxP: number;
   priceCents: number;
+  currency?: string;
   bookingDepositBps: number;
   allowPayAtStudio: boolean;
   allowFullPaymentOption?: boolean;
@@ -433,6 +436,15 @@ export function ClassBookingForm(props: {
         setErr(j.error || "We couldn’t add this class. Try again.");
         return;
       }
+      trackCartAddToCart({
+        itemType: "booking",
+        itemId: props.experienceId,
+        itemName: props.experienceTitle,
+        unitPriceCents: props.priceCents,
+        valueCents: fullLineCents,
+        currency: props.currency,
+        quantity: participantCount,
+      });
       setAdded(true);
     } finally {
       setLoading(false);

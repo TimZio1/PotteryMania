@@ -2,15 +2,22 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { trackCartAddToCart } from "@/lib/cart-analytics-client";
 import { ui } from "@/lib/ui-styles";
 
 export function StudioProductAddToCart({
   productId,
+  productName,
+  unitPriceCents,
+  currency = "EUR",
   checkoutEnabled,
   variants,
   studioThemed = false,
 }: {
   productId: string;
+  productName?: string;
+  unitPriceCents?: number;
+  currency?: string;
   checkoutEnabled: boolean;
   variants?: { id: string; name: string; priceCents: number | null; stockQuantity: number | null; sortOrder: number }[];
   /** When true, buttons inherit curated studio CSS (public `/studios/:id` only). */
@@ -58,6 +65,14 @@ export function StudioProductAddToCart({
         setMsg({ type: "err", text: typeof j.error === "string" ? j.error : "We couldn’t add that. Try again." });
         return;
       }
+      trackCartAddToCart({
+        itemType: "product",
+        itemId: productId,
+        itemName: productName,
+        unitPriceCents: selectedVariant?.priceCents ?? unitPriceCents,
+        currency,
+        quantity: 1,
+      });
       setMsg({ type: "ok", text: "Added to your cart." });
     } finally {
       setBusy(false);

@@ -644,6 +644,9 @@ export default async function StudioPage({ params }: Props) {
                         <div className="border-t border-[var(--st-border)] px-4 pb-4">
                           <StudioProductAddToCart
                             productId={product.id}
+                            productName={product.title}
+                            unitPriceCents={product.salePriceCents ?? product.priceCents}
+                            currency={product.currency}
                             checkoutEnabled={marketplaceCheckoutEnabled}
                             variants={product.variants}
                             studioThemed
