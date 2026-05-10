@@ -13,7 +13,7 @@ function isNextBuildPhase(): boolean {
 
 function isDatabaseConnectivityFailure(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return /can't reach database server|econnrefused|econnreset|etimedout|p1001|connection terminated/i.test(message);
+  return /can't reach database server|too many clients|econnrefused|econnreset|etimedout|p1001|connection terminated/i.test(message);
 }
 
 export async function register() {
