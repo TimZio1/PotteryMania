@@ -11,6 +11,7 @@ export type WearOrderAdminRow = {
   status: string;
   customerEmail: string;
   customerName: string;
+  customerCountry: string | null;
   subtotalCents: number;
   amountTotalCents: number | null;
   currency: string;
@@ -52,6 +53,45 @@ const STATUS_OPTIONS = [
 
 function money(cents: number, cur: string) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: cur.toUpperCase() }).format(cents / 100);
+}
+
+const ATHENS_TIME_ZONE = "Europe/Athens";
+
+const athensDateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: ATHENS_TIME_ZONE,
+});
+
+const athensTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: ATHENS_TIME_ZONE,
+});
+
+const countryNames =
+  typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames(["en"], { type: "region" }) : null;
+
+function formatAthensDate(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "Unknown date";
+  return athensDateFormatter.format(date);
+}
+
+function formatAthensTime(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return athensTimeFormatter.format(date);
+}
+
+function formatCountry(country: string | null) {
+  const trimmed = country?.trim();
+  if (!trimmed) return null;
+  const code = trimmed.toUpperCase();
+  if (/^[A-Z]{2}$/.test(code)) return countryNames?.of(code) ?? code;
+  return trimmed;
 }
 
 function statusBadgeClass(status: string) {
@@ -169,7 +209,7 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
         </div>
       </form>
 
-      <p className="text-sm text-[var(--muted)]">
+      <p className="text-sm text-(--muted)">
         Showing {initial.length} order{initial.length === 1 ? "" : "s"} (newest first, max 500). Open a row for line
         items and lifecycle actions.
       </p>
@@ -188,120 +228,133 @@ export default function WearOrdersAdminClient({ initial, summary, filter }: Prop
             </tr>
           </thead>
           <tbody>
-            {initial.map((o) => (
-              <Fragment key={o.id}>
-                <tr
-                  className={cn(
-                    "border-b border-stone-100",
-                    o.needsAction ? "bg-amber-50/30" : "",
-                  )}
+            {initial.map((o) => {
+              const customerName = o.customerName.trim();
+              const customerEmail = o.customerEmail.trim();
+              const customerCountry = formatCountry(o.customerCountry);
+              const customerMeta = [customerCountry, customerEmail].filter(Boolean).join(" · ");
+              const createdTime = formatAthensTime(o.createdAt);
+              const sessionLink = o.stripeCheckoutSessionId ? (
+                <a
+                  href={`https://dashboard.stripe.com/checkout/sessions/${encodeURIComponent(o.stripeCheckoutSessionId)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex font-mono text-[11px] font-medium text-amber-900 underline underline-offset-2 hover:text-amber-800"
                 >
-                  <td className="px-4 py-3 whitespace-nowrap text-xs text-stone-500">
-                    {o.createdAt.slice(0, 19).replace("T", " ")}
-                  </td>
-                  <td className="px-4 py-3">
-                    {o.customerEmail.trim() || o.customerName.trim() ? (
-                      <>
-                        <div className="font-medium text-stone-900">{o.customerName.trim() || "—"}</div>
-                        <div className="text-xs text-stone-600">{o.customerEmail.trim() || "—"}</div>
-                      </>
-                    ) : (
-                      <div className="space-y-1 text-xs text-stone-500">
-                        <p className="font-medium text-stone-700">Not in database yet</p>
-                        <p className="leading-snug">
-                          {o.status === "pending"
-                            ? "Buyer hasn’t finished Stripe Checkout, or email is only on the session."
-                            : "Paid orders should show email after the fix; open Stripe for this session if it’s still blank."}
-                        </p>
-                        {o.stripeCheckoutSessionId ? (
-                          <a
-                            href={`https://dashboard.stripe.com/checkout/sessions/${encodeURIComponent(o.stripeCheckoutSessionId)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex font-mono text-[11px] font-medium text-amber-900 underline underline-offset-2 hover:text-amber-800"
-                          >
-                            Session {o.stripeCheckoutSessionId.slice(0, 14)}…
-                          </a>
-                        ) : (
-                          <span className="font-mono text-[11px] text-stone-400">No Stripe session id</span>
-                        )}
-                      </div>
+                  Session {o.stripeCheckoutSessionId.slice(0, 14)}…
+                </a>
+              ) : null;
+
+              return (
+                <Fragment key={o.id}>
+                  <tr
+                    className={cn(
+                      "border-b border-stone-100",
+                      o.needsAction ? "bg-amber-50/30" : "",
                     )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                        statusBadgeClass(o.status),
-                      )}
-                    >
-                      {humanStatus(o.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {o.needsAction ? (
-                      <span className="font-semibold text-amber-900">Needs action</span>
-                    ) : (
-                      <span className="text-stone-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-stone-900">{money(o.subtotalCents, o.currency)}</td>
-                  <td className="px-4 py-3 text-stone-900">
-                    {o.amountTotalCents != null ? money(o.amountTotalCents, o.currency) : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <Link
-                        href={`/admin/wear-orders/${o.id}`}
-                        className={cn(ui.buttonSecondary, "min-h-9 px-3 text-xs")}
-                      >
-                        Open
-                      </Link>
-                      <button
-                        type="button"
-                        className={cn(ui.buttonGhost, "min-h-9 px-3 text-xs")}
-                        onClick={() => setOpen((x) => (x === o.id ? null : o.id))}
-                      >
-                        {open === o.id ? "Hide lines" : "Items"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {open === o.id ? (
-                  <tr className="border-b border-stone-200 bg-stone-50/50">
-                    <td colSpan={7} className="px-4 py-4">
-                      <ul className="space-y-2 text-sm text-stone-800">
-                        {o.items.map((it) => (
-                          <li
-                            key={it.id}
-                            className="flex flex-wrap justify-between gap-2 border-b border-stone-100 pb-2 last:border-0"
-                          >
-                            <span>
-                              {it.productNameSnapshot}
-                              {it.variantLabelSnapshot ? (
-                                <span className="text-stone-600"> · {it.variantLabelSnapshot}</span>
-                              ) : null}{" "}
-                              <span className="text-stone-600">×{it.quantity}</span>
-                            </span>
-                            <span className="font-mono text-xs">{money(it.lineTotalCents, o.currency)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {o.trackingNumber ? (
-                        <p className="mt-2 text-xs text-stone-600">
-                          Tracking: <span className="font-mono">{o.trackingNumber}</span>
-                        </p>
-                      ) : null}
-                      {o.stripePaymentIntentId ? (
-                        <p className="mt-2 font-mono text-[10px] text-stone-500">
-                          PaymentIntent: {o.stripePaymentIntentId}
-                        </p>
+                  >
+                    <td className="px-4 py-3 whitespace-nowrap text-xs text-stone-500">
+                      <div className="font-medium text-stone-700">{formatAthensDate(o.createdAt)}</div>
+                      {createdTime ? (
+                        <div className="mt-0.5 text-[11px] text-stone-400">{createdTime} Athens</div>
                       ) : null}
                     </td>
+                    <td className="px-4 py-3">
+                      {customerName || customerEmail || customerCountry ? (
+                        <>
+                          <div className="font-medium text-stone-900">{customerName || "Name unavailable"}</div>
+                          <div className="text-xs text-stone-600">{customerMeta || "Contact unavailable"}</div>
+                          {sessionLink ? <div className="mt-1">{sessionLink}</div> : null}
+                        </>
+                      ) : (
+                        <div className="space-y-1 text-xs text-stone-500">
+                          <p className="font-medium text-stone-700">Customer not captured yet</p>
+                          <p className="leading-snug">
+                            {o.status === "pending"
+                              ? "Buyer may not have finished Stripe Checkout; details can still only live on the session."
+                              : "No customer details are stored for this order. Open Stripe if details are still blank."}
+                          </p>
+                          {sessionLink ?? (
+                            <span className="font-mono text-[11px] text-stone-400">No Stripe session id</span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
+                          statusBadgeClass(o.status),
+                        )}
+                      >
+                        {humanStatus(o.status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {o.needsAction ? (
+                        <span className="font-semibold text-amber-900">Needs action</span>
+                      ) : (
+                        <span className="text-stone-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-stone-900">{money(o.subtotalCents, o.currency)}</td>
+                    <td className="px-4 py-3 text-stone-900">
+                      {o.amountTotalCents != null ? money(o.amountTotalCents, o.currency) : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href={`/admin/wear-orders/${o.id}`}
+                          className={cn(ui.buttonSecondary, "min-h-9 px-3 text-xs")}
+                        >
+                          Open
+                        </Link>
+                        <button
+                          type="button"
+                          className={cn(ui.buttonGhost, "min-h-9 px-3 text-xs")}
+                          onClick={() => setOpen((x) => (x === o.id ? null : o.id))}
+                        >
+                          {open === o.id ? "Hide lines" : "Items"}
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                ) : null}
-              </Fragment>
-            ))}
+                  {open === o.id ? (
+                    <tr className="border-b border-stone-200 bg-stone-50/50">
+                      <td colSpan={7} className="px-4 py-4">
+                        <ul className="space-y-2 text-sm text-stone-800">
+                          {o.items.map((it) => (
+                            <li
+                              key={it.id}
+                              className="flex flex-wrap justify-between gap-2 border-b border-stone-100 pb-2 last:border-0"
+                            >
+                              <span>
+                                {it.productNameSnapshot}
+                                {it.variantLabelSnapshot ? (
+                                  <span className="text-stone-600"> · {it.variantLabelSnapshot}</span>
+                                ) : null}{" "}
+                                <span className="text-stone-600">×{it.quantity}</span>
+                              </span>
+                              <span className="font-mono text-xs">{money(it.lineTotalCents, o.currency)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        {o.trackingNumber ? (
+                          <p className="mt-2 text-xs text-stone-600">
+                            Tracking: <span className="font-mono">{o.trackingNumber}</span>
+                          </p>
+                        ) : null}
+                        {o.stripePaymentIntentId ? (
+                          <p className="mt-2 font-mono text-[10px] text-stone-500">
+                            PaymentIntent: {o.stripePaymentIntentId}
+                          </p>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

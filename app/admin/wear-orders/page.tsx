@@ -35,6 +35,20 @@ function parseStatus(s: string | undefined): WearOrderStatus | undefined {
   return ALL_STATUSES.includes(s as WearOrderStatus) ? (s as WearOrderStatus) : undefined;
 }
 
+function firstFilled(...values: Array<string | null | undefined>): string {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) return trimmed;
+  }
+  return "";
+}
+
+function jsonStringField(value: Prisma.JsonValue | null | undefined, key: string): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const raw = (value as Record<string, unknown>)[key];
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
 export default async function AdminWearOrdersPage({
   searchParams,
 }: {
@@ -63,6 +77,9 @@ export default async function AdminWearOrdersPage({
     const or: Prisma.WearOrderWhereInput[] = [
       { customerEmail: { contains: qRaw, mode: "insensitive" } },
       { customerName: { contains: qRaw, mode: "insensitive" } },
+      { order: { is: { customerEmail: { contains: qRaw, mode: "insensitive" } } } },
+      { order: { is: { customerName: { contains: qRaw, mode: "insensitive" } } } },
+      { order: { is: { shippingRateQuotes: { some: { destinationCountry: { contains: qRaw, mode: "insensitive" } } } } } },
       { items: { some: { productNameSnapshot: { contains: qRaw, mode: "insensitive" } } } },
     ];
     if (UUID_RE.test(qRaw)) {
@@ -81,6 +98,18 @@ export default async function AdminWearOrdersPage({
         items: {
           include: {
             wearProduct: { select: { slug: true } },
+          },
+        },
+        order: {
+          select: {
+            customerEmail: true,
+            customerName: true,
+            shippingAddressJson: true,
+            shippingRateQuotes: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              select: { destinationCountry: true },
+            },
           },
         },
       },
@@ -113,36 +142,42 @@ export default async function AdminWearOrdersPage({
     console.error("[admin/wear-orders] query failed", err);
   }
 
-  const initial = orders.map((o) => ({
-    id: o.id,
-    status: o.status,
-    customerEmail: o.customerEmail,
-    customerName: o.customerName,
-    subtotalCents: o.subtotalCents,
-    amountTotalCents: o.amountTotalCents,
-    currency: o.currency,
-    createdAt: o.createdAt.toISOString(),
-    paidAt: o.paidAt?.toISOString() ?? null,
-    trackingNumber: o.trackingNumber,
-    needsAction: wearOrderNeedsOpsAttention(o.status),
-    stripeCheckoutSessionId: o.stripeCheckoutSessionId,
-    stripePaymentIntentId: o.stripePaymentIntentId,
-    items: o.items.map((it) => ({
-      id: it.id,
-      productNameSnapshot: it.productNameSnapshot,
-      variantLabelSnapshot: it.variantLabelSnapshot,
-      quantity: it.quantity,
-      unitPriceCents: it.unitPriceCents,
-      lineTotalCents: it.unitPriceCents * it.quantity,
-      productSlug: it.wearProduct?.slug ?? "",
-    })),
-  }));
+  const initial = orders.map((o) => {
+    const orderShippingCountry = jsonStringField(o.order?.shippingAddressJson, "country");
+    const latestQuoteCountry = o.order?.shippingRateQuotes[0]?.destinationCountry ?? null;
+
+    return {
+      id: o.id,
+      status: o.status,
+      customerEmail: firstFilled(o.customerEmail, o.order?.customerEmail),
+      customerName: firstFilled(o.customerName, o.order?.customerName),
+      customerCountry: firstFilled(orderShippingCountry, latestQuoteCountry) || null,
+      subtotalCents: o.subtotalCents,
+      amountTotalCents: o.amountTotalCents,
+      currency: o.currency,
+      createdAt: o.createdAt.toISOString(),
+      paidAt: o.paidAt?.toISOString() ?? null,
+      trackingNumber: o.trackingNumber,
+      needsAction: wearOrderNeedsOpsAttention(o.status),
+      stripeCheckoutSessionId: o.stripeCheckoutSessionId,
+      stripePaymentIntentId: o.stripePaymentIntentId,
+      items: o.items.map((it) => ({
+        id: it.id,
+        productNameSnapshot: it.productNameSnapshot,
+        variantLabelSnapshot: it.variantLabelSnapshot,
+        quantity: it.quantity,
+        unitPriceCents: it.unitPriceCents,
+        lineTotalCents: it.unitPriceCents * it.quantity,
+        productSlug: it.wearProduct?.slug ?? "",
+      })),
+    };
+  });
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Commerce · Wear</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">Wear orders</h1>
-      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--muted)">Commerce · Wear</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">Wear orders</h1>
+      <p className="mt-2 max-w-2xl text-sm text-(--muted)">
         Operational queue for native wear. Move orders through production and shipping; Stripe still confirms payment.
       </p>
 
