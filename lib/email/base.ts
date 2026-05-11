@@ -30,6 +30,15 @@ function client() {
   return new Resend(key);
 }
 
+function resendErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === "string" && maybeMessage.trim()) return maybeMessage;
+  }
+  return JSON.stringify(error);
+}
+
 export async function sendEmailMessages(messages: EmailMessage[]) {
   if (messages.length === 0) return;
   const resend = client();
@@ -42,7 +51,7 @@ export async function sendEmailMessages(messages: EmailMessage[]) {
   const from = process.env.RESEND_FROM || "PotteryMania <orders@potterymania.com>";
   for (const message of messages) {
     try {
-      await resend.emails.send({
+      const result = await resend.emails.send({
         from: message.from || from,
         to: message.to,
         subject: message.subject,
@@ -58,7 +67,11 @@ export async function sendEmailMessages(messages: EmailMessage[]) {
             }
           : {}),
       });
+      if (result.error) {
+        throw new EmailTransportError("EMAIL_SEND_FAILED", resendErrorMessage(result.error));
+      }
     } catch (e) {
+      if (e instanceof EmailTransportError) throw e;
       const msg = e instanceof Error ? e.message : String(e);
       throw new EmailTransportError("EMAIL_SEND_FAILED", msg);
     }

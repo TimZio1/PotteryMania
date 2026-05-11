@@ -29,9 +29,11 @@ import { wearDisplayName } from "@/lib/wear-display-name";
 import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import type { WearCatalogImage } from "@/lib/wear-product-json";
 import { pickWearLineCatalogImage } from "@/lib/wear-line-image";
+import { resolveWearCartMetaContentIds } from "@/lib/wear-cart-meta";
 
 type VariantRow = {
   id: string;
+  metaContentId?: string | null;
   label: string;
   optionSize?: string | null;
   optionColor?: string | null;
@@ -41,6 +43,7 @@ type VariantRow = {
 
 type ProductRow = {
   id: string;
+  metaContentId?: string | null;
   name: string;
   priceCents: number;
   currency: string;
@@ -490,20 +493,27 @@ export function WearCartPageClient() {
         return;
       }
       if (data.url) {
-        // Use the post-discount total for Pixel value — that's what the buyer actually pays.
+        // Use the post-discount total including shipping for Pixel value — that's what Stripe charges.
         const preDiscountCents = serverPricing?.preCents ?? subtotalCents;
-        const valueCents = Math.max(
+        const merchandiseValueCents = Math.max(
           0,
           preDiscountCents - (appliedCoupon?.discountCents ?? 0) - campaignDiscountCents,
         );
         const checkoutCurrency = (serverPricing?.currency ?? currency ?? "EUR").toUpperCase();
+        const shippingValueCents = resolveWearShippingAmountMinorUnits(
+          merchandiseValueCents,
+          checkoutCurrency,
+          shipToCountry,
+        );
+        const valueCents = merchandiseValueCents + shippingValueCents;
         const checkoutValue = Number((valueCents / 100).toFixed(2));
         const numItems = lines.reduce((s, l) => s + (l.quantity || 0), 0);
-        const contentIds = lines.map((l) => l.productId);
+        const contentIds = resolveWearCartMetaContentIds(lines, byId);
 
         // Snapshot for the success page Pixel `Purchase` — the success page only knows the Stripe
         // session_id, so without this it can't fire a Pixel event with value/currency/content_ids.
         setWearCheckoutSnapshot({
+          orderId: data.orderId,
           contentIds,
           value: checkoutValue,
           currency: checkoutCurrency,
@@ -543,6 +553,7 @@ export function WearCartPageClient() {
     appliedCoupon,
     campaignDiscountCents,
     shipToCountry,
+    byId,
   ]);
 
   return (

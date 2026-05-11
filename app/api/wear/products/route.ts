@@ -12,6 +12,7 @@ import {
   resolveWearInternalPricingConfig,
   shouldUseInternalWearPricing,
 } from "@/lib/wear-internal-pricing";
+import { merchantFeedOfferId } from "@/lib/meta-wear-feed";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,7 @@ export async function GET(req: Request) {
         const catalogImages = sortWearCatalogImagesForDisplay(wearImagesFromJson(r.images));
         return {
           id: r.id,
+          metaContentId: merchantFeedOfferId(r.id),
           slug: r.slug,
           name: r.name,
           subtitle: r.subtitle,
@@ -73,6 +75,7 @@ export async function GET(req: Request) {
           isFeatured: r.isFeatured,
           variants: r.variants.map((v) => ({
             id: v.id,
+            metaContentId: merchantFeedOfferId(r.id, v.id),
             label: v.label,
             optionSize: v.optionSize,
             optionColor: v.optionColor,

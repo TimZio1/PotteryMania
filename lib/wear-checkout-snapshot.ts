@@ -14,6 +14,8 @@ const KEY = "pm:wear-checkout-snapshot";
 export type WearCheckoutSnapshot = {
   /** Stripe session_id for browser ↔ CAPI dedup. */
   sessionId?: string;
+  /** Internal wear order id, forwarded to Meta as `order_id` when available. */
+  orderId?: string;
   contentIds: string[];
   /** Major-currency value (e.g. 24.50 for €24.50). */
   value: number;
@@ -47,6 +49,7 @@ export function readWearCheckoutSnapshot(): WearCheckoutSnapshot | null {
     if (typeof parsed.ts !== "number" || Date.now() - parsed.ts > MAX_AGE_MS) return null;
     return {
       sessionId: typeof parsed.sessionId === "string" ? parsed.sessionId : undefined,
+      orderId: typeof parsed.orderId === "string" ? parsed.orderId : undefined,
       contentIds: parsed.contentIds.filter((id): id is string => typeof id === "string"),
       value: parsed.value,
       currency: parsed.currency,

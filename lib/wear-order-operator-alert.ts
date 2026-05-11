@@ -15,7 +15,7 @@ import { resolveBackofficeSiteUrl } from "@/lib/public-site-url";
 import { logApiError } from "@/lib/monitoring";
 import { adminInboxFromAddress, defaultAdminInboxToAddress, buildThreadKey } from "@/lib/admin-inbox";
 
-type WearOrderOperatorAlertKind = "new_order" | "payment_failed";
+type WearOrderOperatorAlertKind = "new_order" | "payment_failed" | "refunded";
 
 function shortRef(id: string): string {
   return id.slice(0, 8).toUpperCase();
@@ -118,6 +118,31 @@ export async function sendWearOrderOperatorAlert(
 
     await upsertAdminInboxRow({
       providerMessageId: `wear-order-payment-failed-${order.id}`,
+      subject,
+      fromAddress,
+      toEmail: inboxToEmail,
+      bodyText: baseFacts.join("\n") + (itemsList ? `\n\nItems:\n${itemsList}` : "") + `\n\n${adminUrl}`,
+      bodyHtml: html,
+      mailbox: "orders",
+    });
+    return;
+  }
+
+  if (kind === "refunded") {
+    const subject = `[Wear] Refund processed ${ref} — ${total}`;
+    const html = renderEmailShell({
+      eyebrow: "Operations · Refund",
+      title: `Wear refund processed — ${total}`,
+      intro: `Stripe reported order #${ref} as refunded. The customer refund email was queued.`,
+      bodyHtml: `${factsHtml}${itemsHtml}${ctaHtml}`,
+    });
+
+    if (adminEmail) {
+      await sendEmailMessages([{ to: adminEmail, subject, html }]);
+    }
+
+    await upsertAdminInboxRow({
+      providerMessageId: `wear-order-refunded-${order.id}`,
       subject,
       fromAddress,
       toEmail: inboxToEmail,

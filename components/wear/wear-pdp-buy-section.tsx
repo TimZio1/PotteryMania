@@ -10,6 +10,7 @@ export type WearPdpVariant = {
   label: string;
   priceCents: number | null;
   stockQuantity: number | null;
+  metaContentId?: string;
 };
 
 export function WearPdpBuySection({
@@ -18,6 +19,7 @@ export function WearPdpBuySection({
   basePriceCents,
   currency,
   variants,
+  metaContentId,
   studioId,
   viewCartHref,
   selectedColor: controlledSelectedColor,
@@ -30,6 +32,8 @@ export function WearPdpBuySection({
   basePriceCents: number;
   currency: string;
   variants: WearPdpVariant[];
+  /** Meta catalog offer id for no-variant products. Variant products use the selected variant id. */
+  metaContentId?: string;
   studioId?: string;
   viewCartHref?: string;
   selectedColor?: string;
@@ -47,6 +51,7 @@ export function WearPdpBuySection({
       };
     });
   }, [variants]);
+  const defaultMetaContentId = metaContentId ?? variantMeta[0]?.metaContentId ?? productId;
 
   const colors = useMemo(() => [...new Set(variantMeta.map((variant) => variant.color))], [variantMeta]);
   const [internalSelectedColor, setInternalSelectedColor] = useState<string>(colors[0] ?? "");
@@ -60,14 +65,14 @@ export function WearPdpBuySection({
     const t = window.setTimeout(() => {
       trackWearEvent(WEAR_EVENT_KINDS.productView, {
         productId,
-        contentIds: [productId],
+        contentIds: [defaultMetaContentId],
         contentName: productName,
         value: Number((basePriceCents / 100).toFixed(2)),
         currency,
       });
     }, 0);
     return () => window.clearTimeout(t);
-  }, [productId, productName, basePriceCents, currency]);
+  }, [productId, productName, basePriceCents, currency, defaultMetaContentId]);
 
   useEffect(() => {
     const fallbackColor = colors[0] ?? "";
@@ -106,6 +111,7 @@ export function WearPdpBuySection({
   );
 
   const displayCents = selected ? (selected.priceCents ?? basePriceCents) : basePriceCents;
+  const selectedMetaContentId = selected?.metaContentId ?? defaultMetaContentId;
 
   const fromCents = useMemo(() => {
     if (variantMeta.length === 0) return basePriceCents;
@@ -243,6 +249,7 @@ export function WearPdpBuySection({
             unitPriceCents={displayCents}
             currency={currency}
             variantId={needsVariant ? selected?.id ?? null : null}
+            contentIds={[selectedMetaContentId]}
             studioId={studioId}
             viewCartHref={viewCartHref}
             quantity={quantity}
@@ -287,6 +294,7 @@ export function WearPdpBuySection({
               unitPriceCents={displayCents}
               currency={currency}
               variantId={needsVariant ? selected?.id ?? null : null}
+              contentIds={[selectedMetaContentId]}
               studioId={studioId}
               viewCartHref={viewCartHref}
               quantity={quantity}

@@ -24,7 +24,7 @@ export function WearSuccessClient() {
     const snapshot = readWearCheckoutSnapshot();
     if (snapshot) {
       trackWearEvent(WEAR_EVENT_KINDS.purchaseSuccess, {
-        orderId: sessionId,
+        orderId: snapshot.orderId ?? sessionId,
         contentIds: snapshot.contentIds,
         value: snapshot.value,
         currency: snapshot.currency,

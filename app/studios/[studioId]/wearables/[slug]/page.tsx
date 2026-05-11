@@ -16,6 +16,7 @@ import {
 import { resolveWearCatalogCategory, wearTopSubcategoryLabel } from "@/lib/wear-categories";
 import { sortWearCatalogImagesForDisplay, wearImagesFromJson } from "@/lib/wear-product-json";
 import { wearPublicProductWhere } from "@/lib/wear-public-filter";
+import { merchantFeedOfferId } from "@/lib/meta-wear-feed";
 
 export const dynamic = "force-dynamic";
 
@@ -114,10 +115,12 @@ export default async function StudioWearPdpPage({ params }: Props) {
                       ? calculateWearPrice(v.priceCents, marginBps)
                       : null,
                   stockQuantity: v.stockQuantity,
+                  metaContentId: merchantFeedOfferId(product.id, v.id),
                 };
               })}
               basePriceCents={priceCents}
               currency={product.currency}
+              metaContentId={merchantFeedOfferId(product.id)}
               studioId={studioId}
               backHref={`/studios/${studioId}`}
               categoryLabel={category.categoryLabel}

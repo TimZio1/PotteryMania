@@ -22,6 +22,7 @@ import { wearListingImageSrc } from "@/lib/wear-listing-image";
 import { formatWearMoney } from "@/lib/wear-money";
 import { wearDisplayName } from "@/lib/wear-display-name";
 import { WEAR_LISTING_COLOR_BADGE_SURFACE, wearListingExtraColorsLabel } from "@/lib/wear-listing-color-badge";
+import { merchantFeedOfferId } from "@/lib/meta-wear-feed";
 
 export const dynamic = "force-dynamic";
 
@@ -159,6 +160,7 @@ export default async function WearProductPage({ params, searchParams }: Props) {
     label: v.label,
     priceCents: v.priceCents,
     stockQuantity: v.stockQuantity,
+    metaContentId: merchantFeedOfferId(p.id, v.id),
   }));
   const inStockVariant = p.variants.find((variant) => (variant.stockQuantity ?? 0) > 0);
   const jsonLd = toJsonLdScript([
@@ -243,6 +245,7 @@ export default async function WearProductPage({ params, searchParams }: Props) {
           variants={variantProps}
           basePriceCents={p.priceCents}
           currency={p.currency}
+          metaContentId={merchantFeedOfferId(p.id)}
           backHref={backHref}
           categoryLabel={category.categoryLabel}
           topSubLabel={category.topSub ? wearTopSubcategoryLabel(category.topSub) : null}

@@ -31,8 +31,8 @@ type TrackOpts = {
   orderId?: string | null;
   /**
    * Meta catalog ID(s) — must match the `id` field of items in your Meta catalog feed (catalog
-   * 622117933589214 for PotteryMania). We send the wear product DB id; configure the catalog feed
-   * to use the same, or override via this prop with slug / SKU if your feed uses a different id.
+   * 622117933589214 for PotteryMania). Wear PDP callers pass feed offer IDs from
+   * `merchantFeedOfferId`; legacy callers fall back to the raw product id.
    */
   contentIds?: string[];
   /** Display name for the pixel — surfaces in Events Manager item rows. */
@@ -134,6 +134,7 @@ function buildMetaParams(pixelEvent: string, opts: TrackOpts): Record<string, un
   return {
     ...(contentIds ? { content_ids: contentIds, content_type: "product" } : {}),
     ...(opts.contentName ? { content_name: opts.contentName } : {}),
+    ...(opts.orderId ? { order_id: opts.orderId } : {}),
     ...(opts.currency ? { currency: opts.currency } : {}),
     ...(opts.value != null ? { value: opts.value } : {}),
     ...(opts.quantity != null

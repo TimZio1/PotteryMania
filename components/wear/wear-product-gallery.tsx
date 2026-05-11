@@ -20,7 +20,6 @@ const PDP_HOOK_APPAREL = "Soft, durable pieces — built to wear in, not sit in 
 
 const PDP_BENEFITS_APPAREL = [
   "Pick your size and color — totals lock before you pay.",
-  "Quick production window — most orders move within a few business days.",
   "Secure checkout via Stripe — Apple Pay, Google Pay, and card supported.",
 ] as const;
 
@@ -75,6 +74,7 @@ export function WearProductGallery({
   variants,
   basePriceCents,
   currency,
+  metaContentId,
   studioId,
   viewCartHref,
   backHref,
@@ -89,6 +89,7 @@ export function WearProductGallery({
   variants: WearPdpVariant[];
   basePriceCents: number;
   currency: string;
+  metaContentId?: string;
   studioId?: string;
   /** Defaults: `/wear/cart` or `/cart` when `studioId` is set. */
   viewCartHref?: string;
@@ -291,6 +292,7 @@ export function WearProductGallery({
           basePriceCents={basePriceCents}
           currency={currency}
           variants={variants}
+          metaContentId={metaContentId}
           studioId={studioId}
           viewCartHref={resolvedViewCartHref}
           selectedColor={selectedColor}

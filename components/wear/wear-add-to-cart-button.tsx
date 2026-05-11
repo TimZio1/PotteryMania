@@ -44,6 +44,8 @@ type Props = {
   currency?: string;
   /** Display name shown in Events Manager item rows. */
   productName?: string;
+  /** Meta catalog offer id(s), matching `/api/meta/wear-catalog.csv`. Falls back to `productId`. */
+  contentIds?: string[];
   /** Hero thumbnail URL for post-add toast (same frame the shopper was viewing). */
   lineImageSrc?: string;
   /** e.g. variant label `M · Navy` for toast copy. */
@@ -62,6 +64,7 @@ export function WearAddToCartButton({
   unitPriceCents,
   currency = "EUR",
   productName,
+  contentIds,
   lineImageSrc,
   variantSummary,
 }: Props) {
@@ -117,7 +120,7 @@ export function WearAddToCartButton({
         trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
           productId,
           variantId: variantId ?? undefined,
-          contentIds: [productId],
+          contentIds: contentIds && contentIds.length > 0 ? contentIds : [productId],
           contentName: productName,
           ...(lineValue != null ? { value: lineValue, currency } : {}),
           quantity: qty,
@@ -161,7 +164,7 @@ export function WearAddToCartButton({
       trackWearEvent(WEAR_EVENT_KINDS.addToCart, {
         productId,
         variantId: variantId ?? undefined,
-        contentIds: [productId],
+        contentIds: contentIds && contentIds.length > 0 ? contentIds : [productId],
         contentName: productName,
         ...(lineValue != null ? { value: lineValue, currency } : {}),
         quantity: qty,
@@ -180,6 +183,7 @@ export function WearAddToCartButton({
     unitPriceCents,
     currency,
     productName,
+    contentIds,
     viewCartHref,
     lineImageSrc,
     variantSummary,

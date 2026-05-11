@@ -36,12 +36,141 @@ import {
 } from "@/lib/wear-affiliate-payouts";
 import { sendWearAffiliateSaleEmail } from "@/lib/wear-affiliate-sale-email";
 import { resolveCheckoutSessionBuyerIdentity } from "@/lib/stripe-checkout-buyer-identity";
+import { applyWearOrderStripeRefund } from "@/lib/wear-order-refunds";
+import { merchantFeedOfferId } from "@/lib/meta-wear-feed";
+import { sendMetaConversionsPurchase } from "@/lib/meta-conversions-api";
 
 /**
  * Payment + manual approval policy: Stripe success always reserves slot capacity (via safeReserveCapacity).
  * If experience.bookingApprovalRequired, booking becomes awaiting_vendor_approval until vendor approves → confirmed.
  * Reject (vendor) releases capacity; customer/vendor cancel via API attempts Stripe refund when policy allows (`stripe-refund-booking`).
  */
+
+function stripeObjectId(value: string | { id?: string } | null | undefined): string | null {
+  if (typeof value === "string") return value;
+  return value?.id ?? null;
+}
+
+function chargeFromPaymentIntent(pi: Stripe.PaymentIntent): Stripe.Charge | null {
+  const charge = pi.latest_charge;
+  if (typeof charge !== "object" || charge === null) return null;
+  if ("deleted" in charge && charge.deleted) return null;
+  return charge as Stripe.Charge;
+}
+
+async function handleWearOrderRefundSideEffects(
+  event: Stripe.Event,
+  result: Awaited<ReturnType<typeof applyWearOrderStripeRefund>>,
+): Promise<void> {
+  if (!result.applied || !result.orderId) return;
+
+  await runStripeWebhookSideEffect(event.id, `wear_order_refunded_email:${result.orderId}`, async () => {
+    await sendWearOrderNotification("refunded", result.orderId!, {
+      stripeEventType: event.type,
+    });
+  });
+  await runStripeWebhookSideEffect(event.id, `wear_order_refunded_operator_alert:${result.orderId}`, async () => {
+    await sendWearOrderOperatorAlert("refunded", result.orderId!, {
+      stripeEventType: event.type,
+    });
+  });
+}
+
+async function handleWearOrderRefundEvent(event: Stripe.Event, req: Request): Promise<boolean> {
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object as Stripe.Charge;
+    const paymentIntentId = stripeObjectId(charge.payment_intent);
+    if (!paymentIntentId) return true;
+
+    const result = await applyWearOrderStripeRefund({
+      paymentIntentId,
+      stripeEventType: event.type,
+      chargeId: charge.id,
+      chargeAmountCents: charge.amount,
+      amountRefundedCents: charge.amount_refunded ?? null,
+      refundAmountCents: charge.amount_refunded ?? null,
+    });
+    await handleWearOrderRefundSideEffects(event, result);
+    return true;
+  }
+
+  if (event.type === "charge.refund.updated" || event.type === "refund.created" || event.type === "refund.updated") {
+    const refund = event.data.object as Stripe.Refund;
+    if (refund.status && refund.status !== "succeeded") return true;
+
+    const paymentIntentId = stripeObjectId(refund.payment_intent);
+    if (!paymentIntentId) return true;
+
+    let charge: Stripe.Charge | null = null;
+    try {
+      const pi = await getStripe().paymentIntents.retrieve(paymentIntentId, {
+        expand: ["latest_charge"],
+      });
+      charge = chargeFromPaymentIntent(pi);
+    } catch (e) {
+      logApiError("stripe_webhook_wear_refund_pi_lookup", e, { paymentIntentId, refundId: refund.id }, req);
+    }
+
+    const result = await applyWearOrderStripeRefund({
+      paymentIntentId,
+      stripeEventType: event.type,
+      refundId: refund.id,
+      refundStatus: refund.status ?? null,
+      chargeId: stripeObjectId(refund.charge) ?? charge?.id ?? null,
+      chargeAmountCents: charge?.amount ?? null,
+      amountRefundedCents: charge?.amount_refunded ?? null,
+      refundAmountCents: refund.amount ?? null,
+    });
+    await handleWearOrderRefundSideEffects(event, result);
+    return true;
+  }
+
+  return false;
+}
+
+async function sendWearMetaPurchaseForOrder(input: {
+  wearOrderId: string;
+  eventId: string;
+  eventSourcePath: "/wear/success" | "/checkout/success";
+}): Promise<void> {
+  const order = await prisma.wearOrder.findUnique({
+    where: { id: input.wearOrderId },
+    select: {
+      id: true,
+      customerEmail: true,
+      currency: true,
+      subtotalCents: true,
+      shippingCents: true,
+      amountTotalCents: true,
+      items: {
+        select: {
+          wearProductId: true,
+          wearProductVariantId: true,
+          quantity: true,
+        },
+      },
+    },
+  });
+  if (!order || order.items.length === 0) return;
+
+  const contentIds = order.items.map((item) =>
+    merchantFeedOfferId(item.wearProductId, item.wearProductVariantId),
+  );
+  const numItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalCents = order.amountTotalCents ?? order.subtotalCents + order.shippingCents;
+  const baseUrl = resolvePublicSiteUrl().replace(/\/+$/, "");
+
+  await sendMetaConversionsPurchase({
+    eventId: input.eventId,
+    orderId: order.id,
+    value: Number((Math.max(0, totalCents) / 100).toFixed(2)),
+    currency: order.currency || "EUR",
+    contentIds,
+    numItems,
+    email: order.customerEmail,
+    eventSourceUrl: `${baseUrl}${input.eventSourcePath}`,
+  });
+}
 
 export async function POST(req: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -75,6 +204,7 @@ export async function POST(req: Request) {
   if (await handleCustomerSubscriptionDeleted(event)) return ack();
   if (await handleCustomerSubscriptionUpdated(event)) return ack();
   if (await handleInvoicePaymentFailed(event)) return ack();
+  if (await handleWearOrderRefundEvent(event, req)) return ack();
 
   if (event.type === "account.updated") {
     const account = event.data.object as Stripe.Account;
@@ -667,6 +797,13 @@ export async function POST(req: Request) {
           });
 
           if (applied) {
+            await runStripeWebhookSideEffect(event.id, `wear_meta_purchase:${wearOrderId}`, async () => {
+              await sendWearMetaPurchaseForOrder({
+                wearOrderId,
+                eventId: session.id,
+                eventSourcePath: "/wear/success",
+              });
+            });
             await runStripeWebhookSideEffect(event.id, `wear_order_confirmed_email:${wearOrderId}`, async () => {
               await sendWearOrderNotification("order_confirmed", wearOrderId);
             });
@@ -762,6 +899,13 @@ export async function POST(req: Request) {
         select: { id: true },
       });
       if (wearOrder) {
+        await runStripeWebhookSideEffect(event.id, `mixed_wear_meta_purchase:${wearOrder.id}`, async () => {
+          await sendWearMetaPurchaseForOrder({
+            wearOrderId: wearOrder.id,
+            eventId: session.id,
+            eventSourcePath: "/checkout/success",
+          });
+        });
         await runStripeWebhookSideEffect(event.id, `mixed_wear_order_confirmed_email:${wearOrder.id}`, async () => {
           await sendWearOrderNotification("order_confirmed", wearOrder.id);
         });
