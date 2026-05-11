@@ -11,13 +11,21 @@ import { resolvePublicSiteUrl } from "@/lib/public-site-url";
 
 export type WearOrderNotifyKind = "order_confirmed" | "fulfilled" | "shipped" | "refunded";
 
+export async function sendWearOrderNotification(
+  kind: WearOrderNotifyKind,
+  orderId: string,
+  context?: Record<string, unknown>,
+): Promise<void> {
+  void context;
+  await sendWearTransactionalEmail(kind, orderId);
+}
+
 export function scheduleWearOrderNotification(
   kind: WearOrderNotifyKind,
   orderId: string,
   context?: Record<string, unknown>,
 ): void {
-  void context;
-  void sendWearTransactionalEmail(kind, orderId).catch((e) =>
+  void sendWearOrderNotification(kind, orderId, context).catch((e) =>
     logApiError("wear_order_email", e, { kind, orderId }),
   );
 }

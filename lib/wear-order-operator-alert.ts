@@ -35,7 +35,7 @@ export function scheduleWearOrderOperatorAlert(
   );
 }
 
-async function sendWearOrderOperatorAlert(
+export async function sendWearOrderOperatorAlert(
   kind: WearOrderOperatorAlertKind,
   orderId: string,
   context?: Record<string, unknown>,

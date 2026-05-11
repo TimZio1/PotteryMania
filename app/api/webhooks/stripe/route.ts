@@ -10,9 +10,10 @@ import {
   claimStripeWebhookEvent,
   markStripeWebhookProcessed,
 } from "@/lib/stripe-webhook-dedup";
+import { isCheckoutSessionPaymentSuccessEvent } from "@/lib/stripe-checkout-session-events";
 import { runStripeWebhookSideEffect } from "@/lib/webhook-event-store";
-import { scheduleWearOrderNotification } from "@/lib/wear-order-notifications";
-import { scheduleWearOrderOperatorAlert } from "@/lib/wear-order-operator-alert";
+import { sendWearOrderNotification } from "@/lib/wear-order-notifications";
+import { scheduleWearOrderOperatorAlert, sendWearOrderOperatorAlert } from "@/lib/wear-order-operator-alert";
 import { logApiError } from "@/lib/monitoring";
 import {
   mapStripeSubscriptionStatus,
@@ -136,9 +137,9 @@ export async function POST(req: Request) {
     return ack();
   }
 
-  if (event.type === "checkout.session.completed") {
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     const session = event.data.object as Stripe.Checkout.Session;
-    if (session.payment_status !== "paid") {
+    if (!isCheckoutSessionPaymentSuccessEvent(event.type, session.payment_status)) {
       return ack();
     }
 
@@ -666,8 +667,12 @@ export async function POST(req: Request) {
           });
 
           if (applied) {
-            scheduleWearOrderNotification("order_confirmed", wearOrderId);
-            scheduleWearOrderOperatorAlert("new_order", wearOrderId);
+            await runStripeWebhookSideEffect(event.id, `wear_order_confirmed_email:${wearOrderId}`, async () => {
+              await sendWearOrderNotification("order_confirmed", wearOrderId);
+            });
+            await runStripeWebhookSideEffect(event.id, `wear_order_operator_alert:${wearOrderId}`, async () => {
+              await sendWearOrderOperatorAlert("new_order", wearOrderId);
+            });
             await runStripeWebhookSideEffect(event.id, `wear_affiliate_payout:${wearOrderId}`, async () => {
               await recordWearAffiliateCommissionAndMaybePayout(wearOrderId);
             });
@@ -757,8 +762,12 @@ export async function POST(req: Request) {
         select: { id: true },
       });
       if (wearOrder) {
-        scheduleWearOrderNotification("order_confirmed", wearOrder.id);
-        scheduleWearOrderOperatorAlert("new_order", wearOrder.id);
+        await runStripeWebhookSideEffect(event.id, `mixed_wear_order_confirmed_email:${wearOrder.id}`, async () => {
+          await sendWearOrderNotification("order_confirmed", wearOrder.id);
+        });
+        await runStripeWebhookSideEffect(event.id, `mixed_wear_order_operator_alert:${wearOrder.id}`, async () => {
+          await sendWearOrderOperatorAlert("new_order", wearOrder.id);
+        });
         await runStripeWebhookSideEffect(event.id, `mixed_wear_spreadconnect:${wearOrder.id}`, async () => {
           const fullSession = await getStripe().checkout.sessions.retrieve(session.id, {
             expand: ["shipping_cost.shipping_rate"],
